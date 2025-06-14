@@ -46,6 +46,7 @@
  */
 
 #include "bf0_hal.h"
+#include "string.h"
 
 /* define ssp version for special usage */
 #define HAL_SSP_VER
@@ -68,6 +69,42 @@
   * @{
   */
 #define SPI_DEFAULT_TIMEOUT 100U
+
+#ifdef DMA_LINK_LIST_SUPPORT
+typedef struct
+{
+    uint32_t frm_hdr_data;
+    uint32_t top_ctrl2;
+} SPI_CmdBufRegDataTypeDef;
+
+/*
+typedef struct
+{
+uint32_t xfer_num;
+SPI_CmdBufRegDataTypeDef reg_data_list[xfer_num];
+DMA_XferDescTypeDef xfer_desc_list[xfer_num * 2];
+// the list has xfer_num*2 nodes
+DMA_LinkListTypeDef dma_link_list;
+}
+*/
+
+#define SPI_CMD_BUF_XFER_NUM_OFFSET                      (0)
+#define SPI_CMD_BUF_XFER_NUM_SIZE                        (sizeof(uint32_t))
+#define SPI_CMD_BUF_REG_DATA_LIST_OFFSET(xfer_num)       (SPI_CMD_BUF_XFER_NUM_OFFSET + SPI_CMD_BUF_XFER_NUM_SIZE)
+#define SPI_CMD_BUF_REG_DATA_LIST_SIZE(xfer_num)         ((xfer_num) * sizeof(SPI_CmdBufRegDataTypeDef))
+#define SPI_CMD_BUF_XFER_DESC_LIST_OFFSET(xfer_num)      (SPI_CMD_BUF_REG_DATA_LIST_OFFSET((xfer_num)) + SPI_CMD_BUF_REG_DATA_LIST_SIZE((xfer_num)))
+#define SPI_CMD_BUF_XFER_DESC_LIST_SIZE(xfer_num)        (2 * (xfer_num) * sizeof(DMA_XferDescTypeDef))
+#define SPI_CMD_BUF_DMA_LINK_LIST_OFFSET(xfer_num)       (SPI_CMD_BUF_XFER_DESC_LIST_OFFSET((xfer_num)) + SPI_CMD_BUF_XFER_DESC_LIST_SIZE((xfer_num)))
+#define SPI_CMD_BUF_DMA_LINK_LIST_SIZE(xfer_num)         (sizeof(DMA_LinkListTypeDef) + 2 * (xfer_num) * sizeof(DMA_ListNodeTypeDef))
+#define SPI_CMD_BUF_SIZE(xfer_num)                       (SPI_CMD_BUF_DMA_LINK_LIST_OFFSET((xfer_num)) + SPI_CMD_BUF_DMA_LINK_LIST_SIZE((xfer_num)))
+
+#define SPI_CMD_BUF_XFER_NUM(cmd_buf)                    (uint32_t *)((uint32_t)(cmd_buf) + SPI_CMD_BUF_XFER_NUM_OFFSET)
+#define SPI_CMD_BUF_REG_DATA_LIST(cmd_buf, xfer_num)     (SPI_CmdBufRegDataTypeDef *)((uint32_t)(cmd_buf) + SPI_CMD_BUF_REG_DATA_LIST_OFFSET((xfer_num)))
+#define SPI_CMD_BUF_XFER_DESC_LIST(cmd_buf, xfer_num)    (DMA_XferDescTypeDef *)((uint32_t)(cmd_buf) + SPI_CMD_BUF_XFER_DESC_LIST_OFFSET((xfer_num)))
+#define SPI_CMD_BUF_DMA_LINK_LIST(cmd_buf, xfer_num)     (DMA_LinkListTypeDef *)((uint32_t)(cmd_buf) + SPI_CMD_BUF_DMA_LINK_LIST_OFFSET((xfer_num)))
+
+#endif /* DMA_LINK_LIST_SUPPORT */
+
 /**
   * @}
   */
@@ -81,6 +118,9 @@
 static void SPI_DMATransmitCplt(DMA_HandleTypeDef *hdma);
 static void SPI_DMAReceiveCplt(DMA_HandleTypeDef *hdma);
 static void SPI_DMATransmitReceiveCplt(DMA_HandleTypeDef *hdma);
+#ifdef DMA_LINK_LIST_SUPPORT
+    static void SPI_DMATransmitReceiveMultipleCplt(DMA_HandleTypeDef *hdma);
+#endif /* DMA_LINK_LIST_SUPPORT */
 static void SPI_DMAHalfTransmitCplt(DMA_HandleTypeDef *hdma);
 static void SPI_DMAHalfReceiveCplt(DMA_HandleTypeDef *hdma);
 static void SPI_DMAHalfTransmitReceiveCplt(DMA_HandleTypeDef *hdma);
@@ -185,6 +225,11 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Init(SPI_HandleTypeDef *hspi)
     HAL_ASSERT(IS_SPI_FRAME_FORMAT(hspi->Init.FrameFormat));
     HAL_ASSERT(IS_SPI_SFRMPOL(hspi->Init.SFRMPol));
 
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    if (hspi->Init.FrameFormat == SPI_FRAME_FORMAT_FRM)
+        HAL_ASSERT(IS_SPI_MASTER(hspi->Init.Mode));
+#endif
+
     if (hspi->Init.FrameFormat != SPI_FRAME_FORMAT_SSP)
     {
         HAL_ASSERT(IS_SPI_CPOL(hspi->Init.CLKPolarity));
@@ -239,6 +284,56 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Init(SPI_HandleTypeDef *hspi)
         }
     }
 #endif
+
+    if (SPI_MODE_MASTER == hspi->Init.Mode)
+    {
+        value = 0;
+    }
+    else
+    {
+        value = SPI_TOP_CTRL_SFRMDIR | SPI_TOP_CTRL_SCLKDIR;
+    }
+
+    value |= (hspi->Init.DataSize | hspi->Init.FrameFormat |
+              hspi->Init.CLKPolarity | hspi->Init.CLKPhase);
+
+    /* Configure : SPI_SFRM_POL*/
+    //WRITE_REG(hspi->Instance->SFRM_POL, (hspi->Init.SFRMPol));
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    if (1 == hspi->Init.BaudRatePrescaler)
+    {
+        SET_BIT(hspi->Instance->TOP_CTRL, SPI_TOP_CTRL_CLK_SEL);
+    }
+    else
+    {
+        MODIFY_REG(hspi->Instance->TOP_CTRL, SPI_TOP_CTRL_CLK_DIV_Msk,
+                   MAKE_REG_VAL(hspi->Init.BaudRatePrescaler, SPI_TOP_CTRL_CLK_DIV_Msk, SPI_TOP_CTRL_CLK_DIV_Pos));
+    }
+
+    SET_BIT(hspi->Instance->TOP_CTRL, SPI_TOP_CTRL_CLK_SSP_EN);
+    SET_BIT(hspi->Instance->TOP_CTRL, value);
+
+    if (hspi->Init.Direction == SPI_DIRECTION_1LINE)
+    {
+        hspi->Instance->TOP_CTRL |= SPI_TOP_CTRL_SPI_TRI_WIRE_EN;
+        hspi->Instance->TOP_CTRL |= SPI_TOP_CTRL_TTE;
+        hspi->Instance->TOP_CTRL |= SPI_TOP_CTRL_SPI_DI_SEL;
+        if (hspi->Init.FrameFormat == SPI_FRAME_FORMAT_FRM)
+        {
+            WRITE_REG(hspi->Instance->TOP_CTRL2, SPI_TOP_CTRL2_FRM_TRI_WIRE_EN);
+        }
+    }
+    else
+    {
+        hspi->Instance->TOP_CTRL &= ~SPI_TOP_CTRL_SPI_TRI_WIRE_EN;
+        hspi->Instance->TOP_CTRL &= ~SPI_TOP_CTRL_TTE;
+        hspi->Instance->TOP_CTRL &= ~SPI_TOP_CTRL_SPI_DI_SEL;
+        WRITE_REG(hspi->Instance->TOP_CTRL2, 0);
+        //hspi->Instance->TOP_CTRL2 &= ~SPI_TOP_CTRL2_FRM_TRI_WIRE_EN;
+    }
+
+#else /*!SPI_FRM_HDR_DATA_HDR_DATA*/
+
     /*for 56x, need enable clock first, then set div.*/
 #ifdef SPI_CLK_CTRL_CLK_SSP_EN
     SET_BIT(hspi->Instance->CLK_CTRL, SPI_CLK_CTRL_CLK_SSP_EN);
@@ -253,18 +348,6 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Init(SPI_HandleTypeDef *hspi)
         MODIFY_REG(hspi->Instance->CLK_CTRL, SPI_CLK_CTRL_CLK_DIV_Msk,
                    MAKE_REG_VAL(hspi->Init.BaudRatePrescaler, SPI_CLK_CTRL_CLK_DIV_Msk, SPI_CLK_CTRL_CLK_DIV_Pos));
     }
-
-    if (SPI_MODE_MASTER == hspi->Init.Mode)
-    {
-        value = 0;
-    }
-    else
-    {
-        value = SPI_TOP_CTRL_SFRMDIR | SPI_TOP_CTRL_SCLKDIR;
-    }
-
-    value |= (hspi->Init.DataSize | hspi->Init.FrameFormat |
-              hspi->Init.CLKPolarity | hspi->Init.CLKPhase);
 
     WRITE_REG(hspi->Instance->TOP_CTRL, value);
 
@@ -286,8 +369,9 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Init(SPI_HandleTypeDef *hspi)
 #ifdef SPI_CLK_CTRL_SPI_DI_SEL
         hspi->Instance->CLK_CTRL &= ~SPI_CLK_CTRL_SPI_DI_SEL;
 #endif /* SPI_CLK_CTRL_SPI_DI_SEL */
-
     }
+
+#endif /*SPI_FRM_HDR_DATA_HDR_DATA*/
 
     /* Issue 1401: Make SPO setting is valid before start transfer data*/
     __HAL_SPI_ENABLE(hspi);
@@ -441,8 +525,6 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, uint8
     /* Check Direction parameter */
     HAL_ASSERT(IS_SPI_DIRECTION_2LINES_OR_1LINE(hspi->Init.Direction));
 
-
-
     /* Process Locked */
     __HAL_LOCK(hspi);
 
@@ -475,6 +557,26 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, uint8
     hspi->TxISR       = NULL;
     hspi->RxISR       = NULL;
 
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    /*spi work in frame mode*/
+    if (hspi->Init.FrameFormat == SPI_FRAME_FORMAT_FRM)
+    {
+        HAL_ASSERT((__HAL_SPI_FRM_HDR_LEN(Size) >= 7) && (__HAL_SPI_FRM_HDR_LEN(Size) <= 31));
+        /*set header data and length*/
+        __HAL_SPI_FRM_HDR_LEN_SET(hspi, Size);
+        __HAL_SPI_FRM_HDR_DATA_WRITE(hspi, pData);
+        /*set frame mode write*/
+        __HAL_SPI_FRM_MODE_TX(hspi);
+        /*set data size int bit num*/
+        __HAL_SPI_FRM_DAT_SIZE_SET(hspi, Size);
+        __HAL_SPI_FRM_RWOT_CYC_SET(hspi);
+        /*get data count and data addr*/
+        hspi->TxXferCount = __HAL_SPI_FRM_DAT_SIZE(Size);
+        hspi->TxXferSize = __HAL_SPI_FRM_DAT_SIZE(Size);
+        pData = (uint8_t *)(pData + sizeof(uint32_t));
+        hspi->pTxBuffPtr  = pData;
+    }
+#endif
     if (hspi->Init.Direction == SPI_DIRECTION_1LINE)
     {
         /*1line tx enable*/
@@ -487,6 +589,14 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, uint8
         /* Enable SPI peripheral */
         __HAL_SPI_ENABLE(hspi);
     }
+
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    if (hspi->Init.FrameFormat == SPI_FRAME_FORMAT_FRM)
+    {
+        while (hspi->Instance->STATUS & SPI_STATUS_CSS);
+        __HAL_SPI_FRM_MODE_START(hspi);/*frame mode start*/
+    }
+#endif
 
     /* Transmit data in 16 Bit mode */
     if (hspi->Init.DataSize > SPI_DATASIZE_8BIT)
@@ -621,7 +731,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_
         HAL_ASSERT(IS_SPI_16BIT_ALIGNED_ADDRESS(pData));
     }
 
-    if ((hspi->Init.Mode == SPI_MODE_MASTER) && (hspi->Init.Direction == SPI_DIRECTION_2LINES))
+    if ((hspi->Init.Mode == SPI_MODE_MASTER) && (hspi->Init.Direction == SPI_DIRECTION_2LINES) && (hspi->Init.FrameFormat != SPI_FRAME_FORMAT_FRM))
     {
         hspi->State = HAL_SPI_STATE_BUSY_RX;
         /* Call transmit-receive function to send Dummy data on Tx line and generate clock on CLK line */
@@ -670,12 +780,33 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_
     }
 #endif /* USE_SPI_CRC */
 
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    /*spi work in frame mode*/
+    if (hspi->Init.FrameFormat == SPI_FRAME_FORMAT_FRM)
+    {
+        HAL_ASSERT((__HAL_SPI_FRM_HDR_LEN(Size) >= 7) && (__HAL_SPI_FRM_HDR_LEN(Size) <= 31));
+        /*set header data and length*/
+        __HAL_SPI_FRM_HDR_LEN_SET(hspi, Size);
+        __HAL_SPI_FRM_HDR_DATA_WRITE(hspi, pData);
+        /*set frame mode write*/
+        __HAL_SPI_FRM_MODE_RX(hspi);
+        /*set data size int bit num*/
+        __HAL_SPI_FRM_DAT_SIZE_SET(hspi, Size);
+        __HAL_SPI_FRM_RWOT_CYC_SET(hspi);
+        /*get data count and data addr*/
+        hspi->RxXferCount = __HAL_SPI_FRM_DAT_SIZE(Size);
+        hspi->RxXferSize = __HAL_SPI_FRM_DAT_SIZE(Size);
+        //pData = (uint8_t *)(pData + sizeof(uint32_t));
+        //hspi->pRxBuffPtr  = pData;
+    }
+#endif
     if (hspi->Init.Direction == SPI_DIRECTION_1LINE)
     {
-
-
         /*1line rx enable*/
         SPI_1LINE_RX(hspi);
+#ifdef SF32LB57X
+//TODO:
+#else
         if (hspi->Init.Mode == SPI_MODE_MASTER)
         {
             /* config receive-only mode, need stop spi*/
@@ -687,6 +818,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_
             SPI_RWOT_CYCEL_ENABLE(hspi);
             SPI_RWOT_SET_CYCEL(hspi);
         }
+#endif /* !SF32LB57X */
     }
 
     /* Check if the SPI is already enabled */
@@ -695,6 +827,15 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_
         /* Enable SPI peripheral */
         __HAL_SPI_ENABLE(hspi);
     }
+
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    if (hspi->Init.FrameFormat == SPI_FRAME_FORMAT_FRM)
+    {
+        while (hspi->Instance->STATUS & SPI_STATUS_CSS);
+        __HAL_SPI_FRM_MODE_START(hspi);/*frame mode start*/
+    }
+
+#endif
 
     /* Receive data in 8 Bit mode */
     if (hspi->Init.DataSize <= SPI_DATASIZE_8BIT)
@@ -729,8 +870,6 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_
             /* Check the RXNE flag */
             if (__HAL_SPI_GET_FLAG(hspi, SPI_FLAG_RXNE))
             {
-
-
                 *((uint16_t *)pData) = hspi->Instance->DATA;
                 pData += sizeof(uint16_t);
                 hspi->RxXferCount--;
@@ -796,6 +935,9 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_TransmitReceive(SPI_HandleTypeDef *hspi
     HAL_StatusTypeDef errorcode = HAL_OK;
 
     SPI_PRINTF("HAL_SPI_TransmitReceive %x,Txdata=%x, Rxdata=%x, Size=%d \r\n", hspi, pTxData, pRxData, Size);
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    HAL_ASSERT(hspi->Init.FrameFormat != SPI_FRAME_FORMAT_FRM);
+#endif
 
 #ifndef HAL_SSP_VER
     //MODIFY_REG(hspi->Instance->CR0, SPI_CR0_FRF, SPI_CR0_FRF_NM);
@@ -1074,11 +1216,30 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Transmit_IT(SPI_HandleTypeDef *hspi, ui
     }
 #endif /* USE_SPI_CRC */
 
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    /*spi work in frame mode*/
+    if (hspi->Init.FrameFormat == SPI_FRAME_FORMAT_FRM)
+    {
+        HAL_ASSERT((__HAL_SPI_FRM_HDR_LEN(Size) >= 7) && (__HAL_SPI_FRM_HDR_LEN(Size) <= 31));
+        /*set header data and length*/
+        __HAL_SPI_FRM_HDR_LEN_SET(hspi, Size);
+        __HAL_SPI_FRM_HDR_DATA_WRITE(hspi, pData);
+        /*set frame mode write*/
+        __HAL_SPI_FRM_MODE_TX(hspi);
+        /*set data size int bit num*/
+        __HAL_SPI_FRM_DAT_SIZE_SET(hspi, Size);
+        __HAL_SPI_FRM_RWOT_CYC_SET(hspi);
+        /*get data count and data addr*/
+        hspi->TxXferCount = __HAL_SPI_FRM_DAT_SIZE(Size);
+        hspi->TxXferSize = __HAL_SPI_FRM_DAT_SIZE(Size);
+        pData = (uint8_t *)(pData + sizeof(uint32_t));
+        hspi->pTxBuffPtr  = pData;
+    }
+#endif
     if (hspi->Init.Direction == SPI_DIRECTION_1LINE)
     {
         /*1line tx enable*/
         SPI_1LINE_TX(hspi);
-
     }
 
     /* Enable TXE and ERR interrupt */
@@ -1091,6 +1252,13 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Transmit_IT(SPI_HandleTypeDef *hspi, ui
         __HAL_SPI_ENABLE(hspi);
     }
 
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    if (hspi->Init.FrameFormat == SPI_FRAME_FORMAT_FRM)
+    {
+        while (hspi->Instance->STATUS & SPI_STATUS_CSS);
+        __HAL_SPI_FRM_MODE_START(hspi);/*frame mode start*/
+    }
+#endif
 error :
     __HAL_UNLOCK(hspi);
     return errorcode;
@@ -1116,13 +1284,12 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Receive_IT(SPI_HandleTypeDef *hspi, uin
         HAL_ASSERT(IS_SPI_16BIT_ALIGNED_ADDRESS(pData));
     }
 
-    if ((hspi->Init.Direction == SPI_DIRECTION_2LINES) && (hspi->Init.Mode == SPI_MODE_MASTER))
+    if ((hspi->Init.Direction == SPI_DIRECTION_2LINES) && (hspi->Init.Mode == SPI_MODE_MASTER) && (hspi->Init.FrameFormat != SPI_FRAME_FORMAT_FRM))
     {
         hspi->State = HAL_SPI_STATE_BUSY_RX;
         /* Call transmit-receive function to send Dummy data on Tx line and generate clock on CLK line */
         return HAL_SPI_TransmitReceive_IT(hspi, pData, pData, Size);
     }
-
 
     /* Process Locked */
     __HAL_LOCK(hspi);
@@ -1181,11 +1348,34 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Receive_IT(SPI_HandleTypeDef *hspi, uin
     }
 #endif /* USE_SPI_CRC */
 
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    /*spi work in frame mode*/
+    if (hspi->Init.FrameFormat == SPI_FRAME_FORMAT_FRM)
+    {
+        HAL_ASSERT((__HAL_SPI_FRM_HDR_LEN(Size) >= 7) && (__HAL_SPI_FRM_HDR_LEN(Size) <= 31));
+        /*set header data and length*/
+        __HAL_SPI_FRM_HDR_LEN_SET(hspi, Size);
+        __HAL_SPI_FRM_HDR_DATA_WRITE(hspi, pData);
+        /*set frame mode write*/
+        __HAL_SPI_FRM_MODE_RX(hspi);
+        /*set data size int bit num*/
+        __HAL_SPI_FRM_DAT_SIZE_SET(hspi, Size);
+        __HAL_SPI_FRM_RWOT_CYC_SET(hspi);
+        /*get data count and data addr*/
+        hspi->RxXferCount = __HAL_SPI_FRM_DAT_SIZE(Size);
+        hspi->RxXferSize = __HAL_SPI_FRM_DAT_SIZE(Size);
+        //pData = (uint8_t *)(pData + sizeof(uint32_t));
+        //hspi->pRxBuffPtr  = pData;
+    }
+#endif
     if (hspi->Init.Direction == SPI_DIRECTION_1LINE)
     {
         /*1line rx enable*/
         SPI_1LINE_RX(hspi);
 
+#ifdef SF32LB57X
+//TODO:
+#else
         if (hspi->Init.Mode == SPI_MODE_MASTER)
         {
             /* config receive-only mode, need stop spi*/
@@ -1197,7 +1387,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Receive_IT(SPI_HandleTypeDef *hspi, uin
             SPI_RWOT_CYCEL_ENABLE(hspi);
             SPI_RWOT_SET_CYCEL(hspi);
         }
-
+#endif /* SF32LB57X */
 
     }
 
@@ -1215,6 +1405,13 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Receive_IT(SPI_HandleTypeDef *hspi, uin
         __HAL_SPI_ENABLE(hspi);
     }
 
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    if (hspi->Init.FrameFormat == SPI_FRAME_FORMAT_FRM)
+    {
+        while (hspi->Instance->STATUS & SPI_STATUS_CSS);
+        __HAL_SPI_FRM_MODE_START(hspi);/*frame mode start*/
+    }
+#endif
 error :
     /* Process Unlocked */
     __HAL_UNLOCK(hspi);
@@ -1236,6 +1433,11 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_TransmitReceive_IT(SPI_HandleTypeDef *h
     HAL_StatusTypeDef errorcode = HAL_OK;
 
     SPI_PRINTF("HAL_SPI_TransmitReceive_IT %x,Txdata=%x, Rxdata=%x, Size=%d \r\n", hspi, pTxData, pRxData, Size);
+
+
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    HAL_ASSERT(hspi->Init.FrameFormat != SPI_FRAME_FORMAT_FRM);
+#endif
 
     if ((hspi->Init.DataSize > SPI_DATASIZE_8BIT)/* || (Size > 1U)*/)
     {
@@ -1386,7 +1588,26 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Transmit_DMA(SPI_HandleTypeDef *hspi, u
         SPI_RESET_CRC(hspi);
     }
 #endif /* USE_SPI_CRC */
-
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    /*spi work in frame mode*/
+    if (hspi->Init.FrameFormat == SPI_FRAME_FORMAT_FRM)
+    {
+        HAL_ASSERT((__HAL_SPI_FRM_HDR_LEN(Size) >= 7) && (__HAL_SPI_FRM_HDR_LEN(Size) <= 31));
+        /*set header data and length*/
+        __HAL_SPI_FRM_HDR_LEN_SET(hspi, Size);
+        __HAL_SPI_FRM_HDR_DATA_WRITE(hspi, pData);
+        /*set frame mode write*/
+        __HAL_SPI_FRM_MODE_TX(hspi);
+        /*set data size int bit num*/
+        __HAL_SPI_FRM_DAT_SIZE_SET(hspi, Size);
+        __HAL_SPI_FRM_RWOT_CYC_SET(hspi);
+        /*get data count and data addr*/
+        hspi->TxXferCount = __HAL_SPI_FRM_DAT_SIZE(Size);
+        hspi->TxXferSize = __HAL_SPI_FRM_DAT_SIZE(Size);
+        pData = (uint8_t *)(pData + sizeof(uint32_t));
+        hspi->pTxBuffPtr  = pData;
+    }
+#endif
     if (hspi->Init.Direction == SPI_DIRECTION_1LINE)
     {
         /*1line tx enable*/
@@ -1422,6 +1643,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Transmit_DMA(SPI_HandleTypeDef *hspi, u
     __HAL_SPI_ENABLE_IT(hspi, (SPI_IT_TXE));
     hspi->Instance->FIFO_CTRL |= SPI_FIFO_CTRL_TSRE;
     hspi->Instance->FIFO_CTRL &= ~SPI_FIFO_CTRL_RSRE;
+    hspi->Instance->FIFO_CTRL &= ~SPI_FIFO_CTRL_RXFIFO_AUTO_FULL_CTRL;
 
     /* Enable the Tx DMA Stream/Channel */
     HAL_DMA_Start_IT(hspi->hdmatx, (uint32_t)hspi->pTxBuffPtr, (uint32_t)&hspi->Instance->DATA, hspi->TxXferCount);
@@ -1435,6 +1657,13 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Transmit_DMA(SPI_HandleTypeDef *hspi, u
 
     /* Enable the SPI Error Interrupt Bit */
     __HAL_SPI_ENABLE_IT(hspi, (SPI_IT_ERR));
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    if (hspi->Init.FrameFormat == SPI_FRAME_FORMAT_FRM)
+    {
+        while (hspi->Instance->STATUS & SPI_STATUS_CSS);
+        __HAL_SPI_FRM_MODE_START(hspi);/*frame mode start*/
+    }
+#endif
 
 error :
     /* Process Unlocked */
@@ -1460,7 +1689,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Receive_DMA(SPI_HandleTypeDef *hspi, ui
     /* check rx dma handle */
     HAL_ASSERT(IS_SPI_DMA_HANDLE(hspi->hdmarx));
 
-    if ((hspi->Init.Direction == SPI_DIRECTION_2LINES) && (hspi->Init.Mode == SPI_MODE_MASTER))
+    if ((hspi->Init.Direction == SPI_DIRECTION_2LINES) && (hspi->Init.Mode == SPI_MODE_MASTER) && (hspi->Init.FrameFormat != SPI_FRAME_FORMAT_FRM))
     {
         hspi->State = HAL_SPI_STATE_BUSY_RX;
 
@@ -1508,12 +1737,33 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Receive_DMA(SPI_HandleTypeDef *hspi, ui
         SPI_RESET_CRC(hspi);
     }
 #endif /* USE_SPI_CRC */
-
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    /*spi work in frame mode*/
+    if (hspi->Init.FrameFormat == SPI_FRAME_FORMAT_FRM)
+    {
+        HAL_ASSERT((__HAL_SPI_FRM_HDR_LEN(Size) >= 7) && (__HAL_SPI_FRM_HDR_LEN(Size) <= 31));
+        /*set header data and length*/
+        __HAL_SPI_FRM_HDR_LEN_SET(hspi, Size);
+        __HAL_SPI_FRM_HDR_DATA_WRITE(hspi, pData);
+        /*set frame mode write*/
+        __HAL_SPI_FRM_MODE_RX(hspi);
+        /*set data size int bit num*/
+        __HAL_SPI_FRM_DAT_SIZE_SET(hspi, Size);
+        __HAL_SPI_FRM_RWOT_CYC_SET(hspi);
+        /*get data count and data addr*/
+        hspi->RxXferCount = __HAL_SPI_FRM_DAT_SIZE(Size);
+        hspi->RxXferSize = __HAL_SPI_FRM_DAT_SIZE(Size);
+        //pData = (uint8_t *)(pData + sizeof(uint32_t));
+        //hspi->pRxBuffPtr  = pData;
+    }
+#endif
     if (hspi->Init.Direction == SPI_DIRECTION_1LINE)
     {
         /*1line rx enable*/
         SPI_1LINE_RX(hspi);
-
+#ifdef SF32LB57X
+//TODO:
+#else
         if (hspi->Init.Mode == SPI_MODE_MASTER)
         {
             /* config receive-only mode, need stop spi*/
@@ -1525,24 +1775,18 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Receive_DMA(SPI_HandleTypeDef *hspi, ui
             SPI_RWOT_CYCEL_ENABLE(hspi);
             SPI_RWOT_SET_CYCEL(hspi);
         }
-
+#endif /* SF32LB57X */
     }
 
-    if (hspi->Init.DataSize > SPI_DATASIZE_8BIT)
+    if ((hspi->Init.DataSize <= SPI_DATASIZE_8BIT) && (hspi->hdmarx->Init.MemDataAlignment == DMA_MDATAALIGN_HALFWORD))
     {
-    }
-    else
-    {
-        if (hspi->hdmarx->Init.MemDataAlignment == DMA_MDATAALIGN_HALFWORD)
+        if ((hspi->RxXferCount & 0x1U) == 0x0U)
         {
-            if ((hspi->RxXferCount & 0x1U) == 0x0U)
-            {
-                hspi->RxXferCount = hspi->RxXferCount >> 1U;
-            }
-            else
-            {
-                hspi->RxXferCount = (hspi->RxXferCount >> 1U) + 1U;
-            }
+            hspi->RxXferCount = hspi->RxXferCount >> 1U;
+        }
+        else
+        {
+            hspi->RxXferCount = (hspi->RxXferCount >> 1U) + 1U;
         }
     }
 
@@ -1574,6 +1818,13 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Receive_DMA(SPI_HandleTypeDef *hspi, ui
 
     /* Enable the SPI Error Interrupt Bit */
     __HAL_SPI_ENABLE_IT(hspi, (SPI_IT_ERR));
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    if (hspi->Init.FrameFormat == SPI_FRAME_FORMAT_FRM)
+    {
+        while (hspi->Instance->STATUS & SPI_STATUS_CSS);
+        __HAL_SPI_FRM_MODE_START(hspi);/*frame mode start*/
+    }
+#endif
 
 error:
     /* Process Unlocked */
@@ -1602,7 +1853,9 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_TransmitReceive_DMA(SPI_HandleTypeDef *
     /* check rx & tx dma handles */
     HAL_ASSERT(IS_SPI_DMA_HANDLE(hspi->hdmarx));
     HAL_ASSERT(IS_SPI_DMA_HANDLE(hspi->hdmatx));
-
+#ifdef SPI_FRM_HDR_DATA_HDR_DATA
+    HAL_ASSERT(hspi->Init.FrameFormat != SPI_FRAME_FORMAT_FRM);
+#endif
     /* Check Direction parameter */
     HAL_ASSERT(IS_SPI_DIRECTION_2LINES(hspi->Init.Direction));
 
@@ -1735,6 +1988,226 @@ error :
     __HAL_UNLOCK(hspi);
     return errorcode;
 }
+
+#ifdef DMA_LINK_LIST_SUPPORT
+static uint32_t SPI_ConfigDmaXferTask(SPI_HandleTypeDef *hspi, SPI_RtxRequestTypeDef *Request,
+                                      SPI_CmdBufRegDataTypeDef *reg_data, DMA_XferDescTypeDef *xfer_desc)
+{
+    int32_t data_size;
+    uint16_t xfer_size;
+    uint8_t hdr_len;
+
+    data_size = __HAL_SPI_FRM_DAT_SIZE(Request->Size);
+
+    /* set header length */
+    hdr_len = __HAL_SPI_FRM_HDR_LEN(Request->Size);
+    reg_data->top_ctrl2 = MAKE_REG_VAL(hdr_len, SPI_TOP_CTRL2_FRM_HDR_LENGTH_Msk, SPI_TOP_CTRL2_FRM_HDR_LENGTH_Pos);
+    if (Request->IsRead)
+    {
+        reg_data->top_ctrl2 &= ~SPI_TOP_CTRL2_FRM_MODE;
+    }
+    else
+    {
+        reg_data->top_ctrl2 |= SPI_TOP_CTRL2_FRM_MODE;
+    }
+    reg_data->top_ctrl2 |= MAKE_REG_VAL(__HAL_SPI_FRM_DAT_SIZE_BIT(hspi, Request->Size), SPI_TOP_CTRL2_SSPRWOTCCM_Msk, SPI_TOP_CTRL2_SSPRWOTCCM_Pos);
+    reg_data->top_ctrl2 |= SPI_TOP_CTRL2_SET_RWOT_CYCLE | SPI_TOP_CTRL2_FRM_START;
+
+    reg_data->frm_hdr_data = Request->pData[0] + ((uint32_t)Request->pData[1] << 8)
+                             + ((uint32_t)Request->pData[2] << 16) + ((uint32_t)Request->pData[3] << 24);
+
+    /* node to update registers */
+    xfer_desc->Init.Request = DMA_REQUEST_0;
+    xfer_desc->Init.Direction = DMA_MEMORY_TO_MEMORY;
+    xfer_desc->Init.PeriphInc = DMA_PINC_ENABLE;
+    xfer_desc->Init.MemInc = DMA_MINC_ENABLE;
+    xfer_desc->Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    xfer_desc->Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+    xfer_desc->Init.Mode = DMA_NORMAL;
+    xfer_desc->Init.Priority = DMA_PRIORITY_HIGH;
+    xfer_desc->Init.BurstSize = 0;
+    xfer_desc->SrcAddress = (uint32_t)reg_data;
+    xfer_desc->DstAddress = (uint32_t)&hspi->Instance->FRM_HDR_DATA;
+    /* 2 consecutive registers, FRM_HDR_DATA and TOP_CTRL2 */
+    xfer_desc->Counts = 2;
+    xfer_desc->Delay = 0;
+    xfer_desc->StartTrigger = 0;
+    xfer_desc->EndTrigger = 0;
+    xfer_desc->EndTriggerEdge = 0;
+    xfer_desc->EndTriggerPolarity = 0;
+
+    xfer_desc++;
+
+    /* node for spi transmission */
+    /* always use rx channel */
+    if (Request->IsRead)
+    {
+        memcpy((void *)&xfer_desc->Init, (void *)&hspi->hdmarx->Init, sizeof(xfer_desc->Init));
+        xfer_desc->SrcAddress = (uint32_t)&hspi->Instance->DATA;
+        xfer_desc->DstAddress = (uint32_t)Request->pData;
+        xfer_desc->EndTrigger = xfer_desc->Init.EndTrigger;
+    }
+    else
+    {
+        memcpy((void *)&xfer_desc->Init, (void *)&hspi->hdmatx->Init, sizeof(xfer_desc->Init));
+        xfer_desc->SrcAddress = (uint32_t)Request->pData + sizeof(uint32_t);
+        xfer_desc->DstAddress = (uint32_t)&hspi->Instance->DATA;
+        xfer_desc->EndTrigger = xfer_desc->Init.EndTrigger;
+    }
+    if ((hspi->Init.DataSize <= SPI_DATASIZE_8BIT) && (xfer_desc->Init.MemDataAlignment == DMA_MDATAALIGN_HALFWORD))
+    {
+        /* Check the even/odd of the data size + crc if enabled */
+        if ((data_size & 0x1U) == 0U)
+        {
+            data_size = (data_size >> 1U);
+        }
+        else
+        {
+            data_size = (data_size >> 1U) + 1U;
+        }
+    }
+    xfer_desc->Counts = data_size;
+    xfer_desc->Delay = 5; //delay 10us(16*2^5/48MHz)  //TODO:
+    xfer_desc->StartTrigger = 0;
+    xfer_desc->EndTriggerEdge = DMA_TRIG_LEVEL;
+    xfer_desc->EndTriggerPolarity = DMA_TRIG_HIGH;
+    xfer_desc++;
+
+    return 1;
+}
+
+uint32_t HAL_SPI_GetMultiRtxCmdBufSize(SPI_RtxRequestTypeDef *Requests, uint16_t Num)
+{
+    uint32_t xfer_num;
+
+    xfer_num = Num;
+
+    return SPI_CMD_BUF_SIZE(xfer_num);
+}
+
+HAL_StatusTypeDef HAL_SPI_PrepareMultiRtxCmdBuf(SPI_HandleTypeDef *hspi, SPI_RtxRequestTypeDef *Request, uint16_t Num, void *CmdBuf, uint32_t BufSize)
+{
+    uint32_t i;
+    uint32_t cnt;
+    DMA_LinkListTypeDef *dma_link_list;
+    DMA_XferDescTypeDef *xfer_desc;
+    DMA_XferDescTypeDef *xfer_desc_list;
+    SPI_CmdBufRegDataTypeDef *reg_data;
+    HAL_StatusTypeDef status;
+    uint32_t xfer_num;
+    uint32_t xfer_num_per_request;
+
+    xfer_num = Num;
+
+    if (hspi->Init.FrameFormat != SPI_FRAME_FORMAT_FRM)
+    {
+        return HAL_ERROR;
+    }
+    if (SPI_CMD_BUF_SIZE(xfer_num) != BufSize)
+    {
+        return HAL_ERROR;
+    }
+    if (!hspi->hdmarx || !hspi->hdmatx)
+    {
+        return HAL_ERROR;
+    }
+
+    *SPI_CMD_BUF_XFER_NUM(CmdBuf) = xfer_num;
+    reg_data = SPI_CMD_BUF_REG_DATA_LIST(CmdBuf, xfer_num);
+    xfer_desc = SPI_CMD_BUF_XFER_DESC_LIST(CmdBuf, xfer_num);
+    xfer_desc_list = xfer_desc;
+
+    dma_link_list = SPI_CMD_BUF_DMA_LINK_LIST(CmdBuf, xfer_num);
+    for (i = 0; i < Num; i++)
+    {
+        SPI_ConfigDmaXferTask(hspi, Request, reg_data, xfer_desc);
+
+        reg_data += 1;
+        /* reg_data copy and SPI transfer for each */
+        xfer_desc += 2;
+        Request++;
+    }
+
+    status = HAL_DMA_PrepareMultiple(hspi->hdmarx, xfer_desc_list, (2 * xfer_num), dma_link_list);
+
+    return status;
+}
+
+__HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_TransmitReceiveMultiple_DMA(SPI_HandleTypeDef *hspi, void *CmdBuf)
+{
+    HAL_StatusTypeDef errorcode = HAL_OK;
+    DMA_LinkListTypeDef *dma_link_list;
+    uint32_t xfer_num;
+
+    /* check rx dma handle */
+    HAL_ASSERT(IS_SPI_DMA_HANDLE(hspi->hdmarx));
+
+    /* Process Locked */
+    __HAL_LOCK(hspi);
+    __HAL_SPI_DISABLE_IT(hspi, (SPI_IT_TXE | SPI_IT_RXNE | SPI_IT_ERR));
+
+    if (hspi->State != HAL_SPI_STATE_READY)
+    {
+        errorcode = HAL_BUSY;
+        goto error;
+    }
+
+    if (CmdBuf == NULL)
+    {
+        errorcode = HAL_ERROR;
+        goto error;
+    }
+
+    /* Set the transaction information */
+    hspi->State       = HAL_SPI_STATE_BUSY_RX;
+    hspi->ErrorCode   = HAL_SPI_ERROR_NONE;
+
+    /*Init field not used in handle to zero */
+    hspi->RxISR       = NULL;
+    hspi->TxISR       = NULL;
+    hspi->TxXferSize  = 0U;
+    hspi->TxXferCount = 0U;
+
+    if (hspi->Init.Direction == SPI_DIRECTION_1LINE)
+    {
+        /*1line rx enable*/
+        SPI_1LINE_RX(hspi);
+    }
+
+    /* Set the SPI RxDMA Half transfer complete callback */
+    hspi->hdmarx->XferHalfCpltCallback = NULL;
+
+    /* Set the SPI Rx DMA transfer complete callback */
+    hspi->hdmarx->XferCpltCallback = SPI_DMATransmitReceiveMultipleCplt;
+
+    /* Set the DMA error callback */
+    hspi->hdmarx->XferErrorCallback = SPI_DMAError;
+
+    /* Set the DMA AbortCpltCallback */
+    hspi->hdmarx->XferAbortCallback = NULL;
+
+    hspi->Instance->FIFO_CTRL |= SPI_FIFO_CTRL_RSRE | SPI_FIFO_CTRL_TSRE;
+
+    /* Check if the SPI is already enabled */
+    if ((hspi->Instance->TOP_CTRL & SPI_TOP_CTRL_SSE) != SPI_TOP_CTRL_SSE)
+    {
+        /* Enable SPI peripheral, SPI must be enabled before starting DMA for linked-list mode */
+        __HAL_SPI_ENABLE(hspi);
+    }
+
+    xfer_num = *SPI_CMD_BUF_XFER_NUM(CmdBuf);
+    dma_link_list = SPI_CMD_BUF_DMA_LINK_LIST(CmdBuf, xfer_num);
+    errorcode = HAL_DMA_StartMutiple_IT(hspi->hdmarx, dma_link_list);
+
+    /* Enable the SPI Error Interrupt Bit */
+    __HAL_SPI_ENABLE_IT(hspi, (SPI_IT_ERR));
+
+error:
+    /* Process Unlocked */
+    __HAL_UNLOCK(hspi);
+    return errorcode;
+}
+#endif /* DMA_LINK_LIST_SUPPORT */
 
 /**
   * @brief  Abort ongoing transfer (blocking mode).
@@ -2712,6 +3185,29 @@ static void SPI_DMATransmitReceiveCplt(DMA_HandleTypeDef *hdma)
     HAL_SPI_TxRxCpltCallback(hspi);
 }
 
+#ifdef DMA_LINK_LIST_SUPPORT
+static void SPI_DMATransmitReceiveMultipleCplt(DMA_HandleTypeDef *hdma)
+{
+    SPI_HandleTypeDef *hspi = (SPI_HandleTypeDef *)((DMA_HandleTypeDef *)hdma)->Parent;
+
+    /* Disable ERR interrupt */
+    __HAL_SPI_DISABLE_IT(hspi, SPI_IT_ERR);
+
+    hspi->TxXferCount = 0U;
+    hspi->RxXferCount = 0U;
+    hspi->State = HAL_SPI_STATE_READY;
+
+    if (hspi->ErrorCode != HAL_SPI_ERROR_NONE)
+    {
+        HAL_SPI_ErrorCallback(hspi);
+        return;
+    }
+
+    HAL_SPI_TxRxCpltCallback(hspi);
+}
+#endif /* DMA_LINK_LIST_SUPPORT */
+
+
 /**
   * @brief  DMA SPI half transmit process complete callback.
   * @param  hdma pointer to a DMA_HandleTypeDef structure that contains
@@ -3460,7 +3956,9 @@ static HAL_StatusTypeDef SPI_EndRxTransaction(SPI_HandleTypeDef *hspi,  uint32_t
         /* Disable SPI peripheral */
         __HAL_SPI_DISABLE(hspi);
     }
-
+#ifdef SF32LB57X
+//TODO:
+#else
     if (hspi->Init.Direction == SPI_DIRECTION_1LINE)
     {
         if (hspi->Init.Mode == SPI_MODE_MASTER)
@@ -3470,7 +3968,7 @@ static HAL_StatusTypeDef SPI_EndRxTransaction(SPI_HandleTypeDef *hspi,  uint32_t
             SPI_SET_RWOT_TRANSMIT_RECEIVE_MODE(hspi);
         }
     }
-
+#endif /* SF32LB57X */
     /* Control the BSY flag */
     if (SPI_WaitFlagStateUntilTimeout(hspi, SPI_FLAG_BSY, RESET, Timeout, Tickstart) != HAL_OK)
     {
@@ -3765,7 +4263,7 @@ static uint8_t SPI_GetIdx(SPI_HandleTypeDef *hspi)
     if (SPI1 == hspi->Instance) return 1;
     if (SPI2 == hspi->Instance) return 2;
 
-#ifndef SF32LB52X
+#if !defined(SF32LB52X) && !defined(SF32LB57X)
     if (SPI3 == hspi->Instance) return 3;
     if (SPI4 == hspi->Instance) return 4;
 #endif

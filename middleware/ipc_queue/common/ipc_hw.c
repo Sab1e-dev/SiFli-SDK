@@ -112,12 +112,16 @@ int32_t ipc_hw_enable_interrupt(ipc_hw_q_handle_t *hw_q_handle, uint8_t qid, uin
     hw_q_handle->ch_id = ch_id;
     hw_q_handle->q_idx = q_idx;
 
+#ifdef RISCV
+    ECLIC_Register_IRQ(ch_cfg->rx.irqn, ECLIC_NON_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 3, 0, NULL);
+#else
+
     /* receiver enable NVIC IRQ */
     /* set the mailbox priority */
     HAL_NVIC_SetPriority(ch_cfg->rx.irqn, 3, 0);
     /* enable the mailbox global Interrupt */
     HAL_NVIC_EnableIRQ(ch_cfg->rx.irqn);
-
+#endif
     /* sender unmask interrupt */
     __HAL_MAILBOX_UNMASK_CHANNEL_IT(&ch_cfg->tx.handle, q_idx);
 

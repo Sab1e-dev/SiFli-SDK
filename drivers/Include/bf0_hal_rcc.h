@@ -378,12 +378,14 @@ typedef enum
     RCC_MOD_SECU1,
     RCC_MOD_SECU2,
     RCC_MOD_AUDCODEC,
+    RCC_MOD_JPEGD,
+    RCC_MOD_DCMI,
 } RCC_MODULE_TYPE;
 #endif
 
 #define RCC_MOD_I2S_ALL     RCC_MOD_I2S1
 
-#if defined(SF32LB52X)
+#if defined(SF32LB52X) || defined(SF32LB57X)
 typedef enum
 {
     HPSYS_DVFS_MODE_D0,
@@ -868,7 +870,7 @@ void HAL_RCC_Reset_DMAC2_and_MPI5();
 void HAL_RCC_Reset_DMAC3_and_MPI5();
 #endif
 
-#if defined(SF32LB52X) && defined(SOC_BF0_HCPU)
+#if (defined(SF32LB52X) || defined(SF32LB57X)) && defined(SOC_BF0_HCPU)
 /**
  * @brief  Config HPSYS HCLK
  *

@@ -139,6 +139,7 @@
         #define COMPATIBLE_WITH_SIFLI_EPIC_FILL  /*Compatible lvgl fill with sifli EPIC fill*/
 
         #if ((!defined(SF32LB55X) && (4 == FT_BPP)) || (!(defined(SF32LB55X)||defined(SF32LB56X)||defined(SF32LB58X)) && (2 == FT_BPP))) && LV_USING_FREETYPE_ENGINE
+            //TODO:  too complex condition
             #define COMPATIBLE_WITH_SIFLI_EPIC_Ax  1 /*Attach dummy pixels for every row to align to 1 byte for A2/A4 color format*/
         #else
             #define COMPATIBLE_WITH_SIFLI_EPIC_Ax  0 /*55x not support Ax*/

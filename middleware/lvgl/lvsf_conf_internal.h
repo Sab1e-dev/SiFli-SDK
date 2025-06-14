@@ -99,4 +99,6 @@
     #define LVSF_USE_BARCODE 1
 #endif
 
+#define LVSF_IMG_CF_JPEG    (LV_IMG_CF_USER_ENCODED_0)
+
 #endif /*LVSF_CONF_INTERNAL_H*/

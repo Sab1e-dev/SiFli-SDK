@@ -464,7 +464,6 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_AUDPRC_Clear_Adc_Channel(AUDPRC_HandleTypeD
   */
 __HAL_ROM_USED HAL_StatusTypeDef HAL_AUDPRC_Config_DACPath_Volume(AUDPRC_HandleTypeDef *haprc, int channel, int volume)
 {
-    uint32_t rough_vol, fine_vol;
 
     /* Check the AUDPRC handle allocation */
     if (haprc == NULL)
@@ -476,7 +475,8 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_AUDPRC_Config_DACPath_Volume(AUDPRC_HandleT
     {
         return HAL_ERROR;
     }
-#ifdef SF32LB52X
+#ifdef AUDPRC_DAC_PATH_CFG0_ROUGH_VOL_L_Msk
+    uint32_t rough_vol, fine_vol;
 
     if ((volume < -36) || (volume > 60))
     {
@@ -595,7 +595,6 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_AUDPRC_Config_DACPath(AUDPRC_HandleTypeDef 
   */
 __HAL_ROM_USED HAL_StatusTypeDef HAL_AUDPRC_Config_ADCPath_Volume(AUDPRC_HandleTypeDef *haprc, int channel, int volume)
 {
-    uint32_t rough_vol, fine_vol;
 
     /* Check the AUDPRC handle allocation */
     if (haprc == NULL)
@@ -607,7 +606,8 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_AUDPRC_Config_ADCPath_Volume(AUDPRC_HandleT
     {
         return HAL_ERROR;
     }
-#ifdef SF32LB52X
+#ifdef AUDPRC_ADC_PATH_CFG0_ROUGH_VOL_L_Msk
+    uint32_t rough_vol, fine_vol;
 
     if ((volume < -36) || (volume > 60))
     {

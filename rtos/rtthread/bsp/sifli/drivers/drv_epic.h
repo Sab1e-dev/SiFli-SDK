@@ -312,7 +312,9 @@ EPIC_HandleTypeDef *drv_get_epic_handle(void);
         EZIP_HandleTypeDef *drv_get_ezip2_handle(void);
     #endif
 #endif
-
+#ifdef HAL_JPEGD_MODULE_ENABLED
+    JPEGD_HandleTypeDef *drv_get_jpegd_handle(void);
+#endif /* HAL_JPEGD_MODULE_ENABLED */
 
 void drv_gpu_open(void);
 void drv_gpu_close(void);

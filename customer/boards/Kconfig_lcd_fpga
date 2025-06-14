@@ -10,6 +10,8 @@ if BSP_USING_LCD
     choice
         prompt "Select LCD Module"
         default LCD_USING_TYPE1
+        depends on BF0_HCPU
+        depends on BSP_USING_RTTHREAD        
         config LCD_USING_TYPE1
             bool "240*320 8080"
             select TSC_USING_ADS7846
@@ -104,8 +106,8 @@ if BSP_USING_LCD
         default 50 if LCD_USING_ROUND_TYPE3 
         default 50 if LCD_USING_ROUND_TYPE4 
         default 50 if LCD_USING_RECT_TYPE 
-        default 50 if LCD_USING_SQ_TYPE1
-        default 50 if LCD_USING_SQ_TYPE2
+        default 226 if LCD_USING_SQ_TYPE1
+        default 260 if LCD_USING_SQ_TYPE2
         default 100 if LCD_USING_ATK7016_DPI
 
     config BSP_USING_TOUCHD

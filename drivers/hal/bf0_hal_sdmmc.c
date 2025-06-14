@@ -253,7 +253,7 @@ HAL_StatusTypeDef HAL_SDMMC_SET_CMD(SD_TypeDef *hsd, uint32_t cmd_idx,
                   SD_SR_STARTBIT_ERROR | SD_SR_FIFO_UNDERRUN | SD_SR_FIFO_OVERRUN |
                   SD_SR_CMD_SENT | SD_SR_CARD_EXIT_INT |
                   SD_SR_CARD_REMOVE | SD_SR_SDIO
-#if !defined(SF32LB52X)&&!defined(SF32LB56X)
+#if defined(SD_SR_CARD_DET)
                   | SD_SR_CARD_DET
 #endif
                   ;
@@ -435,6 +435,8 @@ HAL_StatusTypeDef HAL_SDMMC_CACHE_TO_EN(SD_TypeDef *hsd, uint8_t en)
     return HAL_OK;
 }
 
+//TODO:
+#ifdef HPSYS_CFG_SYSCR_SDNAND
 HAL_StatusTypeDef HAL_SDMMC_ENABLE_AHB_MAP(SD_TypeDef *hsd, uint8_t sd_map_en)
 {
     if (sd_map_en)  // ahb space map for sd2
@@ -448,6 +450,7 @@ HAL_StatusTypeDef HAL_SDMMC_ENABLE_AHB_MAP(SD_TypeDef *hsd, uint8_t sd_map_en)
 
     return HAL_OK;
 }
+#endif
 
 HAL_StatusTypeDef HAL_SDMMC_SET_CAOFFSET(SD_TypeDef *hsd, uint32_t offset)
 {

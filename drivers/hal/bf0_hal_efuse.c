@@ -46,7 +46,7 @@
  */
 
 #include "bf0_hal.h"
-
+#include "pmu_ldo_update.h"
 /** @addtogroup BF0_HAL_Driver
   * @{
   */
@@ -66,6 +66,7 @@
 
 HAL_StatusTypeDef HAL_EFUSE_Init(void)
 {
+#ifdef EFUSEC_TIMR_THRCK
     uint32_t pclk;
     uint32_t pgm_tckhp;
     uint32_t pgm_thpck;
@@ -109,7 +110,7 @@ HAL_StatusTypeDef HAL_EFUSE_Init(void)
     }
 
     hwp_efusec->TIMR = pgm_thpck | pgm_tckhp | rd_thrck;
-
+#endif
     return HAL_OK;
 }
 
@@ -144,39 +145,22 @@ int32_t HAL_EFUSE_Write(uint16_t bit_offset, uint8_t *data, int32_t size)
         pg_reg[i] = 0;
     }
 
-#if defined(SF32LB55X) || defined(SF32LB58X)
-    // TODO: Check for 54x
-
     /* Change HPSYS LDO VERF */
-    uint32_t org = READ_REG(hwp_pmuc->LDO_CR);
-    org &= PMUC_LDO_CR_HPSYS_LDO_VREF_Msk;
-    org >>= PMUC_LDO_CR_HPSYS_LDO_VREF_Pos;
-    uint32_t value = org + 3;
-    if (value > 0xf)
-        value = 0xf;
-    MODIFY_REG(hwp_pmuc->LDO_CR, PMUC_LDO_CR_HPSYS_LDO_VREF_Msk, value << PMUC_LDO_CR_HPSYS_LDO_VREF_Pos);
-#else
-    uint32_t org = READ_REG(hwp_pmuc->HPSYS_LDO);
-    org &= PMUC_HPSYS_LDO_VREF_Msk;
-    org >>= PMUC_HPSYS_LDO_VREF_Pos;
-    uint32_t value = org + 3;
-    if (value > 0xf)
-        value = 0xf;
-    MODIFY_REG(hwp_pmuc->HPSYS_LDO, PMUC_HPSYS_LDO_VREF_Msk, value << PMUC_HPSYS_LDO_VREF_Pos);
-#endif
+    uint32_t org = pmu_ldo_inc(3);
 
-#ifndef SF32LB52X
+#ifdef HPSYS_CFG_ANAU_CR_EFUSE_VDD_EN
+    MODIFY_REG(hwp_hpsys_cfg->ANAU_CR, HPSYS_CFG_ANAU_CR_EFUSE_VDD_PD, HPSYS_CFG_ANAU_CR_EFUSE_VDD_EN);
+#else
     /* Enable BGR if it has not been enabled,
        it may have been enabled by other module,
        don't disable it as other module may need it */
     hwp_tsen->BGR |= TSEN_BGR_EN;
     /* delay 50us, then enable LDO */
     HAL_Delay_us(50);
-#else
-    MODIFY_REG(hwp_hpsys_cfg->ANAU_CR, HPSYS_CFG_ANAU_CR_EFUSE_VDD_PD, HPSYS_CFG_ANAU_CR_EFUSE_VDD_EN);
 #endif
-
+#ifdef EFUSEC_ANACR_LDO_EN
     hwp_efusec->ANACR |= EFUSEC_ANACR_LDO_EN;
+#endif
     /* delay 50us, then starting programming  */
     HAL_Delay_us(50);
 
@@ -205,16 +189,13 @@ int32_t HAL_EFUSE_Write(uint16_t bit_offset, uint8_t *data, int32_t size)
         size = 0;
     }
 
+#ifdef EFUSEC_ANACR_LDO_EN
     hwp_efusec->ANACR &= ~EFUSEC_ANACR_LDO_EN;
-
-#if defined(SF32LB55X) || defined(SF32LB58X)
-    /* Recover LDO VREF value*/
-    MODIFY_REG(hwp_pmuc->LDO_CR, PMUC_LDO_CR_HPSYS_LDO_VREF_Msk, org << PMUC_LDO_CR_HPSYS_LDO_VREF_Pos);
-#else
-    MODIFY_REG(hwp_pmuc->HPSYS_LDO, PMUC_HPSYS_LDO_VREF_Msk, org << PMUC_HPSYS_LDO_VREF_Pos);
 #endif
 
-#ifdef SF32LB52X
+    pmu_ldo_recover(org);
+
+#ifdef HPSYS_CFG_ANAU_CR_EFUSE_VDD_EN
     MODIFY_REG(hwp_hpsys_cfg->ANAU_CR, HPSYS_CFG_ANAU_CR_EFUSE_VDD_EN, HPSYS_CFG_ANAU_CR_EFUSE_VDD_PD);
 #endif
     return size;
@@ -239,37 +220,8 @@ int32_t HAL_EFUSE_Read(uint16_t bit_offset, uint8_t *data, int size)
         return 0;
     }
 
-#if defined(SF32LB55X)||defined(SF32LB58X)
-    /* Change HPSYS LDO VERF */
-    uint32_t org = READ_REG(hwp_pmuc->LDO_CR);
-    org &= PMUC_LDO_CR_HPSYS_LDO_VREF_Msk;
-    org >>= PMUC_LDO_CR_HPSYS_LDO_VREF_Pos;
-    uint32_t value = org + 3;
-    if (value > 0xf)
-        value = 0xf;
-    if (value < 0xe)
-        value = 0xe;
-    MODIFY_REG(hwp_pmuc->LDO_CR, PMUC_LDO_CR_HPSYS_LDO_VREF_Msk, value << PMUC_LDO_CR_HPSYS_LDO_VREF_Pos);
-#elif defined (SF32LB56X)
-    uint32_t org = READ_REG(hwp_pmuc->HPSYS_LDO);
-    org &= PMUC_HPSYS_LDO_VREF_Msk;
-    org >>= PMUC_HPSYS_LDO_VREF_Pos;
-    uint32_t value = org + 3;
-    if (value > 0xf)
-        value = 0xf;
-    if (value < 0xe)
-        value = 0xe;
-    MODIFY_REG(hwp_pmuc->HPSYS_LDO, PMUC_HPSYS_LDO_VREF_Msk, value << PMUC_HPSYS_LDO_VREF_Pos);
-#elif defined (SF32LB52X)
-    uint32_t org = READ_REG(hwp_pmuc->HPSYS_VOUT);
-    uint32_t value = org + 3;
-    if (value > 0xf)
-        value = 0xf;
-    if (value < 0xe)
-        value = 0xe;
-    hwp_pmuc->HPSYS_VOUT = value;
-    HAL_Delay_us(20);
-#endif
+    uint32_t org = pmu_ldo_inc(3);
+
     //HAL_Delay_us(20);
     /* select bank and enable READ mode */
     hwp_efusec->CR = (bank << EFUSEC_CR_BANKSEL_Pos);
@@ -286,14 +238,7 @@ int32_t HAL_EFUSE_Read(uint16_t bit_offset, uint8_t *data, int size)
 
     if (ready >= timeout)
     {
-        /* Recover LDO VREF value*/
-#if defined(SF32LB55X)||defined(SF32LB58X)
-        MODIFY_REG(hwp_pmuc->LDO_CR, PMUC_LDO_CR_HPSYS_LDO_VREF_Msk, org << PMUC_LDO_CR_HPSYS_LDO_VREF_Pos);
-#elif defined(SF32LB52X)
-        hwp_pmuc->HPSYS_VOUT = org;
-#else
-        MODIFY_REG(hwp_pmuc->HPSYS_LDO, PMUC_HPSYS_LDO_VREF_Msk, org << PMUC_HPSYS_LDO_VREF_Pos);
-#endif
+        pmu_ldo_recover(org);
         return 0;
     }
     rd_reg += (bank << 3);  // Each bank has 8 registers.
@@ -309,14 +254,8 @@ int32_t HAL_EFUSE_Read(uint16_t bit_offset, uint8_t *data, int size)
         data += 4;
     }
 
-#if defined(SF32LB55X)||defined(SF32LB58X)
-    /* Recover LDO VREF value*/
-    MODIFY_REG(hwp_pmuc->LDO_CR, PMUC_LDO_CR_HPSYS_LDO_VREF_Msk, org << PMUC_LDO_CR_HPSYS_LDO_VREF_Pos);
-#elif defined(SF32LB52X)
-    hwp_pmuc->HPSYS_VOUT = org;
-#else
-    MODIFY_REG(hwp_pmuc->HPSYS_LDO, PMUC_HPSYS_LDO_VREF_Msk, org << PMUC_HPSYS_LDO_VREF_Pos);
-#endif
+    pmu_ldo_recover(org);
+
     return size;
 }
 

@@ -184,7 +184,12 @@ typedef struct
 #ifdef HAL_EZIP_MODULE_ENABLED
     EZIP_TypeDef RamEZIP;
     EZIP_HandleTypeDef ezip_handle;
-#endif
+#endif /* HAL_EZIP_MODULE_ENABLED */
+#ifdef HAL_JPEGD_MODULE_ENABLED
+    JPEGD_HandleTypeDef jpegd_handle;
+#endif /* HAL_JPEGD_MODULE_ENABLED */
+
+
 #ifdef EPIC_DEBUG
     EPIC_OpHistTypeDef epic_op_hist;
 #endif
@@ -348,13 +353,6 @@ int drv_epic_init(void);
 #endif /* DRV_EPIC_NEW_API */
 
 
-#ifdef HAL_EZIP_MODULE_ENABLED
-__ROM_USED EZIP_HandleTypeDef *drv_get_ezip_handle(void)
-{
-    return &drv_epic.ezip_handle;
-}
-#endif
-
 __ROM_USED EPIC_HandleTypeDef *drv_get_epic_handle(void)
 {
     return &epic_handle;
@@ -375,6 +373,11 @@ __ROM_USED void EPIC_IRQHandler(void)
 }
 
 #ifdef HAL_EZIP_MODULE_ENABLED
+__ROM_USED EZIP_HandleTypeDef *drv_get_ezip_handle(void)
+{
+    return &drv_epic.ezip_handle;
+}
+
 __ROM_USED void EZIP_IRQHandler(void)
 {
     EZIP_HandleTypeDef *ezip;
@@ -388,7 +391,30 @@ __ROM_USED void EZIP_IRQHandler(void)
 
     rt_interrupt_leave();
 }
-#endif
+#endif /* HAL_EZIP_MODULE_ENABLED */
+
+
+#ifdef HAL_JPEGD_MODULE_ENABLED
+__ROM_USED JPEGD_HandleTypeDef *drv_get_jpegd_handle(void)
+{
+    return &drv_epic.jpegd_handle;
+}
+
+__ROM_USED void JPEGD_IRQHandler(void)
+{
+    JPEGD_HandleTypeDef *jpegd;
+
+    rt_interrupt_enter();
+
+    jpegd = drv_get_jpegd_handle();
+    RT_ASSERT(RT_NULL != jpegd);
+
+    HAL_JPEGD_IRQHandler(jpegd);
+
+    rt_interrupt_leave();
+}
+#endif /* HAL_JPEGD_MODULE_ENABLED */
+
 
 static uint32_t GetElapsedUs(uint32_t prev_tick, uint32_t cur_tick)
 {
@@ -857,6 +883,10 @@ rt_err_t drv_gpu_check_done(rt_int32_t ms)
 void drv_gpu_open(void)
 {
 #ifdef HAL_EPIC_MODULE_ENABLED
+#ifdef HAL_JPEGD_MODULE_ENABLED
+    uint32_t max_img_width;
+#endif /* HAL_JPEGD_MODULE_ENABLED */
+
     if (NULL == epic)
     {
         if (0 == drv_epic_inited) drv_epic_init();
@@ -888,7 +918,26 @@ void drv_gpu_open(void)
         epic->hezip->RamInstance = &drv_epic.RamEZIP;
 
         HAL_EZIP_Init(epic->hezip);
-#endif
+#endif /* HAL_EZIP_MODULE_ENABLED */
+
+#ifdef HAL_JPEGD_MODULE_ENABLED
+        HAL_NVIC_SetPriority(JPEGD_IRQn, 3, 0);
+        HAL_NVIC_EnableIRQ(JPEGD_IRQn);
+        epic->hjpegd = drv_get_jpegd_handle();
+        HAL_JPEGD_Init(epic->hjpegd, NULL, NULL);
+#ifdef LV_HOR_RES_MAX
+        max_img_width = ((LV_HOR_RES_MAX + 15 + 15) >> 4) << 4;
+#else
+        max_img_width = 640;
+#endif /* LV_HOR_RES_MAX */
+
+        epic->jpegd_work_buf_size = max_img_width * 2 * 32; /* 2bytes per pixel, 32 rows */
+        RT_ASSERT(NULL == epic->jpegd_work_buf);
+        epic->jpegd_work_buf = rt_malloc(epic->jpegd_work_buf_size);
+        RT_ASSERT(epic->jpegd_work_buf);
+
+#endif /* HAL_JPEGD_MODULE_ENABLED */
+
         HAL_EPIC_Init(epic);
 
 
@@ -921,6 +970,18 @@ void drv_gpu_close(void)
             HAL_EZIP_DeInit(epic->hezip);
         }
 #endif /* HAL_EZIP_MODULE_ENABLED */
+
+#ifdef HAL_JPEGD_MODULE_ENABLED
+        if (epic->hjpegd)
+        {
+            HAL_JPEGD_DeInit(epic->hjpegd);
+        }
+        if (epic->jpegd_work_buf)
+        {
+            rt_free(epic->jpegd_work_buf);
+            epic->jpegd_work_buf = NULL;
+        }
+#endif /* HAL_JPEGD_MODULE_ENABLED */
 
         epic = NULL;
         LOG_I("drv_gpu closed.");

@@ -7,6 +7,7 @@
 */
 
 #include <string.h>
+#include <stdint.h>
 #include "flash_table.h"
 
 typedef enum

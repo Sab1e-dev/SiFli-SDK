@@ -91,7 +91,7 @@ if GetDepend(['BSP_ENABLE_AUD_PRC']):
     src += ['drv_audprc.c']
 
 if GetDepend(['BSP_ENABLE_AUD_CODEC']):
-    if GetDepend('SOC_SF32LB52X'):
+    if GetDepend('SOC_SF32LB52X') or GetDepend('SOC_SF32LB57X'):
         src += ['drv_audcodec_m.c']
     else:
         src += ['drv_audcodec.c']
@@ -139,6 +139,9 @@ if GetDepend(['BSP_USING_HW_AES']):
 
 if GetDepend(['BSP_USING_ENCODER1']):
     src += ['drv_encoder.c']
+
+if GetDepend(['BSP_USING_DCMI']):
+    src += ['drv_dcmi.c']
 
 src += ['drv_common.c','drv_dbg.c']
 path =  [cwd]

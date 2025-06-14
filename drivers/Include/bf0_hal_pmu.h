@@ -93,7 +93,7 @@ typedef enum
 #endif /* SF32LB56X */
 
 
-#ifdef SF32LB52X
+#if defined(SF32LB52X)
 
 /** Charger Calibration Parameters */
 typedef struct
@@ -750,7 +750,7 @@ void HAL_PMU_SaveCalData(FACTORY_CFG_VBK_LDO_T *cfg);
 HAL_StatusTypeDef HAL_PMU_ConfigHpsysLdoVolt(PMU_HpsysLdoVoltTypeDef volt);
 #endif /* SF32LB56X */
 
-#ifdef SF32LB52X
+#if defined(SF32LB52X)
 
 /**
  * @brief Init charger
@@ -951,6 +951,8 @@ uint8_t HAL_PMU_ChgConfigEocCc(PMU_ChgHandleTypeDef *handle, uint8_t percent);
  */
 HAL_StatusTypeDef HAL_PMU_ConfigPeriLdo(PMU_PeriLdoTypeDef ldo, bool en, bool wait);
 
+#endif /* SF32LB52X */
+
 /**
  * @brief Load PMU calibration data to PMU register
  *
@@ -978,7 +980,6 @@ HAL_StatusTypeDef HAL_PMU_GetHpsysVoutRef(uint8_t *vout_ref);
 HAL_StatusTypeDef HAL_PMU_GetHpsysVoutRef2(uint8_t *vout_ref);
 
 
-#endif /* SF32LB52X */
 
 
 

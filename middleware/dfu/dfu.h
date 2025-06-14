@@ -69,6 +69,7 @@
 #define DFU_IV_LEN              16
 #define DFU_SIG_SIZE            256
 #define DFU_SECURE_SIZE         1
+#define DFU_FTAB_HASH_SIZE      32
 
 #define DFU_IMG_HASH_SIZE       32
 #define DFU_PKT_HASH_SIZE       32
@@ -400,7 +401,8 @@ struct sec_configuration
     uint32_t magic;
     struct flash_table  ftab[DFU_FLASH_PARTITION];
     uint8_t             sig_pub_key[DFU_SIG_KEY_SIZE];
-    uint8_t reserved[4096 - (SECFG_SIGKEY_OFFSET + DFU_SIG_KEY_SIZE) ];
+    uint8_t            ftab_hash[DFU_FTAB_HASH_SIZE];
+    uint8_t reserved[4096 - (SECFG_SIGKEY_OFFSET + DFU_SIG_KEY_SIZE + DFU_FTAB_HASH_SIZE)];
     // Align to sector boundary (4096)
     /** index using flashid-2,  */
     struct image_header_enc imgs[DFU_FLASH_IMG_IDX(DFU_FLASH_PARTITION)];
@@ -519,6 +521,7 @@ int  sifli_hw_efuse_read_all(void);
 int  sifli_hw_efuse_read_bank(uint32_t i);
 int  sifli_hw_efuse_write(uint8_t id, uint8_t *data, int size);
 int  sifli_hw_dec(uint8_t *key, uint8_t *in_data, uint8_t *out_data, int size, uint32_t init_offset);
+void sifli_hw_dec_once(uint8_t *key, uint8_t *in_data, uint8_t *out_data, int size);
 int  sifli_hw_dec_key(uint8_t *in_data, uint8_t *out_data, int size);
 void sifli_hw_enc(uint8_t *in_data, uint8_t *out_data, int size);
 void sifli_hw_enc_with_key(uint8_t *key, uint8_t *in_data, uint8_t *out_data, int size, uint32_t init_offset);

@@ -115,7 +115,8 @@ __HAL_ROM_USED void HAL_RC_CAL_update_ave_cycle(uint32_t ave_cycle)
     HAL_Set_backup(RTC_BACKUP_LPCYCLE_AVE, ave_cycle);
 }
 
-
+/*ARM specific code*/
+#if defined(SysTick)
 __STATIC_INLINE uint32_t HAL_RC_CAL_DisableInterrupt(void)
 {
     uint32_t mask;
@@ -129,6 +130,20 @@ __STATIC_INLINE void HAL_RC_CAL_EnableInterrupt(uint32_t mask)
 {
     __set_PRIMASK(mask);
 }
+#else
+__STATIC_INLINE uint32_t HAL_RC_CAL_DisableInterrupt(void)
+{
+    __RV_CSR_CLEAR(CSR_MSTATUS, MSTATUS_MIE);
+    return 0;
+}
+
+__STATIC_INLINE void HAL_RC_CAL_EnableInterrupt(uint32_t mask)
+{
+    __RV_CSR_SET(CSR_MSTATUS, MSTATUS_MIE);
+}
+
+#endif
+
 uint8_t g_xt48_used = 0;
 
 #ifdef SF32LB55X

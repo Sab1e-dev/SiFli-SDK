@@ -196,6 +196,7 @@ __STATIC_INLINE void HAL_DBG_DWT_Trigger(uint32_t addr)
 
 #endif /* DWT */
 
+#ifdef __LDREXW
 /**
  * @brief 32bit lock read, use in pair with HAL_LOCK_Write32
  * @param[in] addr address of data to be read
@@ -262,6 +263,7 @@ __STATIC_INLINE bool HAL_LOCK_Write8(volatile uint8_t *addr, uint8_t value)
 
 #endif
 
+#endif /* __LDREXW */
 
 
 

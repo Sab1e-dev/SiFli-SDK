@@ -89,7 +89,7 @@
     static struct rt_memheap _psram_heap;
 #endif
 
-#ifdef SF32LB52X
+#if defined(SF32LB52X)||defined(SF32LB57X)
     /* SYSTICK support high precision fixed clock source, such as RC48/XT48*/
     #define SYSTICK_HIGH_PRICISION_FIXED_CLK_SUPPORT
 #endif /* SF32LB52X */
@@ -202,7 +202,15 @@ __ROM_USED void rt_hw_systick_init(void)
 #endif /* BSP_PM_FREQ_SCALING */
 
 #endif /* SF32LB52X */
+
+#ifdef HAL_CORTEX_MODULE_ENABLED
     HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+#else
+    //extern void SysTick_Handler(void);
+    ECLIC_Register_IRQ(SysTimer_IRQn, ECLIC_NON_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 3, 0, NULL);
+    ECLIC_Register_IRQ(Msip_IRQn, ECLIC_VECTOR_INTERRUPT, ECLIC_LEVEL_TRIGGER, 2, 0, NULL);
+#endif
+
 }
 
 __ROM_USED int rt_in_system_heap(void *ptr)
@@ -226,6 +234,10 @@ void SysTick_Handler(void)
     rt_tick_t new_tick;
 #endif /* BSP_USING_PM */
 
+#ifdef HAL_RISCV_MODULE_ENABLED
+    // Reload timer
+    SysTick_Reload(SystemCoreClock / RT_TICK_PER_SECOND);
+#endif
     /* enter interrupt */
     rt_interrupt_enter();
 
@@ -265,7 +277,7 @@ void SysTick_Handler(void)
 #ifdef SOC_BF0_HCPU
     if (HAL_HPAON_IS_LP_ACTIVE() && HAL_HPAON_IS_HP2LP_REQ_ACTIVE())
 #else
-#ifdef SF32LB52X
+#if defined(SF32LB52X) || defined(SF32LB58X)
 //TODO: LCPU cannot access PMU when HCPU is in sleep
     if (HAL_LPAON_IS_HP_ACTIVE())
 #else
@@ -440,11 +452,19 @@ __HAL_ROM_USED float HAL_LPTIM_GetFreq()
 {
     if (HAL_LXT_DISABLED())
     {
+#ifndef SF32LB57X
         uint32_t cycle = HAL_RC_CAL_get_average_cycle_on_48M();
         if (cycle == 0)
             return 9700;
         else
             return (48000000UL / (float)cycle * HAL_RC_CAL_GetLPCycle());
+#else
+        float cycle;
+        uint16_t len = 4;
+        HAL_StatusTypeDef ret = HAL_LCPU_CONFIG_get(HAL_LCPU_CONFIG_LPCYCLE_CURR, (uint8_t *)&cycle, &len);
+        HAL_ASSERT(ret == HAL_OK);
+        return cycle;
+#endif
     }
     else
     {
@@ -469,9 +489,12 @@ __ROM_USED void _Error_Handler(char *s, int num)
     /* USER CODE END Error_Handler */
 }
 
+#if 0
 __ROM_USED void rt_hw_console_output(const char *str)
 {
 }
+#endif
+
 
 #ifndef SF32LB55X
 int8_t bt_rf_get_max_tx_pwr(void)
@@ -530,6 +553,9 @@ __ROM_USED void rt_hw_us_delay(rt_uint32_t us)
     }
 
 #else
+#ifdef RISCV
+#warning implment for RISCV
+#else
     rt_uint32_t ticks;
     rt_uint32_t reload = SysTick->LOAD;
 
@@ -555,6 +581,7 @@ __ROM_USED void rt_hw_us_delay(rt_uint32_t us)
             }
         }
     }
+#endif
 #endif /* BSP_PM_FREQ_SCALING && !SYSTICK_HIGH_PRICISION_FIXED_CLK_SUPPORT */
 }
 

@@ -48,7 +48,6 @@
 #include "bf0_hal.h"
 #include <string.h>
 #include <stdlib.h>
-#include "drv_io.h"
 /** @addtogroup BF0_HAL_Driver
   * @{
   */
@@ -546,6 +545,30 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_SET_NONCE(FLASH_HandleTypeDef *hflash
 
     return HAL_OK;
 }
+
+#ifdef MPI_CTRSAR2_SA
+__HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_SET_CTR2(FLASH_HandleTypeDef *hflash, uint32_t start, uint32_t end)
+{
+    if (hflash == NULL)
+        return HAL_ERROR;
+
+    hflash->Instance->CTRSAR2 = start & MPI_CTRSAR_SA;    // make start address aligned to 1024
+    hflash->Instance->CTREAR2 = (end + 0x3ff) & MPI_CTREAR_EA; // make end address aligned to 1024
+
+    return HAL_OK;
+}
+
+__HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_SET_NONCE2(FLASH_HandleTypeDef *hflash, uint8_t *data)
+{
+    if (hflash == NULL || data == NULL)
+        return HAL_ERROR;
+
+    hflash->Instance->NONCEA2 = data[3] | (((uint32_t)data[2]) << 8) | (((uint32_t)data[1]) << 16) | (((uint32_t)data[0]) << 24);
+    hflash->Instance->NONCEB2 = data[7] | (((uint32_t)data[6]) << 8) | (((uint32_t)data[5]) << 16) | (((uint32_t)data[4]) << 24);
+
+    return HAL_OK;
+}
+#endif
 
 __HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_SET_AES(FLASH_HandleTypeDef *hflash, HAL_FLASH_AES_Mode mode)
 {

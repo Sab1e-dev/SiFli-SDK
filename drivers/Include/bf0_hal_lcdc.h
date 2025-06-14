@@ -84,8 +84,12 @@ extern "C" {
 #define LCDC_SUPPORT_H_MIRROR
 #endif /* SF32LB58X */
 
-#if defined(SF32LB56X) || defined(SF32LB52X)
+#if !defined(SF32LB58X)
 #define LCDC_SUPPORT_DDR_QSPI
+#endif
+
+#if defined(SF32LB57X)
+#define LCDC_SUPPORT_TE_WINDOW
 #endif
 
 
@@ -196,6 +200,7 @@ typedef enum
     HAL_LCDC_SYNC_DISABLE             = 0x00U,    /*!< disable frame synchronization */
     HAL_LCDC_SYNC_VER                 = 0x01U,    /*!< only vsync signal mode, pulse trigger default    */
     HAL_LCDC_SYNC_VERHOR              = 0x02U,    /*!< vsync mixed hsync signal mode, edge trigger default  */
+    HAL_LCDC_SYNC_VER_WINDOW          = 0x03U,    /*!< vsync window mode, pulse trigger default  */
 } HAL_LCDC_SyncTypeDef;
 
 
@@ -213,8 +218,10 @@ typedef struct
 
     HAL_LCDC_SyncTypeDef syn_mode;   /*!< vsyn only | vsyn + hsyn mixed | disable */
     uint32_t vsyn_polarity;          /*!< TE pin polarity: 0 - high active and 1 - low active*/
-    uint32_t vsyn_delay_us;          /*!< The delay us to send frame buffer right after received TE signal*/
+    uint32_t vsyn_delay_us;          /*!< The delay us to send frame buffer right after received TE signal, except vsyn window mode*/
     uint32_t hsyn_num;               /*!< Hsync signal num between two vsync signal */
+    int32_t  vsyn_window_start_us;  /*!< The start offset time to vsync trigger signal of vsync window mode*/
+    int32_t  vsyn_window_end_us;    /*!< The end offset time to vsync trigger signal of vsync window mode*/
 } DBI_LCD_CFG;
 
 
@@ -236,8 +243,10 @@ typedef struct
     uint32_t clk_phase:      1;      /*!< CLK pin phase(CPHA):    0 - phase 0 and 1 - phase 1*/
     uint32_t vsyn_polarity:  1;      /*!< TE pin polarity: 0 - falling edge  and 1 - rasing edge*/
     uint32_t reserved:      28;
-    uint32_t vsyn_delay_us;          /*!< The delay us to send frame buffer right after received TE signal*/
+    uint32_t vsyn_delay_us;          /*!< The delay us to send frame buffer right after received TE signal, except vsync window mode*/
     uint32_t hsyn_num;               /*!< Hsync signal num between two vsync signal */
+    int32_t  vsyn_window_start_us;  /*!< The start offset time to vsync trigger signal of vsync window mode*/
+    int32_t  vsyn_window_end_us;    /*!< The end offset time to vsync trigger signal of vsync window mode */
 
     uint32_t bytes_gap_us;           /*!< Set 0 by default. The minimal gap between every byte, but not for multi pixel writting.*/
     uint32_t readback_from_Dx;       /*!< 0 read back data from D0 (HW SPI support), 1~3 read back from D1~D3(Software SPI support before 52x).*/
@@ -522,7 +531,11 @@ typedef struct __LCDC_HandleTypeDef
     uint8_t                     Next_Frame_TE;           /*!< The TE configuration of Next Frame*/
 
     uint32_t  use_lcdc2_te : 1;                         /*!< Use LCDC2 'TE in LCDC1*/
-    uint32_t  reversed     : 31;
+    uint32_t  update_te_win_reg : 1;                    /*!< Need to update TE window mode register when TE_MAX_CNT is ready*/
+    uint32_t  te_cfg_en : 1;                            /*!< Default TE config*/
+    uint32_t  reversed     : 29;
+
+    uint32_t  update_te_win_reg_value;      /*!< The parameter of update te window*/
 
     uint32_t  debug_cnt0;
     uint32_t  debug_cnt1;
@@ -1013,6 +1026,14 @@ void HAL_LCDC_Next_Frame_TE(LCDC_HandleTypeDef *lcdc, bool en);
 * @retval None
 */
 void HAL_LCDC_Enable_TE(LCDC_HandleTypeDef *lcdc, bool en);
+
+/**
+ * @brief Update TE active window area.
+ * @param lcdc - lcdc LCD controller handle
+ * @param start_us - offset to TE trigger edge/pulse
+ * @param end_us -
+ */
+void HAL_LCDC_Update_TE_Window(LCDC_HandleTypeDef *lcdc, int32_t start_us, int32_t end_us);
 
 /**
  * @brief Let LCDC enter low power mode

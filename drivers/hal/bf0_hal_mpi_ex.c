@@ -493,6 +493,21 @@ __HAL_ROM_USED void HAL_FLASH_NONCE_CFG(FLASH_HandleTypeDef *fhandle, uint32_t s
     HAL_FLASH_SET_CTR(fhandle, start, end);
 }
 
+#ifdef MPI_CTRSAR2_SA
+__HAL_ROM_USED void HAL_FLASH_NONCE_CFG2(FLASH_HandleTypeDef *fhandle, uint32_t start, uint32_t end, uint8_t *nonce)
+{
+    if (fhandle == NULL || nonce == NULL)
+        return;
+    HAL_FLASH_SET_NONCE2(fhandle, nonce);
+
+    // for pro, start/end should set to relative address
+    if (start >= fhandle->base)
+        start -= fhandle->base;
+    if (end >= fhandle->base)
+        end -= fhandle->base;
+    HAL_FLASH_SET_CTR2(fhandle, start, end);
+}
+#endif
 
 __HAL_ROM_USED void HAL_FLASH_AES_CFG(FLASH_HandleTypeDef *fhandle, uint8_t aes256)
 {
@@ -891,7 +906,8 @@ __HAL_ROM_USED int HAL_NAND_READ_WITHOOB(FLASH_HandleTypeDef *handle, uint32_t a
             }
             else if (dbuff != NULL)
             {
-#if (NAND_BUF_CPY_MODE == 0)    // memcpy
+//TODO:
+#if ((NAND_BUF_CPY_MODE == 0) || !defined(EXTDMA_BASE))   // memcpy
                 memcpy(dbuff, (const void *)(cache_base + offset), dlen);
 
 #elif (NAND_BUF_CPY_MODE == 1)  // ext-dma

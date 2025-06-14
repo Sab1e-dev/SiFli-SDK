@@ -742,6 +742,9 @@ typedef enum IRQn
 #define DMA2_Channel8       ((DMA_Channel_TypeDef *) &DMA2->CCR8)
 #define DMA2_CSELR          ((DMA_Request_TypeDef *) &DMA2->CSELR1)
 #define DMA2_CHANNEL_NUM    (8)
+
+#define HASH_ACC_BASE       (&hwp_aes_acc->HASH_SETTING)
+
 /**
  *
  * @} Peripheral_memory_map

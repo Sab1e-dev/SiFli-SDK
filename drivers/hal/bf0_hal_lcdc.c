@@ -66,7 +66,7 @@
 /** @addtogroup LCDC LCD Controller
   * @{
   */
-
+#ifndef SF32LB57X
 #if defined(HAL_LCD_MODULE_ENABLED)||defined(_SIFLI_DOXYGEN_)
 typedef enum
 {
@@ -5805,7 +5805,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_Resume(LCDC_HandleTypeDef *lcdc)
 }
 
 #endif /*defined(HAL_LCD_MODULE_ENABLED)||defined(_SIFLI_DOXYGEN_)*/
-
+#endif
 
 /**
   * @}

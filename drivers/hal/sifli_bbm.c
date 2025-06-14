@@ -1,7 +1,8 @@
 /*
 */
+#include <stdint.h>
+#include <string.h>
 #include "sifli_bbm.h"
-#include "string.h"
 
 typedef struct
 {

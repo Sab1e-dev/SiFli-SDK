@@ -156,13 +156,13 @@ typedef enum
     LPAON_WAKEUP_SRC_GPIO2     = LPSYS_AON_WER_GPIO2_Pos,    /**< GPIO2 wakeup source */
 #endif /* SF32LB55X */
 
-#ifdef SF32LB52X
+#if defined(SF32LB52X) || defined(SF32LB57X)
     LPAON_WAKEUP_SRC_LPTIM3    = LPSYS_AON_WER_LPTIM3_Pos,   /**< LPTIM2 wakeup source */
 #else
     LPAON_WAKEUP_SRC_LPTIM2    = LPSYS_AON_WER_LPTIM2_Pos,   /**< LPTIM2 wakeup source */
     LPAON_WAKEUP_SRC_LPCOMP1   = LPSYS_AON_WER_LPCOMP1_Pos,  /**< LPCOMP1 wakeup source */
     LPAON_WAKEUP_SRC_LPCOMP2   = LPSYS_AON_WER_LPCOMP2_Pos,  /**< LPCOMP2 wakeup source */
-#endif /* SF32LB52X */
+#endif /* SF32LB52X || SF32LB57X */
 
 #ifndef SF32LB55X
     LPAON_WAKEUP_SRC_BT        = LPSYS_AON_WER_BT_Pos,       /**< BT wakeup source */
@@ -293,7 +293,7 @@ typedef struct
  * @brief  Cancel the LP active request
  * @retval void
  */
-#ifdef SF32LB52X
+#if defined(SF32LB52X) || defined(SF32LB57X)
 extern uint8_t g_hal_hpaon_lcpu_wakeup_ref_cnt;
 #define HAL_HPAON_CANCEL_LP_ACTIVE_REQUEST()                     \
     do                                                           \
@@ -312,7 +312,7 @@ extern uint8_t g_hal_hpaon_lcpu_wakeup_ref_cnt;
 
 #else
 #define HAL_HPAON_CANCEL_LP_ACTIVE_REQUEST()   (hwp_hpsys_aon->ISSR &= ~HPSYS_AON_ISSR_HP2LP_REQ)
-#endif /* SF32LB52X */
+#endif /* SF32LB52X || SF32LB57x */
 
 /**
  * @brief  Check whether HP2LP_REQ is active
@@ -345,7 +345,11 @@ extern uint8_t g_hal_hpaon_lcpu_wakeup_ref_cnt;
  * @brief  Disable PADA in HPSYS
  * @retval void
  */
+#ifdef HPSYS_AON_ANACR_PA_ISO
 #define HAL_HPAON_DISABLE_PAD()       (hwp_hpsys_aon->ANACR |= (HPSYS_AON_ANACR_PA_ISO))
+#else
+#define HAL_HPAON_DISABLE_PAD()       (hwp_pmuc->CR |= (PMUC_CR_PA_RET))
+#endif /* HPSYS_AON_ANACR_PA_ISO */
 
 /**
  * @brief  Disable VHP in HPSYS
@@ -358,7 +362,11 @@ extern uint8_t g_hal_hpaon_lcpu_wakeup_ref_cnt;
  * @brief  Enable PADA in HPSYS
  * @retval void
  */
+#ifdef HPSYS_AON_ANACR_PA_ISO
 #define HAL_HPAON_ENABLE_PAD()       (hwp_hpsys_aon->ANACR &= ~(HPSYS_AON_ANACR_PA_ISO))
+#else
+#define HAL_HPAON_ENABLE_PAD()       (hwp_pmuc->CR &= ~(PMUC_CR_PA_RET))
+#endif
 
 /**
  * @brief  Enable VHP in HPSYS
@@ -497,12 +505,15 @@ extern uint8_t g_hal_hpaon_lcpu_wakeup_ref_cnt;
  * @brief  Disable PADB in LPSYS
  * @retval void
  */
+#ifdef  LPSYS_AON_ANACR_PB_ISO
 #define HAL_LPAON_DISABLE_PAD()      do                                                    \
                                      {                                                     \
                                         hwp_lpsys_aon->ANACR |= LPSYS_AON_ANACR_PB_ISO;    \
                                      }                                                     \
                                      while (0)
-
+#else
+#define HAL_LPAON_DISABLE_PAD()
+#endif
 
 /**
  * @brief  Disable VLP in LPSYS
@@ -522,12 +533,15 @@ extern uint8_t g_hal_hpaon_lcpu_wakeup_ref_cnt;
  * @brief  Enable PADB in LPSYS
  * @retval void
  */
+#ifdef  LPSYS_AON_ANACR_PB_ISO
 #define HAL_LPAON_ENABLE_PAD()       do                                                    \
                                      {                                                     \
                                         hwp_lpsys_aon->ANACR &= ~LPSYS_AON_ANACR_PB_ISO;   \
                                      }                                                     \
                                      while (0)
-
+#else
+#define HAL_LPAON_ENABLE_PAD()
+#endif
 /**
  * @brief  Enable VLP in LPSYS, it's related to analog
  * @retval void

@@ -69,11 +69,11 @@
 #define PIN1_MAX_HANDLE             (GPIO1_PIN_NUM)
 #define PBR_PIN_OFFSET              (GPIO1_PIN_NUM + GPIO2_PIN_NUM)
 
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
     #define PIN_TOTAL_NUM               (GPIO1_PIN_NUM + GPIO2_PIN_NUM + HAL_PBR_MAX + 1)
 #else
     #define PIN_TOTAL_NUM               (GPIO1_PIN_NUM + GPIO2_PIN_NUM)
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
 
 #define GPIO_IRQ_PRIORITY           (5)
 
@@ -98,12 +98,12 @@
 
 
 static uint16_t pin_irq_hdr_num;
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
     static uint16_t pbr_pin_irq_hdr_num;
     static uint8_t pbr_pin_state[HAL_PBR_MAX + 1];
     static uint8_t pbr_pin_irq_en[HAL_PBR_MAX + 1];
     static uint32_t pbr_pin_irq_pending_bitmap;
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
 __ROM_USED struct rt_pin_irq_hdr pin_irq_hdr_tab[MAX_PIN_INPUT_CNT] =
 {
     {-1, 0, 0, 0, RT_NULL, RT_NULL},
@@ -183,7 +183,7 @@ static void record_pin_irq(GPIO_TypeDef *hgpio, uint16_t pin_num)
 /* called in systick_Handler */
 void drv_pin_check(void)
 {
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
     uint32_t i;
     int8_t val;
     bool irq_triggered = false;
@@ -283,7 +283,7 @@ void drv_pin_check(void)
 
 
 
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
 }
 
 
@@ -344,11 +344,11 @@ static void sifli_pin_write(rt_device_t dev, rt_base_t pin, rt_base_t value)
     else if (pin < (PIN1_MAX_HANDLE + GPIO2_PIN_NUM))
         HAL_GPIO_WritePin((GPIO_TypeDef *)hwp_gpio2, pin - PIN1_MAX_HANDLE, (GPIO_PinState)value);
     else
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
         HAL_PBR_WritePin(pin - (PIN1_MAX_HANDLE + GPIO2_PIN_NUM), (uint8_t)value);
 #else
         RT_ASSERT(0);
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
 }
 
 static int sifli_pin_read(rt_device_t dev, rt_base_t pin)
@@ -363,12 +363,12 @@ static int sifli_pin_read(rt_device_t dev, rt_base_t pin)
         value = HAL_GPIO_ReadPin((GPIO_TypeDef *)hwp_gpio2, pin - PIN1_MAX_HANDLE);
     else
     {
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
         value = HAL_PBR_ReadPin(pin - (PIN1_MAX_HANDLE + GPIO2_PIN_NUM));
         RT_ASSERT(value >= 0);
 #else
         RT_ASSERT(0);
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
     }
 
     return value;
@@ -436,7 +436,7 @@ static void sifli_pin_mode(rt_device_t dev, rt_base_t pin, rt_base_t mode)
     }
     else
     {
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
         HAL_StatusTypeDef status;
         /* PBR pin doesn't support open-drain output */
         RT_ASSERT(mode != PIN_MODE_OUTPUT_OD);
@@ -444,7 +444,7 @@ static void sifli_pin_mode(rt_device_t dev, rt_base_t pin, rt_base_t mode)
         RT_ASSERT(HAL_OK == status);
 #else
         RT_ASSERT(0);
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
     }
 }
 
@@ -487,12 +487,12 @@ static rt_err_t sifli_pin_attach_irq(struct rt_device *device, rt_int32_t pin,
         item->mode = mode;
         item->args = args;
         pin_irq_hdr_num++;
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
         if (pin >= PBR_PIN_OFFSET)
         {
             pbr_pin_irq_hdr_num++;
         }
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
 
         // else //full
         //    assert(0);
@@ -526,13 +526,13 @@ static rt_err_t sifli_pin_dettach_irq(struct rt_device *device, rt_int32_t pin)
         pin_irq_hdr_tab[pin_irq_hdr_num - 1].mode = 0;
         pin_irq_hdr_tab[pin_irq_hdr_num - 1].args = RT_NULL;
 
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
         if (hwp_pbr == GET_GPIO_INSTANCE(pin))
         {
             RT_ASSERT(pbr_pin_irq_hdr_num > 0);
             pbr_pin_irq_hdr_num--;
         }
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
 
         pin_irq_hdr_num--;
     }
@@ -549,9 +549,9 @@ static rt_err_t sifli_pin_irq_enable(struct rt_device *device, rt_base_t pin,
     GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_TypeDef *gphandle = NULL;
     int i;
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
     uint8_t pbr_pin = 0;
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
 
     if ((device == NULL) || (device->user_data == NULL))
         return RT_ERROR;
@@ -567,13 +567,13 @@ static rt_err_t sifli_pin_irq_enable(struct rt_device *device, rt_base_t pin,
         GPIO_InitStruct.Pin = pin - PIN1_MAX_HANDLE;
         gphandle = (GPIO_TypeDef *)hwp_gpio2;
     }
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
     else
     {
         pbr_pin = pin - PBR_PIN_OFFSET;
         RT_ASSERT(pbr_pin <= HAL_PBR_MAX);
     }
-#endif  /* hwp_pbr */
+#endif  /* PAD_PBR_PRESENT */
 
     if (enabled == PIN_IRQ_ENABLE)
     {
@@ -633,7 +633,7 @@ static rt_err_t sifli_pin_irq_enable(struct rt_device *device, rt_base_t pin,
         }
         else
         {
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
             int8_t pin_state;
             pin_state = HAL_PBR_ReadPin(pbr_pin);
             RT_ASSERT(pin_state >= 0);
@@ -649,7 +649,7 @@ static rt_err_t sifli_pin_irq_enable(struct rt_device *device, rt_base_t pin,
 #endif  /* SOC_BF0_HCPU */
 #else
             RT_ASSERT(0);
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
         }
         //pin_irq_enable_mask |= (1 << pin);
 
@@ -672,12 +672,12 @@ static rt_err_t sifli_pin_irq_enable(struct rt_device *device, rt_base_t pin,
         }
         else
         {
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
             pbr_pin_irq_en[pbr_pin] = 0;
             pbr_pin_irq_pending_bitmap &= ~(1 << pbr_pin);
 #else
             RT_ASSERT(0);
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
         }
         //pin_irq_enable_mask &= ~(1 << pin);
         //HAL_NVIC_DisableIRQ(GPIO_IRQn);
@@ -717,10 +717,10 @@ void pin_irq_hdr(GPIO_TypeDef *hgpio, int irqno)
         pin = irqno;
     else if (hgpio == (GPIO_TypeDef *)hwp_gpio2)
         pin = irqno + PIN1_MAX_HANDLE;
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
     else if (hgpio == (GPIO_TypeDef *)hwp_pbr)
         pin = irqno + PIN1_MAX_HANDLE + GPIO2_PIN_NUM;
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
     else
         RT_ASSERT(0);
 
@@ -730,14 +730,14 @@ void pin_irq_hdr(GPIO_TypeDef *hgpio, int irqno)
 
     if (i < pin_irq_hdr_num)
     {
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
         if (hgpio == (GPIO_TypeDef *)hwp_pbr)
         {
             int8_t val = HAL_PBR_ReadPin(irqno);
             RT_ASSERT(val >= 0);
             pin_irq_hdr_tab[i].state = val; // not used anymore
         }
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
         pin_irq_hdr_tab[i].hdr(pin_irq_hdr_tab[i].args);
     }
 }
@@ -818,13 +818,13 @@ void check_wsr_pin(void)
                 RT_ASSERT(gpio);
                 //rt_kprintf("Execute force trigger GPIO handler %d \r\n", pin);
 
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
                 if (gpio == hwp_pbr)
                 {
                     /* do nothing */
                 }
                 else
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
                 {
                     HAL_GPIO_ClearPinInterrupt(gpio, pin); //Clear GPIO pin pending IRQ.
                 }
@@ -834,7 +834,7 @@ void check_wsr_pin(void)
         pin_wsr >>= 1;
     }
 
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
     /* handle pending pbr pin callback detected by drv_pin_check */
     level = rt_hw_interrupt_disable();
     status = pbr_pin_irq_pending_bitmap;
@@ -849,7 +849,7 @@ void check_wsr_pin(void)
         }
         status >>= 1;
     }
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
 
 }
 
@@ -973,11 +973,11 @@ static void print_pin_state(int pin)
 
     const char *str_pull, *str_gpio;
 
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
     bool output_en;
     HAL_StatusTypeDef status;
     uint32_t i;
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
 
 
     if (pin < PIN1_MAX_HANDLE)
@@ -992,20 +992,25 @@ static void print_pin_state(int pin)
         hcpu = 0;
         if (pin < PBR_PIN_OFFSET)
         {
+#ifdef hwp_pinmux2
             pad = (int)pin - PIN1_MAX_HANDLE + PAD_PB_00;
             gpio_pin = pin - PIN1_MAX_HANDLE;
             gphandle = (GPIO_TypeDef *)hwp_gpio2;
+#else
+            LOG_I("invalid pin: %d", pin);
+            return;
+#endif /* hwp_pinmux2 */
         }
         else
         {
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
             pad = (int)pin - PBR_PIN_OFFSET + PAD_PBR0;
             gpio_pin = pin - PBR_PIN_OFFSET;
             gphandle = hwp_pbr;
 #else
             LOG_I("invalid pin: %d", pin);
             return;
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
         }
     }
 
@@ -1038,7 +1043,7 @@ static void print_pin_state(int pin)
     }
 
     //GPIO mode
-#ifdef hwp_pbr
+#ifdef PAD_PBR_PRESENT
     if (gphandle == hwp_pbr)
     {
         status = HAL_PBR_GetMode(gpio_pin, &output_en);
@@ -1090,7 +1095,7 @@ static void print_pin_state(int pin)
         pin_val = HAL_PBR_ReadPin(gpio_pin);
     }
     else
-#endif /* hwp_pbr */
+#endif /* PAD_PBR_PRESENT */
     {
 
         mode = HAL_GPIO_GetMode(gphandle, gpio_pin);
@@ -1221,8 +1226,13 @@ __ROM_USED int cmd_pin(int argc, char **argv)
             }
             else
             {
+#ifdef hwp_pinmux2
                 pad = (int)pin - PIN1_MAX_HANDLE + PAD_PB_00;
                 hcpu = 0;
+#else
+                LOG_I("invalid pin: %d", pin);
+                return (-RT_EIO);
+#endif /* hwp_pinmux2 */
             }
 
 

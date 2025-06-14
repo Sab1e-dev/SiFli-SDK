@@ -75,6 +75,9 @@ extern "C" {
 
 #define HAL_LCPU_CONFIG_SN_MAX_NUM 128
 
+#ifdef SF32LB57X
+#define HAL_LCPU_CONFIG_EM_BUF_MAX_NUM 40
+#endif
 
 /**
   * @brief  Structure definition of @ref HAL_LCPU_CONFIG_ADC_CALIBRATION for LCPU_CONFIG_V1.

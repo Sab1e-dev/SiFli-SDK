@@ -713,21 +713,19 @@ static rt_err_t drv_pwm_get(struct bf0_pwm *pwm, struct rt_pwm_configuration *co
 {
     /* Converts the channel number to the channel number of Hal library */
     rt_uint32_t channel = 0x04 * (configuration->channel - 1);
-    rt_uint64_t GPT_clock;
+    rt_uint64_t gpt_clock;
     GPT_HandleTypeDef *htim = &(pwm->tim_handle);
+    gpt_clock = HAL_RCC_GetPCLKFreq(htim->core, 1);
 
-#ifdef SF32LB52X
+#ifdef FIXED_GPTBTIM_SRC_CLK
     if (htim->Instance == hwp_gptim2)
-        GPT_clock = 24000000;
-    else
+        gpt_clock = FIXED_GPTBTIM_SRC_CLK;
 #endif
-        GPT_clock = HAL_RCC_GetPCLKFreq(htim->core, 1);
-
 
     /* Convert nanosecond to frequency and duty cycle. 1s = 1 * 1000 * 1000 * 1000 ns */
-    GPT_clock /= 1000000UL;
-    configuration->period = (__HAL_GPT_GET_AUTORELOAD(htim) + 1) * (htim->Instance->PSC + 1) * 1000UL / GPT_clock;
-    configuration->pulse = (__HAL_GPT_GET_COMPARE(htim, channel) + 1) * (htim->Instance->PSC + 1) * 1000UL / GPT_clock;
+    gpt_clock /= 1000000UL;
+    configuration->period = (__HAL_GPT_GET_AUTORELOAD(htim) + 1) * (htim->Instance->PSC + 1) * 1000UL / gpt_clock;
+    configuration->pulse = (__HAL_GPT_GET_COMPARE(htim, channel) + 1) * (htim->Instance->PSC + 1) * 1000UL / gpt_clock;
 
     return RT_EOK;
 }
@@ -745,7 +743,7 @@ size_t global_array_length = 0;
 static rt_err_t drv_pwm_set(struct bf0_pwm *pwm, struct rt_pwm_configuration *configuration)
 {
     rt_uint32_t period, pulse;
-    rt_uint32_t GPT_clock, psc;
+    rt_uint32_t gpt_clock, psc;
     /* Converts the channel number to the channel number of Hal library */
     rt_uint32_t channel = 0x04 * (configuration->channel - 1);
     rt_uint32_t max_period = MAX_PERIOD_GPT;
@@ -756,19 +754,18 @@ static rt_err_t drv_pwm_set(struct bf0_pwm *pwm, struct rt_pwm_configuration *co
         max_period = MAX_PERIOD_ATM;
 #endif
 
-#ifdef SF32LB52X
+    gpt_clock = HAL_RCC_GetPCLKFreq(htim->core, 1);
+#ifdef FIXED_GPTBTIM_SRC_CLK
     if (htim->Instance == hwp_gptim2)
-        GPT_clock = 24000000;
-    else
+        gpt_clock = FIXED_GPTBTIM_SRC_CLK;
 #endif
-        GPT_clock = HAL_RCC_GetPCLKFreq(htim->core, 1);
 
     //GPT_clock = SystemCoreClock;
 
     /* Convert nanosecond to frequency and duty cycle. 1s = 1 * 1000 * 1000 * 1000 ns */
-    GPT_clock /= 1000000UL;//In Mhz units
+    gpt_clock /= 1000000UL;//In Mhz units
     // LOG_I("GPT_clock:%d\n",GPT_clock);
-    period = (unsigned long long)configuration->period * GPT_clock / 1000ULL ;
+    period = (unsigned long long)configuration->period * gpt_clock / 1000ULL ;
     psc = period / max_period + 1;
     period = period / psc;
     __HAL_GPT_SET_PRESCALER(htim, psc - 1);
@@ -779,7 +776,7 @@ static rt_err_t drv_pwm_set(struct bf0_pwm *pwm, struct rt_pwm_configuration *co
     }
     // LOG_I("period:%d\n",period);
     __HAL_GPT_SET_AUTORELOAD(htim, period - 1);
-    pulse = (unsigned long long)configuration->pulse * GPT_clock / psc / 1000ULL;
+    pulse = (unsigned long long)configuration->pulse * gpt_clock / psc / 1000ULL;
 
     if (pulse < MIN_PULSE)
     {
@@ -798,7 +795,7 @@ static rt_err_t drv_pwm_set(struct bf0_pwm *pwm, struct rt_pwm_configuration *co
     {
         for (size_t i = 0; i < configuration->data_len; i++)
         {
-            unsigned long long pulse_a = ((unsigned long long)configuration->pulse_dma_data[i] * GPT_clock / psc / 1000ULL) - 1;
+            unsigned long long pulse_a = ((unsigned long long)configuration->pulse_dma_data[i] * gpt_clock / psc / 1000ULL) - 1;
             if (pulse_a < MIN_PULSE)
             {
                 pulse_a = MIN_PULSE;
@@ -830,7 +827,7 @@ static rt_err_t drv_pwm_set(struct bf0_pwm *pwm, struct rt_pwm_configuration *co
 static rt_err_t drv_pwm_set_period(struct bf0_pwm *pwm, struct rt_pwm_configuration *configuration)
 {
     rt_uint32_t period;
-    rt_uint32_t GPT_clock, psc;
+    rt_uint32_t gpt_clock, psc;
     rt_uint32_t max_period = MAX_PERIOD_GPT;
     GPT_HandleTypeDef *htim = &(pwm->tim_handle);
 
@@ -839,16 +836,15 @@ static rt_err_t drv_pwm_set_period(struct bf0_pwm *pwm, struct rt_pwm_configurat
         max_period = MAX_PERIOD_ATM;
 #endif
 
-#ifdef SF32LB52X
+    gpt_clock = HAL_RCC_GetPCLKFreq(htim->core, 1);
+#ifdef FIXED_GPTBTIM_SRC_CLK
     if (htim->Instance == hwp_gptim2)
-        GPT_clock = 24000000;
-    else
+        gpt_clock = FIXED_GPTBTIM_SRC_CLK;
 #endif
-        GPT_clock = HAL_RCC_GetPCLKFreq(htim->core, 1);
 
     /* Convert nanosecond to frequency and duty cycle. 1s = 1 * 1000 * 1000 * 1000 ns */
-    GPT_clock /= 1000000UL;
-    period = (unsigned long long)configuration->period * GPT_clock / 1000ULL ;
+    gpt_clock /= 1000000UL;
+    period = (unsigned long long)configuration->period * gpt_clock / 1000ULL ;
     psc = period / max_period + 1;
     period = period / psc;
 
@@ -871,33 +867,31 @@ static rt_err_t drv_pwm_set_break_dead(struct bf0_pwm *pwm, struct rt_pwm_config
     TIMEx_BreakDeadTimeConfigTypeDef bdt = {0};
     RT_ASSERT((configuration != NULL) && (htim != NULL))
     struct rt_pwm_break_dead *bkd = (struct rt_pwm_break_dead *)&configuration->break_dead;
-    rt_uint32_t GPT_clock = 0, dead_time = 0;
+    rt_uint32_t gpt_clock = 0, dead_time = 0;
 
-
-#ifdef SF32LB52X
+    gpt_clock = HAL_RCC_GetPCLKFreq(htim->core, 1);
+#ifdef FIXED_GPTBTIM_SRC_CLK
     if (htim->Instance == hwp_gptim2)
-        GPT_clock = 24000000;
-    else
+        gpt_clock = FIXED_GPTBTIM_SRC_CLK;
 #endif
-        GPT_clock = HAL_RCC_GetPCLKFreq(htim->core, 1);
 
-    GPT_clock /= 1000000UL;
+    gpt_clock /= 1000000UL;
 
     if (bkd->dptsc) //dead-time is tCLK*(DTG+1)*16, step=(1/pclk)*16
     {
-        dead_time = (unsigned long long)configuration->dead_time * GPT_clock / 16000ULL - 1;
+        dead_time = (unsigned long long)configuration->dead_time * gpt_clock / 16000ULL - 1;
         if (dead_time > 1023)
         {
-            LOG_E("%s err dead_time beyond the range (max:%dns) that can be set", __FUNCTION__, (16 * 1024 * 1000 / GPT_clock));
+            LOG_E("%s err dead_time beyond the range (max:%dns) that can be set", __FUNCTION__, (16 * 1024 * 1000 / gpt_clock));
             return RT_ERROR;
         }
     }
     else //dead-time is tCLK*(DTG+1), step=(1/pclk)
     {
-        dead_time = (unsigned long long)configuration->dead_time * GPT_clock / 1000ULL - 1;
+        dead_time = (unsigned long long)configuration->dead_time * gpt_clock / 1000ULL - 1;
         if (dead_time > 1023)
         {
-            LOG_E("%s err dead_time beyond the range (max:%dns) that can be set", __FUNCTION__, (1024 * 1000 / GPT_clock));
+            LOG_E("%s err dead_time beyond the range (max:%dns) that can be set", __FUNCTION__, (1024 * 1000 / gpt_clock));
         }
     }
     if (dead_time)

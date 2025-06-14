@@ -367,8 +367,10 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_ADC_Prepare(ADC_HandleTypeDef *hadc)
     // enable analog
     hwp_hpsys_cfg->ANAU_CR |= (HPSYS_CFG_ANAU_CR_EN_VBAT_MON);
     hadc->Instance->ADC_CFG_REG1 |= (GPADC_ADC_CFG_REG1_ANAU_GPADC_LDOREF_EN);
-#else   /* GPADC_CALIB_FLOW_VERSION == 2 */
+#elif   (GPADC_CALIB_FLOW_VERSION == 2)
     hadc->Instance->ADC_CFG_REG1 |= (GPADC_ADC_CFG_REG1_ANAU_GPADC_EN_BG | GPADC_ADC_CFG_REG1_ANAU_GPADC_LDOREF_EN);
+#else /* GPADC_CALIB_FLOW_VERSION == 4 */
+    // TODO: FOR 57X
 #endif /* GPADC_CALIB_FLOW_VERSION == 3 */
     ADC_SET_UNMUTE(hadc);
 
@@ -454,9 +456,11 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_ADC_Stop(ADC_HandleTypeDef *hadc)
 #if (GPADC_CALIB_FLOW_VERSION == 3)
     hadc->Instance->ADC_CFG_REG1 &= ~(GPADC_ADC_CFG_REG1_ANAU_GPADC_LDOREF_EN);
     hwp_hpsys_cfg->ANAU_CR &= (~HPSYS_CFG_ANAU_CR_EN_VBAT_MON);
-#else   /* (GPADC_CALIB_FLOW_VERSION == 2) */
+#elif (GPADC_CALIB_FLOW_VERSION == 2)
     // TODO
     hadc->Instance->ADC_CFG_REG1 &= ~(GPADC_ADC_CFG_REG1_ANAU_GPADC_EN_BG | GPADC_ADC_CFG_REG1_ANAU_GPADC_LDOREF_EN);
+#else   // (GPADC_CALIB_FLOW_VERSION == 4)
+    // TODO: FOR 57X
 #endif /* (GPADC_CALIB_FLOW_VERSION == 3) */
     ADC_SET_MUTE(hadc);
 
@@ -599,8 +603,10 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_ADC_DMA_PREPARE(ADC_HandleTypeDef *hadc)
         hwp_hpsys_cfg->ANAU_CR |= (HPSYS_CFG_ANAU_CR_EN_VBAT_MON);
         //hwp_hpsys_cfg->ANAU_CR |= (HPSYS_CFG_ANAU_CR_EN_BG);
         hadc->Instance->ADC_CFG_REG1 |= (GPADC_ADC_CFG_REG1_ANAU_GPADC_LDOREF_EN);
-#else
+#elif (GPADC_CALIB_FLOW_VERSION == 2)
         hadc->Instance->ADC_CFG_REG1 |= (GPADC_ADC_CFG_REG1_ANAU_GPADC_EN_BG | GPADC_ADC_CFG_REG1_ANAU_GPADC_LDOREF_EN);
+#else // GPADC_CALIB_FLOW_VERSION == 4
+        // TODO : FOR 57X
 #endif
 
 #else   //(GPADC_CALIB_FLOW_VERSION == 1)
@@ -780,9 +786,10 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_ADC_Stop_DMA(ADC_HandleTypeDef *hadc)
     hadc->Instance->ADC_CFG_REG1 &= ~(GPADC_ADC_CFG_REG1_ANAU_GPADC_LDOREF_EN);
     //hwp_hpsys_cfg->ANAU_CR &= (~HPSYS_CFG_ANAU_CR_EN_BG);
     hwp_hpsys_cfg->ANAU_CR &= (~HPSYS_CFG_ANAU_CR_EN_VBAT_MON);
-#else
-    // TODO
+#elif (GPADC_CALIB_FLOW_VERSION == 2)
     hadc->Instance->ADC_CFG_REG1 &= ~(GPADC_ADC_CFG_REG1_ANAU_GPADC_EN_BG | GPADC_ADC_CFG_REG1_ANAU_GPADC_LDOREF_EN);
+#else //(GPADC_CALIB_FLOW_VERSION == 4)
+    // TODO: 57X
 #endif
 #else
     hadc->Instance->ADC_CFG_REG1 &= (~(GPADC_ADC_CFG_REG1_ANAU_GPADC_LDOCORE_EN | GPADC_ADC_CFG_REG1_ANAU_GPADC_LDOREF_EN));
@@ -1161,9 +1168,10 @@ __HAL_ROM_USED int HAL_ADC_Get_Offset(ADC_HandleTypeDef *hadc)
 #if (GPADC_CALIB_FLOW_VERSION != 1)
 #if (GPADC_CALIB_FLOW_VERSION == 3)
     hadc->Instance->ADC_CFG_REG1 |= (GPADC_ADC_CFG_REG1_ANAU_GPADC_LDOREF_EN);
-#else
-    // TODO
+#elif (GPADC_CALIB_FLOW_VERSION == 2)
     hadc->Instance->ADC_CFG_REG1 |= (GPADC_ADC_CFG_REG1_ANAU_GPADC_EN_BG | GPADC_ADC_CFG_REG1_ANAU_GPADC_LDOREF_EN);
+#else //(GPADC_CALIB_FLOW_VERSION == 4)
+    // TODO: 57X
 #endif
 #else
 
@@ -1189,9 +1197,10 @@ __HAL_ROM_USED int HAL_ADC_Get_Offset(ADC_HandleTypeDef *hadc)
 #if (GPADC_CALIB_FLOW_VERSION != 1)
 #if (GPADC_CALIB_FLOW_VERSION == 3)
     hadc->Instance->ADC_CFG_REG1 &= ~(GPADC_ADC_CFG_REG1_ANAU_GPADC_LDOREF_EN);
-#else
-    // TODO
+#elif (GPADC_CALIB_FLOW_VERSION == 2)
     hadc->Instance->ADC_CFG_REG1 &= ~(GPADC_ADC_CFG_REG1_ANAU_GPADC_EN_BG | GPADC_ADC_CFG_REG1_ANAU_GPADC_LDOREF_EN);
+#else //(GPADC_CALIB_FLOW_VERSION == 5)
+    // TODO: 57X
 #endif
 #else
     hadc->Instance->ADC_CFG_REG1 &= ~GPADC_ADC_CFG_REG1_ANAU_GPADC_LDOREF_EN;

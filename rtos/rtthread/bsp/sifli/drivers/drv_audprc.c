@@ -336,6 +336,8 @@ void eq_get_version(uint8_t version[20])
 #endif
 }
 
+//TODO:
+#if 0
 #ifdef FPGA
 static int bf0_enable_pll(uint32_t freq, uint8_t type)
 {
@@ -350,6 +352,7 @@ static void set_pll_state(uint8_t state)
 
 }
 
+#endif
 #endif
 
 #if defined(BSP_ENABLE_AUD_PRC) ||defined(_SIFLI_DOXYGEN_)
@@ -651,7 +654,7 @@ static void bf0_adc_dac_path_cfg_init(AUDPRC_HandleTypeDef *haudprc)
     haudprc->Init.dac_cfg.mixlsrc1 = 5;
     haudprc->Init.dac_cfg.mixlsrc0 = 0;
 #ifdef  APP_BSP_TEST
-#ifdef SF32LB52X
+#if defined(SF32LB52X) || defined(SF32LB57X)
     haudprc->Init.dac_cfg.vol_r = 0;
     haudprc->Init.dac_cfg.vol_l = 0;
 #else
@@ -2203,7 +2206,7 @@ void eq_debug_reconfig_eq()
 
 
     //HAL_DBG_printf("clear ramp");
-#ifdef SF32LB52X
+#if defined(SF32LB52X) || defined(SF32LB57X)
     MODIFY_REG(hacodec->Instance->DAC_CH0_CFG_EXT, AUDCODEC_DAC_CH0_CFG_EXT_RAMP_EN_Msk,
                MAKE_REG_VAL(0, AUDCODEC_DAC_CH0_CFG_EXT_RAMP_EN_Msk, AUDCODEC_DAC_CH0_CFG_EXT_RAMP_EN_Pos));
     MODIFY_REG(hacodec->Instance->DAC_CH1_CFG_EXT, AUDCODEC_DAC_CH1_CFG_EXT_RAMP_EN_Msk,

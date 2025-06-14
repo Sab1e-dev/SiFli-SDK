@@ -45,8 +45,8 @@
  *
  */
 
-#include "bf0_hal_sdhci.h"
 #include "bf0_hal.h"
+#include "bf0_hal_sdhci.h"
 
 #ifdef HAL_SDHCI_MODULE_ENABLED
 

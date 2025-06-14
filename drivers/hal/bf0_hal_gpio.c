@@ -174,6 +174,13 @@
 
     #define GPIO2_EXTI_START_PIN  (0)
     #define GPIO2_EXTI_END_PIN    (36)
+#elif defined(SF32LB57X)
+    // TODO: Revist this
+    #define GPIO1_EXTI_START_PIN  (0)
+    #define GPIO1_EXTI_END_PIN    (78)
+
+    #define GPIO2_EXTI_START_PIN  (0)
+    #define GPIO2_EXTI_END_PIN    (36)
 #else
     #error "Fix me!"
 #endif /* SF32LB55X */
@@ -589,6 +596,7 @@ __HAL_ROM_USED void HAL_GPIO_EXTI_IRQHandler(GPIO_TypeDef *hgpio, uint16_t GPIO_
             }
         }
 
+#if GPIO2_BASE
         if ((GPIO_TypeDef *)hwp_gpio2 == hgpio)
         {
             wakeup_pin = HAL_LPAON_QueryWakeupPin(hgpio, GPIO_Pin);
@@ -599,6 +607,7 @@ __HAL_ROM_USED void HAL_GPIO_EXTI_IRQHandler(GPIO_TypeDef *hgpio, uint16_t GPIO_
                 HAL_PMU_CLEAR_WSR(1UL << (PMUC_WCR_PIN0_Pos + wakeup_pin));
             }
         }
+#endif /* GPIO2_BASE */
     }
 }
 
@@ -616,11 +625,13 @@ __HAL_ROM_USED void HAL_GPIO_IRQHandler(GPIO_TypeDef *hgpio)
         start = GPIO1_EXTI_START_PIN;
         end   = GPIO1_EXTI_END_PIN;
     }
+#if GPIO2_BASE
     else if (hwp_gpio2 == hgpio)
     {
         start = GPIO2_EXTI_START_PIN;
         end   = GPIO2_EXTI_END_PIN;
     }
+#endif /* GPIO2_BASE */
     else
     {
         HAL_ASSERT(0);//Invalid param
@@ -819,7 +830,11 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_GPIO_ClearInterrupt(GPIO_TypeDef *hgpio)
 {
     GPIO_TypeDef *gpiox;
 
-    if ((hgpio != (GPIO_TypeDef *)hwp_gpio1) && (hgpio != (GPIO_TypeDef *)hwp_gpio2))
+    if ((hgpio != (GPIO_TypeDef *)hwp_gpio1)
+#if GPIO2_BASE
+            && (hgpio != (GPIO_TypeDef *)hwp_gpio2)
+#endif /* GPIO2_BASE */
+       )
     {
         return HAL_ERROR;
     }

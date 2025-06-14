@@ -891,6 +891,7 @@ __HAL_ROM_USED uint32_t HAL_RTC_get_backup(RTC_HandleTypeDef *hrtc, uint8_t idx)
 
 
 #ifndef SF32LB55X
+#ifdef RTC_PBR0R_IE_Msk
 HAL_RAM_RET_CODE_SECT(HAL_PBR_ConfigMode,  __HAL_ROM_USED HAL_StatusTypeDef HAL_PBR_ConfigMode(uint8_t pin, bool output_en))
 {
     HAL_StatusTypeDef ret = HAL_ERROR;
@@ -916,9 +917,38 @@ HAL_RAM_RET_CODE_SECT(HAL_PBR_ConfigMode,  __HAL_ROM_USED HAL_StatusTypeDef HAL_
 __EXIT:
     return ret;
 }
+#else
+//TODO: PBR function need refined
+HAL_RAM_RET_CODE_SECT(HAL_PBR_ConfigMode,  __HAL_ROM_USED HAL_StatusTypeDef HAL_PBR_ConfigMode(uint8_t pin, bool output_en))
+{
+    HAL_StatusTypeDef ret = HAL_ERROR;
+    __IO uint32_t *pbr;
+
+    if (pin > HAL_PBR_MAX)
+    {
+        goto __EXIT;
+    }
+
+    pbr = &hwp_rtc->PBR0R;
+    if (output_en)
+    {
+        MODIFY_REG(pbr[pin], RTC_PBR0R_OE_Msk, RTC_PBR0R_OE_Msk);
+    }
+    else
+    {
+        MODIFY_REG(pbr[pin], RTC_PBR0R_OE_Msk, 0);
+    }
+
+    ret = HAL_OK;
+
+__EXIT:
+    return ret;
+}
+#endif /* RTC_PBR0R_IE_Msk */
 
 HAL_RAM_RET_CODE_SECT(HAL_PBR_ReadPin,  __HAL_ROM_USED int8_t HAL_PBR_ReadPin(uint8_t pin))
 {
+#ifdef RTC_PBR0R_IE_Msk
     int8_t val = -1;
     __IO uint32_t *pbr;
 
@@ -933,6 +963,9 @@ HAL_RAM_RET_CODE_SECT(HAL_PBR_ReadPin,  __HAL_ROM_USED int8_t HAL_PBR_ReadPin(ui
 
 __EXIT:
     return val;
+#else
+    return -1;
+#endif /* RTC_PBR0R_IE_Msk */
 }
 
 HAL_RAM_RET_CODE_SECT(HAL_PBR_WritePin, __HAL_ROM_USED HAL_StatusTypeDef HAL_PBR_WritePin(uint8_t pin, uint8_t state))

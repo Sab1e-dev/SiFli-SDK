@@ -159,7 +159,7 @@ __weak const AON_WakeupPinTypeDef HAL_LPAON_WakeupPinMapTbl[] =
 #endif
 
 
-#ifndef SF32LB52X
+#if !defined(SF32LB52X) && !defined(SF32LB57X)
     #define HAL_LPAON_WAKEUP_PIN_NUM  (sizeof(HAL_LPAON_WakeupPinMapTbl)/sizeof(HAL_LPAON_WakeupPinMapTbl[0]))
 #else
     #define HAL_LPAON_WAKEUP_PIN_NUM  (LPSYS_AON_WSR_PIN_NUM)
@@ -323,7 +323,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LPAON_DisableWakeupSrc(LPAON_WakeupSrcTypeD
 }
 
 
-#ifdef SF32LB52X
+#if defined(SF32LB52X) || defined(SF32LB57X)
 __HAL_ROM_USED int8_t HAL_LPAON_QueryWakeupPin(GPIO_TypeDef *gpio, uint16_t gpio_pin)
 {
     return HAL_HPAON_QueryWakeupPin(gpio, gpio_pin);

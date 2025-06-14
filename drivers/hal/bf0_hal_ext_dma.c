@@ -46,7 +46,6 @@
  */
 
 #include "bf0_hal.h"
-#include "bf0_hal_ext_dma.h"
 
 /** @addtogroup BF0_HAL_Driver
   * @{
@@ -58,6 +57,8 @@
   */
 
 #if defined(HAL_EXTDMA_MODULE_ENABLED)||defined(_SIFLI_DOXYGEN_)
+
+#include "bf0_hal_ext_dma.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/

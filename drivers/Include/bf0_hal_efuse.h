@@ -63,8 +63,11 @@ extern "C" {
 /** EFUSE bank size in bytes */
 #define HAL_EFUSE_BANK_SIZE         32
 /** EFUSE bank number */
+#ifdef SF32LB57X
+#define HAL_EFUSE_BANK_NUM          (3)
+#else
 #define HAL_EFUSE_BANK_NUM          (4)
-
+#endif
 
 /**
  * @brief  Init Efuse controller

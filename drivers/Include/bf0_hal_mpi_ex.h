@@ -225,7 +225,7 @@ typedef enum
   * @param addr flash address
   * @retval true if success
   */
-#if !defined(SF32LB56X)&&!defined(SF32LB52X)
+#if !defined(SF32LB56X)&&!defined(SF32LB52X)&&!defined(SF32LB57X)
 #define IS_SPI_NONDMA_RAM_ADDR(addr)    (((((uint32_t)addr)&0xFFFF0000) == HPSYS_ITCM_BASE)    \
                                         || ((((uint32_t)addr)&0xFFFF0000) == HPSYS_RETM_BASE))
 #else
@@ -322,7 +322,7 @@ typedef enum
   * @param value source value
   * @retval true if success
   */
-#ifndef IS_ALIGNED  
+#ifndef IS_ALIGNED
 #define IS_ALIGNED(align, value)            (((value) & ((align)-1))==0)
 #endif
 
@@ -414,6 +414,16 @@ void HAL_FLASH_ALIAS_CFG(FLASH_HandleTypeDef *fhandle, uint32_t start, uint32_t 
   * @retval none
 */
 void HAL_FLASH_NONCE_CFG(FLASH_HandleTypeDef *fhandle, uint32_t start, uint32_t end, uint8_t *nonce);
+
+/**
+  * @brief  set nonce 2
+  * @param  fhandle  FLASH handle
+  * @param  start start address
+  * @param  end end address
+  * @param  nonce nonce table
+  * @retval none
+*/
+void HAL_FLASH_NONCE_CFG2(FLASH_HandleTypeDef *fhandle, uint32_t start, uint32_t end, uint8_t *nonce);
 
 /**
   * @brief  set AES

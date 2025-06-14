@@ -70,6 +70,12 @@ extern "C" {
 #define EPIC_SUPPORT_DITHER
 #ifndef SF32LB56X
 #define EPIC_SUPPORT_A2
+#ifndef SF32LB52X
+#define EPIC_SUPPORT_JPEGD
+#define EPIC_SUPPORT_DECOMP
+#define EPIC_SUPPORT_COMP
+#define EPIC_SUPPORT_COLOR_MATRIX
+#endif /* SF32LB52X */
 #endif /* SF32LB56X */
 #endif /* SF32LB58X */
 #endif /* SF32LB55X */
@@ -129,6 +135,9 @@ extern "C" {
 #define EPIC_COLOR_YUV420_PLANAR             (0x103)              /**< iYUV */
 //#define EPIC_COLOR_YUV420_SEMI_PLANAR      (0x104)              /**< Reserved */
 
+#define EPIC_COLOR_JPEG_FLAG                 (0x200)
+#define EPIC_COLOR_JPEG                      (0x200)
+
 
 /** @defgroup EPIC_Output_Color_Mode EPIC Output Color Mode
   * @{
@@ -161,13 +170,21 @@ extern "C" {
 #define EPIC_INPUT_YUV422_PACKED_UYVY   EPIC_COLOR_YUV422_PACKED_UYVY            /**< UYUV */
 #define EPIC_INPUT_YUV420_PLANAR        EPIC_COLOR_YUV420_PLANAR                 /**< iYUV */
 #define EPIC_INPUT_MONO                EPIC_COLOR_MONO
-
+#define EPIC_INPUT_JPEG              EPIC_COLOR_JPEG
 
 
 /**
   * @}
   */
 
+/** @defgroup EPIC_CoengStateFlag EPIC Co-engine state flag
+ * @{
+*/
+#define EPIC_COENG_STATE_EZIP_FLAG         (0x1)
+#define EPIC_COENG_STATE_JPEGD_FLAG        (0x2)
+/**
+ * @}
+ */
 
 #define EPIC_LAYER_OPAQUE  (0xFF)
 
@@ -251,7 +268,7 @@ typedef struct
     int16_t y;
 } EPIC_PointTypeDef;
 
-
+#define EPIC_SIN_COS_FRAC_BIT   (15)
 typedef struct
 {
     /** angle in 0.1 degree */
@@ -371,6 +388,8 @@ typedef struct
     EPIC_YUVCfgTypeDef  yuv;  /**< YUV data*/
 
     uint16_t lookup_table_size;  /**< Lookup table color numbers*/
+    /** 3x4 color matrix (3 rows, 4 columns), only valid for output layer, data format of column 0~2 is Q3.9, column 3 is Q11.9 */
+    uint32_t *color_matrix;
 } EPIC_BlendingDataType;
 
 typedef struct
@@ -416,6 +435,8 @@ typedef struct
     EPIC_YUVCfgTypeDef  yuv;  /**< YUV data*/
 
     uint16_t lookup_table_size;  /**< Lookup table color numbers, maximum is 'EPIC_MAX_LOOKUP_TABLE_CNT' */
+    /** 3x4 color matrix (3 rows, 4 columns), only valid for output layer, data format of column 0~2 is Q3.9, column 3 is Q11.9 */
+    uint32_t *color_matrix;
     /****** Keep above members as same as struct 'EPIC_BlendingDataType'  *************/
 
     uint8_t alpha;              /**< Layer global alpha*/
@@ -603,6 +624,11 @@ typedef struct __EPIC_HandleTypeDef
 #ifdef HAL_EZIP_MODULE_ENABLED
     EZIP_HandleTypeDef        *hezip;                                            /**< EZIP handle                 */
 #endif /* HAL_EZIP_MODULE_ENABLED */
+#ifdef HAL_JPEGD_MODULE_ENABLED
+    JPEGD_HandleTypeDef       *hjpegd;                                           /**< JPEGD Handle  */
+    uint32_t                  jpegd_work_buf_size;
+    uint8_t                   *jpegd_work_buf;
+#endif /* HAL_JPEGD_MODULE_ENABLED */
     EPIC_InitTypeDef           Init;                                             /*!< EPIC init parameters.       */
     void (* XferCpltCallback)(struct __EPIC_HandleTypeDef *epic);                /*!< EPIC processing complete callback. */
     __IO HAL_EPIC_StateTypeDef State;                                            /*!< EPIC state.                        */
@@ -636,6 +662,7 @@ typedef struct __EPIC_HandleTypeDef
     __IO uint32_t PerfCnt;                                                       /*!< EPIC total running cycle counter */
     __IO uint32_t WaitCnt;
     __IO uint32_t HalCnt;
+    __IO uint32_t coeng_state;                                                   /*!< Co-engine running state, @ref EPIC_CoengStateFlag */
 } EPIC_HandleTypeDef;
 
 typedef void (*EPIC_CpltCallback)(EPIC_HandleTypeDef *epic);

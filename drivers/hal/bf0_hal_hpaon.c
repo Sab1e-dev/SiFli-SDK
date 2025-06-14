@@ -170,7 +170,7 @@ __weak const AON_WakeupPinTypeDef HAL_HPAON_WakeupPinMapTbl[] =
 #endif /* SF32LB55X */
 
 
-#ifndef SF32LB52X
+#if !defined(SF32LB52X) && !defined(SF32LB57X)
     #define HAL_HPAON_WAKEUP_PIN_NUM  (sizeof(HAL_HPAON_WakeupPinMapTbl)/sizeof(HAL_HPAON_WakeupPinMapTbl[0]))
 #else
     #define HAL_HPAON_WAKEUP_PIN_NUM  (HPSYS_AON_WSR_PIN_NUM)
@@ -178,7 +178,7 @@ __weak const AON_WakeupPinTypeDef HAL_HPAON_WakeupPinMapTbl[] =
     #define HAL_HPAON_WAKEUP_PIN_LAST    (44)
 #endif /* SF32LB52X */
 
-#ifdef SF32LB52X
+#if defined(SF32LB52X) || defined(SF32LB57X)
     HAL_RETM_BSS_SECT(g_hal_hpaon_lcpu_wakeup_ref_cnt, uint8_t g_hal_hpaon_lcpu_wakeup_ref_cnt);
 #endif /* SF32LB52X */
 
@@ -192,7 +192,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_WakeCore(uint8_t core_id)
     HAL_StatusTypeDef ret = HAL_OK;
     if (core_id == CORE_ID_LCPU)
     {
-#ifdef SF32LB52X
+#if defined(SF32LB52X) || defined(SF32LB57X)
         uint32_t mask;
 #endif /* SF32LB52X */
         hwp_hpsys_aon->ISSR |= HPSYS_AON_ISSR_HP2LP_REQ;
@@ -204,7 +204,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_WakeCore(uint8_t core_id)
         HAL_Delay_us(30);
         /* delay to ensure HCPU see the updated LP_ACTIVE */
         while (!(hwp_hpsys_aon->ISSR & HPSYS_AON_ISSR_LP_ACTIVE));
-#ifdef SF32LB52X
+#if defined(SF32LB52X) || defined(SF32LB57X)
         mask = HAL_DisableInterrupt();
         HAL_ASSERT(g_hal_hpaon_lcpu_wakeup_ref_cnt < 20);
         g_hal_hpaon_lcpu_wakeup_ref_cnt++;
@@ -353,7 +353,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_DisableWakeupSrc(HPAON_WakeupSrcTypeD
     return HAL_OK;
 }
 
-#ifdef SF32LB52X
+#if defined(SF32LB52X) || defined(SF32LB57X)
 __HAL_ROM_USED int8_t HAL_HPAON_QueryWakeupPin(GPIO_TypeDef *gpio, uint16_t gpio_pin)
 {
     int8_t wakeup_pin = -1;

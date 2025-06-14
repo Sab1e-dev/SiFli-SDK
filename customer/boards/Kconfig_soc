@@ -10,6 +10,9 @@ config SOC_SF32LB56X
     
 config SOC_SF32LB52X
     bool 
+
+config SOC_SF32LB57X
+    bool 
     
 config SOC_SIMULATOR
     bool 
@@ -40,7 +43,8 @@ if BF0_LCPU
 
     config CPU
     string
-    default "Cortex-M33"
+    default "nuclei" if SOC_SF32LB57X
+    default "Cortex-M33" 
     config CPU_HAS_NO_DSP_FP
         bool 
         default y if SOC_SF32LB52X

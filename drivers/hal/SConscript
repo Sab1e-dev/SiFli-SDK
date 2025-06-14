@@ -15,8 +15,15 @@ if GetDepend('SOC_SF32LB55X'):
 else:
     SrcRemove(src, 'bf0_hal_qspi.c')
     SrcRemove(src, 'bf0_hal_qspi_ex.c')
-    
-if GetDepend('SOC_SF32LB52X'):
+
+if rtconfig.ARCH != 'arm':
+    SrcRemove(src, 'bf0_hal_cortex.c')
+
+if rtconfig.ARCH != 'risc-v':
+    SrcRemove(src, 'bf0_hal_riscv.c')
+
+
+if GetDepend('SOC_SF32LB52X') or GetDepend('SOC_SF32LB57X'):
     SrcRemove(src, 'bf0_hal_audcodec.c')
 else:
     SrcRemove(src, 'bf0_hal_audcodec_m.c')
@@ -96,6 +103,8 @@ elif GetDepend('BF0_LCPU'):
             rom_src_name = 'sifli_rom_56x.sym'
         elif GetDepend('SOC_SF32LB52X'):
             rom_src_name = 'sifli_rom_52x.sym'
+        elif GetDepend('SOC_SF32LB57X'):
+            rom_src_name = 'sifli_rom_57x.sym'
     elif rtconfig.CROSS_TOOL == 'gcc': 
         if GetDepend('SOC_SF32LB58X'):
             if GetDepend('LCPU_CONFIG_V2'):
@@ -153,6 +162,8 @@ elif GetDepend('SOC_SF32LB56X'):
     CPPDEFINES+=['SF32LB56X']
 elif GetDepend('SOC_SF32LB52X'):
     CPPDEFINES+=['SF32LB52X']
+elif GetDepend('SOC_SF32LB57X'):
+    CPPDEFINES+=['SF32LB57X']
 else:
     print("Chipset need to be selected")
 

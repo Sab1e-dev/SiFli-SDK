@@ -63,6 +63,9 @@ extern "C" {
 #include "sdio_config.h"
 #include "flash_config.h"
 #include "audio_config.h"
+#ifdef DCMI_BASE
+#include "dcmi_config.h"
+#endif
 #define ALL_CLK_USING_PLL   0
 #ifdef __cplusplus
 }

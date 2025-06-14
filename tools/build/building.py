@@ -2247,7 +2247,13 @@ def SifliGccEnv(cpu):
     rtconfig.CROSS_TOOL= 'gcc'
 
     # toolchains
-    rtconfig.PREFIX = 'arm-none-eabi-'
+    if rtconfig.ARCH=='arm':
+        rtconfig.PREFIX = 'arm-none-eabi-'
+        DEVICE = ' -mcpu=' + cpu + ' -mthumb -ffunction-sections -fdata-sections'
+    elif rtconfig.ARCH=='risc-v':
+        rtconfig.PREFIX = 'riscv64-unknown-elf-'
+        DEVICE = ' -march=rv32ima_zca_zcb_zcf_zcmp_zcmt_xxlcz -mabi=ilp32'
+
     rtconfig.CC = rtconfig.PREFIX + 'gcc'
     rtconfig.AS = rtconfig.PREFIX + 'gcc'
     rtconfig.AR = rtconfig.PREFIX + 'ar'
@@ -2265,11 +2271,11 @@ def SifliGccEnv(cpu):
     else:
         no_dsp_fp = False
 
-    DEVICE = ' -mcpu=' + cpu + ' -mthumb -ffunction-sections -fdata-sections'
-    if not no_dsp_fp:
-        rtconfig.CFLAGS = DEVICE + ' -mfpu=fpv5-sp-d16 -mfloat-abi=hard'
-    else:
-        rtconfig.CFLAGS = DEVICE + ' -mfloat-abi=soft'
+    if rtconfig.ARCH=='arm':
+        if not no_dsp_fp:
+            rtconfig.CFLAGS = DEVICE + ' -mfpu=fpv5-sp-d16 -mfloat-abi=hard'
+        else:
+            rtconfig.CFLAGS = DEVICE + ' -mfloat-abi=soft'
     rtconfig.CFLAGS += ' -std=c99 -funsigned-char -fshort-enums -fshort-wchar'
     rtconfig.CFLAGS += ' -mlittle-endian -gdwarf-3 -Wno-packed -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-unused-macros -Wnull-dereference'
     rtconfig.CFLAGS += ' -fno-unwind-tables -fno-exceptions'
@@ -2280,20 +2286,29 @@ def SifliGccEnv(cpu):
     if no_dsp_fp:
         rtconfig.CXXFLAGS += ' -fno-exceptions -fno-rtti'
     rtconfig.CCFLAGS =  rtconfig.CFLAGS
-    rtconfig.AFLAGS = ' -c' + DEVICE
-    if not no_dsp_fp:
-        rtconfig.AFLAGS += ' -mfpu=fpv4-sp-d16 -mfloat-abi=hard'
-    else:
-        rtconfig.AFLAGS += ' -mfloat-abi=soft'
-
-    rtconfig.AFLAGS += ' -x assembler-with-cpp -Wa,-mimplicit-it=thumb '    
+    rtconfig.AFLAGS = ' -c' + DEVICE + ' -x assembler-with-cpp'
+    if rtconfig.ARCH=='arm':
+        rtconfig.AFLAGS += ' -Wa,-mimplicit-it=thumb'
+        if not no_dsp_fp:
+            rtconfig.AFLAGS += ' -mfpu=fpv4-sp-d16 -mfloat-abi=hard'
+        else:
+            rtconfig.AFLAGS += ' -mfloat-abi=soft'
+    elif rtconfig.ARCH=='risc-v':
+        rtconfig.CFLAGS += ' -ffunction-sections -fdata-sections -fno-common'
+        if GetDepend('LTO_SUPPORT'):
+            rtconfig.CFLAGS += ' -flto'
+            rtconfig.AFLAGS += ' -ffat-lto-objects'
+        
     
     rtconfig.LFLAGS = rtconfig.CFLAGS.strip().split()
     #  ['-mcpu=Cortex-M33', '-mthumb', '-ffunction-sections', '-fdata-sections']
     #rtconfig.LFLAGS += '-std=c99 -mfpu=fpv5-sp-d16 -mfloat-abi=hard'.split()
     if not hasattr(rtconfig, 'TARGET_NAME'):
         rtconfig.TARGET_NAME = 'rtthread'
-    rtconfig.LFLAGS += ['-Wl,--no-wchar-size-warning,--gc-sections,-Map={}.map,-cref,-u,Reset_Handler'.format(rtconfig.OUTPUT_DIR + '/' + rtconfig.TARGET_NAME)]
+    if rtconfig.ARCH=='arm':
+        rtconfig.LFLAGS += ['-Wl,--no-wchar-size-warning,--gc-sections,-Map={}.map,-cref,-u,Reset_Handler'.format(rtconfig.OUTPUT_DIR + '/' + rtconfig.TARGET_NAME)]
+    else:
+        rtconfig.LFLAGS += ['-Wl,--undefined=g_patch_type,--undefined=_calloc_r,--undefined=_realloc_r,--undefined=bt_sco_data_handle_callback,--undefined=ble_boot,--gc-sections,-Map={}.map,-cref,-u,Reset_Handler'.format(rtconfig.OUTPUT_DIR + '/' + rtconfig.TARGET_NAME)]
 
     rtconfig.LINK_SCRIPT = rtconfig.OUTPUT_DIR + '/link_copy'
 
@@ -2647,6 +2662,14 @@ def AddBootLoader(SIFLI_SDK, chip):
     elif "SF32LB58X" == chip:
         proj_path = os.path.join(SIFLI_SDK, 'example/boot_loader/project/sf32lb58x_v2')
         AddChildProj(proj_name, proj_path, False)
+    elif "SF32LB57X" == chip:
+        proj_path = os.path.join(SIFLI_SDK, 'example/boot_loader/project/sf32lb57x/ram_v2')
+        AddChildProj(proj_name, proj_path, False)
+    elif "SF32LB55X" == chip:
+        # 55x has no bootloader    
+        pass 
+    else:
+        assert False, "Unknown chip: {}".format(chip)    
 
 def AddFTAB(SIFLI_SDK, chip):
     proj_path = None
@@ -2663,6 +2686,11 @@ def AddFTAB(SIFLI_SDK, chip):
     elif "SF32LB55X" == chip:
         proj_path = os.path.join(SIFLI_SDK, 'example/flash_table/sf32lb55x_common_v2')
         AddChildProj(proj_name, proj_path, False)
+    elif "SF32LB57X" == chip:
+        proj_path = os.path.join(SIFLI_SDK, 'example/flash_table/sf32lb57x_common_v2')
+        AddChildProj(proj_name, proj_path, False)        
+    else:
+        assert False, "Unknown chip: {}".format(chip)    
 
 def AddDFU(SIFLI_SDK):
     proj_path = None

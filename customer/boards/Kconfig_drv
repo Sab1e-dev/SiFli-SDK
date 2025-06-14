@@ -1310,7 +1310,10 @@ menu "On-chip Peripheral RTOS Drivers"
         endif
     config BSP_USING_EXT_DMA
         bool "Enable ext dma"
-        default y
+        default y if SOC_SF32LB55X
+        default y if SOC_SF32LB58X
+        default y if SOC_SF32LB56X
+        default y if SOC_SF32LB52X
 
     config BSP_USING_HW_AES
         bool "Enable hardware AES encryption/decryption"
@@ -1365,6 +1368,10 @@ menu "On-chip Peripheral RTOS Drivers"
         select RT_USING_USB_HOST
         default n
         
+    config BSP_USING_DCMI
+        bool "Enable DCMI"
+        default n
+    
     config BSP_USING_ONCHIP_RTC
         bool "Enable RTC"
         select RT_USING_RTC
@@ -1502,6 +1509,10 @@ menu "On-chip Peripheral RTOS Drivers"
             config BSP_ENABLE_I2S3
                 depends on SOC_SF32LB58X || SOC_SF32LB56X	    
                 bool "Enable I2S3 for Codec"
+                default n
+            config BSP_I2S_CLK_XTAL 
+                depends on !SOC_SF32LB55X
+                bool "i2s source xtal clock"
                 default n
         endif
 

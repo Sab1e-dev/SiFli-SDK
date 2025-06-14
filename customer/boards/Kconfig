@@ -62,6 +62,9 @@ choice
         select BPS_V33
         depends on SOC_SF32LB56X
         bool "SS6700XXX HDK" 
+    config BSP_USING_BOARD_EH_LB573XXX_MPI3
+        depends on SOC_SF32LB57X
+        bool "SF32LB573XXX FPGA"    
     config BSP_USING_BOARD_EC_LB583XXX
         depends on SOC_SF32LB58X
         bool "SF32LB583XXX EVB"
@@ -78,6 +81,8 @@ choice
         bool "Sifli Solution customer board"
     config BSP_USING_NON_SIFLI_BOARD
         bool "non-SiFli board"
+    config BSP_NO_BOARD_USED
+        bool "Not use any board"
 endchoice
 
 if !BSP_USING_PC_SIMULATOR
@@ -202,6 +207,10 @@ endif
 
 if BSP_USING_BOARD_SF32LB56_LCD_N16R12N1
     source "$SIFLI_SDK/customer/boards/sf32lb56-lcd_n16r12n1/Kconfig.board"
+endif
+
+if BSP_USING_BOARD_EH_LB573XXX_MPI3_V2
+    source "$SIFLI_SDK/customer/boards/eh-lb573_mpi3_v2/Kconfig.board"
 endif
 
 if BSP_USING_BOARD_EC_LB583XXX || SIFLI_LB583

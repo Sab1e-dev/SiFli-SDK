@@ -52,12 +52,14 @@
 extern "C" {
 #endif
 
+#include "stdint.h"
+
 #define MAKE_REG_VAL(val, mask, offset)        ((((uint32_t)(val)) << (offset)) & (mask))
 #define GET_REG_VAL(reg, mask, offset)        ((((uint32_t)(reg)) & (mask)) >> (offset))
 
 //#define HAL_DEBUG_ENABLED
 //#define TARMAC
-
+#include "register.h"
 /* Includes ------------------------------------------------------------------*/
 #ifdef SOC_BF0_HCPU
 #include "bf0_hal_conf_hcpu.h"
@@ -143,10 +145,15 @@ extern "C" {
   */
 #define __HAL_SYSCFG_SET_SECURITY()      (hwp_hpsys_cfg->SCR|=HPSYS_CFG_SCR_FKEY_MODE)
 
+//TODO:
+#ifdef HPSYS_CFG_SCR_FKEY_MODE
 /** @brief  Clear Security Key control.
   */
 
 #define __HAL_SYSCFG_CLEAR_SECURITY()      (hwp_hpsys_cfg->SCR&=~HPSYS_CFG_SCR_FKEY_MODE)
+#else
+#define __HAL_SYSCFG_CLEAR_SECURITY()
+#endif
 
 #define __HAL_SYSCFG_GET_SID()            (hwp_hpsys_cfg->IDR>>HPSYS_CFG_IDR_SID_Pos)           /*!< Get serial ID*/
 #define __HAL_SYSCFG_GET_CID()            ((hwp_hpsys_cfg->IDR>>HPSYS_CFG_IDR_CID_Pos)&0xff)    /*!< Get Chip ID*/
@@ -161,7 +168,8 @@ extern "C" {
 #define __HAL_SYSCFG_USB_DM_PD()         (hwp_hpsys_cfg->USBCR|=HPSYS_CFG_USBCR_DM_PD)        /*!< Pull Down USB DM pin, host only*/
 
 
-#ifdef SF32LB55X
+//TODO:
+#ifndef HPSYS_CFG_SYSCR_WDT1_REBOOT
 #define __HAL_SYSCFG_Enable_WDT_REBOOT(enable)
 #else
 #ifdef SOC_BF0_HCPU
@@ -257,7 +265,7 @@ extern "C" {
 #endif
 
 
-#ifdef SF32LB52X
+#if defined(RTC_CR_LPCKSEL)
 #ifdef SOC_BF0_HCPU
 #define HAL_LXT_ENABLED() HAL_RTC_LXT_ENABLED()
 #define HAL_LXT_DISABLED() (!HAL_RTC_LXT_ENABLED())
@@ -474,6 +482,8 @@ __STATIC_INLINE void HAL_sw_breakpoint(void)
 }
 #endif
 
+/*ARM specific code*/
+#if defined(SysTick)
 __STATIC_INLINE uint32_t HAL_DisableInterrupt(void)
 {
     uint32_t mask;
@@ -487,6 +497,19 @@ __STATIC_INLINE void HAL_EnableInterrupt(uint32_t mask)
 {
     __set_PRIMASK(mask);
 }
+#else
+__STATIC_INLINE uint32_t HAL_DisableInterrupt(void)
+{
+    __RV_CSR_CLEAR(CSR_MSTATUS, MSTATUS_MIE);
+    return 0;
+}
+
+__STATIC_INLINE void HAL_EnableInterrupt(uint32_t mask)
+{
+    __RV_CSR_SET(CSR_MSTATUS, MSTATUS_MIE);
+}
+
+#endif
 
 uint32_t HAL_GetLXTEnabled(void);
 

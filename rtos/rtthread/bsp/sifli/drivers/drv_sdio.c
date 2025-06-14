@@ -64,7 +64,7 @@
 #define LOG_TAG             "drv.sdio"
 #include <drv_log.h>
 
-#ifdef SOC_SF32LB52X
+#if defined(SF32LB52X) || defined(SF32LB57X)
     #ifdef SDMMC1_DMA_INSTANCE
         #define SDIO_USING_DMA          (1)
     #endif  //SDMMC2_DMA_INSTANCE
@@ -1047,7 +1047,7 @@ static rt_err_t DMA_RxConfig(rt_uint32_t *src, rt_uint32_t *dst, int Size)
     return RT_EOK;
 }
 
-#ifdef SOC_SF32LB52X
+#if defined(SOC_SF32LB52X) || defined(SOC_SF32LB57X)
 void SDMMC1_IRQHandler(void)
 {
     /* enter interrupt */

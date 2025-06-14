@@ -60,7 +60,11 @@ extern "C" {
   * @brief This is the list of modules to be used in the HAL driver
   */
 #define HAL_AON_MODULE_ENABLED
+#ifdef SF32LB57X
+#define HAL_RISCV_MODULE_ENABLED
+#else
 #define HAL_CORTEX_MODULE_ENABLED
+#endif
 #define HAL_DMA_MODULE_ENABLED
 #define HAL_GPIO_MODULE_ENABLED
 #define HAL_GPT_MODULE_ENABLED
@@ -73,17 +77,25 @@ extern "C" {
 #define HAL_MODULE_ENABLED
 #define HAL_PINMUX_MODULE_ENABLED
 #define HAL_PMU_MODULE_ENABLED
+#ifndef SF32LB57X
 #define HAL_PTC_ENABLED
+#endif
 #define HAL_RCC_MODULE_ENABLED
 #define HAL_SPI_MODULE_ENABLED
 #define HAL_UART_MODULE_ENABLED
 #define HAL_WDT_MODULE_ENABLED
 
-#ifdef SF32LB52X
+#if defined(SF32LB52X) || defined(SF32LB57X)
+//TODO: Enable secu module in 57x
+#if !defined(SF32LB57X)
 #define HAL_SECU_MODULE_ENABLED
+#endif
+
 #else
 #define HAL_ADC_MODULE_ENABLED
+
 #define HAL_BUSMON_MODULE_ENABLED
+
 #define HAL_I2S_MODULE_ENABLED
 #define HAL_RTC_MODULE_ENABLED
 #define HAL_TSEN_MODULE_ENABLED
@@ -92,14 +104,17 @@ extern "C" {
 #ifdef SF32LB55X
 #define HAL_QSPI_MODULE_ENABLED
 #else
+
+#ifndef SF32LB57X
 #define HAL_CACHE_MODULE_ENABLED
+#endif
+
 #define HAL_CRC_MODULE_ENABLED
 #define HAL_MPI_MODULE_ENABLED
-#endif /* SF32LB55X */
-
-#ifndef SF32LB52X
+#if !defined(SF32LB52X) || !defined(SF32LB57X)
 #define HAL_SYSTEM_CONFIG_ENABLED
 #endif
+#endif /* SF32LB55X */
 
 #ifdef SF32LB58X
 #define HAL_FACC_MODULE_ENABLED
@@ -246,6 +261,10 @@ in voltage and temperature.  */
 #ifdef HAL_CORTEX_MODULE_ENABLED
 #include "bf0_hal_cortex.h"
 #endif /* HAL_CORTEX_MODULE_ENABLED */
+
+#ifdef HAL_RISCV_MODULE_ENABLED
+#include "bf0_hal_riscv.h"
+#endif /* HAL_RISCV_MODULE_ENABLED */
 
 #ifdef HAL_ADC_MODULE_ENABLED
 #include "bf0_hal_adc.h"
