@@ -145,6 +145,14 @@ static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8
 
 
 
+#ifdef LCDC_SUPPORT_TE_WINDOW
+    #define LCDC_WRITE_CROSSED_TE
+#endif /* LCDC_SUPPORT_TE_WINDOW */
+
+#ifdef LCDC_WRITE_CROSSED_TE
+    static uint8_t te_max_cnt_not_ready = 3; //Remove me after FPGA 2414
+#endif /*LCDC_WRITE_CROSSED_TE*/
+
 static LCDC_InitTypeDef lcdc_int_cfg =
 {
     .lcd_itf = LCDC_INTF_SPI_NODCX_2DATA,
@@ -154,11 +162,15 @@ static LCDC_InitTypeDef lcdc_int_cfg =
     .cfg = {
         .spi = {
             .dummy_clock = 0,
+#ifdef LCDC_WRITE_CROSSED_TE
+            .syn_mode = HAL_LCDC_SYNC_VER_WINDOW,
+            .vsyn_window_start_us = 0,
+            .vsyn_window_end_us = 0,
+#else
             .syn_mode = HAL_LCDC_SYNC_VER,
-            .vsyn_polarity = 0,
-            //default_vbp=2, frame rate=82, delay=115us,
-            //TODO: use us to define delay instead of cycle, delay_cycle=115*48
             .vsyn_delay_us = 1000,
+#endif /* LCDC_WRITE_CROSSED_TE */
+            .vsyn_polarity = 0,
             .hsyn_num = 0,
         },
     },
@@ -201,6 +213,10 @@ static void LCD_ReadMode(LCDC_HandleTypeDef *hlcdc, bool enable)
 static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
 {
     uint8_t   parameter[14];
+
+#ifdef LCDC_WRITE_CROSSED_TE
+    te_max_cnt_not_ready = 3;
+#endif /* LCDC_WRITE_CROSSED_TE */
 
     /* Initialize ST7789V low level bus layer ----------------------------------*/
     memcpy(&hlcdc->Init, &lcdc_int_cfg, sizeof(LCDC_InitTypeDef));
@@ -409,8 +425,8 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     hwp_lcdc->COMMAND = 0x1;
 #endif
 
-    /* Set frame control, refresh rate: 82Hz*/
-    parameter[0] = 0x7;
+    /* Set frame control, refresh rate: 0x07 - 82Hz, 0x10 - 58Hz*/
+    parameter[0] = 0x10;
     LCD_WriteReg(hlcdc, REG_FR_CTRL, parameter, 1);
 
     /* Tearing Effect Line On: Option (00h:VSYNC Only, 01h:VSYNC & HSYNC ) */
@@ -497,9 +513,108 @@ static void LCD_WritePixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Yp
     LCD_WriteReg(hlcdc, REG_WRITE_RAM, (uint8_t *)RGBCode, 2);
 }
 
+#ifdef LCDC_WRITE_CROSSED_TE
+#ifndef MIN
+    #define MIN(a, b) ((a) < (b) ? (a) : (b))
+#endif /* MIN */
+static void UpdateTeDelayHelper(LCDC_HandleTypeDef *hlcdc,
+                                int32_t lcd_read_start_time_us,
+                                int32_t lcd_read_end_time_us,
+                                int32_t lcdc_write_time_us,
+                                int32_t te_period_us,
+                                int32_t max_margin)
+{
+    int32_t start_vsyn_delay_us, end_vsyn_delay_us;
+
+    //rt_kprintf("lcd_read_time_us[start,end]=%d,%d  lcdc_write_time_us %d  \r\n",
+    //    lcd_read_start_time_us,         lcd_read_end_time_us,        lcdc_write_time_us);
+
+
+    if (lcdc_write_time_us > (lcd_read_end_time_us - lcd_read_start_time_us))//Write lower than read
+    {
+        start_vsyn_delay_us = lcd_read_start_time_us;
+        end_vsyn_delay_us   = te_period_us + lcd_read_end_time_us - lcdc_write_time_us;
+    }
+    else
+    {
+        start_vsyn_delay_us = lcd_read_end_time_us - lcdc_write_time_us - te_period_us;
+        end_vsyn_delay_us   = lcd_read_start_time_us;
+    }
+
+
+    //Add some margin between read&write
+    if (end_vsyn_delay_us - start_vsyn_delay_us > 0)
+    {
+        int32_t margin = MIN(max_margin * 2, end_vsyn_delay_us - start_vsyn_delay_us);
+        start_vsyn_delay_us += margin / 2;
+        end_vsyn_delay_us   -= margin / 2;
+    }
+
+    //Prevent invalid value
+    if (end_vsyn_delay_us > te_period_us)
+    {
+        start_vsyn_delay_us -= te_period_us;
+        end_vsyn_delay_us   -= te_period_us;
+    }
+    else if (end_vsyn_delay_us < 0)
+    {
+        start_vsyn_delay_us += te_period_us;
+        end_vsyn_delay_us   += te_period_us;
+    }
+
+
+
+
+    if (te_max_cnt_not_ready)
+    {
+        te_max_cnt_not_ready--;;
+        hlcdc->Instance->TE_CONF |= LCD_IF_TE_CONF_CNT_CLR;
+        HAL_Delay_us(1);
+        hlcdc->Instance->TE_CONF &= ~LCD_IF_TE_CONF_CNT_CLR;
+    }
+    else
+    {
+
+        //uint32_t lcdc_clk_MHz = HAL_RCC_GetHCLKFreq(CORE_ID_HCPU) / 1000000;
+        //rt_kprintf("UpdateTeDelay %d,%d  \r\n", start_vsyn_delay_us, end_vsyn_delay_us);
+        HAL_LCDC_Update_TE_Window(hlcdc, start_vsyn_delay_us, end_vsyn_delay_us);
+        //rt_kprintf("TE_CONF2,3,4,MAX(us) (TE<=%d || TE>= %d) && TE >= %d, %d  \r\n\r\n",
+        //            hlcdc->Instance->TE_CONF2/lcdc_clk_MHz, hlcdc->Instance->TE_CONF3/lcdc_clk_MHz, hlcdc->Instance->TE_CONF4/lcdc_clk_MHz,
+        //            hlcdc->Instance->TE_STAT2/lcdc_clk_MHz);
+
+    }
+
+}
+
+static void UpdateTeDelay(LCDC_HandleTypeDef *hlcdc)
+{
+    int32_t te_period_us = 17393; //TE high puls area 1195us
+    int32_t lcd_read_period_us = 16197;
+    uint32_t lcdc_clk_per_pixel = (LCDC_PIXEL_FORMAT_RGB888 == lcdc_int_cfg.color_mode) ? 13 : 9; //DSPI
+    /*
+        There are 320 hsync pulses in TE mode 1(0x35=1), although LCD vertical resoltuion is 240.
+    */
+    int32_t lcd_read_start_time_us = lcdc_int_cfg.cfg.spi.vsyn_window_start_us + lcd_read_period_us * hlcdc->roi.y0 / 320;
+    int32_t lcd_read_end_time_us   = lcdc_int_cfg.cfg.spi.vsyn_window_start_us + lcd_read_period_us * hlcdc->roi.y1 / 320;
+
+    int32_t lcdc_write_time_us = (hlcdc->roi.y1 - hlcdc->roi.y0 + 1) * (hlcdc->roi.x1 - hlcdc->roi.x0 + 1) * lcdc_clk_per_pixel / (lcdc_int_cfg.freq / 1000000);
+
+
+    UpdateTeDelayHelper(hlcdc, lcd_read_start_time_us,
+                        lcd_read_end_time_us,
+                        lcdc_write_time_us,
+                        te_period_us,
+                        50);
+
+}
+#endif
+
 static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RGBCode, uint16_t Xpos0, uint16_t Ypos0, uint16_t Xpos1, uint16_t Ypos1)
 {
     uint32_t size;
+#ifdef LCDC_WRITE_CROSSED_TE
+    UpdateTeDelay(hlcdc);
+#endif
 
     HAL_LCDC_LayerSetData(hlcdc, HAL_LCDC_LAYER_DEFAULT, (uint8_t *)RGBCode, Xpos0, Ypos0, Xpos1, Ypos1);
     HAL_LCDC_SendLayerData2Reg_IT(hlcdc, REG_WRITE_RAM, 1);

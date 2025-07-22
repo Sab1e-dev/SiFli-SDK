@@ -66,7 +66,7 @@
 /** @addtogroup LCDC LCD Controller
   * @{
   */
-#ifndef SF32LB57X
+
 #if defined(HAL_LCD_MODULE_ENABLED)||defined(_SIFLI_DOXYGEN_)
 typedef enum
 {
@@ -247,6 +247,21 @@ static uint8_t HAL_LCDC_GetPixelSize(HAL_LCDC_PixelFormat color_format)
     return bytes_per_pixel;
 }
 
+static uint32_t LCDC_GetIntfClkFreq(LCDC_HandleTypeDef *lcdc)
+{
+    uint32_t lcdc_clk;
+
+    lcdc_clk = HAL_RCC_GetHCLKFreq(GET_LCDC_SYSID(lcdc));
+
+#ifdef LCD_IF_LCD_CONF_INTF_CLK_DIV
+    uint32_t div = (lcdc->Instance->LCD_CONF & LCD_IF_LCD_CONF_INTF_CLK_DIV_Msk) >> LCD_IF_LCD_CONF_INTF_CLK_DIV_Pos;
+    HAL_LCDC_ASSERT(div > 0);
+    return lcdc_clk / div;
+#else
+    return  lcdc_clk;
+#endif /* LCD_IF_LCD_CONF_INTF_CLK_DIV */
+}
+
 static HAL_StatusTypeDef SelectIntf(LCDC_HandleTypeDef *lcdc, HAL_LCDC_IF_TypeDef intf)
 {
     LCDC_InitTypeDef *init;
@@ -309,6 +324,14 @@ static HAL_StatusTypeDef SelectIntf(LCDC_HandleTypeDef *lcdc, HAL_LCDC_IF_TypeDe
 #ifdef SF32LB52X
             HAL_LCDC_ASSERT(__HAL_SYSCFG_GET_REVID() >= 2);
 #endif /* SF32LB52X */
+#ifdef LCD_IF_SPI_IF_CONF_EXT_POST_WAIT_CYCLE
+            if (SPI_LCD_FLAG_DDR_DUMMY_CLOCK & lcdc->Init.cfg.spi.flags)
+            {
+                MODIFY_REG(lcdc->Instance->SPI_IF_CONF_EXT,
+                           LCD_IF_SPI_IF_CONF_EXT_POST_WAIT_CYCLE_Msk,
+                           (2 << LCD_IF_SPI_IF_CONF_EXT_POST_WAIT_CYCLE_Pos) | (LCD_IF_SPI_IF_CONF_EXT_POST_WAIT_CLK_EN));
+            }
+#endif /* LCD_IF_SPI_IF_CONF_EXT_POST_WAIT_CYCLE */
 #else
             HAL_LCDC_ASSERT(0);
 #endif
@@ -319,9 +342,15 @@ static HAL_StatusTypeDef SelectIntf(LCDC_HandleTypeDef *lcdc, HAL_LCDC_IF_TypeDe
             break;
         }
 
-        reg_v |= MAKE_REG_VAL(init->cfg.spi.cs_polarity,  LCD_IF_SPI_IF_CONF_SPI_CLK_POL_Msk,  LCD_IF_SPI_IF_CONF_SPI_CLK_POL_Pos);
+        reg_v |= MAKE_REG_VAL(init->cfg.spi.cs_polarity,  LCD_IF_SPI_IF_CONF_SPI_CS_POL_Msk,  LCD_IF_SPI_IF_CONF_SPI_CS_POL_Pos);
+#ifdef LCD_IF_SPI_IF_CONF_SPI_CLK_POL
+        HAL_LCDC_ASSERT(0 == init->cfg.spi.clk_phase);//Not support phase 1
         reg_v |= MAKE_REG_VAL(!init->cfg.spi.clk_polarity, LCD_IF_SPI_IF_CONF_SPI_CLK_INIT_Msk, LCD_IF_SPI_IF_CONF_SPI_CLK_INIT_Pos);
         reg_v |= MAKE_REG_VAL(init->cfg.spi.clk_phase,    LCD_IF_SPI_IF_CONF_SPI_CLK_POL_Msk,  LCD_IF_SPI_IF_CONF_SPI_CLK_POL_Pos);
+#else
+        reg_v |= MAKE_REG_VAL(init->cfg.spi.clk_polarity, LCD_IF_SPI_IF_CONF_SPI_CLK_INIT_Msk, LCD_IF_SPI_IF_CONF_SPI_CLK_INIT_Pos);
+        reg_v |= MAKE_REG_VAL(init->cfg.spi.clk_phase,    LCD_IF_SPI_IF_CONF_SPI_CLK_PHASE_Msk,  LCD_IF_SPI_IF_CONF_SPI_CLK_PHASE_Pos);
+#endif /* LCD_IF_SPI_IF_CONF_SPI_CLK_POL */
         reg_v |= MAKE_REG_VAL(init->cfg.spi.dummy_clock,  LCD_IF_SPI_IF_CONF_DUMMY_CYCLE_Msk,  LCD_IF_SPI_IF_CONF_DUMMY_CYCLE_Pos);
         reg_v |= LCD_IF_SPI_IF_CONF_SPI_CS_AUTO_DIS | LCD_IF_SPI_IF_CONF_SPI_CLK_AUTO_DIS | LCD_IF_SPI_IF_CONF_SPI_CS_NO_IDLE;
         lcdc->Instance->SPI_IF_CONF = reg_v;
@@ -330,6 +359,11 @@ static HAL_StatusTypeDef SelectIntf(LCDC_HandleTypeDef *lcdc, HAL_LCDC_IF_TypeDe
         HAL_LCDC_ASSERT(init->cfg.spi.readback_from_Dx <= (LCD_IF_LCD_CONF_SPI_RD_SEL_Msk >> LCD_IF_LCD_CONF_SPI_RD_SEL_Pos));
         lcdc->Instance->LCD_CONF &= ~LCD_IF_LCD_CONF_SPI_RD_SEL_Msk;
         lcdc->Instance->LCD_CONF |= init->cfg.spi.readback_from_Dx << LCD_IF_LCD_CONF_SPI_RD_SEL_Pos;
+#elif defined(LCD_IF_SPI_IF_CONF_EXT_SPI_RD_SEL)
+        HAL_LCDC_ASSERT(init->cfg.spi.readback_from_Dx <= (LCD_IF_SPI_IF_CONF_EXT_SPI_RD_SEL_Msk >> LCD_IF_SPI_IF_CONF_EXT_SPI_RD_SEL_Pos));
+        lcdc->Instance->SPI_IF_CONF_EXT &= ~LCD_IF_SPI_IF_CONF_EXT_SPI_RD_SEL_Msk;
+        lcdc->Instance->SPI_IF_CONF_EXT |= init->cfg.spi.readback_from_Dx << LCD_IF_SPI_IF_CONF_EXT_SPI_RD_SEL_Pos;
+
 #endif /* LCD_IF_LCD_CONF_SPI_RD_SEL */
     }
 #ifdef HAL_DSI_MODULE_ENABLED
@@ -438,12 +472,19 @@ static HAL_StatusTypeDef SetFreq(LCDC_HandleTypeDef *lcdc, uint32_t freq)
     init = &lcdc->Init;
     init->freq = freq;
 
+#ifdef LCD_IF_LCD_CONF_INTF_CLK_DIV
+    //Set global divider to 1 to acting like previous LCDC.
+    MODIFY_REG(lcdc->Instance->LCD_CONF, LCD_IF_LCD_CONF_INTF_CLK_DIV_Msk, 1 << LCD_IF_LCD_CONF_INTF_CLK_DIV_Pos);
+    lcdc->Instance->LCD_CONF |= LCD_IF_LCD_CONF_INTF_CLK_DIV_UPDATE;
+#endif /* LCD_IF_LCD_CONF_INTF_CLK_DIV */
+
     if (HAL_LCDC_IS_SPI_IF(init->lcd_itf))
     {
         uint32_t clk_div;
 
         clk_div = (lcdc_clk + (freq - 1)) / freq;
 
+#ifdef LCD_IF_SPI_IF_CONF_CLK_DIV_Msk
         if (clk_div < 2) /*HW NOT support divider 1*/
         {
             clk_div = 2;
@@ -461,6 +502,58 @@ static HAL_StatusTypeDef SetFreq(LCDC_HandleTypeDef *lcdc, uint32_t freq)
         reg_v &= ~LCD_IF_SPI_IF_CONF_CLK_DIV_Msk;
         reg_v |= MAKE_REG_VAL(clk_div, LCD_IF_SPI_IF_CONF_CLK_DIV_Msk, LCD_IF_SPI_IF_CONF_CLK_DIV_Pos);
         lcdc->Instance->SPI_IF_CONF = reg_v;
+#else
+
+#ifdef LCDC_SUPPORT_DDR_QSPI
+        if (LCDC_INTF_SPI_DCX_DDR_4DATA == lcdc->Init.lcd_itf)
+        {
+            uint32_t clk_div_h_max;
+            uint32_t clk_div_l_max;
+            uint32_t clk_div_h;
+            uint32_t clk_div_l;
+            clk_div_h_max = GET_REG_VAL(LCD_IF_SPI_IF_CONF_CLK_DDR_DIV_H_Msk, LCD_IF_SPI_IF_CONF_CLK_DDR_DIV_H_Msk, LCD_IF_SPI_IF_CONF_CLK_DDR_DIV_H_Pos);
+            clk_div_l_max = GET_REG_VAL(LCD_IF_SPI_IF_CONF_CLK_DDR_DIV_L_Msk, LCD_IF_SPI_IF_CONF_CLK_DDR_DIV_L_Msk, LCD_IF_SPI_IF_CONF_CLK_DDR_DIV_L_Pos);
+            if (clk_div < 2) /*HW NOT support divider 1*/
+            {
+                clk_div = 2;
+            }
+            clk_div_h = clk_div / 2;
+            clk_div_l = clk_div - clk_div_h;
+            if (clk_div_h > clk_div_h_max)
+            {
+                clk_div_h = clk_div_h_max;
+            }
+            if (clk_div_l > clk_div_l_max)
+            {
+                clk_div_l = clk_div_l_max;
+            }
+
+            reg_v = lcdc->Instance->SPI_IF_CONF;
+            reg_v &= ~(LCD_IF_SPI_IF_CONF_CLK_DDR_DIV_H_Msk | LCD_IF_SPI_IF_CONF_CLK_DDR_DIV_L_Msk);
+            reg_v |= MAKE_REG_VAL(clk_div_h, LCD_IF_SPI_IF_CONF_CLK_DDR_DIV_H_Msk, LCD_IF_SPI_IF_CONF_CLK_DDR_DIV_H_Pos)
+                     | MAKE_REG_VAL(clk_div_l, LCD_IF_SPI_IF_CONF_CLK_DDR_DIV_L_Msk, LCD_IF_SPI_IF_CONF_CLK_DDR_DIV_L_Pos);
+
+            lcdc->Instance->SPI_IF_CONF = reg_v;
+        }
+#endif /* LCDC_SUPPORT_DDR_QSPI */
+        if (clk_div < 1)
+        {
+            clk_div = 1;
+        }
+        else if (clk_div > GET_REG_VAL(LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Msk, LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Msk, LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Pos))
+        {
+            clk_div = GET_REG_VAL(LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Msk, LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Msk, LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Pos);
+        }
+        else
+        {
+            ;//valid value, do nothing
+        }
+
+        reg_v = lcdc->Instance->SPI_IF_CONF_EXT;
+        reg_v &= ~LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Msk;
+        reg_v |= MAKE_REG_VAL(clk_div, LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Msk, LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Pos);
+        lcdc->Instance->SPI_IF_CONF_EXT = reg_v;
+#endif /* LCD_IF_SPI_IF_CONF_CLK_DIV_Msk */
 
     }
     else if (HAL_LCDC_IS_DBI_IF(init->lcd_itf))
@@ -711,30 +804,101 @@ static HAL_StatusTypeDef SetOutFormat(LCDC_HandleTypeDef *lcdc, HAL_LCDC_PixelFo
     return HAL_OK;
 }
 
+static HAL_StatusTypeDef SetupTEWindow(LCDC_HandleTypeDef *lcdc, int32_t start_us, int32_t end_us)
+{
+    uint32_t lcdc_clk_MHz = HAL_RCC_GetHCLKFreq(GET_LCDC_SYSID(lcdc)) / 1000000;
+
+    HAL_LCDC_ASSERT((start_us <= end_us) && (end_us >= 0));
+
+#ifdef LCDC_SUPPORT_TE_WINDOW
+
+    if (start_us < end_us)
+    {
+        if (start_us < 0)
+        {
+            lcdc->Instance->TE_CONF4 = 0;
+            /*TE window is active when te_cnt <= TE_CONF2 || te_cnt >= TE_CONF3*/
+            uint32_t start_offset_cycles = lcdc_clk_MHz * (0 - start_us);
+            if (lcdc->Instance->TE_STAT2 > lcdc->Instance->TE_STAT)
+            {
+                HAL_LCDC_ASSERT(start_offset_cycles <= lcdc->Instance->TE_STAT2);
+                lcdc->Instance->TE_CONF3 = lcdc->Instance->TE_STAT2 - start_offset_cycles;
+            }
+            else
+            {
+                lcdc->Instance->TE_CONF3 = 0;
+                lcdc->update_te_win_reg_value = start_offset_cycles;
+                lcdc->update_te_win_reg = 1;
+            }
+            lcdc->Instance->TE_CONF2 = lcdc_clk_MHz * end_us;
+        }
+        else
+        {
+            lcdc->Instance->TE_CONF3 = LCD_IF_TE_CONF3_DLY_CNT1_Msk;
+            /*TE window is active when te_cnt <= TE_CONF2 && te_cnt >= TE_CONF4*/
+            lcdc->Instance->TE_CONF2 = lcdc_clk_MHz * end_us;
+            lcdc->Instance->TE_CONF4 = lcdc_clk_MHz * start_us;
+        }
+    }
+    else if (start_us == end_us)
+    {
+        HAL_LCDC_ASSERT(start_us >= 0);
+        lcdc->Instance->TE_CONF2 = lcdc_clk_MHz * start_us;
+    }
+    else
+    {
+    }
+
+#else
+
+    if (start_us < 0)  start_us = 0;
+    lcdc->Instance->TE_CONF2 = lcdc_clk_MHz * start_us;
+
+#endif /* LCDC_SUPPORT_TE_WINDOW */
+
+    return HAL_OK;
+}
 
 static HAL_StatusTypeDef SetupTE(LCDC_HandleTypeDef *lcdc)
 {
-    uint32_t vsyn_cycle, vsyn_us;
     LCDC_InitTypeDef *init;
+    int32_t vsync_win_start_us; //It is normal TE mode if start==end
+    int32_t vsync_win_end_us;
 
     HAL_LCDC_ASSERT(lcdc);
 
-    uint32_t lcdc_clk_MHz = HAL_RCC_GetHCLKFreq(GET_LCDC_SYSID(lcdc)) / 1000000;
-
     init = &lcdc->Init;
-
 
     lcdc->Instance->TE_CONF &= ~LCD_IF_TE_CONF_ENABLE;
 
     if (HAL_LCDC_IS_SPI_IF(lcdc->Init.lcd_itf))
     {
-
-        vsyn_us = init->cfg.spi.vsyn_delay_us;
+        vsync_win_start_us = (int32_t) init->cfg.spi.vsyn_delay_us;
+        vsync_win_end_us = vsync_win_start_us;
 
         if (LCDC_INTF_SPI_DCX_4DATA_AUX == lcdc->Init.lcd_itf) HAL_LCDC_ASSERT(HAL_LCDC_SYNC_DISABLE == init->cfg.spi.syn_mode);
 
         switch (init->cfg.spi.syn_mode)
         {
+        case HAL_LCDC_SYNC_VER_WINDOW:
+#ifdef LCDC_SUPPORT_TE_WINDOW
+        {
+            vsync_win_start_us = init->cfg.spi.vsyn_window_start_us;
+            vsync_win_end_us = init->cfg.spi.vsyn_window_end_us;
+            lcdc->Instance->TE_CONF = LCD_IF_TE_CONF_ENABLE | LCD_IF_TE_CONF_CNT_EN | LCD_IF_TE_CONF_CNT_CLR
+                                      | MAKE_REG_VAL(2, LCD_IF_TE_CONF_MODE_Msk, LCD_IF_TE_CONF_MODE_Pos)
+                                      | MAKE_REG_VAL(init->cfg.spi.vsyn_polarity, LCD_IF_TE_CONF_FMARK_POL_Msk, LCD_IF_TE_CONF_FMARK_POL_Pos)
+                                      ;
+            lcdc->Instance->TE_CONF &= ~LCD_IF_TE_CONF_CNT_CLR_Msk;
+
+        }
+        break;
+#else
+
+            //Treated as 'HAL_LCDC_SYNC_VER' if NOT support by HW
+
+#endif /* LCDC_SUPPORT_TE_WINDOW */
+
         case HAL_LCDC_SYNC_VER:
         {
             lcdc->Instance->TE_CONF = LCD_IF_TE_CONF_ENABLE
@@ -783,17 +947,37 @@ static HAL_StatusTypeDef SetupTE(LCDC_HandleTypeDef *lcdc)
         {
             ;
         }
-        vsyn_us = init->cfg.dsi.vsyn_delay_us;
+
+        vsync_win_start_us = (int32_t) init->cfg.dsi.vsyn_delay_us;
+        vsync_win_end_us = vsync_win_start_us;
 
 
     }
 #endif
     else if (HAL_LCDC_IS_DBI_IF(lcdc->Init.lcd_itf))
     {
-        vsyn_us = init->cfg.dbi.vsyn_delay_us;
+        vsync_win_start_us = (int32_t) init->cfg.dbi.vsyn_delay_us;
+        vsync_win_end_us = vsync_win_start_us;
 
         switch (init->cfg.dbi.syn_mode)
         {
+        case HAL_LCDC_SYNC_VER_WINDOW:
+#ifdef LCDC_SUPPORT_TE_WINDOW
+        {
+            vsync_win_start_us = init->cfg.dbi.vsyn_window_start_us;
+            vsync_win_end_us = init->cfg.dbi.vsyn_window_end_us;
+            lcdc->Instance->TE_CONF = LCD_IF_TE_CONF_ENABLE | LCD_IF_TE_CONF_CNT_EN | LCD_IF_TE_CONF_CNT_CLR
+                                      | MAKE_REG_VAL(2, LCD_IF_TE_CONF_MODE_Msk, LCD_IF_TE_CONF_MODE_Pos)
+                                      | MAKE_REG_VAL(init->cfg.dbi.vsyn_polarity, LCD_IF_TE_CONF_FMARK_POL_Msk, LCD_IF_TE_CONF_FMARK_POL_Pos)
+                                      ;
+            lcdc->Instance->TE_CONF &= ~LCD_IF_TE_CONF_CNT_CLR_Msk;
+        }
+        break;
+#else
+
+            /* Treated 'HAL_LCDC_SYNC_VER_WINDOW' same as 'HAL_LCDC_SYNC_VER' if NOT support by HW */
+
+#endif /* LCDC_SUPPORT_TE_WINDOW */
         case HAL_LCDC_SYNC_VER:
         {
             lcdc->Instance->TE_CONF = LCD_IF_TE_CONF_ENABLE
@@ -821,11 +1005,13 @@ static HAL_StatusTypeDef SetupTE(LCDC_HandleTypeDef *lcdc)
     }
     else
     {
-        vsyn_us = 0;
+        vsync_win_start_us = 0;
+        vsync_win_end_us = 0;
     }
 
-    vsyn_cycle = lcdc_clk_MHz * vsyn_us;
-    lcdc->Instance->TE_CONF2 = MAKE_REG_VAL(vsyn_cycle, LCD_IF_TE_CONF2_DLY_CNT_Msk, LCD_IF_TE_CONF2_DLY_CNT_Pos);
+
+    SetupTEWindow(lcdc, vsync_win_start_us, vsync_win_end_us);
+
 
 #if defined(SF32LB58X) && defined(SOC_BF0_HCPU)
     if (lcdc->use_lcdc2_te)
@@ -835,6 +1021,8 @@ static HAL_StatusTypeDef SetupTE(LCDC_HandleTypeDef *lcdc)
     }
 #endif
 
+
+    lcdc->te_cfg_en = ((lcdc->Instance->TE_CONF & LCD_IF_TE_CONF_ENABLE) != 0) ? 1 : 0;
     return HAL_OK;
 }
 
@@ -1427,12 +1615,14 @@ static HAL_StatusTypeDef EnableSPIDDRSent(LCDC_HandleTypeDef *lcdc)
 
     lcdc->Instance->LAYER0_FILL |= LCD_IF_LAYER0_FILL_BG_MODE;//Enable DDR
 
+#ifndef LCD_IF_SPI_IF_CONF_EXT_POST_WAIT_CYCLE
     reg_v = lcdc->Instance->SPI_IF_CONF;
     clk_div = GET_REG_VAL(reg_v, LCD_IF_SPI_IF_CONF_CLK_DIV_Msk, LCD_IF_SPI_IF_CONF_CLK_DIV_Pos);
     clk_div = HAL_MAX(clk_div >> 1, 2);
     reg_v &= ~LCD_IF_SPI_IF_CONF_CLK_DIV_Msk;
     reg_v |= MAKE_REG_VAL(clk_div, LCD_IF_SPI_IF_CONF_CLK_DIV_Msk, LCD_IF_SPI_IF_CONF_CLK_DIV_Pos);
     lcdc->Instance->SPI_IF_CONF = reg_v;
+#endif /* LCD_IF_SPI_IF_CONF_EXT_POST_WAIT_CYCLE */
 
 
     return HAL_OK;
@@ -1442,6 +1632,7 @@ static HAL_StatusTypeDef DisableSPIDDRSent(LCDC_HandleTypeDef *lcdc)
 {
     lcdc->Instance->LAYER0_FILL &= ~LCD_IF_LAYER0_FILL_BG_MODE; //Disable DDR
 
+#ifndef LCD_IF_SPI_IF_CONF_EXT_POST_WAIT_CYCLE
     if (SPI_LCD_FLAG_DDR_DUMMY_CLOCK & lcdc->Init.cfg.spi.flags)
     {
         //Dummy clock
@@ -1457,6 +1648,9 @@ static HAL_StatusTypeDef DisableSPIDDRSent(LCDC_HandleTypeDef *lcdc)
     }
 
     return SetFreq(lcdc, lcdc->Init.freq); //Restore freq
+#else
+    return HAL_OK;
+#endif /* LCD_IF_SPI_IF_CONF_EXT_POST_WAIT_CYCLE */
 }
 #endif /* LCDC_SUPPORT_DDR_QSPI */
 
@@ -1522,12 +1716,24 @@ static HAL_StatusTypeDef _SendLayerData(LCDC_HandleTypeDef *lcdc, LCDC_AsyncMode
     }
 #endif /* ! (SF32LB55X|| SF32LB58X) */
 
+    //2. Update miscellaneous configuration
+#ifdef LCDC_SUPPORT_TE_WINDOW
+    if (lcdc->update_te_win_reg)
+    {
+        if (lcdc->Instance->TE_STAT2 > lcdc->Instance->TE_STAT)
+        {
+            HAL_LCDC_ASSERT(lcdc->update_te_win_reg_value <= lcdc->Instance->TE_STAT2);
+            lcdc->Instance->TE_CONF3 = lcdc->Instance->TE_STAT2 - lcdc->update_te_win_reg_value;
+            lcdc->update_te_win_reg = 0;
+        }
+    }
+#endif /* LCDC_SUPPORT_TE_WINDOW */
+
     g_LCDC_CpltCallback = LCDC_TransCpltCallback;
     if (LCDC_ASYNC_MODE == async_mode)  lcdc->debug_cnt1++;
 
 
-
-    //2. Send layer data
+    //3. Send layer data
     if (0)
     {
     }
@@ -1774,7 +1980,7 @@ static void LCDC_TransErrCallback(LCDC_HandleTypeDef *lcdc, HAL_StatusTypeDef er
 
 static void HAL_LCDC_JDIParallelInit(LCDC_HandleTypeDef *lcdc)
 {
-    uint32_t lcdc_clk_MHz = HAL_RCC_GetHCLKFreq(GET_LCDC_SYSID(lcdc)) / 1000000;
+    uint32_t lcdc_clk_MHz = LCDC_GetIntfClkFreq(lcdc) / 1000000;
     uint32_t lcdc_pclk_Hz = HAL_RCC_GetPCLKFreq(GET_LCDC_SYSID(lcdc), 1);
 
 
@@ -2458,13 +2664,13 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_ReadDatas(LCDC_HandleTypeDef *lcdc, ui
 
         if (HAL_TIMEOUT == WaitBusy(lcdc)) goto READ_TIMEOUT;
 
-#ifndef LCD_IF_LCD_CONF_SPI_RD_SEL
+#if !defined(LCD_IF_LCD_CONF_SPI_RD_SEL) && !defined(LCD_IF_SPI_IF_CONF_EXT_SPI_RD_SEL)
         if (lcdc->Init.cfg.spi.readback_from_Dx != 0)
         {
             data = HAL_LCDC_SoftSPI_Read(lcdc, addr, addr_len, data_len);
         }
         else
-#endif /*LCD_IF_LCD_CONF_SPI_RD_SEL*/
+#endif /* !LCD_IF_LCD_CONF_SPI_RD_SEL && !LCD_IF_SPI_IF_CONF_EXT_SPI_RD_SEL */
         {
             HAL_LCDC_SPI_Sequence(lcdc, 0);
             SendSingleCmd(lcdc, addr, addr_len);
@@ -3044,7 +3250,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_SendLayerData2Reg_IT(LCDC_HandleTypeDe
         }
         else
         {
-            SetupTE(lcdc); //Follow default TE configuration
+            LCDC_SET_TE(lcdc, (1 == lcdc->te_cfg_en));//Follow default TE configuration
         }
 
 
@@ -3060,14 +3266,14 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_SendLayerData2Reg_IT(LCDC_HandleTypeDe
             HAL_LCDC_SPI_Sequence(lcdc, 0);
             SendSingleCmd(lcdc, addr, addr_len);
 
-#ifdef LCDC_SUPPORT_DDR_QSPI
+#if defined(LCDC_SUPPORT_DDR_QSPI)&&(!defined(LCD_IF_SPI_IF_CONF_EXT_POST_WAIT_CYCLE))
             if ((LCDC_INTF_SPI_DCX_DDR_4DATA == lcdc->Init.lcd_itf)
                     && (SPI_LCD_FLAG_DDR_DUMMY_CLOCK & lcdc->Init.cfg.spi.flags))
             {
                 HAL_LCDC_SPI_Sequence(lcdc, 0);
             }
             else
-#endif /* LCDC_SUPPORT_DDR_QSPI */
+#endif /* LCDC_SUPPORT_DDR_QSPI && !LCD_IF_SPI_IF_CONF_EXT_POST_WAIT_CYCLE*/
             {
                 HAL_LCDC_SPI_Sequence(lcdc, 1);
             }
@@ -3121,7 +3327,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_SendLayerData2Reg(LCDC_HandleTypeDef *
         }
         else
         {
-            SetupTE(lcdc); //Follow default TE configuration
+            LCDC_SET_TE(lcdc, (1 == lcdc->te_cfg_en));//Follow default TE configuration
         }
 
 
@@ -3138,14 +3344,14 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_SendLayerData2Reg(LCDC_HandleTypeDef *
             SendSingleCmd(lcdc, addr, addr_len);
 
 
-#ifdef LCDC_SUPPORT_DDR_QSPI
+#if defined(LCDC_SUPPORT_DDR_QSPI)&&(!defined(LCD_IF_SPI_IF_CONF_EXT_POST_WAIT_CYCLE))
             if ((LCDC_INTF_SPI_DCX_DDR_4DATA == lcdc->Init.lcd_itf)
                     && (SPI_LCD_FLAG_DDR_DUMMY_CLOCK & lcdc->Init.cfg.spi.flags))
             {
                 HAL_LCDC_SPI_Sequence(lcdc, 0);
             }
             else
-#endif /* LCDC_SUPPORT_DDR_QSPI */
+#endif /* LCDC_SUPPORT_DDR_QSPI && !LCD_IF_SPI_IF_CONF_EXT_POST_WAIT_CYCLE*/
             {
                 HAL_LCDC_SPI_Sequence(lcdc, 1);
             }
@@ -3538,6 +3744,7 @@ static HAL_StatusTypeDef RAMLESS_HW_FSM_READ_DATAS_START(LCDC_HandleTypeDef *lcd
 
     clk_div = (lcdc_clk + (freq - 1)) / freq;
 
+#ifdef LCD_IF_SPI_IF_CONF_CLK_DIV_Msk
     if (clk_div < 2) /*HW NOT support divider 1*/
     {
         clk_div = 2;
@@ -3553,7 +3760,27 @@ static HAL_StatusTypeDef RAMLESS_HW_FSM_READ_DATAS_START(LCDC_HandleTypeDef *lcd
 
     prev_clk_div = GET_REG_VAL(lcdc->Instance->SPI_IF_CONF, LCD_IF_SPI_IF_CONF_CLK_DIV_Msk, LCD_IF_SPI_IF_CONF_CLK_DIV_Pos);
 
+#define PTC_CODE_CLR_SPI_CLK_DIV()     PTC_CODE(PTC_DMACH0_TC,      &(hwp_lcdc1->SPI_IF_CONF),     PTC_OP_AND,  ~(LCD_IF_SPI_IF_CONF_CLK_DIV_Msk))
+#define PTC_CODE_SET_SPI_CLK_DIV(div)  PTC_CODE(PTC_DMACH0_TC,      &(hwp_lcdc1->SPI_IF_CONF),     PTC_OP_OR,  (div) << LCD_IF_SPI_IF_CONF_CLK_DIV_Pos);
+#else
+    if (clk_div < 1)
+    {
+        clk_div = 1;
+    }
+    else if (clk_div > GET_REG_VAL(LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Msk, LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Msk, LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Pos))
+    {
+        clk_div = GET_REG_VAL(LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Msk, LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Msk, LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Pos);
+    }
+    else
+    {
+        ;//valid value, do nothing
+    }
 
+    prev_clk_div = GET_REG_VAL(lcdc->Instance->SPI_IF_CONF_EXT, LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Msk, LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Pos);
+
+#define PTC_CODE_CLR_SPI_CLK_DIV()     PTC_CODE(PTC_DMACH0_TC,      &(hwp_lcdc1->SPI_IF_CONF_EXT),     PTC_OP_AND,  ~(LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Msk))
+#define PTC_CODE_SET_SPI_CLK_DIV(div)  PTC_CODE(PTC_DMACH0_TC,      &(hwp_lcdc1->SPI_IF_CONF_EXT),     PTC_OP_OR,  (div) << LCD_IF_SPI_IF_CONF_EXT_CLK_SDR_DIV_Pos);
+#endif
     HAL_LCDC_ASSERT((addr_len > 0) && (addr_len <= 4));
     HAL_LCDC_ASSERT((data_len > 0) && (data_len <= 4));
 
@@ -3562,8 +3789,8 @@ static HAL_StatusTypeDef RAMLESS_HW_FSM_READ_DATAS_START(LCDC_HandleTypeDef *lcd
 
 
     PTC_PHASE_START(9);
-    PTC_CODE(PTC_DMACH0_TC,      &(hwp_lcdc1->SPI_IF_CONF),     PTC_OP_AND,  ~(LCD_IF_SPI_IF_CONF_CLK_DIV_Msk));
-    PTC_CODE(PTC_DMACH0_TC,      &(hwp_lcdc1->SPI_IF_CONF),     PTC_OP_OR,  clk_div << LCD_IF_SPI_IF_CONF_CLK_DIV_Pos);
+    PTC_CODE_CLR_SPI_CLK_DIV();
+    PTC_CODE_SET_SPI_CLK_DIV(clk_div);
     PTC_CODE_DUMMY(); //Dummy code
     PTC_CODE_DUMMY(); //Dummy code
     PTC_CODE_DUMMY(); //Dummy code
@@ -3601,8 +3828,8 @@ static HAL_StatusTypeDef RAMLESS_HW_FSM_READ_DATAS_START(LCDC_HandleTypeDef *lcd
 
 
     PTC_PHASE_START(12);
-    PTC_CODE(PTC_DMACH0_TC,      &(hwp_lcdc1->SPI_IF_CONF),     PTC_OP_AND,  ~(LCD_IF_SPI_IF_CONF_CLK_DIV_Msk));
-    PTC_CODE(PTC_DMACH0_TC,      &(hwp_lcdc1->SPI_IF_CONF),     PTC_OP_OR,  prev_clk_div << LCD_IF_SPI_IF_CONF_CLK_DIV_Pos);
+    PTC_CODE_CLR_SPI_CLK_DIV();
+    PTC_CODE_SET_SPI_CLK_DIV(prev_clk_div);
     PTC_CODE_DUMMY(); //Dummy code
     PTC_CODE_DUMMY(); //Dummy code
     PTC_CODE(PTC_DMACH0_TC,  &(hwp_ptc1->MEM3),    PTC_OP_WRITE, RAMLESS_RD_READY_MAGIC_FLAG); //Read ready
@@ -3767,6 +3994,8 @@ static HAL_StatusTypeDef RAMLESS_HW_FSM_WRITE_DATAS_END(LCDC_HandleTypeDef *lcdc
 #ifdef LCDC_SUPPORT_DPI
 static void DPI_HW_FSM_START(LCDC_HandleTypeDef *lcdc)
 {
+#if !defined(SF32LB57X) //Fix me
+
 #ifdef SF32LB56X
     __IO uint32_t *p_VSYNC_PINMUX_REG = &(hwp_pinmux1->PAD_PA42);
     const uint32_t VSYNC_GPIO_ID  =  42;
@@ -4131,7 +4360,7 @@ static void DPI_HW_FSM_START(LCDC_HandleTypeDef *lcdc)
     //Start!!!
     memcpy((void *) & (hwp_ptc1->TCR1), (void *)PTC_PHASE_ADDR(0), PTC_TABLE_BYTE);
     hwp_ptc1->TCR1 |= PTC_TCR1_SWTRIG;
-
+#endif /* !defined(SF32LB57X)*/
 }
 
 static void DPI_HW_FSM_STOP(LCDC_HandleTypeDef *lcdc)
@@ -4158,6 +4387,9 @@ static void DPI_HW_FSM_UPDATE_LAYER_DATA(LCDC_HandleTypeDef *lcdc)
 
 static HAL_StatusTypeDef DPI_HW_FSM_UPDATE_LAYER_DATA_DONE(LCDC_HandleTypeDef *lcdc)
 {
+#if defined(SF32LB57X)
+    return HAL_OK; //Fix me
+#else
     uint32_t start, end;
     LCDC_LayerCfgTypeDef *cfg = &lcdc->Layer[HAL_LCDC_LAYER_DEFAULT];
     uint32_t bytes_per_pixel, data_w, data_h;
@@ -4179,7 +4411,7 @@ static HAL_StatusTypeDef DPI_HW_FSM_UPDATE_LAYER_DATA_DONE(LCDC_HandleTypeDef *l
     }
 
     return HAL_BUSY;
-
+#endif
 }
 #endif /* LCDC_SUPPORT_DPI */
 
@@ -5489,6 +5721,12 @@ __HAL_ROM_USED void HAL_LCDC_Enable_TE(LCDC_HandleTypeDef *lcdc, bool en)
     return;
 }
 
+__HAL_ROM_USED void HAL_LCDC_Update_TE_Window(LCDC_HandleTypeDef *lcdc, int32_t start_us, int32_t end_us)
+{
+    SetupTEWindow(lcdc, start_us, end_us);
+}
+
+
 #if defined(SF32LB58X) && defined(SOC_BF0_HCPU)
 __HAL_ROM_USED void HAL_LCDC_UseLCDC2TE(LCDC_HandleTypeDef *lcdc)
 {
@@ -5529,7 +5767,7 @@ __weak void HAL_LCDC_SendLineCpltCbk(LCDC_HandleTypeDef *lcdc, uint32_t line)
      */
 }
 
-#ifndef LCD_IF_LCD_CONF_SPI_RD_SEL
+#if !defined(LCD_IF_LCD_CONF_SPI_RD_SEL) && !defined(LCD_IF_SPI_IF_CONF_EXT_SPI_RD_SEL)
 __weak void HAL_LCDC_SoftSpiInit(SOFT_SPI_PIN_Def pin, SOFT_SPI_IO_Def inout, uint32_t high1low0)
 {
     /* Prevent unused argument(s) compilation warning */
@@ -5667,7 +5905,7 @@ __weak uint32_t HAL_LCDC_SoftSPI_Read(LCDC_HandleTypeDef *lcdc, uint32_t addr, u
 
     return ret_v;
 }
-#endif /* LCD_IF_LCD_CONF_SPI_RD_SEL */
+#endif /* !LCD_IF_LCD_CONF_SPI_RD_SEL && !LCD_IF_SPI_IF_CONF_EXT_SPI_RD_SEL */
 
 
 __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_Enter_LP(LCDC_HandleTypeDef *lcdc)
@@ -5805,7 +6043,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_Resume(LCDC_HandleTypeDef *lcdc)
 }
 
 #endif /*defined(HAL_LCD_MODULE_ENABLED)||defined(_SIFLI_DOXYGEN_)*/
-#endif
+
 
 /**
   * @}
