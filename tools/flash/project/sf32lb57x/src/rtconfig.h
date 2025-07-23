@@ -41,7 +41,15 @@
 #define BSP_QSPI3_USING_DMA 1
 #define BSP_QSPI3_MEM_SIZE 32
 #endif /* JLINK_FLASH_3 */
-
+#ifdef JLINK_FLASH_4
+#define BSP_ENABLE_MPI4 1
+#define BSP_ENABLE_QSPI4 1
+#define BSP_MPI4_MODE_0 1
+#define BSP_QSPI4_MODE 0
+#define BSP_USING_NOR_FLASH4 1
+#define BSP_QSPI4_USING_DMA 1
+#define BSP_QSPI4_MEM_SIZE 32
+#endif /* JLINK_FLASH_4 */
 /* Select board peripherals */
 
 #define BSP_USING_BOARD_FPGA_A0

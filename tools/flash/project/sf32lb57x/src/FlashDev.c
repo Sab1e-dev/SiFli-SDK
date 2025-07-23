@@ -16,13 +16,17 @@ Purpose : Flash device description Template
 #ifdef JLINK_FLASH_1
     #define FLASH_NAME  "SF32LB57X Internal Flash1"
     #define FLASH_BASE  0x10000000
-    #define FLASH_SIZE  0x02000000
-#elif defined(JLINK_FLASH_2)
-    #define FLASH_NAME  "SF32LB57X External Flash2"
-    #define FLASH_BASE  0x14000000
     #define FLASH_SIZE  0x04000000
+#elif defined(JLINK_FLASH_2)
+    #define FLASH_NAME  "SF32LB57X Internal Flash2"
+    #define FLASH_BASE  0x14000000
+    #define FLASH_SIZE  0x02000000
 #elif defined(JLINK_FLASH_3)
-    #define FLASH_NAME  "SF32LB57X External Flash3"
+    #define FLASH_NAME  "SF32LB57X Internal Flash3"
+    #define FLASH_BASE  0x16000000
+    #define FLASH_SIZE  0x02000000
+#elif defined(JLINK_FLASH_4)
+    #define FLASH_NAME  "SF32LB57X External Flash4"
     #define FLASH_BASE  0x18000000
     #define FLASH_SIZE  0x08000000
 #endif

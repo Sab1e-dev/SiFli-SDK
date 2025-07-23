@@ -398,6 +398,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\main.c</FilePath>
             </File>
+            <File>
+              <FileName>user_cfg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\user_cfg.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -888,6 +893,11 @@
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\main.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_cfg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\user_cfg.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1380,6 +1390,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\main.c</FilePath>
             </File>
+            <File>
+              <FileName>user_cfg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\user_cfg.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1810,7 +1825,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls>-march=armv8-m.main+cdecp1</MiscControls>
-              <Define>SOC_BF0_HCPU, USE_HAL_DRIVER, SF32LB57X, ARM_MATH_LOOPUNROLL,JLINK,JLINK_FLASH_4,_USE_PRODUCTLINE</Define>
+              <Define>SOC_BF0_HCPU, USE_HAL_DRIVER, SF32LB57X, ARM_MATH_LOOPUNROLL,JLINK,JLINK_FLASH_4,_USE_PRODUCTLINE,HAL_TICK_PER_SECOND=1000,</Define>
               <Undefine></Undefine>
               <IncludePath>.;.\src;..\..\..\..\customer\boards\include;..\..\..\..\drivers\cmsis\sf32lb57x;..\..\..\..\drivers\cmsis\Include;..\..\..\..\external\CMSIS\Include;..\..\..\..\drivers\Include;..\..\..\..\customer\boards\include\config\sf32lb57x;..\..\src</IncludePath>
             </VariousControls>
@@ -1870,6 +1885,11 @@
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\main.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_cfg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\user_cfg.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -2361,6 +2381,11 @@
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\main.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_cfg.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\user_cfg.c</FilePath>
             </File>
           </Files>
         </Group>

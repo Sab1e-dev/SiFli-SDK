@@ -174,10 +174,11 @@ static FLASH_HandleTypeDef *Addr2Handle(uint32_t addr)
 extern uint16_t BSP_GetFlash1DIV(void);
 extern uint16_t BSP_GetFlash2DIV(void);
 extern uint16_t BSP_GetFlash3DIV(void);
+extern uint16_t BSP_GetFlash4DIV(void);
 extern void BSP_SetFlash1DIV(uint16_t div);
 extern void BSP_SetFlash2DIV(uint16_t div);
 extern void BSP_SetFlash3DIV(uint16_t div);
-
+extern void BSP_SetFlash4DIV(uint16_t div);
 
 static void board_pinmux_mpi1_puya_base()
 {
@@ -328,6 +329,35 @@ int rt_hw_flash3_init()
     return 0;
 }
 
+int rt_hw_flash4_init()
+{
+    HAL_StatusTypeDef res = HAL_ERROR;
+
+#if !defined(JLINK) || defined(JLINK_FLASH_4)
+#ifdef BSP_ENABLE_QSPI4 // add qspi check to make sure config table exist
+    qspi_configure_t flash_cfg4 = FLASH4_CONFIG;
+    struct dma_config flash_dma4 = FLASH4_DMA_CONFIG;
+
+    //HAL_PIN_SetFlash2();
+    uint16_t div = BSP_GetFlash4DIV();
+    flash_cfg4.line = 2;
+    // init hardware, set dma, clock
+    res = HAL_FLASH_Init(&(spi_flash_handle[3]), &flash_cfg4, &spi_flash_dma_handle[3], &flash_dma4, div);
+#if (DEBUG_JLINK+DEFAULT_TRACE)
+    uint8_t hex[16];
+    debug_print("\r\nFLASH4 INIT : ID 0x");
+    debug_print((char *)htoa(hex, spi_flash_handle[3].dev_id));
+    debug_print(" ,res ");
+    debug_print((char *)htoa(hex, res));
+    debug_print("\r\n");
+#endif    
+    if (res == HAL_OK)
+        return 1;
+#endif  // BSP_ENABLE_QSPI4
+#endif //#if !defined(JLINK) || defined(JLINK_FLASH_4)
+
+    return 0;
+}
 
 static int rt_hw_flash_init(void)
 {
@@ -343,7 +373,10 @@ static int rt_hw_flash_init(void)
 
     if (rt_hw_flash3_init())
         fen |= FLASH3_ENABLED;
-    
+
+    if (rt_hw_flash4_init())
+        fen |= FLASH4_ENABLED;
+		
     return fen;
 }
 

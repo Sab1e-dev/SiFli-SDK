@@ -12,6 +12,7 @@ UART_HandleTypeDef UartHandle;
 static uint16_t flash1_div = 2;
 static uint16_t flash2_div = 2;
 static uint16_t flash3_div = 2;
+static uint16_t flash4_div = 2;
 
 static void SystemClock_Config(void);
 static void Error_Handler(void);
@@ -59,6 +60,10 @@ uint16_t BSP_GetFlash3DIV(void)
     return flash3_div;
 }
 
+uint16_t BSP_GetFlash4DIV(void)
+{
+    return flash4_div;
+}
 
 void BSP_SetFlash1DIV(uint16_t div)
 {
@@ -75,6 +80,10 @@ void BSP_SetFlash3DIV(uint16_t div)
     flash3_div = div;
 }
 
+void BSP_SetFlash4DIV(uint16_t div)
+{
+    flash4_div = div;
+}
 
 static void JLINK_DRV_BSP_PIN_Init(void)
 {
@@ -102,14 +111,22 @@ static void JLINK_DRV_BSP_PIN_Init(void)
 #endif
 
 #ifdef JLINK_FLASH_3
-    HAL_PIN_Set(PAD_PA16, MPI3_CLK, PIN_NOPULL, 1);
-    HAL_PIN_Set(PAD_PA12, MPI3_CS,  PIN_NOPULL, 1);
-    HAL_PIN_Set(PAD_PA15, MPI3_DIO0, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_PA13, MPI3_DIO1, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_PA14, MPI3_DIO2, PIN_PULLUP, 1);
-    HAL_PIN_Set(PAD_PA17, MPI3_DIO3, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_SB04, MPI3_CLK, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_SB00, MPI3_CS,  PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_SB03, MPI3_DIO0, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SB01, MPI3_DIO1, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SB02, MPI3_DIO2, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_SB05, MPI3_DIO3, PIN_PULLUP, 1);
 #endif
 
+#ifdef JLINK_FLASH_4
+    HAL_PIN_Set(PAD_PA16, MPI4_CLK, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA12, MPI4_CS,  PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA15, MPI4_DIO0, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_PA13, MPI4_DIO1, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_PA14, MPI4_DIO2, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA17, MPI4_DIO3, PIN_PULLUP, 1);
+#endif
 
     HAL_PIN_Set(PAD_PA19, USART1_TXD, PIN_PULLUP, 1);
     HAL_PIN_Set(PAD_PA18, USART1_RXD, PIN_PULLUP, 1);
@@ -148,7 +165,7 @@ void HAL_MspInit(void)
         - BaudRate    = 9600 baud
         - Hardware flow control disabled (RTS and CTS signals) */
     memset(&UartHandle, 0, sizeof(UART_HandleTypeDef));
-    UartHandle.Instance        = USART4;
+    UartHandle.Instance        = USART1;
     UartHandle.Init.BaudRate   = 1000000;
     UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
     UartHandle.Init.StopBits   = UART_STOPBITS_1;
