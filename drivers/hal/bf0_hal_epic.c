@@ -474,7 +474,9 @@ static void EPIC_DISABLE(EPIC_HandleTypeDef *hepic)
     uint32_t hw_cnt = hepic->Instance->PERF_CNT;
 #endif /* EPIC_PERF_CNT_VAL */
 
+#ifndef HAL_EPICTL_ENABLED //Keep RCC always on
     HAL_RCC_DisableModule(RCC_MOD_EPIC);
+#endif /* HAL_EPICTL_ENABLED */
     hepic->end_tick = HAL_DBG_DWT_GetCycles();
 
 #ifdef EPIC_PERF_CNT_VAL
@@ -1538,10 +1540,11 @@ static HAL_StatusTypeDef EPIC_ConfigLayer(EPIC_HandleTypeDef *hepic, EPIC_LAYER_
     layer_color_format = EPIC_GetLayerColorFormat(config->color_mode);
     output_line_bytes = HAL_ALIGN(color_depth * config->width, 8) >> 3;
 
-    if (output_line_bytes > EPIC_PREFETCH_THRESHOLD)
-        layer_x->CFG = EPIC_L0_CFG_PREFETCH_EN;
-    else
-        layer_x->CFG = 0;
+    layer_x->CFG = 0;
+#ifdef EPIC_L0_CFG_PREFETCH_EN
+    if (output_line_bytes > EPIC_PREFETCH_THRESHOLD) layer_x->CFG |= EPIC_L0_CFG_PREFETCH_EN;
+#endif /* EPIC_L0_CFG_PREFETCH_EN */
+
 
     if (using_alpha || (EPIC_COLOR_MONO == config->color_mode))
     {
@@ -2697,7 +2700,11 @@ static HAL_StatusTypeDef EPIC_ConfigVideoLayer(EPIC_HandleTypeDef *epic_handle,
 
     if (EPIC_LAYER_IDX_VL == layer_idx)
     {
+#ifdef EPIC_VL_CFG_BLEND_DEPTH_Msk
         HAL_ASSERT(layer_depth <= (EPIC_VL_CFG_BLEND_DEPTH_Msk >> EPIC_VL_CFG_BLEND_DEPTH_Pos));
+#else
+        HAL_ASSERT(layer_depth <= (EPIC_VL_MISC_CFG_BLEND_DEPTH_Msk >> EPIC_VL_MISC_CFG_BLEND_DEPTH_Pos));
+#endif
     }
 
     //Check overflow
@@ -2832,7 +2839,11 @@ static HAL_StatusTypeDef EPIC_ConfigVideoLayer(EPIC_HandleTypeDef *epic_handle,
         if (line_bytes > EPIC_PREFETCH_THRESHOLD)  Vlayer_x->CFG |= EPIC_VL_CFG_PREFETCH_EN;
 #endif /* SF32LB55X || SF32LB58X*/
         Vlayer_x_trans->ROT_M_CFG1 &= ~EPIC_VL_ROT_M_CFG1_M_MODE;
+#ifdef EPIC_VL_MISC_CFG_DEG_FORCE
         Vlayer_x->MISC_CFG &= ~EPIC_VL_MISC_CFG_DEG_FORCE;
+#else
+        Vlayer_x->ROT &= ~EPIC_VL_ROT_DEG_FORCE;
+#endif
         MODIFY_REG(Vlayer_x->ROT, EPIC_VL_ROT_ROT_DEG_Msk, MAKE_REG_VAL(0, EPIC_VL_ROT_ROT_DEG_Msk, EPIC_VL_ROT_ROT_DEG_Pos));
     }
     else
@@ -2846,8 +2857,11 @@ static HAL_StatusTypeDef EPIC_ConfigVideoLayer(EPIC_HandleTypeDef *epic_handle,
                    MAKE_REG_VAL(trans_result->abs_cosma >> (EPIC_SIN_COS_FRAC_BIT - EPIC_VL_MISC_CFG_COS_FRAC_BIT),
                                 EPIC_VL_MISC_CFG_COS_FORCE_VALUE_Msk,
                                 EPIC_VL_MISC_CFG_COS_FORCE_VALUE_Pos));
+#ifdef EPIC_VL_MISC_CFG_DEG_FORCE
         Vlayer_x->MISC_CFG |= EPIC_VL_MISC_CFG_DEG_FORCE;
-
+#else
+        Vlayer_x->ROT |= EPIC_VL_ROT_DEG_FORCE;
+#endif
         MODIFY_REG(Vlayer_x->ROT, EPIC_VL_ROT_ROT_DEG_Msk, MAKE_REG_VAL(trans_result->angle_degree, EPIC_VL_ROT_ROT_DEG_Msk, EPIC_VL_ROT_ROT_DEG_Pos));
 
         /*VL_ROT_M_CFG1 is area size of rotated img, NOT include scale */
@@ -2908,9 +2922,12 @@ static HAL_StatusTypeDef EPIC_ConfigVideoLayer(EPIC_HandleTypeDef *epic_handle,
 
 
 
-    Vlayer_x->CFG |= MAKE_REG_VAL(layer_color_format, EPIC_VL_CFG_FORMAT_Msk, EPIC_VL_CFG_FORMAT_Pos)
-                     | MAKE_REG_VAL(layer_depth, EPIC_VL_CFG_BLEND_DEPTH_Msk, EPIC_VL_CFG_BLEND_DEPTH_Pos);
-
+    Vlayer_x->CFG |= MAKE_REG_VAL(layer_color_format, EPIC_VL_CFG_FORMAT_Msk, EPIC_VL_CFG_FORMAT_Pos);
+#ifdef EPIC_VL_CFG_BLEND_DEPTH_Msk
+    Vlayer_x->CFG |= MAKE_REG_VAL(layer_depth, EPIC_VL_CFG_BLEND_DEPTH_Msk, EPIC_VL_CFG_BLEND_DEPTH_Pos);
+#else
+    Vlayer_x->CFG |= MAKE_REG_VAL(layer_depth, EPIC_VL_MISC_CFG_BLEND_DEPTH_Msk, EPIC_VL_MISC_CFG_BLEND_DEPTH_Pos);
+#endif
     if (EPIC_COLOR_MONO != config->color_mode)
     {
         Vlayer_x->CFG |= MAKE_REG_VAL(line_bytes, EPIC_VL_CFG_WIDTH_Msk, EPIC_VL_CFG_WIDTH_Pos);
@@ -3027,8 +3044,12 @@ static HAL_StatusTypeDef EPIC_ContConfigVideoLayer(EPIC_HandleTypeDef *epic_hand
 
     reg_v = MAKE_REG_VAL(line_bytes, EPIC_VL_CFG_WIDTH_Msk, EPIC_VL_CFG_WIDTH_Pos)
             | MAKE_REG_VAL(epic_handle->api_cfg.cont_cfg.color_format[idx], EPIC_VL_CFG_FORMAT_Msk, EPIC_VL_CFG_FORMAT_Pos)
-            | MAKE_REG_VAL(1, EPIC_VL_CFG_BLEND_DEPTH_Msk, EPIC_VL_CFG_BLEND_DEPTH_Pos)
             | EPIC_VL_CFG_ACTIVE;
+#ifdef EPIC_VL_CFG_BLEND_DEPTH_Msk
+    reg_v |= MAKE_REG_VAL(1, EPIC_VL_CFG_BLEND_DEPTH_Msk, EPIC_VL_CFG_BLEND_DEPTH_Pos);
+#else
+    reg_v |= MAKE_REG_VAL(1, EPIC_VL_MISC_CFG_BLEND_DEPTH_Msk, EPIC_VL_MISC_CFG_BLEND_DEPTH_Pos);
+#endif
 
     if (!IS_NO_ALPHA_COLOR_MODE(config->color_mode))
     {
@@ -3086,7 +3107,12 @@ static HAL_StatusTypeDef EPIC_ContResetVideoLayer(EPIC_HandleTypeDef *epic_handl
     Vlayer_x->ROT |= EPIC_VL_ROT_CALC_CLR;
 
     Vlayer_x_trans->ROT_M_CFG1 &= ~EPIC_VL_ROT_M_CFG1_M_MODE;
+
+#ifdef EPIC_VL_MISC_CFG_DEG_FORCE
     Vlayer_x->MISC_CFG &= ~EPIC_VL_MISC_CFG_DEG_FORCE;
+#else
+    Vlayer_x->ROT &= ~EPIC_VL_ROT_DEG_FORCE;
+#endif
     MODIFY_REG(Vlayer_x->ROT, EPIC_VL_ROT_ROT_DEG_Msk, MAKE_REG_VAL(0, EPIC_VL_ROT_ROT_DEG_Msk, EPIC_VL_ROT_ROT_DEG_Pos));
 
 
@@ -3180,11 +3206,9 @@ static HAL_StatusTypeDef EPIC_ConfigMaskLayer(EPIC_HandleTypeDef *hepic, EPIC_LA
                      | MAKE_REG_VAL(line_bytes, EPIC_MASK_CFG_WIDTH_Msk, EPIC_MASK_CFG_WIDTH_Pos)
                      | alpha_mix_mode
                      | (LayerIdx2MaskCh(layer_idx) << EPIC_MASK_CFG_L0_MASK_EN_Pos);
-
-    if (output_line_bytes > EPIC_PREFETCH_THRESHOLD)
-    {
-        epic->MASK_CFG |= EPIC_MASK_CFG_PREFETCH_EN;
-    }
+#ifdef EPIC_MASK_CFG_PREFETCH_EN
+    if (output_line_bytes > EPIC_PREFETCH_THRESHOLD) epic->MASK_CFG |= EPIC_MASK_CFG_PREFETCH_EN;
+#endif /* EPIC_MASK_CFG_PREFETCH_EN */
 
     if (epic->MASK_SRC != 0)
         epic->MASK_CFG |= EPIC_MASK_CFG_ACTIVE;
@@ -3270,11 +3294,9 @@ static HAL_StatusTypeDef EPIC_ContConfigMaskLayer(EPIC_HandleTypeDef *hepic, uin
                      | MAKE_REG_VAL(line_bytes, EPIC_MASK_CFG_WIDTH_Msk, EPIC_MASK_CFG_WIDTH_Pos)
                      | alpha_mix_mode
                      | (LayerIdx2MaskCh(layer_idx) << EPIC_MASK_CFG_L0_MASK_EN_Pos);
-
-    if (output_line_bytes > EPIC_PREFETCH_THRESHOLD)
-    {
-        epic->MASK_CFG |= EPIC_MASK_CFG_PREFETCH_EN;
-    }
+#ifdef EPIC_MASK_CFG_PREFETCH_EN
+    if (output_line_bytes > EPIC_PREFETCH_THRESHOLD) epic->MASK_CFG |= EPIC_MASK_CFG_PREFETCH_EN;
+#endif /* EPIC_MASK_CFG_PREFETCH_EN */
 
     if (epic->MASK_SRC != 0)
         epic->MASK_CFG |= EPIC_MASK_CFG_ACTIVE;
@@ -3948,6 +3970,7 @@ HAL_StatusTypeDef HAL_EPIC_Init(EPIC_HandleTypeDef *epic)
         epic->RamLTabSize[i] = 0;
     }
 #endif /* EPIC_SUPPORT_L8 */
+    EPIC_InitRamInstance(epic);
 
 #ifndef SF32LB55X
     HAL_RCC_EnableModule(RCC_MOD_EPIC);
@@ -4707,6 +4730,8 @@ HAL_StatusTypeDef HAL_EPIC_Copy_IT(EPIC_HandleTypeDef *epic, EPIC_BlendingDataTy
     EPIC_TransResultInit(&trans_result, &src_bak);
     EPIC_ClipLayerSrcByOutput(&src_bak, NULL, &dst_bak, &trans_result);
 
+    EPIC_MakeAllLayerCoordValid(&src_bak, &dst_bak, NULL);
+
     ret = EPIC_ConfigLayer(epic, src_layer_idx, &src_bak, true, 255);
 
     if (HAL_OK != ret)
@@ -4731,7 +4756,6 @@ HAL_StatusTypeDef HAL_EPIC_Copy_IT(EPIC_HandleTypeDef *epic, EPIC_BlendingDataTy
 #ifdef EPIC_SUPPORT_JPEGD
     if (IS_JPEG_COLOR_MODE(src_bak.color_mode) && EPIC_IsLayerActive(epic->Instance, src_layer_idx))
     {
-        EPIC_TransResultInit(&trans_result, &src_bak);
         ret = EPIC_ConfigJpegDec(epic, &src_bak, &dst_bak, &trans_result);
     }
 #endif /* EPIC_SUPPORT_JPEGD */
@@ -5376,6 +5400,7 @@ HAL_StatusTypeDef HAL_EPIC_BlendFastStart_IT(EPIC_HandleTypeDef *hepic, EPIC_Han
         hepic->hezip->CpltCallback = hepic_s->hezip->CpltCallback;
         hepic->hezip->RamInstance_used = 1;
         hepic->hezip->user_data = (void *)hepic;
+        hepic_s->hezip->user_data = NULL; // clear user_data in hezip_s
         res = HAL_EZIP_DecodeFast_IT(hepic->hezip);
         HAL_ASSERT(res == HAL_OK);
     }

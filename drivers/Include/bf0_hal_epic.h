@@ -75,6 +75,7 @@ extern "C" {
 #define EPIC_SUPPORT_DECOMP
 #define EPIC_SUPPORT_COMP
 #define EPIC_SUPPORT_COLOR_MATRIX
+#define HAL_EPICTL_ENABLED
 #endif /* SF32LB52X */
 #endif /* SF32LB56X */
 #endif /* SF32LB58X */
@@ -108,7 +109,6 @@ extern "C" {
 #define EPIC_COLOR_A4              (6)              /**< A4 color format */
 #define EPIC_COLOR_A2              (7)              /**< A2 color format */
 #define EPIC_COLOR_MONO            (8)              /**< Monochrome color format */
-
 
 #define EPIC_COLOR_EZIP_FLAG        (0x80)           /**< EZIP color format flag, supported after A0*/
 #define EPIC_COLOR_EZIP             (0x81)           /**< EZIP color format */
@@ -930,7 +930,12 @@ static inline int32_t EPIC_TrigoCos(int16_t angle)
 }
 void EPIC_TrigoSinCosP1(int16_t angle, int16_t *sin_val, int16_t *cos_val);
 
-
+/* -------------------------------
+    EPIC Transfer Layer(EPICTL) APIs
+ ------------------------------- */
+#ifdef HAL_EPICTL_ENABLED
+#include "bf0_hal_epictl.h"
+#endif /* HAL_EPICTL_ENABLED */
 /**
   * @}
   */

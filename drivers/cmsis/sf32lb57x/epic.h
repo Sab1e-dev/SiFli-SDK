@@ -167,11 +167,9 @@ typedef struct
     __IO uint32_t CM_CONF5;
     __IO uint32_t DITHER_CONF;
     __IO uint32_t DITHER_LFSR;
-    __IO uint32_t CMPRCR;
-    __IO uint32_t CMPRCFG0;
-    __IO uint32_t CMPRCFG1;
-    __IO uint32_t CMPRQR;
-    __IO uint32_t CMPRDR;
+    __IO uint32_t GREY_CONV;
+    __IO uint32_t FLEX_SEL_L;
+    __IO uint32_t FLEX_SEL_H;
     __IO uint32_t AHB_CTRL;
     __IO uint32_t AHB_MEM;
     __IO uint32_t AHB_STRIDE;
@@ -184,12 +182,34 @@ typedef struct
     __IO uint32_t AHBA_CNT;
     __IO uint32_t AHBB_CNT;
     __IO uint32_t PERF_CNT;
-    __IO uint32_t CANVAS_STAT;
+    __IO uint32_t TL_CFG;
+    __IO uint32_t TL_SIZE;
+    __IO uint32_t TL_SRC;
+    __IO uint32_t CMPRCR;
+    __IO uint32_t CMPRCFG0;
+    __IO uint32_t CMPRCFG1;
+    __IO uint32_t CMPRQR;
+    __IO uint32_t CMPRDR;
+    __IO uint32_t TL_GREY_CONV;
+    __IO uint32_t TL_FLEX_SEL_L;
+    __IO uint32_t TL_FLEX_SEL_H;
+    __IO uint32_t TL_AHB_CTRL;
+    __IO uint32_t TL_AHB_MEM;
+    __IO uint32_t TL_AHB_STRIDE;
+    __IO uint32_t TL_COMMAND;
+    __IO uint32_t TL_STATUS;
+    __IO uint32_t TL_IRQ;
+    __IO uint32_t TL_SETTING;
+    __IO uint32_t TL_PERF_CNT;
+    __IO uint32_t CANVAS_STAT0;
+    __IO uint32_t CANVAS_STAT1;
     __IO uint32_t ENG_STAT;
     __IO uint32_t OL_STAT;
     __IO uint32_t OL2_STAT;
     __IO uint32_t VL_STAT;
     __IO uint32_t ML_STAT;
+    __IO uint32_t TL_STAT0;
+    __IO uint32_t TL_STAT1;
     __IO uint32_t MEM_IF_STAT;
 } EPIC_TypeDef;
 
@@ -206,7 +226,7 @@ typedef struct
 #define EPIC_STATUS_IA_BUSY_Pos         (0U)
 #define EPIC_STATUS_IA_BUSY_Msk         (0x1UL << EPIC_STATUS_IA_BUSY_Pos)
 #define EPIC_STATUS_IA_BUSY             EPIC_STATUS_IA_BUSY_Msk
-#define EPIC_STATUS_LCD_BUSY_Pos        (4U)
+#define EPIC_STATUS_LCD_BUSY_Pos        (1U)
 #define EPIC_STATUS_LCD_BUSY_Msk        (0x1UL << EPIC_STATUS_LCD_BUSY_Pos)
 #define EPIC_STATUS_LCD_BUSY            EPIC_STATUS_LCD_BUSY_Msk
 
@@ -253,23 +273,23 @@ typedef struct
 #define EPIC_SETTING_AUTO_GATE_EN_Msk   (0x1UL << EPIC_SETTING_AUTO_GATE_EN_Pos)
 #define EPIC_SETTING_AUTO_GATE_EN       EPIC_SETTING_AUTO_GATE_EN_Msk
 #define EPIC_SETTING_LINE_IRQ_NUM_Pos   (16U)
-#define EPIC_SETTING_LINE_IRQ_NUM_Msk   (0x3FFUL << EPIC_SETTING_LINE_IRQ_NUM_Pos)
+#define EPIC_SETTING_LINE_IRQ_NUM_Msk   (0x1FFFUL << EPIC_SETTING_LINE_IRQ_NUM_Pos)
 #define EPIC_SETTING_LINE_IRQ_NUM       EPIC_SETTING_LINE_IRQ_NUM_Msk
 
 /*************** Bit definition for EPIC_CANVAS_TL_POS register ***************/
 #define EPIC_CANVAS_TL_POS_X0_Pos       (0U)
-#define EPIC_CANVAS_TL_POS_X0_Msk       (0x3FFUL << EPIC_CANVAS_TL_POS_X0_Pos)
+#define EPIC_CANVAS_TL_POS_X0_Msk       (0x1FFFUL << EPIC_CANVAS_TL_POS_X0_Pos)
 #define EPIC_CANVAS_TL_POS_X0           EPIC_CANVAS_TL_POS_X0_Msk
 #define EPIC_CANVAS_TL_POS_Y0_Pos       (16U)
-#define EPIC_CANVAS_TL_POS_Y0_Msk       (0x3FFUL << EPIC_CANVAS_TL_POS_Y0_Pos)
+#define EPIC_CANVAS_TL_POS_Y0_Msk       (0x1FFFUL << EPIC_CANVAS_TL_POS_Y0_Pos)
 #define EPIC_CANVAS_TL_POS_Y0           EPIC_CANVAS_TL_POS_Y0_Msk
 
 /*************** Bit definition for EPIC_CANVAS_BR_POS register ***************/
 #define EPIC_CANVAS_BR_POS_X1_Pos       (0U)
-#define EPIC_CANVAS_BR_POS_X1_Msk       (0x3FFUL << EPIC_CANVAS_BR_POS_X1_Pos)
+#define EPIC_CANVAS_BR_POS_X1_Msk       (0x1FFFUL << EPIC_CANVAS_BR_POS_X1_Pos)
 #define EPIC_CANVAS_BR_POS_X1           EPIC_CANVAS_BR_POS_X1_Msk
 #define EPIC_CANVAS_BR_POS_Y1_Pos       (16U)
-#define EPIC_CANVAS_BR_POS_Y1_Msk       (0x3FFUL << EPIC_CANVAS_BR_POS_Y1_Pos)
+#define EPIC_CANVAS_BR_POS_Y1_Msk       (0x1FFFUL << EPIC_CANVAS_BR_POS_Y1_Pos)
 #define EPIC_CANVAS_BR_POS_Y1           EPIC_CANVAS_BR_POS_Y1_Msk
 
 /***************** Bit definition for EPIC_CANVAS_BG register *****************/
@@ -306,47 +326,41 @@ typedef struct
 #define EPIC_VL_CFG_ALPHA_Pos           (5U)
 #define EPIC_VL_CFG_ALPHA_Msk           (0xFFUL << EPIC_VL_CFG_ALPHA_Pos)
 #define EPIC_VL_CFG_ALPHA               EPIC_VL_CFG_ALPHA_Msk
-#define EPIC_VL_CFG_BLEND_DEPTH_Pos     (13U)
-#define EPIC_VL_CFG_BLEND_DEPTH_Msk     (0x3UL << EPIC_VL_CFG_BLEND_DEPTH_Pos)
-#define EPIC_VL_CFG_BLEND_DEPTH         EPIC_VL_CFG_BLEND_DEPTH_Msk
-#define EPIC_VL_CFG_FILTER_EN_Pos       (15U)
+#define EPIC_VL_CFG_ALPHA_BLEND_Pos     (13U)
+#define EPIC_VL_CFG_ALPHA_BLEND_Msk     (0x1UL << EPIC_VL_CFG_ALPHA_BLEND_Pos)
+#define EPIC_VL_CFG_ALPHA_BLEND         EPIC_VL_CFG_ALPHA_BLEND_Msk
+#define EPIC_VL_CFG_FILTER_EN_Pos       (14U)
 #define EPIC_VL_CFG_FILTER_EN_Msk       (0x1UL << EPIC_VL_CFG_FILTER_EN_Pos)
 #define EPIC_VL_CFG_FILTER_EN           EPIC_VL_CFG_FILTER_EN_Msk
 #define EPIC_VL_CFG_WIDTH_Pos           (16U)
-#define EPIC_VL_CFG_WIDTH_Msk           (0x1FFFUL << EPIC_VL_CFG_WIDTH_Pos)
+#define EPIC_VL_CFG_WIDTH_Msk           (0x7FFFUL << EPIC_VL_CFG_WIDTH_Pos)
 #define EPIC_VL_CFG_WIDTH               EPIC_VL_CFG_WIDTH_Msk
-#define EPIC_VL_CFG_SPLIT_EN_Pos        (29U)
-#define EPIC_VL_CFG_SPLIT_EN_Msk        (0x1UL << EPIC_VL_CFG_SPLIT_EN_Pos)
-#define EPIC_VL_CFG_SPLIT_EN            EPIC_VL_CFG_SPLIT_EN_Msk
-#define EPIC_VL_CFG_ACTIVE_Pos          (30U)
+#define EPIC_VL_CFG_ACTIVE_Pos          (31U)
 #define EPIC_VL_CFG_ACTIVE_Msk          (0x1UL << EPIC_VL_CFG_ACTIVE_Pos)
 #define EPIC_VL_CFG_ACTIVE              EPIC_VL_CFG_ACTIVE_Msk
-#define EPIC_VL_CFG_ALPHA_BLEND_Pos     (31U)
-#define EPIC_VL_CFG_ALPHA_BLEND_Msk     (0x1UL << EPIC_VL_CFG_ALPHA_BLEND_Pos)
-#define EPIC_VL_CFG_ALPHA_BLEND         EPIC_VL_CFG_ALPHA_BLEND_Msk
 
 /***************** Bit definition for EPIC_VL_TL_POS register *****************/
 #define EPIC_VL_TL_POS_X0_Pos           (0U)
-#define EPIC_VL_TL_POS_X0_Msk           (0x3FFUL << EPIC_VL_TL_POS_X0_Pos)
+#define EPIC_VL_TL_POS_X0_Msk           (0x1FFFUL << EPIC_VL_TL_POS_X0_Pos)
 #define EPIC_VL_TL_POS_X0               EPIC_VL_TL_POS_X0_Msk
 #define EPIC_VL_TL_POS_Y0_Pos           (16U)
-#define EPIC_VL_TL_POS_Y0_Msk           (0x3FFUL << EPIC_VL_TL_POS_Y0_Pos)
+#define EPIC_VL_TL_POS_Y0_Msk           (0x1FFFUL << EPIC_VL_TL_POS_Y0_Pos)
 #define EPIC_VL_TL_POS_Y0               EPIC_VL_TL_POS_Y0_Msk
 
 /***************** Bit definition for EPIC_VL_BR_POS register *****************/
 #define EPIC_VL_BR_POS_X1_Pos           (0U)
-#define EPIC_VL_BR_POS_X1_Msk           (0x3FFUL << EPIC_VL_BR_POS_X1_Pos)
+#define EPIC_VL_BR_POS_X1_Msk           (0x1FFFUL << EPIC_VL_BR_POS_X1_Pos)
 #define EPIC_VL_BR_POS_X1               EPIC_VL_BR_POS_X1_Msk
 #define EPIC_VL_BR_POS_Y1_Pos           (16U)
-#define EPIC_VL_BR_POS_Y1_Msk           (0x3FFUL << EPIC_VL_BR_POS_Y1_Pos)
+#define EPIC_VL_BR_POS_Y1_Msk           (0x1FFFUL << EPIC_VL_BR_POS_Y1_Pos)
 #define EPIC_VL_BR_POS_Y1               EPIC_VL_BR_POS_Y1_Msk
 
 /**************** Bit definition for EPIC_VL_EXTENTS register *****************/
 #define EPIC_VL_EXTENTS_MAX_LINE_Pos    (0U)
-#define EPIC_VL_EXTENTS_MAX_LINE_Msk    (0x3FFUL << EPIC_VL_EXTENTS_MAX_LINE_Pos)
+#define EPIC_VL_EXTENTS_MAX_LINE_Msk    (0x1FFFUL << EPIC_VL_EXTENTS_MAX_LINE_Pos)
 #define EPIC_VL_EXTENTS_MAX_LINE        EPIC_VL_EXTENTS_MAX_LINE_Msk
 #define EPIC_VL_EXTENTS_MAX_COL_Pos     (16U)
-#define EPIC_VL_EXTENTS_MAX_COL_Msk     (0x3FFUL << EPIC_VL_EXTENTS_MAX_COL_Pos)
+#define EPIC_VL_EXTENTS_MAX_COL_Msk     (0x1FFFUL << EPIC_VL_EXTENTS_MAX_COL_Pos)
 #define EPIC_VL_EXTENTS_MAX_COL         EPIC_VL_EXTENTS_MAX_COL_Msk
 
 /***************** Bit definition for EPIC_VL_FILTER register *****************/
@@ -381,23 +395,29 @@ typedef struct
 #define EPIC_VL_ROT_CALC_DONE_Pos       (11U)
 #define EPIC_VL_ROT_CALC_DONE_Msk       (0x1UL << EPIC_VL_ROT_CALC_DONE_Pos)
 #define EPIC_VL_ROT_CALC_DONE           EPIC_VL_ROT_CALC_DONE_Msk
+#define EPIC_VL_ROT_DEG_FORCE_Pos       (12U)
+#define EPIC_VL_ROT_DEG_FORCE_Msk       (0x1UL << EPIC_VL_ROT_DEG_FORCE_Pos)
+#define EPIC_VL_ROT_DEG_FORCE           EPIC_VL_ROT_DEG_FORCE_Msk
+#define EPIC_VL_ROT_SPLIT_EN_Pos        (13U)
+#define EPIC_VL_ROT_SPLIT_EN_Msk        (0x1UL << EPIC_VL_ROT_SPLIT_EN_Pos)
+#define EPIC_VL_ROT_SPLIT_EN            EPIC_VL_ROT_SPLIT_EN_Msk
 
 /**************** Bit definition for EPIC_VL_ROT_STAT register ****************/
 #define EPIC_VL_ROT_STAT_ROT_MAX_LINE_Pos  (0U)
-#define EPIC_VL_ROT_STAT_ROT_MAX_LINE_Msk  (0x7FFUL << EPIC_VL_ROT_STAT_ROT_MAX_LINE_Pos)
+#define EPIC_VL_ROT_STAT_ROT_MAX_LINE_Msk  (0x3FFFUL << EPIC_VL_ROT_STAT_ROT_MAX_LINE_Pos)
 #define EPIC_VL_ROT_STAT_ROT_MAX_LINE   EPIC_VL_ROT_STAT_ROT_MAX_LINE_Msk
 #define EPIC_VL_ROT_STAT_ROT_MAX_COL_Pos  (16U)
-#define EPIC_VL_ROT_STAT_ROT_MAX_COL_Msk  (0x7FFUL << EPIC_VL_ROT_STAT_ROT_MAX_COL_Pos)
+#define EPIC_VL_ROT_STAT_ROT_MAX_COL_Msk  (0x3FFFUL << EPIC_VL_ROT_STAT_ROT_MAX_COL_Pos)
 #define EPIC_VL_ROT_STAT_ROT_MAX_COL    EPIC_VL_ROT_STAT_ROT_MAX_COL_Msk
 
 /************* Bit definition for EPIC_VL_SCALE_RATIO_H register **************/
 #define EPIC_VL_SCALE_RATIO_H_XPITCH_Pos  (0U)
-#define EPIC_VL_SCALE_RATIO_H_XPITCH_Msk  (0x3FFFFFFUL << EPIC_VL_SCALE_RATIO_H_XPITCH_Pos)
+#define EPIC_VL_SCALE_RATIO_H_XPITCH_Msk  (0x1FFFFFFFUL << EPIC_VL_SCALE_RATIO_H_XPITCH_Pos)
 #define EPIC_VL_SCALE_RATIO_H_XPITCH    EPIC_VL_SCALE_RATIO_H_XPITCH_Msk
 
 /************* Bit definition for EPIC_VL_SCALE_RATIO_V register **************/
 #define EPIC_VL_SCALE_RATIO_V_YPITCH_Pos  (0U)
-#define EPIC_VL_SCALE_RATIO_V_YPITCH_Msk  (0x3FFFFFFUL << EPIC_VL_SCALE_RATIO_V_YPITCH_Pos)
+#define EPIC_VL_SCALE_RATIO_V_YPITCH_Msk  (0x1FFFFFFFUL << EPIC_VL_SCALE_RATIO_V_YPITCH_Pos)
 #define EPIC_VL_SCALE_RATIO_V_YPITCH    EPIC_VL_SCALE_RATIO_V_YPITCH_Msk
 
 /****************** Bit definition for EPIC_VL_FILL register ******************/
@@ -416,6 +436,15 @@ typedef struct
 #define EPIC_VL_FILL_ENDIAN_Pos         (25U)
 #define EPIC_VL_FILL_ENDIAN_Msk         (0x1UL << EPIC_VL_FILL_ENDIAN_Pos)
 #define EPIC_VL_FILL_ENDIAN             EPIC_VL_FILL_ENDIAN_Msk
+#define EPIC_VL_FILL_RECOLOR_EN_Pos     (26U)
+#define EPIC_VL_FILL_RECOLOR_EN_Msk     (0x1UL << EPIC_VL_FILL_RECOLOR_EN_Pos)
+#define EPIC_VL_FILL_RECOLOR_EN         EPIC_VL_FILL_RECOLOR_EN_Msk
+#define EPIC_VL_FILL_FIX_COLOR_Pos      (27U)
+#define EPIC_VL_FILL_FIX_COLOR_Msk      (0x1UL << EPIC_VL_FILL_FIX_COLOR_Pos)
+#define EPIC_VL_FILL_FIX_COLOR          EPIC_VL_FILL_FIX_COLOR_Msk
+#define EPIC_VL_FILL_PIXEL_ORDER_Pos    (28U)
+#define EPIC_VL_FILL_PIXEL_ORDER_Msk    (0x1UL << EPIC_VL_FILL_PIXEL_ORDER_Pos)
+#define EPIC_VL_FILL_PIXEL_ORDER        EPIC_VL_FILL_PIXEL_ORDER_Msk
 
 /**************** Bit definition for EPIC_VL_MISC_CFG register ****************/
 #define EPIC_VL_MISC_CFG_CLUT_SEL_Pos   (0U)
@@ -435,12 +464,12 @@ typedef struct
 #define EPIC_VL_MISC_CFG_SIN_FORCE_VALUE_Msk  (0x1FFFUL << EPIC_VL_MISC_CFG_SIN_FORCE_VALUE_Pos)
 #define EPIC_VL_MISC_CFG_SIN_FORCE_VALUE  EPIC_VL_MISC_CFG_SIN_FORCE_VALUE_Msk
 #define EPIC_VL_MISC_CFG_SIN_FRAC_BIT    (EPIC_VL_MISC_CFG_COS_FRAC_BIT)
-#define EPIC_VL_MISC_CFG_DEG_FORCE_Pos  (29U)
-#define EPIC_VL_MISC_CFG_DEG_FORCE_Msk  (0x1UL << EPIC_VL_MISC_CFG_DEG_FORCE_Pos)
-#define EPIC_VL_MISC_CFG_DEG_FORCE      EPIC_VL_MISC_CFG_DEG_FORCE_Msk
-#define EPIC_VL_MISC_CFG_FETCH_MODE_Pos  (30U)
+#define EPIC_VL_MISC_CFG_FETCH_MODE_Pos  (29U)
 #define EPIC_VL_MISC_CFG_FETCH_MODE_Msk  (0x1UL << EPIC_VL_MISC_CFG_FETCH_MODE_Pos)
 #define EPIC_VL_MISC_CFG_FETCH_MODE     EPIC_VL_MISC_CFG_FETCH_MODE_Msk
+#define EPIC_VL_MISC_CFG_BLEND_DEPTH_Pos  (30U)
+#define EPIC_VL_MISC_CFG_BLEND_DEPTH_Msk  (0x3UL << EPIC_VL_MISC_CFG_BLEND_DEPTH_Pos)
+#define EPIC_VL_MISC_CFG_BLEND_DEPTH    EPIC_VL_MISC_CFG_BLEND_DEPTH_Msk
 
 /****************** Bit definition for EPIC_L0_CFG register *******************/
 #define EPIC_L0_CFG_FORMAT_Pos          (0U)
@@ -460,36 +489,33 @@ typedef struct
 #define EPIC_L0_CFG_ALPHA_Pos           (5U)
 #define EPIC_L0_CFG_ALPHA_Msk           (0xFFUL << EPIC_L0_CFG_ALPHA_Pos)
 #define EPIC_L0_CFG_ALPHA               EPIC_L0_CFG_ALPHA_Msk
-#define EPIC_L0_CFG_FILTER_EN_Pos       (15U)
+#define EPIC_L0_CFG_ALPHA_BLEND_Pos     (13U)
+#define EPIC_L0_CFG_ALPHA_BLEND_Msk     (0x1UL << EPIC_L0_CFG_ALPHA_BLEND_Pos)
+#define EPIC_L0_CFG_ALPHA_BLEND         EPIC_L0_CFG_ALPHA_BLEND_Msk
+#define EPIC_L0_CFG_FILTER_EN_Pos       (14U)
 #define EPIC_L0_CFG_FILTER_EN_Msk       (0x1UL << EPIC_L0_CFG_FILTER_EN_Pos)
 #define EPIC_L0_CFG_FILTER_EN           EPIC_L0_CFG_FILTER_EN_Msk
 #define EPIC_L0_CFG_WIDTH_Pos           (16U)
-#define EPIC_L0_CFG_WIDTH_Msk           (0x1FFFUL << EPIC_L0_CFG_WIDTH_Pos)
+#define EPIC_L0_CFG_WIDTH_Msk           (0x7FFFUL << EPIC_L0_CFG_WIDTH_Pos)
 #define EPIC_L0_CFG_WIDTH               EPIC_L0_CFG_WIDTH_Msk
-#define EPIC_L0_CFG_PREFETCH_EN_Pos     (29U)
-#define EPIC_L0_CFG_PREFETCH_EN_Msk     (0x1UL << EPIC_L0_CFG_PREFETCH_EN_Pos)
-#define EPIC_L0_CFG_PREFETCH_EN         EPIC_L0_CFG_PREFETCH_EN_Msk
-#define EPIC_L0_CFG_ACTIVE_Pos          (30U)
+#define EPIC_L0_CFG_ACTIVE_Pos          (31U)
 #define EPIC_L0_CFG_ACTIVE_Msk          (0x1UL << EPIC_L0_CFG_ACTIVE_Pos)
 #define EPIC_L0_CFG_ACTIVE              EPIC_L0_CFG_ACTIVE_Msk
-#define EPIC_L0_CFG_ALPHA_BLEND_Pos     (31U)
-#define EPIC_L0_CFG_ALPHA_BLEND_Msk     (0x1UL << EPIC_L0_CFG_ALPHA_BLEND_Pos)
-#define EPIC_L0_CFG_ALPHA_BLEND         EPIC_L0_CFG_ALPHA_BLEND_Msk
 
 /***************** Bit definition for EPIC_L0_TL_POS register *****************/
 #define EPIC_L0_TL_POS_X0_Pos           (0U)
-#define EPIC_L0_TL_POS_X0_Msk           (0x3FFUL << EPIC_L0_TL_POS_X0_Pos)
+#define EPIC_L0_TL_POS_X0_Msk           (0x1FFFUL << EPIC_L0_TL_POS_X0_Pos)
 #define EPIC_L0_TL_POS_X0               EPIC_L0_TL_POS_X0_Msk
 #define EPIC_L0_TL_POS_Y0_Pos           (16U)
-#define EPIC_L0_TL_POS_Y0_Msk           (0x3FFUL << EPIC_L0_TL_POS_Y0_Pos)
+#define EPIC_L0_TL_POS_Y0_Msk           (0x1FFFUL << EPIC_L0_TL_POS_Y0_Pos)
 #define EPIC_L0_TL_POS_Y0               EPIC_L0_TL_POS_Y0_Msk
 
 /***************** Bit definition for EPIC_L0_BR_POS register *****************/
 #define EPIC_L0_BR_POS_X1_Pos           (0U)
-#define EPIC_L0_BR_POS_X1_Msk           (0x3FFUL << EPIC_L0_BR_POS_X1_Pos)
+#define EPIC_L0_BR_POS_X1_Msk           (0x1FFFUL << EPIC_L0_BR_POS_X1_Pos)
 #define EPIC_L0_BR_POS_X1               EPIC_L0_BR_POS_X1_Msk
 #define EPIC_L0_BR_POS_Y1_Pos           (16U)
-#define EPIC_L0_BR_POS_Y1_Msk           (0x3FFUL << EPIC_L0_BR_POS_Y1_Pos)
+#define EPIC_L0_BR_POS_Y1_Msk           (0x1FFFUL << EPIC_L0_BR_POS_Y1_Pos)
 #define EPIC_L0_BR_POS_Y1               EPIC_L0_BR_POS_Y1_Msk
 
 /***************** Bit definition for EPIC_L0_FILTER register *****************/
@@ -527,6 +553,15 @@ typedef struct
 #define EPIC_L0_FILL_ENDIAN_Pos         (25U)
 #define EPIC_L0_FILL_ENDIAN_Msk         (0x1UL << EPIC_L0_FILL_ENDIAN_Pos)
 #define EPIC_L0_FILL_ENDIAN             EPIC_L0_FILL_ENDIAN_Msk
+#define EPIC_L0_FILL_RECOLOR_EN_Pos     (26U)
+#define EPIC_L0_FILL_RECOLOR_EN_Msk     (0x1UL << EPIC_L0_FILL_RECOLOR_EN_Pos)
+#define EPIC_L0_FILL_RECOLOR_EN         EPIC_L0_FILL_RECOLOR_EN_Msk
+#define EPIC_L0_FILL_FIX_COLOR_Pos      (27U)
+#define EPIC_L0_FILL_FIX_COLOR_Msk      (0x1UL << EPIC_L0_FILL_FIX_COLOR_Pos)
+#define EPIC_L0_FILL_FIX_COLOR          EPIC_L0_FILL_FIX_COLOR_Msk
+#define EPIC_L0_FILL_PIXEL_ORDER_Pos    (28U)
+#define EPIC_L0_FILL_PIXEL_ORDER_Msk    (0x1UL << EPIC_L0_FILL_PIXEL_ORDER_Pos)
+#define EPIC_L0_FILL_PIXEL_ORDER        EPIC_L0_FILL_PIXEL_ORDER_Msk
 
 /**************** Bit definition for EPIC_L0_MISC_CFG register ****************/
 #define EPIC_L0_MISC_CFG_CLUT_SEL_Pos   (0U)
@@ -546,36 +581,33 @@ typedef struct
 #define EPIC_L1_CFG_ALPHA_Pos           (5U)
 #define EPIC_L1_CFG_ALPHA_Msk           (0xFFUL << EPIC_L1_CFG_ALPHA_Pos)
 #define EPIC_L1_CFG_ALPHA               EPIC_L1_CFG_ALPHA_Msk
-#define EPIC_L1_CFG_FILTER_EN_Pos       (15U)
+#define EPIC_L1_CFG_ALPHA_BLEND_Pos     (13U)
+#define EPIC_L1_CFG_ALPHA_BLEND_Msk     (0x1UL << EPIC_L1_CFG_ALPHA_BLEND_Pos)
+#define EPIC_L1_CFG_ALPHA_BLEND         EPIC_L1_CFG_ALPHA_BLEND_Msk
+#define EPIC_L1_CFG_FILTER_EN_Pos       (14U)
 #define EPIC_L1_CFG_FILTER_EN_Msk       (0x1UL << EPIC_L1_CFG_FILTER_EN_Pos)
 #define EPIC_L1_CFG_FILTER_EN           EPIC_L1_CFG_FILTER_EN_Msk
 #define EPIC_L1_CFG_WIDTH_Pos           (16U)
-#define EPIC_L1_CFG_WIDTH_Msk           (0x1FFFUL << EPIC_L1_CFG_WIDTH_Pos)
+#define EPIC_L1_CFG_WIDTH_Msk           (0x7FFFUL << EPIC_L1_CFG_WIDTH_Pos)
 #define EPIC_L1_CFG_WIDTH               EPIC_L1_CFG_WIDTH_Msk
-#define EPIC_L1_CFG_PREFETCH_EN_Pos     (29U)
-#define EPIC_L1_CFG_PREFETCH_EN_Msk     (0x1UL << EPIC_L1_CFG_PREFETCH_EN_Pos)
-#define EPIC_L1_CFG_PREFETCH_EN         EPIC_L1_CFG_PREFETCH_EN_Msk
-#define EPIC_L1_CFG_ACTIVE_Pos          (30U)
+#define EPIC_L1_CFG_ACTIVE_Pos          (31U)
 #define EPIC_L1_CFG_ACTIVE_Msk          (0x1UL << EPIC_L1_CFG_ACTIVE_Pos)
 #define EPIC_L1_CFG_ACTIVE              EPIC_L1_CFG_ACTIVE_Msk
-#define EPIC_L1_CFG_ALPHA_BLEND_Pos     (31U)
-#define EPIC_L1_CFG_ALPHA_BLEND_Msk     (0x1UL << EPIC_L1_CFG_ALPHA_BLEND_Pos)
-#define EPIC_L1_CFG_ALPHA_BLEND         EPIC_L1_CFG_ALPHA_BLEND_Msk
 
 /***************** Bit definition for EPIC_L1_TL_POS register *****************/
 #define EPIC_L1_TL_POS_X0_Pos           (0U)
-#define EPIC_L1_TL_POS_X0_Msk           (0x3FFUL << EPIC_L1_TL_POS_X0_Pos)
+#define EPIC_L1_TL_POS_X0_Msk           (0x1FFFUL << EPIC_L1_TL_POS_X0_Pos)
 #define EPIC_L1_TL_POS_X0               EPIC_L1_TL_POS_X0_Msk
 #define EPIC_L1_TL_POS_Y0_Pos           (16U)
-#define EPIC_L1_TL_POS_Y0_Msk           (0x3FFUL << EPIC_L1_TL_POS_Y0_Pos)
+#define EPIC_L1_TL_POS_Y0_Msk           (0x1FFFUL << EPIC_L1_TL_POS_Y0_Pos)
 #define EPIC_L1_TL_POS_Y0               EPIC_L1_TL_POS_Y0_Msk
 
 /***************** Bit definition for EPIC_L1_BR_POS register *****************/
 #define EPIC_L1_BR_POS_X1_Pos           (0U)
-#define EPIC_L1_BR_POS_X1_Msk           (0x3FFUL << EPIC_L1_BR_POS_X1_Pos)
+#define EPIC_L1_BR_POS_X1_Msk           (0x1FFFUL << EPIC_L1_BR_POS_X1_Pos)
 #define EPIC_L1_BR_POS_X1               EPIC_L1_BR_POS_X1_Msk
 #define EPIC_L1_BR_POS_Y1_Pos           (16U)
-#define EPIC_L1_BR_POS_Y1_Msk           (0x3FFUL << EPIC_L1_BR_POS_Y1_Pos)
+#define EPIC_L1_BR_POS_Y1_Msk           (0x1FFFUL << EPIC_L1_BR_POS_Y1_Pos)
 #define EPIC_L1_BR_POS_Y1               EPIC_L1_BR_POS_Y1_Msk
 
 /***************** Bit definition for EPIC_L1_FILTER register *****************/
@@ -613,6 +645,15 @@ typedef struct
 #define EPIC_L1_FILL_ENDIAN_Pos         (25U)
 #define EPIC_L1_FILL_ENDIAN_Msk         (0x1UL << EPIC_L1_FILL_ENDIAN_Pos)
 #define EPIC_L1_FILL_ENDIAN             EPIC_L1_FILL_ENDIAN_Msk
+#define EPIC_L1_FILL_RECOLOR_EN_Pos     (26U)
+#define EPIC_L1_FILL_RECOLOR_EN_Msk     (0x1UL << EPIC_L1_FILL_RECOLOR_EN_Pos)
+#define EPIC_L1_FILL_RECOLOR_EN         EPIC_L1_FILL_RECOLOR_EN_Msk
+#define EPIC_L1_FILL_FIX_COLOR_Pos      (27U)
+#define EPIC_L1_FILL_FIX_COLOR_Msk      (0x1UL << EPIC_L1_FILL_FIX_COLOR_Pos)
+#define EPIC_L1_FILL_FIX_COLOR          EPIC_L1_FILL_FIX_COLOR_Msk
+#define EPIC_L1_FILL_PIXEL_ORDER_Pos    (28U)
+#define EPIC_L1_FILL_PIXEL_ORDER_Msk    (0x1UL << EPIC_L1_FILL_PIXEL_ORDER_Pos)
+#define EPIC_L1_FILL_PIXEL_ORDER        EPIC_L1_FILL_PIXEL_ORDER_Msk
 
 /**************** Bit definition for EPIC_L1_MISC_CFG register ****************/
 #define EPIC_L1_MISC_CFG_CLUT_SEL_Pos   (0U)
@@ -632,33 +673,33 @@ typedef struct
 #define EPIC_L2_CFG_ALPHA_Pos           (5U)
 #define EPIC_L2_CFG_ALPHA_Msk           (0xFFUL << EPIC_L2_CFG_ALPHA_Pos)
 #define EPIC_L2_CFG_ALPHA               EPIC_L2_CFG_ALPHA_Msk
-#define EPIC_L2_CFG_FILTER_EN_Pos       (15U)
+#define EPIC_L2_CFG_ALPHA_BLEND_Pos     (13U)
+#define EPIC_L2_CFG_ALPHA_BLEND_Msk     (0x1UL << EPIC_L2_CFG_ALPHA_BLEND_Pos)
+#define EPIC_L2_CFG_ALPHA_BLEND         EPIC_L2_CFG_ALPHA_BLEND_Msk
+#define EPIC_L2_CFG_FILTER_EN_Pos       (14U)
 #define EPIC_L2_CFG_FILTER_EN_Msk       (0x1UL << EPIC_L2_CFG_FILTER_EN_Pos)
 #define EPIC_L2_CFG_FILTER_EN           EPIC_L2_CFG_FILTER_EN_Msk
 #define EPIC_L2_CFG_WIDTH_Pos           (16U)
-#define EPIC_L2_CFG_WIDTH_Msk           (0x1FFFUL << EPIC_L2_CFG_WIDTH_Pos)
+#define EPIC_L2_CFG_WIDTH_Msk           (0x7FFFUL << EPIC_L2_CFG_WIDTH_Pos)
 #define EPIC_L2_CFG_WIDTH               EPIC_L2_CFG_WIDTH_Msk
-#define EPIC_L2_CFG_ACTIVE_Pos          (30U)
+#define EPIC_L2_CFG_ACTIVE_Pos          (31U)
 #define EPIC_L2_CFG_ACTIVE_Msk          (0x1UL << EPIC_L2_CFG_ACTIVE_Pos)
 #define EPIC_L2_CFG_ACTIVE              EPIC_L2_CFG_ACTIVE_Msk
-#define EPIC_L2_CFG_ALPHA_BLEND_Pos     (31U)
-#define EPIC_L2_CFG_ALPHA_BLEND_Msk     (0x1UL << EPIC_L2_CFG_ALPHA_BLEND_Pos)
-#define EPIC_L2_CFG_ALPHA_BLEND         EPIC_L2_CFG_ALPHA_BLEND_Msk
 
 /***************** Bit definition for EPIC_L2_TL_POS register *****************/
 #define EPIC_L2_TL_POS_X0_Pos           (0U)
-#define EPIC_L2_TL_POS_X0_Msk           (0x3FFUL << EPIC_L2_TL_POS_X0_Pos)
+#define EPIC_L2_TL_POS_X0_Msk           (0x1FFFUL << EPIC_L2_TL_POS_X0_Pos)
 #define EPIC_L2_TL_POS_X0               EPIC_L2_TL_POS_X0_Msk
 #define EPIC_L2_TL_POS_Y0_Pos           (16U)
-#define EPIC_L2_TL_POS_Y0_Msk           (0x3FFUL << EPIC_L2_TL_POS_Y0_Pos)
+#define EPIC_L2_TL_POS_Y0_Msk           (0x1FFFUL << EPIC_L2_TL_POS_Y0_Pos)
 #define EPIC_L2_TL_POS_Y0               EPIC_L2_TL_POS_Y0_Msk
 
 /***************** Bit definition for EPIC_L2_BR_POS register *****************/
 #define EPIC_L2_BR_POS_X1_Pos           (0U)
-#define EPIC_L2_BR_POS_X1_Msk           (0x3FFUL << EPIC_L2_BR_POS_X1_Pos)
+#define EPIC_L2_BR_POS_X1_Msk           (0x1FFFUL << EPIC_L2_BR_POS_X1_Pos)
 #define EPIC_L2_BR_POS_X1               EPIC_L2_BR_POS_X1_Msk
 #define EPIC_L2_BR_POS_Y1_Pos           (16U)
-#define EPIC_L2_BR_POS_Y1_Msk           (0x3FFUL << EPIC_L2_BR_POS_Y1_Pos)
+#define EPIC_L2_BR_POS_Y1_Msk           (0x1FFFUL << EPIC_L2_BR_POS_Y1_Pos)
 #define EPIC_L2_BR_POS_Y1               EPIC_L2_BR_POS_Y1_Msk
 
 /***************** Bit definition for EPIC_L2_FILTER register *****************/
@@ -696,21 +737,30 @@ typedef struct
 #define EPIC_L2_FILL_ENDIAN_Pos         (25U)
 #define EPIC_L2_FILL_ENDIAN_Msk         (0x1UL << EPIC_L2_FILL_ENDIAN_Pos)
 #define EPIC_L2_FILL_ENDIAN             EPIC_L2_FILL_ENDIAN_Msk
+#define EPIC_L2_FILL_RECOLOR_EN_Pos     (26U)
+#define EPIC_L2_FILL_RECOLOR_EN_Msk     (0x1UL << EPIC_L2_FILL_RECOLOR_EN_Pos)
+#define EPIC_L2_FILL_RECOLOR_EN         EPIC_L2_FILL_RECOLOR_EN_Msk
+#define EPIC_L2_FILL_FIX_COLOR_Pos      (27U)
+#define EPIC_L2_FILL_FIX_COLOR_Msk      (0x1UL << EPIC_L2_FILL_FIX_COLOR_Pos)
+#define EPIC_L2_FILL_FIX_COLOR          EPIC_L2_FILL_FIX_COLOR_Msk
+#define EPIC_L2_FILL_PIXEL_ORDER_Pos    (28U)
+#define EPIC_L2_FILL_PIXEL_ORDER_Msk    (0x1UL << EPIC_L2_FILL_PIXEL_ORDER_Pos)
+#define EPIC_L2_FILL_PIXEL_ORDER        EPIC_L2_FILL_PIXEL_ORDER_Msk
 
 /**************** Bit definition for EPIC_L2_MISC_CFG register ****************/
 #define EPIC_L2_MISC_CFG_CLUT_SEL_Pos   (0U)
 #define EPIC_L2_MISC_CFG_CLUT_SEL_Msk   (0x1UL << EPIC_L2_MISC_CFG_CLUT_SEL_Pos)
 #define EPIC_L2_MISC_CFG_CLUT_SEL       EPIC_L2_MISC_CFG_CLUT_SEL_Msk
 #define EPIC_L2_MISC_CFG_MAX_COL_Pos    (1U)
-#define EPIC_L2_MISC_CFG_MAX_COL_Msk    (0x3FFUL << EPIC_L2_MISC_CFG_MAX_COL_Pos)
+#define EPIC_L2_MISC_CFG_MAX_COL_Msk    (0x1FFFUL << EPIC_L2_MISC_CFG_MAX_COL_Pos)
 #define EPIC_L2_MISC_CFG_MAX_COL        EPIC_L2_MISC_CFG_MAX_COL_Msk
-#define EPIC_L2_MISC_CFG_MAX_LINE_Pos   (11U)
-#define EPIC_L2_MISC_CFG_MAX_LINE_Msk   (0x3FFUL << EPIC_L2_MISC_CFG_MAX_LINE_Pos)
+#define EPIC_L2_MISC_CFG_MAX_LINE_Pos   (14U)
+#define EPIC_L2_MISC_CFG_MAX_LINE_Msk   (0x1FFFUL << EPIC_L2_MISC_CFG_MAX_LINE_Pos)
 #define EPIC_L2_MISC_CFG_MAX_LINE       EPIC_L2_MISC_CFG_MAX_LINE_Msk
-#define EPIC_L2_MISC_CFG_FETCH_MODE_Pos  (21U)
+#define EPIC_L2_MISC_CFG_FETCH_MODE_Pos  (27U)
 #define EPIC_L2_MISC_CFG_FETCH_MODE_Msk  (0x1UL << EPIC_L2_MISC_CFG_FETCH_MODE_Pos)
 #define EPIC_L2_MISC_CFG_FETCH_MODE     EPIC_L2_MISC_CFG_FETCH_MODE_Msk
-#define EPIC_L2_MISC_CFG_CACHE_EN_Pos   (22U)
+#define EPIC_L2_MISC_CFG_CACHE_EN_Pos   (28U)
 #define EPIC_L2_MISC_CFG_CACHE_EN_Msk   (0x1UL << EPIC_L2_MISC_CFG_CACHE_EN_Pos)
 #define EPIC_L2_MISC_CFG_CACHE_EN       EPIC_L2_MISC_CFG_CACHE_EN_Msk
 
@@ -782,30 +832,30 @@ typedef struct
 #define EPIC_MASK_CFG_VL_MASK_EN_Pos    (5U)
 #define EPIC_MASK_CFG_VL_MASK_EN_Msk    (0x1UL << EPIC_MASK_CFG_VL_MASK_EN_Pos)
 #define EPIC_MASK_CFG_VL_MASK_EN        EPIC_MASK_CFG_VL_MASK_EN_Msk
-#define EPIC_MASK_CFG_WIDTH_Pos         (14U)
+#define EPIC_MASK_CFG_PIXEL_ORDER_Pos   (6U)
+#define EPIC_MASK_CFG_PIXEL_ORDER_Msk   (0x1UL << EPIC_MASK_CFG_PIXEL_ORDER_Pos)
+#define EPIC_MASK_CFG_PIXEL_ORDER       EPIC_MASK_CFG_PIXEL_ORDER_Msk
+#define EPIC_MASK_CFG_WIDTH_Pos         (16U)
 #define EPIC_MASK_CFG_WIDTH_Msk         (0x1FFFUL << EPIC_MASK_CFG_WIDTH_Pos)
 #define EPIC_MASK_CFG_WIDTH             EPIC_MASK_CFG_WIDTH_Msk
-#define EPIC_MASK_CFG_PREFETCH_EN_Pos   (27U)
-#define EPIC_MASK_CFG_PREFETCH_EN_Msk   (0x1UL << EPIC_MASK_CFG_PREFETCH_EN_Pos)
-#define EPIC_MASK_CFG_PREFETCH_EN       EPIC_MASK_CFG_PREFETCH_EN_Msk
-#define EPIC_MASK_CFG_ACTIVE_Pos        (28U)
+#define EPIC_MASK_CFG_ACTIVE_Pos        (31U)
 #define EPIC_MASK_CFG_ACTIVE_Msk        (0x1UL << EPIC_MASK_CFG_ACTIVE_Pos)
 #define EPIC_MASK_CFG_ACTIVE            EPIC_MASK_CFG_ACTIVE_Msk
 
 /**************** Bit definition for EPIC_MASK_TL_POS register ****************/
 #define EPIC_MASK_TL_POS_X0_Pos         (0U)
-#define EPIC_MASK_TL_POS_X0_Msk         (0x3FFUL << EPIC_MASK_TL_POS_X0_Pos)
+#define EPIC_MASK_TL_POS_X0_Msk         (0x1FFFUL << EPIC_MASK_TL_POS_X0_Pos)
 #define EPIC_MASK_TL_POS_X0             EPIC_MASK_TL_POS_X0_Msk
 #define EPIC_MASK_TL_POS_Y0_Pos         (16U)
-#define EPIC_MASK_TL_POS_Y0_Msk         (0x3FFUL << EPIC_MASK_TL_POS_Y0_Pos)
+#define EPIC_MASK_TL_POS_Y0_Msk         (0x1FFFUL << EPIC_MASK_TL_POS_Y0_Pos)
 #define EPIC_MASK_TL_POS_Y0             EPIC_MASK_TL_POS_Y0_Msk
 
 /**************** Bit definition for EPIC_MASK_BR_POS register ****************/
 #define EPIC_MASK_BR_POS_X1_Pos         (0U)
-#define EPIC_MASK_BR_POS_X1_Msk         (0x3FFUL << EPIC_MASK_BR_POS_X1_Pos)
+#define EPIC_MASK_BR_POS_X1_Msk         (0x1FFFUL << EPIC_MASK_BR_POS_X1_Pos)
 #define EPIC_MASK_BR_POS_X1             EPIC_MASK_BR_POS_X1_Msk
 #define EPIC_MASK_BR_POS_Y1_Pos         (16U)
-#define EPIC_MASK_BR_POS_Y1_Msk         (0x3FFUL << EPIC_MASK_BR_POS_Y1_Pos)
+#define EPIC_MASK_BR_POS_Y1_Msk         (0x1FFFUL << EPIC_MASK_BR_POS_Y1_Pos)
 #define EPIC_MASK_BR_POS_Y1             EPIC_MASK_BR_POS_Y1_Msk
 
 /***************** Bit definition for EPIC_MASK_SRC register ******************/
@@ -928,12 +978,12 @@ typedef struct
 #define EPIC_YUV_ENG_CFG0_WIDTH_U_Msk   (0x1FFFUL << EPIC_YUV_ENG_CFG0_WIDTH_U_Pos)
 #define EPIC_YUV_ENG_CFG0_WIDTH_U       EPIC_YUV_ENG_CFG0_WIDTH_U_Msk
 #define EPIC_YUV_ENG_CFG0_WIDTH_Y_Pos   (13U)
-#define EPIC_YUV_ENG_CFG0_WIDTH_Y_Msk   (0x1FFFUL << EPIC_YUV_ENG_CFG0_WIDTH_Y_Pos)
+#define EPIC_YUV_ENG_CFG0_WIDTH_Y_Msk   (0x3FFFUL << EPIC_YUV_ENG_CFG0_WIDTH_Y_Pos)
 #define EPIC_YUV_ENG_CFG0_WIDTH_Y       EPIC_YUV_ENG_CFG0_WIDTH_Y_Msk
-#define EPIC_YUV_ENG_CFG0_FORMAT_Pos    (26U)
+#define EPIC_YUV_ENG_CFG0_FORMAT_Pos    (27U)
 #define EPIC_YUV_ENG_CFG0_FORMAT_Msk    (0x7UL << EPIC_YUV_ENG_CFG0_FORMAT_Pos)
 #define EPIC_YUV_ENG_CFG0_FORMAT        EPIC_YUV_ENG_CFG0_FORMAT_Msk
-#define EPIC_YUV_ENG_CFG0_RANGE_SEL_Pos  (29U)
+#define EPIC_YUV_ENG_CFG0_RANGE_SEL_Pos  (30U)
 #define EPIC_YUV_ENG_CFG0_RANGE_SEL_Msk  (0x1UL << EPIC_YUV_ENG_CFG0_RANGE_SEL_Pos)
 #define EPIC_YUV_ENG_CFG0_RANGE_SEL     EPIC_YUV_ENG_CFG0_RANGE_SEL_Msk
 
@@ -1064,10 +1114,169 @@ typedef struct
 #define EPIC_DITHER_LFSR_INIT_VAL_Msk   (0xFFFFFFFFUL << EPIC_DITHER_LFSR_INIT_VAL_Pos)
 #define EPIC_DITHER_LFSR_INIT_VAL       EPIC_DITHER_LFSR_INIT_VAL_Msk
 
+/***************** Bit definition for EPIC_GREY_CONV register *****************/
+#define EPIC_GREY_CONV_COEF0_Pos        (0U)
+#define EPIC_GREY_CONV_COEF0_Msk        (0x3FFUL << EPIC_GREY_CONV_COEF0_Pos)
+#define EPIC_GREY_CONV_COEF0            EPIC_GREY_CONV_COEF0_Msk
+#define EPIC_GREY_CONV_COEF1_Pos        (10U)
+#define EPIC_GREY_CONV_COEF1_Msk        (0x3FFUL << EPIC_GREY_CONV_COEF1_Pos)
+#define EPIC_GREY_CONV_COEF1            EPIC_GREY_CONV_COEF1_Msk
+#define EPIC_GREY_CONV_COEF2_Pos        (20U)
+#define EPIC_GREY_CONV_COEF2_Msk        (0x3FFUL << EPIC_GREY_CONV_COEF2_Pos)
+#define EPIC_GREY_CONV_COEF2            EPIC_GREY_CONV_COEF2_Msk
+
+/**************** Bit definition for EPIC_FLEX_SEL_L register *****************/
+#define EPIC_FLEX_SEL_L_BIT0_Pos        (0U)
+#define EPIC_FLEX_SEL_L_BIT0_Msk        (0x1FUL << EPIC_FLEX_SEL_L_BIT0_Pos)
+#define EPIC_FLEX_SEL_L_BIT0            EPIC_FLEX_SEL_L_BIT0_Msk
+#define EPIC_FLEX_SEL_L_BIT1_Pos        (5U)
+#define EPIC_FLEX_SEL_L_BIT1_Msk        (0x1FUL << EPIC_FLEX_SEL_L_BIT1_Pos)
+#define EPIC_FLEX_SEL_L_BIT1            EPIC_FLEX_SEL_L_BIT1_Msk
+#define EPIC_FLEX_SEL_L_BIT2_Pos        (10U)
+#define EPIC_FLEX_SEL_L_BIT2_Msk        (0x1FUL << EPIC_FLEX_SEL_L_BIT2_Pos)
+#define EPIC_FLEX_SEL_L_BIT2            EPIC_FLEX_SEL_L_BIT2_Msk
+#define EPIC_FLEX_SEL_L_BIT3_Pos        (15U)
+#define EPIC_FLEX_SEL_L_BIT3_Msk        (0x1FUL << EPIC_FLEX_SEL_L_BIT3_Pos)
+#define EPIC_FLEX_SEL_L_BIT3            EPIC_FLEX_SEL_L_BIT3_Msk
+
+/**************** Bit definition for EPIC_FLEX_SEL_H register *****************/
+#define EPIC_FLEX_SEL_H_BIT4_Pos        (0U)
+#define EPIC_FLEX_SEL_H_BIT4_Msk        (0x1FUL << EPIC_FLEX_SEL_H_BIT4_Pos)
+#define EPIC_FLEX_SEL_H_BIT4            EPIC_FLEX_SEL_H_BIT4_Msk
+#define EPIC_FLEX_SEL_H_BIT5_Pos        (5U)
+#define EPIC_FLEX_SEL_H_BIT5_Msk        (0x1FUL << EPIC_FLEX_SEL_H_BIT5_Pos)
+#define EPIC_FLEX_SEL_H_BIT5            EPIC_FLEX_SEL_H_BIT5_Msk
+#define EPIC_FLEX_SEL_H_BIT6_Pos        (10U)
+#define EPIC_FLEX_SEL_H_BIT6_Msk        (0x1FUL << EPIC_FLEX_SEL_H_BIT6_Pos)
+#define EPIC_FLEX_SEL_H_BIT6            EPIC_FLEX_SEL_H_BIT6_Msk
+#define EPIC_FLEX_SEL_H_BIT7_Pos        (15U)
+#define EPIC_FLEX_SEL_H_BIT7_Msk        (0x1FUL << EPIC_FLEX_SEL_H_BIT7_Pos)
+#define EPIC_FLEX_SEL_H_BIT7            EPIC_FLEX_SEL_H_BIT7_Msk
+
+/***************** Bit definition for EPIC_AHB_CTRL register ******************/
+#define EPIC_AHB_CTRL_DESTINATION_Pos   (0U)
+#define EPIC_AHB_CTRL_DESTINATION_Msk   (0x1UL << EPIC_AHB_CTRL_DESTINATION_Pos)
+#define EPIC_AHB_CTRL_DESTINATION       EPIC_AHB_CTRL_DESTINATION_Msk
+#define EPIC_AHB_CTRL_DEST_RAM          (0UL << EPIC_AHB_CTRL_DESTINATION_Pos)
+#define EPIC_AHB_CTRL_DEST_LCD          (1UL << EPIC_AHB_CTRL_DESTINATION_Pos)
+#define EPIC_AHB_CTRL_O_FORMAT_Pos      (1U)
+#define EPIC_AHB_CTRL_O_FORMAT_Msk      (0xFUL << EPIC_AHB_CTRL_O_FORMAT_Pos)
+#define EPIC_AHB_CTRL_O_FORMAT          EPIC_AHB_CTRL_O_FORMAT_Msk
+#define EPIC_AHB_CTRL_O_FMT_RGB565      (0 << EPIC_AHB_CTRL_O_FORMAT_Pos)
+#define EPIC_AHB_CTRL_O_FMT_RGB888      (1 << EPIC_AHB_CTRL_O_FORMAT_Pos)
+#define EPIC_AHB_CTRL_O_FMT_ARGB8888    (2 << EPIC_AHB_CTRL_O_FORMAT_Pos)
+#define EPIC_AHB_CTRL_O_FMT_ARGB8565    (3 << EPIC_AHB_CTRL_O_FORMAT_Pos)
+#define EPIC_AHB_CTRL_AHB_SEL_Pos       (5U)
+#define EPIC_AHB_CTRL_AHB_SEL_Msk       (0x1UL << EPIC_AHB_CTRL_AHB_SEL_Pos)
+#define EPIC_AHB_CTRL_AHB_SEL           EPIC_AHB_CTRL_AHB_SEL_Msk
+#define EPIC_AHB_CTRL_AHB_DIV_EN_Pos    (6U)
+#define EPIC_AHB_CTRL_AHB_DIV_EN_Msk    (0x1UL << EPIC_AHB_CTRL_AHB_DIV_EN_Pos)
+#define EPIC_AHB_CTRL_AHB_DIV_EN        EPIC_AHB_CTRL_AHB_DIV_EN_Msk
+#define EPIC_AHB_CTRL_GREY_ORDER_Pos    (7U)
+#define EPIC_AHB_CTRL_GREY_ORDER_Msk    (0x1UL << EPIC_AHB_CTRL_GREY_ORDER_Pos)
+#define EPIC_AHB_CTRL_GREY_ORDER        EPIC_AHB_CTRL_GREY_ORDER_Msk
+
+/****************** Bit definition for EPIC_AHB_MEM register ******************/
+#define EPIC_AHB_MEM_ADDR_Pos           (0U)
+#define EPIC_AHB_MEM_ADDR_Msk           (0xFFFFFFFFUL << EPIC_AHB_MEM_ADDR_Pos)
+#define EPIC_AHB_MEM_ADDR               EPIC_AHB_MEM_ADDR_Msk
+
+/**************** Bit definition for EPIC_AHB_STRIDE register *****************/
+#define EPIC_AHB_STRIDE_OFFSET_Pos      (0U)
+#define EPIC_AHB_STRIDE_OFFSET_Msk      (0xFFFFUL << EPIC_AHB_STRIDE_OFFSET_Pos)
+#define EPIC_AHB_STRIDE_OFFSET          EPIC_AHB_STRIDE_OFFSET_Msk
+
+/******************* Bit definition for EPIC_DEBUG register *******************/
+#define EPIC_DEBUG_DEBUG_OUT_SEL_Pos    (0U)
+#define EPIC_DEBUG_DEBUG_OUT_SEL_Msk    (0xFUL << EPIC_DEBUG_DEBUG_OUT_SEL_Pos)
+#define EPIC_DEBUG_DEBUG_OUT_SEL        EPIC_DEBUG_DEBUG_OUT_SEL_Msk
+#define EPIC_DEBUG_DEBUG_INT_SEL_Pos    (4U)
+#define EPIC_DEBUG_DEBUG_INT_SEL_Msk    (0xFUL << EPIC_DEBUG_DEBUG_INT_SEL_Pos)
+#define EPIC_DEBUG_DEBUG_INT_SEL        EPIC_DEBUG_DEBUG_INT_SEL_Msk
+#define EPIC_DEBUG_DEBUG_INT_DATA_Pos   (16U)
+#define EPIC_DEBUG_DEBUG_INT_DATA_Msk   (0xFFFFUL << EPIC_DEBUG_DEBUG_INT_DATA_Pos)
+#define EPIC_DEBUG_DEBUG_INT_DATA       EPIC_DEBUG_DEBUG_INT_DATA_Msk
+
+/*************** Bit definition for EPIC_VL_ROT_M_CFG1 register ***************/
+#define EPIC_VL_ROT_M_CFG1_M_ROT_MAX_LINE_Pos  (0U)
+#define EPIC_VL_ROT_M_CFG1_M_ROT_MAX_LINE_Msk  (0x3FFFUL << EPIC_VL_ROT_M_CFG1_M_ROT_MAX_LINE_Pos)
+#define EPIC_VL_ROT_M_CFG1_M_ROT_MAX_LINE  EPIC_VL_ROT_M_CFG1_M_ROT_MAX_LINE_Msk
+#define EPIC_VL_ROT_M_CFG1_M_ROT_MAX_COL_Pos  (16U)
+#define EPIC_VL_ROT_M_CFG1_M_ROT_MAX_COL_Msk  (0x3FFFUL << EPIC_VL_ROT_M_CFG1_M_ROT_MAX_COL_Pos)
+#define EPIC_VL_ROT_M_CFG1_M_ROT_MAX_COL  EPIC_VL_ROT_M_CFG1_M_ROT_MAX_COL_Msk
+#define EPIC_VL_ROT_M_CFG1_M_MODE_Pos   (31U)
+#define EPIC_VL_ROT_M_CFG1_M_MODE_Msk   (0x1UL << EPIC_VL_ROT_M_CFG1_M_MODE_Pos)
+#define EPIC_VL_ROT_M_CFG1_M_MODE       EPIC_VL_ROT_M_CFG1_M_MODE_Msk
+
+/*************** Bit definition for EPIC_VL_ROT_M_CFG2 register ***************/
+#define EPIC_VL_ROT_M_CFG2_M_PIVOT_X_Pos  (0U)
+#define EPIC_VL_ROT_M_CFG2_M_PIVOT_X_Msk  (0x3FFFUL << EPIC_VL_ROT_M_CFG2_M_PIVOT_X_Pos)
+#define EPIC_VL_ROT_M_CFG2_M_PIVOT_X    EPIC_VL_ROT_M_CFG2_M_PIVOT_X_Msk
+#define EPIC_VL_ROT_M_CFG2_M_PIVOT_Y_Pos  (16U)
+#define EPIC_VL_ROT_M_CFG2_M_PIVOT_Y_Msk  (0x3FFFUL << EPIC_VL_ROT_M_CFG2_M_PIVOT_Y_Pos)
+#define EPIC_VL_ROT_M_CFG2_M_PIVOT_Y    EPIC_VL_ROT_M_CFG2_M_PIVOT_Y_Msk
+
+/*************** Bit definition for EPIC_VL_ROT_M_CFG3 register ***************/
+#define EPIC_VL_ROT_M_CFG3_M_XTL_Pos    (0U)
+#define EPIC_VL_ROT_M_CFG3_M_XTL_Msk    (0x3FFFUL << EPIC_VL_ROT_M_CFG3_M_XTL_Pos)
+#define EPIC_VL_ROT_M_CFG3_M_XTL        EPIC_VL_ROT_M_CFG3_M_XTL_Msk
+#define EPIC_VL_ROT_M_CFG3_M_YTL_Pos    (16U)
+#define EPIC_VL_ROT_M_CFG3_M_YTL_Msk    (0x3FFFUL << EPIC_VL_ROT_M_CFG3_M_YTL_Pos)
+#define EPIC_VL_ROT_M_CFG3_M_YTL        EPIC_VL_ROT_M_CFG3_M_YTL_Msk
+
+/************ Bit definition for EPIC_VL_SCALE_INIT_CFG1 register *************/
+#define EPIC_VL_SCALE_INIT_CFG1_X_VAL_Pos  (0U)
+#define EPIC_VL_SCALE_INIT_CFG1_X_VAL_Msk  (0x1FFFFFFFUL << EPIC_VL_SCALE_INIT_CFG1_X_VAL_Pos)
+#define EPIC_VL_SCALE_INIT_CFG1_X_VAL   EPIC_VL_SCALE_INIT_CFG1_X_VAL_Msk
+
+/************ Bit definition for EPIC_VL_SCALE_INIT_CFG2 register *************/
+#define EPIC_VL_SCALE_INIT_CFG2_Y_VAL_Pos  (0U)
+#define EPIC_VL_SCALE_INIT_CFG2_Y_VAL_Msk  (0x1FFFFFFFUL << EPIC_VL_SCALE_INIT_CFG2_Y_VAL_Pos)
+#define EPIC_VL_SCALE_INIT_CFG2_Y_VAL   EPIC_VL_SCALE_INIT_CFG2_Y_VAL_Msk
+
+/***************** Bit definition for EPIC_AHBA_CNT register ******************/
+#define EPIC_AHBA_CNT_VAL_Pos           (0U)
+#define EPIC_AHBA_CNT_VAL_Msk           (0xFFFFFFFFUL << EPIC_AHBA_CNT_VAL_Pos)
+#define EPIC_AHBA_CNT_VAL               EPIC_AHBA_CNT_VAL_Msk
+
+/***************** Bit definition for EPIC_AHBB_CNT register ******************/
+#define EPIC_AHBB_CNT_VAL_Pos           (0U)
+#define EPIC_AHBB_CNT_VAL_Msk           (0xFFFFFFFFUL << EPIC_AHBB_CNT_VAL_Pos)
+#define EPIC_AHBB_CNT_VAL               EPIC_AHBB_CNT_VAL_Msk
+
+/***************** Bit definition for EPIC_PERF_CNT register ******************/
+#define EPIC_PERF_CNT_VAL_Pos           (0U)
+#define EPIC_PERF_CNT_VAL_Msk           (0xFFFFFFFFUL << EPIC_PERF_CNT_VAL_Pos)
+#define EPIC_PERF_CNT_VAL               EPIC_PERF_CNT_VAL_Msk
+
+/****************** Bit definition for EPIC_TL_CFG register *******************/
+#define EPIC_TL_CFG_FORMAT_Pos          (0U)
+#define EPIC_TL_CFG_FORMAT_Msk          (0xFUL << EPIC_TL_CFG_FORMAT_Pos)
+#define EPIC_TL_CFG_FORMAT              EPIC_TL_CFG_FORMAT_Msk
+#define EPIC_TL_CFG_WIDTH_Pos           (16U)
+#define EPIC_TL_CFG_WIDTH_Msk           (0x7FFFUL << EPIC_TL_CFG_WIDTH_Pos)
+#define EPIC_TL_CFG_WIDTH               EPIC_TL_CFG_WIDTH_Msk
+
+/****************** Bit definition for EPIC_TL_SIZE register ******************/
+#define EPIC_TL_SIZE_MAX_LINE_Pos       (0U)
+#define EPIC_TL_SIZE_MAX_LINE_Msk       (0x1FFFUL << EPIC_TL_SIZE_MAX_LINE_Pos)
+#define EPIC_TL_SIZE_MAX_LINE           EPIC_TL_SIZE_MAX_LINE_Msk
+#define EPIC_TL_SIZE_MAX_COL_Pos        (16U)
+#define EPIC_TL_SIZE_MAX_COL_Msk        (0x1FFFUL << EPIC_TL_SIZE_MAX_COL_Pos)
+#define EPIC_TL_SIZE_MAX_COL            EPIC_TL_SIZE_MAX_COL_Msk
+
+/****************** Bit definition for EPIC_TL_SRC register *******************/
+#define EPIC_TL_SRC_ADDR_Pos            (0U)
+#define EPIC_TL_SRC_ADDR_Msk            (0xFFFFFFFFUL << EPIC_TL_SRC_ADDR_Pos)
+#define EPIC_TL_SRC_ADDR                EPIC_TL_SRC_ADDR_Msk
+
 /****************** Bit definition for EPIC_CMPRCR register *******************/
 #define EPIC_CMPRCR_LINESIZE_Pos        (0U)
 #define EPIC_CMPRCR_LINESIZE_Msk        (0xFFFUL << EPIC_CMPRCR_LINESIZE_Pos)
 #define EPIC_CMPRCR_LINESIZE            EPIC_CMPRCR_LINESIZE_Msk
+#define EPIC_CMPRCR_CHUNKCNT_Pos        (12U)
+#define EPIC_CMPRCR_CHUNKCNT_Msk        (0xFUL << EPIC_CMPRCR_CHUNKCNT_Pos)
+#define EPIC_CMPRCR_CHUNKCNT            EPIC_CMPRCR_CHUNKCNT_Msk
 #define EPIC_CMPRCR_TGTSIZE_Pos         (16U)
 #define EPIC_CMPRCR_TGTSIZE_Msk         (0xFFFUL << EPIC_CMPRCR_TGTSIZE_Pos)
 #define EPIC_CMPRCR_TGTSIZE             EPIC_CMPRCR_TGTSIZE_Msk
@@ -1101,136 +1310,154 @@ typedef struct
 #define EPIC_CMPRDR_MAXBUF_Msk          (0x7FUL << EPIC_CMPRDR_MAXBUF_Pos)
 #define EPIC_CMPRDR_MAXBUF              EPIC_CMPRDR_MAXBUF_Msk
 
-/***************** Bit definition for EPIC_AHB_CTRL register ******************/
-#define EPIC_AHB_CTRL_DESTINATION_Pos   (0U)
-#define EPIC_AHB_CTRL_DESTINATION_Msk   (0x1UL << EPIC_AHB_CTRL_DESTINATION_Pos)
-#define EPIC_AHB_CTRL_DESTINATION       EPIC_AHB_CTRL_DESTINATION_Msk
-#define EPIC_AHB_CTRL_DEST_RAM          (0UL << EPIC_AHB_CTRL_DESTINATION_Pos)
-#define EPIC_AHB_CTRL_DEST_LCD          (1UL << EPIC_AHB_CTRL_DESTINATION_Pos)
-#define EPIC_AHB_CTRL_O_FORMAT_Pos      (1U)
-#define EPIC_AHB_CTRL_O_FORMAT_Msk      (0x3UL << EPIC_AHB_CTRL_O_FORMAT_Pos)
-#define EPIC_AHB_CTRL_O_FORMAT          EPIC_AHB_CTRL_O_FORMAT_Msk
-#define EPIC_AHB_CTRL_O_FMT_RGB565      (0 << EPIC_AHB_CTRL_O_FORMAT_Pos)
-#define EPIC_AHB_CTRL_O_FMT_RGB888      (1 << EPIC_AHB_CTRL_O_FORMAT_Pos)
-#define EPIC_AHB_CTRL_O_FMT_ARGB8888    (2 << EPIC_AHB_CTRL_O_FORMAT_Pos)
-#define EPIC_AHB_CTRL_O_FMT_ARGB8565    (3 << EPIC_AHB_CTRL_O_FORMAT_Pos)
-#define EPIC_AHB_CTRL_AHB_SEL_Pos       (3U)
-#define EPIC_AHB_CTRL_AHB_SEL_Msk       (0x1UL << EPIC_AHB_CTRL_AHB_SEL_Pos)
-#define EPIC_AHB_CTRL_AHB_SEL           EPIC_AHB_CTRL_AHB_SEL_Msk
-#define EPIC_AHB_CTRL_AHB_DIV_EN_Pos    (4U)
-#define EPIC_AHB_CTRL_AHB_DIV_EN_Msk    (0x1UL << EPIC_AHB_CTRL_AHB_DIV_EN_Pos)
-#define EPIC_AHB_CTRL_AHB_DIV_EN        EPIC_AHB_CTRL_AHB_DIV_EN_Msk
+/*************** Bit definition for EPIC_TL_GREY_CONV register ****************/
+#define EPIC_TL_GREY_CONV_COEF0_Pos     (0U)
+#define EPIC_TL_GREY_CONV_COEF0_Msk     (0x3FFUL << EPIC_TL_GREY_CONV_COEF0_Pos)
+#define EPIC_TL_GREY_CONV_COEF0         EPIC_TL_GREY_CONV_COEF0_Msk
+#define EPIC_TL_GREY_CONV_COEF1_Pos     (10U)
+#define EPIC_TL_GREY_CONV_COEF1_Msk     (0x3FFUL << EPIC_TL_GREY_CONV_COEF1_Pos)
+#define EPIC_TL_GREY_CONV_COEF1         EPIC_TL_GREY_CONV_COEF1_Msk
+#define EPIC_TL_GREY_CONV_COEF2_Pos     (20U)
+#define EPIC_TL_GREY_CONV_COEF2_Msk     (0x3FFUL << EPIC_TL_GREY_CONV_COEF2_Pos)
+#define EPIC_TL_GREY_CONV_COEF2         EPIC_TL_GREY_CONV_COEF2_Msk
 
-/****************** Bit definition for EPIC_AHB_MEM register ******************/
-#define EPIC_AHB_MEM_ADDR_Pos           (0U)
-#define EPIC_AHB_MEM_ADDR_Msk           (0xFFFFFFFFUL << EPIC_AHB_MEM_ADDR_Pos)
-#define EPIC_AHB_MEM_ADDR               EPIC_AHB_MEM_ADDR_Msk
+/*************** Bit definition for EPIC_TL_FLEX_SEL_L register ***************/
+#define EPIC_TL_FLEX_SEL_L_BIT0_Pos     (0U)
+#define EPIC_TL_FLEX_SEL_L_BIT0_Msk     (0x1FUL << EPIC_TL_FLEX_SEL_L_BIT0_Pos)
+#define EPIC_TL_FLEX_SEL_L_BIT0         EPIC_TL_FLEX_SEL_L_BIT0_Msk
+#define EPIC_TL_FLEX_SEL_L_BIT1_Pos     (5U)
+#define EPIC_TL_FLEX_SEL_L_BIT1_Msk     (0x1FUL << EPIC_TL_FLEX_SEL_L_BIT1_Pos)
+#define EPIC_TL_FLEX_SEL_L_BIT1         EPIC_TL_FLEX_SEL_L_BIT1_Msk
+#define EPIC_TL_FLEX_SEL_L_BIT2_Pos     (10U)
+#define EPIC_TL_FLEX_SEL_L_BIT2_Msk     (0x1FUL << EPIC_TL_FLEX_SEL_L_BIT2_Pos)
+#define EPIC_TL_FLEX_SEL_L_BIT2         EPIC_TL_FLEX_SEL_L_BIT2_Msk
+#define EPIC_TL_FLEX_SEL_L_BIT3_Pos     (15U)
+#define EPIC_TL_FLEX_SEL_L_BIT3_Msk     (0x1FUL << EPIC_TL_FLEX_SEL_L_BIT3_Pos)
+#define EPIC_TL_FLEX_SEL_L_BIT3         EPIC_TL_FLEX_SEL_L_BIT3_Msk
 
-/**************** Bit definition for EPIC_AHB_STRIDE register *****************/
-#define EPIC_AHB_STRIDE_OFFSET_Pos      (0U)
-#define EPIC_AHB_STRIDE_OFFSET_Msk      (0xFFFFUL << EPIC_AHB_STRIDE_OFFSET_Pos)
-#define EPIC_AHB_STRIDE_OFFSET          EPIC_AHB_STRIDE_OFFSET_Msk
+/*************** Bit definition for EPIC_TL_FLEX_SEL_H register ***************/
+#define EPIC_TL_FLEX_SEL_H_BIT4_Pos     (0U)
+#define EPIC_TL_FLEX_SEL_H_BIT4_Msk     (0x1FUL << EPIC_TL_FLEX_SEL_H_BIT4_Pos)
+#define EPIC_TL_FLEX_SEL_H_BIT4         EPIC_TL_FLEX_SEL_H_BIT4_Msk
+#define EPIC_TL_FLEX_SEL_H_BIT5_Pos     (5U)
+#define EPIC_TL_FLEX_SEL_H_BIT5_Msk     (0x1FUL << EPIC_TL_FLEX_SEL_H_BIT5_Pos)
+#define EPIC_TL_FLEX_SEL_H_BIT5         EPIC_TL_FLEX_SEL_H_BIT5_Msk
+#define EPIC_TL_FLEX_SEL_H_BIT6_Pos     (10U)
+#define EPIC_TL_FLEX_SEL_H_BIT6_Msk     (0x1FUL << EPIC_TL_FLEX_SEL_H_BIT6_Pos)
+#define EPIC_TL_FLEX_SEL_H_BIT6         EPIC_TL_FLEX_SEL_H_BIT6_Msk
+#define EPIC_TL_FLEX_SEL_H_BIT7_Pos     (15U)
+#define EPIC_TL_FLEX_SEL_H_BIT7_Msk     (0x1FUL << EPIC_TL_FLEX_SEL_H_BIT7_Pos)
+#define EPIC_TL_FLEX_SEL_H_BIT7         EPIC_TL_FLEX_SEL_H_BIT7_Msk
 
-/******************* Bit definition for EPIC_DEBUG register *******************/
-#define EPIC_DEBUG_DEBUG_OUT_SEL_Pos    (0U)
-#define EPIC_DEBUG_DEBUG_OUT_SEL_Msk    (0xFUL << EPIC_DEBUG_DEBUG_OUT_SEL_Pos)
-#define EPIC_DEBUG_DEBUG_OUT_SEL        EPIC_DEBUG_DEBUG_OUT_SEL_Msk
-#define EPIC_DEBUG_DEBUG_INT_SEL_Pos    (4U)
-#define EPIC_DEBUG_DEBUG_INT_SEL_Msk    (0xFUL << EPIC_DEBUG_DEBUG_INT_SEL_Pos)
-#define EPIC_DEBUG_DEBUG_INT_SEL        EPIC_DEBUG_DEBUG_INT_SEL_Msk
-#define EPIC_DEBUG_DEBUG_INT_DATA_Pos   (16U)
-#define EPIC_DEBUG_DEBUG_INT_DATA_Msk   (0xFFFFUL << EPIC_DEBUG_DEBUG_INT_DATA_Pos)
-#define EPIC_DEBUG_DEBUG_INT_DATA       EPIC_DEBUG_DEBUG_INT_DATA_Msk
+/**************** Bit definition for EPIC_TL_AHB_CTRL register ****************/
+#define EPIC_TL_AHB_CTRL_O_FORMAT_Pos   (0U)
+#define EPIC_TL_AHB_CTRL_O_FORMAT_Msk   (0xFUL << EPIC_TL_AHB_CTRL_O_FORMAT_Pos)
+#define EPIC_TL_AHB_CTRL_O_FORMAT       EPIC_TL_AHB_CTRL_O_FORMAT_Msk
+#define EPIC_TL_AHB_CTRL_AHB_DIV_EN_Pos  (4U)
+#define EPIC_TL_AHB_CTRL_AHB_DIV_EN_Msk  (0x1UL << EPIC_TL_AHB_CTRL_AHB_DIV_EN_Pos)
+#define EPIC_TL_AHB_CTRL_AHB_DIV_EN     EPIC_TL_AHB_CTRL_AHB_DIV_EN_Msk
+#define EPIC_TL_AHB_CTRL_GREY_ORDER_Pos  (5U)
+#define EPIC_TL_AHB_CTRL_GREY_ORDER_Msk  (0x1UL << EPIC_TL_AHB_CTRL_GREY_ORDER_Pos)
+#define EPIC_TL_AHB_CTRL_GREY_ORDER     EPIC_TL_AHB_CTRL_GREY_ORDER_Msk
 
-/*************** Bit definition for EPIC_VL_ROT_M_CFG1 register ***************/
-#define EPIC_VL_ROT_M_CFG1_M_ROT_MAX_LINE_Pos  (0U)
-#define EPIC_VL_ROT_M_CFG1_M_ROT_MAX_LINE_Msk  (0x7FFUL << EPIC_VL_ROT_M_CFG1_M_ROT_MAX_LINE_Pos)
-#define EPIC_VL_ROT_M_CFG1_M_ROT_MAX_LINE  EPIC_VL_ROT_M_CFG1_M_ROT_MAX_LINE_Msk
-#define EPIC_VL_ROT_M_CFG1_M_ROT_MAX_COL_Pos  (16U)
-#define EPIC_VL_ROT_M_CFG1_M_ROT_MAX_COL_Msk  (0x7FFUL << EPIC_VL_ROT_M_CFG1_M_ROT_MAX_COL_Pos)
-#define EPIC_VL_ROT_M_CFG1_M_ROT_MAX_COL  EPIC_VL_ROT_M_CFG1_M_ROT_MAX_COL_Msk
-#define EPIC_VL_ROT_M_CFG1_M_MODE_Pos   (31U)
-#define EPIC_VL_ROT_M_CFG1_M_MODE_Msk   (0x1UL << EPIC_VL_ROT_M_CFG1_M_MODE_Pos)
-#define EPIC_VL_ROT_M_CFG1_M_MODE       EPIC_VL_ROT_M_CFG1_M_MODE_Msk
+/**************** Bit definition for EPIC_TL_AHB_MEM register *****************/
+#define EPIC_TL_AHB_MEM_ADDR_Pos        (0U)
+#define EPIC_TL_AHB_MEM_ADDR_Msk        (0xFFFFFFFFUL << EPIC_TL_AHB_MEM_ADDR_Pos)
+#define EPIC_TL_AHB_MEM_ADDR            EPIC_TL_AHB_MEM_ADDR_Msk
 
-/*************** Bit definition for EPIC_VL_ROT_M_CFG2 register ***************/
-#define EPIC_VL_ROT_M_CFG2_M_PIVOT_X_Pos  (0U)
-#define EPIC_VL_ROT_M_CFG2_M_PIVOT_X_Msk  (0x7FFUL << EPIC_VL_ROT_M_CFG2_M_PIVOT_X_Pos)
-#define EPIC_VL_ROT_M_CFG2_M_PIVOT_X    EPIC_VL_ROT_M_CFG2_M_PIVOT_X_Msk
-#define EPIC_VL_ROT_M_CFG2_M_PIVOT_Y_Pos  (16U)
-#define EPIC_VL_ROT_M_CFG2_M_PIVOT_Y_Msk  (0x7FFUL << EPIC_VL_ROT_M_CFG2_M_PIVOT_Y_Pos)
-#define EPIC_VL_ROT_M_CFG2_M_PIVOT_Y    EPIC_VL_ROT_M_CFG2_M_PIVOT_Y_Msk
+/*************** Bit definition for EPIC_TL_AHB_STRIDE register ***************/
+#define EPIC_TL_AHB_STRIDE_OFFSET_Pos   (0U)
+#define EPIC_TL_AHB_STRIDE_OFFSET_Msk   (0xFFFFUL << EPIC_TL_AHB_STRIDE_OFFSET_Pos)
+#define EPIC_TL_AHB_STRIDE_OFFSET       EPIC_TL_AHB_STRIDE_OFFSET_Msk
 
-/*************** Bit definition for EPIC_VL_ROT_M_CFG3 register ***************/
-#define EPIC_VL_ROT_M_CFG3_M_XTL_Pos    (0U)
-#define EPIC_VL_ROT_M_CFG3_M_XTL_Msk    (0x7FFUL << EPIC_VL_ROT_M_CFG3_M_XTL_Pos)
-#define EPIC_VL_ROT_M_CFG3_M_XTL        EPIC_VL_ROT_M_CFG3_M_XTL_Msk
-#define EPIC_VL_ROT_M_CFG3_M_YTL_Pos    (16U)
-#define EPIC_VL_ROT_M_CFG3_M_YTL_Msk    (0x7FFUL << EPIC_VL_ROT_M_CFG3_M_YTL_Pos)
-#define EPIC_VL_ROT_M_CFG3_M_YTL        EPIC_VL_ROT_M_CFG3_M_YTL_Msk
+/**************** Bit definition for EPIC_TL_COMMAND register *****************/
+#define EPIC_TL_COMMAND_START_Pos       (0U)
+#define EPIC_TL_COMMAND_START_Msk       (0x1UL << EPIC_TL_COMMAND_START_Pos)
+#define EPIC_TL_COMMAND_START           EPIC_TL_COMMAND_START_Msk
+#define EPIC_TL_COMMAND_RESET_Pos       (1U)
+#define EPIC_TL_COMMAND_RESET_Msk       (0x1UL << EPIC_TL_COMMAND_RESET_Pos)
+#define EPIC_TL_COMMAND_RESET           EPIC_TL_COMMAND_RESET_Msk
 
-/************ Bit definition for EPIC_VL_SCALE_INIT_CFG1 register *************/
-#define EPIC_VL_SCALE_INIT_CFG1_X_VAL_Pos  (0U)
-#define EPIC_VL_SCALE_INIT_CFG1_X_VAL_Msk  (0x3FFFFFFUL << EPIC_VL_SCALE_INIT_CFG1_X_VAL_Pos)
-#define EPIC_VL_SCALE_INIT_CFG1_X_VAL   EPIC_VL_SCALE_INIT_CFG1_X_VAL_Msk
+/***************** Bit definition for EPIC_TL_STATUS register *****************/
+#define EPIC_TL_STATUS_TL_BUSY_Pos      (0U)
+#define EPIC_TL_STATUS_TL_BUSY_Msk      (0x1UL << EPIC_TL_STATUS_TL_BUSY_Pos)
+#define EPIC_TL_STATUS_TL_BUSY          EPIC_TL_STATUS_TL_BUSY_Msk
+#define EPIC_TL_STATUS_TL_CTRL_BUSY_Pos  (1U)
+#define EPIC_TL_STATUS_TL_CTRL_BUSY_Msk  (0x1UL << EPIC_TL_STATUS_TL_CTRL_BUSY_Pos)
+#define EPIC_TL_STATUS_TL_CTRL_BUSY     EPIC_TL_STATUS_TL_CTRL_BUSY_Msk
 
-/************ Bit definition for EPIC_VL_SCALE_INIT_CFG2 register *************/
-#define EPIC_VL_SCALE_INIT_CFG2_Y_VAL_Pos  (0U)
-#define EPIC_VL_SCALE_INIT_CFG2_Y_VAL_Msk  (0x3FFFFFFUL << EPIC_VL_SCALE_INIT_CFG2_Y_VAL_Pos)
-#define EPIC_VL_SCALE_INIT_CFG2_Y_VAL   EPIC_VL_SCALE_INIT_CFG2_Y_VAL_Msk
+/****************** Bit definition for EPIC_TL_IRQ register *******************/
+#define EPIC_TL_IRQ_EOT_CAUSE_Pos       (0U)
+#define EPIC_TL_IRQ_EOT_CAUSE_Msk       (0x1UL << EPIC_TL_IRQ_EOT_CAUSE_Pos)
+#define EPIC_TL_IRQ_EOT_CAUSE           EPIC_TL_IRQ_EOT_CAUSE_Msk
+#define EPIC_TL_IRQ_LINE_HIT_CAUSE_Pos  (1U)
+#define EPIC_TL_IRQ_LINE_HIT_CAUSE_Msk  (0x1UL << EPIC_TL_IRQ_LINE_HIT_CAUSE_Pos)
+#define EPIC_TL_IRQ_LINE_HIT_CAUSE      EPIC_TL_IRQ_LINE_HIT_CAUSE_Msk
+#define EPIC_TL_IRQ_OCB_OF_CAUSE_Pos    (2U)
+#define EPIC_TL_IRQ_OCB_OF_CAUSE_Msk    (0x1UL << EPIC_TL_IRQ_OCB_OF_CAUSE_Pos)
+#define EPIC_TL_IRQ_OCB_OF_CAUSE        EPIC_TL_IRQ_OCB_OF_CAUSE_Msk
+#define EPIC_TL_IRQ_EOT_STATUS_Pos      (16U)
+#define EPIC_TL_IRQ_EOT_STATUS_Msk      (0x1UL << EPIC_TL_IRQ_EOT_STATUS_Pos)
+#define EPIC_TL_IRQ_EOT_STATUS          EPIC_TL_IRQ_EOT_STATUS_Msk
+#define EPIC_TL_IRQ_LINE_HIT_STATUS_Pos  (17U)
+#define EPIC_TL_IRQ_LINE_HIT_STATUS_Msk  (0x1UL << EPIC_TL_IRQ_LINE_HIT_STATUS_Pos)
+#define EPIC_TL_IRQ_LINE_HIT_STATUS     EPIC_TL_IRQ_LINE_HIT_STATUS_Msk
+#define EPIC_TL_IRQ_OCB_OF_STATUS_Pos   (18U)
+#define EPIC_TL_IRQ_OCB_OF_STATUS_Msk   (0x1UL << EPIC_TL_IRQ_OCB_OF_STATUS_Pos)
+#define EPIC_TL_IRQ_OCB_OF_STATUS       EPIC_TL_IRQ_OCB_OF_STATUS_Msk
 
-/***************** Bit definition for EPIC_AHBA_CNT register ******************/
-#define EPIC_AHBA_CNT_VAL_Pos           (0U)
-#define EPIC_AHBA_CNT_VAL_Msk           (0xFFFFFFFFUL << EPIC_AHBA_CNT_VAL_Pos)
-#define EPIC_AHBA_CNT_VAL               EPIC_AHBA_CNT_VAL_Msk
+/**************** Bit definition for EPIC_TL_SETTING register *****************/
+#define EPIC_TL_SETTING_EOT_IRQ_MASK_Pos  (0U)
+#define EPIC_TL_SETTING_EOT_IRQ_MASK_Msk  (0x1UL << EPIC_TL_SETTING_EOT_IRQ_MASK_Pos)
+#define EPIC_TL_SETTING_EOT_IRQ_MASK    EPIC_TL_SETTING_EOT_IRQ_MASK_Msk
+#define EPIC_TL_SETTING_LINE_IRQ_MASK_Pos  (1U)
+#define EPIC_TL_SETTING_LINE_IRQ_MASK_Msk  (0x1UL << EPIC_TL_SETTING_LINE_IRQ_MASK_Pos)
+#define EPIC_TL_SETTING_LINE_IRQ_MASK   EPIC_TL_SETTING_LINE_IRQ_MASK_Msk
+#define EPIC_TL_SETTING_OCB_OF_IRQ_MASK_Pos  (2U)
+#define EPIC_TL_SETTING_OCB_OF_IRQ_MASK_Msk  (0x1UL << EPIC_TL_SETTING_OCB_OF_IRQ_MASK_Pos)
+#define EPIC_TL_SETTING_OCB_OF_IRQ_MASK  EPIC_TL_SETTING_OCB_OF_IRQ_MASK_Msk
+#define EPIC_TL_SETTING_LINE_IRQ_NUM_Pos  (16U)
+#define EPIC_TL_SETTING_LINE_IRQ_NUM_Msk  (0x1FFFUL << EPIC_TL_SETTING_LINE_IRQ_NUM_Pos)
+#define EPIC_TL_SETTING_LINE_IRQ_NUM    EPIC_TL_SETTING_LINE_IRQ_NUM_Msk
 
-/***************** Bit definition for EPIC_AHBB_CNT register ******************/
-#define EPIC_AHBB_CNT_VAL_Pos           (0U)
-#define EPIC_AHBB_CNT_VAL_Msk           (0xFFFFFFFFUL << EPIC_AHBB_CNT_VAL_Pos)
-#define EPIC_AHBB_CNT_VAL               EPIC_AHBB_CNT_VAL_Msk
+/**************** Bit definition for EPIC_TL_PERF_CNT register ****************/
+#define EPIC_TL_PERF_CNT_VAL_Pos        (0U)
+#define EPIC_TL_PERF_CNT_VAL_Msk        (0xFFFFFFFFUL << EPIC_TL_PERF_CNT_VAL_Pos)
+#define EPIC_TL_PERF_CNT_VAL            EPIC_TL_PERF_CNT_VAL_Msk
 
-/***************** Bit definition for EPIC_PERF_CNT register ******************/
-#define EPIC_PERF_CNT_VAL_Pos           (0U)
-#define EPIC_PERF_CNT_VAL_Msk           (0xFFFFFFFFUL << EPIC_PERF_CNT_VAL_Pos)
-#define EPIC_PERF_CNT_VAL               EPIC_PERF_CNT_VAL_Msk
+/*************** Bit definition for EPIC_CANVAS_STAT0 register ****************/
+#define EPIC_CANVAS_STAT0_FIFO_CNT_Pos  (0U)
+#define EPIC_CANVAS_STAT0_FIFO_CNT_Msk  (0x7UL << EPIC_CANVAS_STAT0_FIFO_CNT_Pos)
+#define EPIC_CANVAS_STAT0_FIFO_CNT      EPIC_CANVAS_STAT0_FIFO_CNT_Msk
+#define EPIC_CANVAS_STAT0_POSTC_STAT_Pos  (3U)
+#define EPIC_CANVAS_STAT0_POSTC_STAT_Msk  (0x7UL << EPIC_CANVAS_STAT0_POSTC_STAT_Pos)
+#define EPIC_CANVAS_STAT0_POSTC_STAT    EPIC_CANVAS_STAT0_POSTC_STAT_Msk
+#define EPIC_CANVAS_STAT0_PREC_STAT_Pos  (6U)
+#define EPIC_CANVAS_STAT0_PREC_STAT_Msk  (0x7UL << EPIC_CANVAS_STAT0_PREC_STAT_Pos)
+#define EPIC_CANVAS_STAT0_PREC_STAT     EPIC_CANVAS_STAT0_PREC_STAT_Msk
+#define EPIC_CANVAS_STAT0_FETCH_STAT_Pos  (9U)
+#define EPIC_CANVAS_STAT0_FETCH_STAT_Msk  (0x7UL << EPIC_CANVAS_STAT0_FETCH_STAT_Pos)
+#define EPIC_CANVAS_STAT0_FETCH_STAT    EPIC_CANVAS_STAT0_FETCH_STAT_Msk
 
-/**************** Bit definition for EPIC_CANVAS_STAT register ****************/
-#define EPIC_CANVAS_STAT_X_COR_Pos      (0U)
-#define EPIC_CANVAS_STAT_X_COR_Msk      (0x3FFUL << EPIC_CANVAS_STAT_X_COR_Pos)
-#define EPIC_CANVAS_STAT_X_COR          EPIC_CANVAS_STAT_X_COR_Msk
-#define EPIC_CANVAS_STAT_Y_COR_Pos      (10U)
-#define EPIC_CANVAS_STAT_Y_COR_Msk      (0x3FFUL << EPIC_CANVAS_STAT_Y_COR_Pos)
-#define EPIC_CANVAS_STAT_Y_COR          EPIC_CANVAS_STAT_Y_COR_Msk
-#define EPIC_CANVAS_STAT_FIFO_CNT_Pos   (20U)
-#define EPIC_CANVAS_STAT_FIFO_CNT_Msk   (0x7UL << EPIC_CANVAS_STAT_FIFO_CNT_Pos)
-#define EPIC_CANVAS_STAT_FIFO_CNT       EPIC_CANVAS_STAT_FIFO_CNT_Msk
-#define EPIC_CANVAS_STAT_POSTC_STAT_Pos  (23U)
-#define EPIC_CANVAS_STAT_POSTC_STAT_Msk  (0x7UL << EPIC_CANVAS_STAT_POSTC_STAT_Pos)
-#define EPIC_CANVAS_STAT_POSTC_STAT     EPIC_CANVAS_STAT_POSTC_STAT_Msk
-#define EPIC_CANVAS_STAT_PREC_STAT_Pos  (26U)
-#define EPIC_CANVAS_STAT_PREC_STAT_Msk  (0x7UL << EPIC_CANVAS_STAT_PREC_STAT_Pos)
-#define EPIC_CANVAS_STAT_PREC_STAT      EPIC_CANVAS_STAT_PREC_STAT_Msk
-#define EPIC_CANVAS_STAT_FETCH_STAT_Pos  (29U)
-#define EPIC_CANVAS_STAT_FETCH_STAT_Msk  (0x7UL << EPIC_CANVAS_STAT_FETCH_STAT_Pos)
-#define EPIC_CANVAS_STAT_FETCH_STAT     EPIC_CANVAS_STAT_FETCH_STAT_Msk
+/*************** Bit definition for EPIC_CANVAS_STAT1 register ****************/
+#define EPIC_CANVAS_STAT1_X_COR_Pos     (0U)
+#define EPIC_CANVAS_STAT1_X_COR_Msk     (0x1FFFUL << EPIC_CANVAS_STAT1_X_COR_Pos)
+#define EPIC_CANVAS_STAT1_X_COR         EPIC_CANVAS_STAT1_X_COR_Msk
+#define EPIC_CANVAS_STAT1_Y_COR_Pos     (16U)
+#define EPIC_CANVAS_STAT1_Y_COR_Msk     (0x1FFFUL << EPIC_CANVAS_STAT1_Y_COR_Pos)
+#define EPIC_CANVAS_STAT1_Y_COR         EPIC_CANVAS_STAT1_Y_COR_Msk
 
 /***************** Bit definition for EPIC_ENG_STAT register ******************/
 #define EPIC_ENG_STAT_EZIP_LINE_CNT_Pos  (0U)
-#define EPIC_ENG_STAT_EZIP_LINE_CNT_Msk  (0x3FFUL << EPIC_ENG_STAT_EZIP_LINE_CNT_Pos)
+#define EPIC_ENG_STAT_EZIP_LINE_CNT_Msk  (0x1FFFUL << EPIC_ENG_STAT_EZIP_LINE_CNT_Pos)
 #define EPIC_ENG_STAT_EZIP_LINE_CNT     EPIC_ENG_STAT_EZIP_LINE_CNT_Msk
-#define EPIC_ENG_STAT_EZIP_BUF_CNT_Pos  (10U)
-#define EPIC_ENG_STAT_EZIP_BUF_CNT_Msk  (0x3UL << EPIC_ENG_STAT_EZIP_BUF_CNT_Pos)
-#define EPIC_ENG_STAT_EZIP_BUF_CNT      EPIC_ENG_STAT_EZIP_BUF_CNT_Msk
-#define EPIC_ENG_STAT_EZIP_RUN_STAT_Pos  (12U)
+#define EPIC_ENG_STAT_EZIP_RUN_STAT_Pos  (13U)
 #define EPIC_ENG_STAT_EZIP_RUN_STAT_Msk  (0x7UL << EPIC_ENG_STAT_EZIP_RUN_STAT_Pos)
 #define EPIC_ENG_STAT_EZIP_RUN_STAT     EPIC_ENG_STAT_EZIP_RUN_STAT_Msk
 #define EPIC_ENG_STAT_JPEG_LINE_CNT_Pos  (16U)
-#define EPIC_ENG_STAT_JPEG_LINE_CNT_Msk  (0x3FFUL << EPIC_ENG_STAT_JPEG_LINE_CNT_Pos)
+#define EPIC_ENG_STAT_JPEG_LINE_CNT_Msk  (0x1FFFUL << EPIC_ENG_STAT_JPEG_LINE_CNT_Pos)
 #define EPIC_ENG_STAT_JPEG_LINE_CNT     EPIC_ENG_STAT_JPEG_LINE_CNT_Msk
-#define EPIC_ENG_STAT_JPEG_BUF_CNT_Pos  (26U)
-#define EPIC_ENG_STAT_JPEG_BUF_CNT_Msk  (0x3UL << EPIC_ENG_STAT_JPEG_BUF_CNT_Pos)
-#define EPIC_ENG_STAT_JPEG_BUF_CNT      EPIC_ENG_STAT_JPEG_BUF_CNT_Msk
-#define EPIC_ENG_STAT_JPEG_RUN_STAT_Pos  (28U)
+#define EPIC_ENG_STAT_JPEG_RUN_STAT_Pos  (29U)
 #define EPIC_ENG_STAT_JPEG_RUN_STAT_Msk  (0x7UL << EPIC_ENG_STAT_JPEG_RUN_STAT_Pos)
 #define EPIC_ENG_STAT_JPEG_RUN_STAT     EPIC_ENG_STAT_JPEG_RUN_STAT_Msk
 
@@ -1238,43 +1465,25 @@ typedef struct
 #define EPIC_OL_STAT_DONE_REQ0_Pos      (0U)
 #define EPIC_OL_STAT_DONE_REQ0_Msk      (0x1UL << EPIC_OL_STAT_DONE_REQ0_Pos)
 #define EPIC_OL_STAT_DONE_REQ0          EPIC_OL_STAT_DONE_REQ0_Msk
-#define EPIC_OL_STAT_PREFETCH_HOLD0_Pos  (1U)
-#define EPIC_OL_STAT_PREFETCH_HOLD0_Msk  (0x1UL << EPIC_OL_STAT_PREFETCH_HOLD0_Pos)
-#define EPIC_OL_STAT_PREFETCH_HOLD0     EPIC_OL_STAT_PREFETCH_HOLD0_Msk
-#define EPIC_OL_STAT_PREFETCH_OUT0_Pos  (2U)
-#define EPIC_OL_STAT_PREFETCH_OUT0_Msk  (0x1UL << EPIC_OL_STAT_PREFETCH_OUT0_Pos)
-#define EPIC_OL_STAT_PREFETCH_OUT0      EPIC_OL_STAT_PREFETCH_OUT0_Msk
-#define EPIC_OL_STAT_PREFETCH_READ0_Pos  (3U)
-#define EPIC_OL_STAT_PREFETCH_READ0_Msk  (0x3UL << EPIC_OL_STAT_PREFETCH_READ0_Pos)
-#define EPIC_OL_STAT_PREFETCH_READ0     EPIC_OL_STAT_PREFETCH_READ0_Msk
-#define EPIC_OL_STAT_DATA_CONV0_Pos     (5U)
+#define EPIC_OL_STAT_DATA_CONV0_Pos     (1U)
 #define EPIC_OL_STAT_DATA_CONV0_Msk     (0x3UL << EPIC_OL_STAT_DATA_CONV0_Pos)
 #define EPIC_OL_STAT_DATA_CONV0         EPIC_OL_STAT_DATA_CONV0_Msk
-#define EPIC_OL_STAT_PF_DF0_Pos         (7U)
+#define EPIC_OL_STAT_PF_DF0_Pos         (3U)
 #define EPIC_OL_STAT_PF_DF0_Msk         (0x3UL << EPIC_OL_STAT_PF_DF0_Pos)
 #define EPIC_OL_STAT_PF_DF0             EPIC_OL_STAT_PF_DF0_Msk
-#define EPIC_OL_STAT_PF_PR0_Pos         (9U)
+#define EPIC_OL_STAT_PF_PR0_Pos         (5U)
 #define EPIC_OL_STAT_PF_PR0_Msk         (0x7UL << EPIC_OL_STAT_PF_PR0_Pos)
 #define EPIC_OL_STAT_PF_PR0             EPIC_OL_STAT_PF_PR0_Msk
 #define EPIC_OL_STAT_DONE_REQ1_Pos      (16U)
 #define EPIC_OL_STAT_DONE_REQ1_Msk      (0x1UL << EPIC_OL_STAT_DONE_REQ1_Pos)
 #define EPIC_OL_STAT_DONE_REQ1          EPIC_OL_STAT_DONE_REQ1_Msk
-#define EPIC_OL_STAT_PREFETCH_HOLD1_Pos  (17U)
-#define EPIC_OL_STAT_PREFETCH_HOLD1_Msk  (0x1UL << EPIC_OL_STAT_PREFETCH_HOLD1_Pos)
-#define EPIC_OL_STAT_PREFETCH_HOLD1     EPIC_OL_STAT_PREFETCH_HOLD1_Msk
-#define EPIC_OL_STAT_PREFETCH_OUT1_Pos  (18U)
-#define EPIC_OL_STAT_PREFETCH_OUT1_Msk  (0x1UL << EPIC_OL_STAT_PREFETCH_OUT1_Pos)
-#define EPIC_OL_STAT_PREFETCH_OUT1      EPIC_OL_STAT_PREFETCH_OUT1_Msk
-#define EPIC_OL_STAT_PREFETCH_READ1_Pos  (19U)
-#define EPIC_OL_STAT_PREFETCH_READ1_Msk  (0x3UL << EPIC_OL_STAT_PREFETCH_READ1_Pos)
-#define EPIC_OL_STAT_PREFETCH_READ1     EPIC_OL_STAT_PREFETCH_READ1_Msk
-#define EPIC_OL_STAT_DATA_CONV1_Pos     (21U)
+#define EPIC_OL_STAT_DATA_CONV1_Pos     (17U)
 #define EPIC_OL_STAT_DATA_CONV1_Msk     (0x3UL << EPIC_OL_STAT_DATA_CONV1_Pos)
 #define EPIC_OL_STAT_DATA_CONV1         EPIC_OL_STAT_DATA_CONV1_Msk
-#define EPIC_OL_STAT_PF_DF1_Pos         (23U)
+#define EPIC_OL_STAT_PF_DF1_Pos         (19U)
 #define EPIC_OL_STAT_PF_DF1_Msk         (0x3UL << EPIC_OL_STAT_PF_DF1_Pos)
 #define EPIC_OL_STAT_PF_DF1             EPIC_OL_STAT_PF_DF1_Msk
-#define EPIC_OL_STAT_PF_PR1_Pos         (25U)
+#define EPIC_OL_STAT_PF_PR1_Pos         (21U)
 #define EPIC_OL_STAT_PF_PR1_Msk         (0x7UL << EPIC_OL_STAT_PF_PR1_Pos)
 #define EPIC_OL_STAT_PF_PR1             EPIC_OL_STAT_PF_PR1_Msk
 
@@ -1282,22 +1491,13 @@ typedef struct
 #define EPIC_OL2_STAT_DONE_REQ2_Pos     (0U)
 #define EPIC_OL2_STAT_DONE_REQ2_Msk     (0x1UL << EPIC_OL2_STAT_DONE_REQ2_Pos)
 #define EPIC_OL2_STAT_DONE_REQ2         EPIC_OL2_STAT_DONE_REQ2_Msk
-#define EPIC_OL2_STAT_PREFETCH_HOLD2_Pos  (1U)
-#define EPIC_OL2_STAT_PREFETCH_HOLD2_Msk  (0x1UL << EPIC_OL2_STAT_PREFETCH_HOLD2_Pos)
-#define EPIC_OL2_STAT_PREFETCH_HOLD2    EPIC_OL2_STAT_PREFETCH_HOLD2_Msk
-#define EPIC_OL2_STAT_PREFETCH_OUT2_Pos  (2U)
-#define EPIC_OL2_STAT_PREFETCH_OUT2_Msk  (0x1UL << EPIC_OL2_STAT_PREFETCH_OUT2_Pos)
-#define EPIC_OL2_STAT_PREFETCH_OUT2     EPIC_OL2_STAT_PREFETCH_OUT2_Msk
-#define EPIC_OL2_STAT_PREFETCH_READ2_Pos  (3U)
-#define EPIC_OL2_STAT_PREFETCH_READ2_Msk  (0x3UL << EPIC_OL2_STAT_PREFETCH_READ2_Pos)
-#define EPIC_OL2_STAT_PREFETCH_READ2    EPIC_OL2_STAT_PREFETCH_READ2_Msk
-#define EPIC_OL2_STAT_DATA_CONV2_Pos    (5U)
+#define EPIC_OL2_STAT_DATA_CONV2_Pos    (1U)
 #define EPIC_OL2_STAT_DATA_CONV2_Msk    (0x3UL << EPIC_OL2_STAT_DATA_CONV2_Pos)
 #define EPIC_OL2_STAT_DATA_CONV2        EPIC_OL2_STAT_DATA_CONV2_Msk
-#define EPIC_OL2_STAT_PF_DF2_Pos        (7U)
+#define EPIC_OL2_STAT_PF_DF2_Pos        (3U)
 #define EPIC_OL2_STAT_PF_DF2_Msk        (0x3UL << EPIC_OL2_STAT_PF_DF2_Pos)
 #define EPIC_OL2_STAT_PF_DF2            EPIC_OL2_STAT_PF_DF2_Msk
-#define EPIC_OL2_STAT_PF_PR2_Pos        (9U)
+#define EPIC_OL2_STAT_PF_PR2_Pos        (5U)
 #define EPIC_OL2_STAT_PF_PR2_Msk        (0x7UL << EPIC_OL2_STAT_PF_PR2_Pos)
 #define EPIC_OL2_STAT_PF_PR2            EPIC_OL2_STAT_PF_PR2_Msk
 
@@ -1337,21 +1537,43 @@ typedef struct
 #define EPIC_ML_STAT_DONE_REQ_Pos       (0U)
 #define EPIC_ML_STAT_DONE_REQ_Msk       (0x1UL << EPIC_ML_STAT_DONE_REQ_Pos)
 #define EPIC_ML_STAT_DONE_REQ           EPIC_ML_STAT_DONE_REQ_Msk
-#define EPIC_ML_STAT_PREFETCH_HOLD_Pos  (1U)
-#define EPIC_ML_STAT_PREFETCH_HOLD_Msk  (0x1UL << EPIC_ML_STAT_PREFETCH_HOLD_Pos)
-#define EPIC_ML_STAT_PREFETCH_HOLD      EPIC_ML_STAT_PREFETCH_HOLD_Msk
-#define EPIC_ML_STAT_PREFETCH_OUT_Pos   (2U)
-#define EPIC_ML_STAT_PREFETCH_OUT_Msk   (0x1UL << EPIC_ML_STAT_PREFETCH_OUT_Pos)
-#define EPIC_ML_STAT_PREFETCH_OUT       EPIC_ML_STAT_PREFETCH_OUT_Msk
-#define EPIC_ML_STAT_PREFETCH_READ_Pos  (3U)
-#define EPIC_ML_STAT_PREFETCH_READ_Msk  (0x3UL << EPIC_ML_STAT_PREFETCH_READ_Pos)
-#define EPIC_ML_STAT_PREFETCH_READ      EPIC_ML_STAT_PREFETCH_READ_Msk
-#define EPIC_ML_STAT_MF_DF_Pos          (5U)
+#define EPIC_ML_STAT_MF_DF_Pos          (1U)
 #define EPIC_ML_STAT_MF_DF_Msk          (0x3UL << EPIC_ML_STAT_MF_DF_Pos)
 #define EPIC_ML_STAT_MF_DF              EPIC_ML_STAT_MF_DF_Msk
-#define EPIC_ML_STAT_MF_PR_Pos          (7U)
+#define EPIC_ML_STAT_MF_PR_Pos          (3U)
 #define EPIC_ML_STAT_MF_PR_Msk          (0x7UL << EPIC_ML_STAT_MF_PR_Pos)
 #define EPIC_ML_STAT_MF_PR              EPIC_ML_STAT_MF_PR_Msk
+
+/***************** Bit definition for EPIC_TL_STAT0 register ******************/
+#define EPIC_TL_STAT0_X_COR_Pos         (0U)
+#define EPIC_TL_STAT0_X_COR_Msk         (0x1FFFUL << EPIC_TL_STAT0_X_COR_Pos)
+#define EPIC_TL_STAT0_X_COR             EPIC_TL_STAT0_X_COR_Msk
+#define EPIC_TL_STAT0_Y_COR_Pos         (16U)
+#define EPIC_TL_STAT0_Y_COR_Msk         (0x1FFFUL << EPIC_TL_STAT0_Y_COR_Pos)
+#define EPIC_TL_STAT0_Y_COR             EPIC_TL_STAT0_Y_COR_Msk
+
+/***************** Bit definition for EPIC_TL_STAT1 register ******************/
+#define EPIC_TL_STAT1_DONE_REQ_Pos      (0U)
+#define EPIC_TL_STAT1_DONE_REQ_Msk      (0x1UL << EPIC_TL_STAT1_DONE_REQ_Pos)
+#define EPIC_TL_STAT1_DONE_REQ          EPIC_TL_STAT1_DONE_REQ_Msk
+#define EPIC_TL_STAT1_DATA_CONV_Pos     (1U)
+#define EPIC_TL_STAT1_DATA_CONV_Msk     (0x3UL << EPIC_TL_STAT1_DATA_CONV_Pos)
+#define EPIC_TL_STAT1_DATA_CONV         EPIC_TL_STAT1_DATA_CONV_Msk
+#define EPIC_TL_STAT1_PF_DF_Pos         (3U)
+#define EPIC_TL_STAT1_PF_DF_Msk         (0x3UL << EPIC_TL_STAT1_PF_DF_Pos)
+#define EPIC_TL_STAT1_PF_DF             EPIC_TL_STAT1_PF_DF_Msk
+#define EPIC_TL_STAT1_PF_PR_Pos         (5U)
+#define EPIC_TL_STAT1_PF_PR_Msk         (0x7UL << EPIC_TL_STAT1_PF_PR_Pos)
+#define EPIC_TL_STAT1_PF_PR             EPIC_TL_STAT1_PF_PR_Msk
+#define EPIC_TL_STAT1_AHB_CTRL_Pos      (16U)
+#define EPIC_TL_STAT1_AHB_CTRL_Msk      (0x7UL << EPIC_TL_STAT1_AHB_CTRL_Pos)
+#define EPIC_TL_STAT1_AHB_CTRL          EPIC_TL_STAT1_AHB_CTRL_Msk
+#define EPIC_TL_STAT1_AHB_CTRL_EOL_Pos  (19U)
+#define EPIC_TL_STAT1_AHB_CTRL_EOL_Msk  (0x1UL << EPIC_TL_STAT1_AHB_CTRL_EOL_Pos)
+#define EPIC_TL_STAT1_AHB_CTRL_EOL      EPIC_TL_STAT1_AHB_CTRL_EOL_Msk
+#define EPIC_TL_STAT1_AHB_CTRL_FIFO_CNT_Pos  (20U)
+#define EPIC_TL_STAT1_AHB_CTRL_FIFO_CNT_Msk  (0xFFUL << EPIC_TL_STAT1_AHB_CTRL_FIFO_CNT_Pos)
+#define EPIC_TL_STAT1_AHB_CTRL_FIFO_CNT  EPIC_TL_STAT1_AHB_CTRL_FIFO_CNT_Msk
 
 /**************** Bit definition for EPIC_MEM_IF_STAT register ****************/
 #define EPIC_MEM_IF_STAT_AHB0_Pos       (0U)
@@ -1382,7 +1604,7 @@ typedef struct
 #define EPIC_MEM_IF_STAT_AHB_CTRL_FIFO_CNT_Msk  (0xFFUL << EPIC_MEM_IF_STAT_AHB_CTRL_FIFO_CNT_Pos)
 #define EPIC_MEM_IF_STAT_AHB_CTRL_FIFO_CNT  EPIC_MEM_IF_STAT_AHB_CTRL_FIFO_CNT_Msk
 
-#define EPIC_MAX_X_SIZE  (1023)
+#define EPIC_MAX_X_SIZE  (EPIC_L0_TL_POS_X0_Msk >> EPIC_L0_TL_POS_X0_Pos)
 #define EPIC_VL_SCALE_RATIO_XPITCH_MAX  (EPIC_VL_SCALE_RATIO_H_XPITCH_Msk >> EPIC_VL_SCALE_RATIO_H_XPITCH_Pos)
 #define EPIC_VL_SCALE_RATIO_YPITCH_MAX  (EPIC_VL_SCALE_RATIO_V_YPITCH_Msk >> EPIC_VL_SCALE_RATIO_V_YPITCH_Pos)
 #endif

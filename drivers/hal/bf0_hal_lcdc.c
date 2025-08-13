@@ -1377,6 +1377,8 @@ static HAL_StatusTypeDef LayerUpdate(LCDC_HandleTypeDef *lcdc)
     /*** 2. setup layer ***/
 #if defined(LCD_IF_COENG_CFG_JPEG_EN)||defined(LCD_IF_COENG_CFG_DECOMP_EN)
     lcdc->Instance->COENG_CFG = 0; //Clear coeng config first
+#elif defined(LCD_IF_LAYER0_DECOMP_ENABLE)
+    lcdc->Instance->LAYER0_DECOMP = 0; //Clear decomp config first
 #endif /* defined(LCD_IF_COENG_CFG_JPEG_EN)||defined(LCD_IF_COENG_CFG_DECOMP_EN) */
     for (HAL_LCDC_LayerDef layeridx = HAL_LCDC_LAYER_0; layeridx < HAL_LCDC_LAYER_MAX; layeridx++)
     {
@@ -1482,23 +1484,22 @@ static HAL_StatusTypeDef LayerUpdate(LCDC_HandleTypeDef *lcdc)
             layer_1line_total_bytes = data_w * bytes_per_pixel;
         else
             layer_1line_total_bytes = cfg->total_width * bytes_per_pixel;
-
-
-        // a.5 setup compressed buffer info
-#ifdef LCD_IF_LAYER0_DECOMP_ENABLE
-        if (HAL_LCDC_LAYER_0 == layeridx)
-        {
 #ifdef SF32LB58X
+        if (HAL_LCDC_LAYER_0 == layeridx)
             lcdc->Instance->LAYER0_SIZE = (data_h << LCD_IF_LAYER0_SIZE_MAX_LINE_Pos) | (data_w << LCD_IF_LAYER0_SIZE_MAX_COL_Pos);
 #endif /* SF32LB58X */
 
+
+        // a.5 setup compressed buffer info
 #ifdef LCDC_SUPPORTED_COMPRESSED_LAYER
-            if (cfg->cmpr_en)
+        if (cfg->cmpr_en)
+        {
+            uint32_t cfg0, cfg1, target_size, chunks;
+#ifdef LCD_IF_LAYER0_DECOMP_ENABLE
+            if (HAL_LCDC_LAYER_0 == layeridx)
             {
-                uint32_t cfg0;
-                uint32_t cfg1;
                 uint32_t compressed_size;
-                uint32_t target_size;
+                chunks = 1;
 
                 HAL_EXT_DMA_CalcCompressedSize(data_w * 1 * bytes_per_pixel / 4, cfg->cmpr_rate,
                                                1, bytes_per_pixel, &compressed_size, &target_size);
@@ -1506,50 +1507,53 @@ static HAL_StatusTypeDef LayerUpdate(LCDC_HandleTypeDef *lcdc)
                                                 MAKE_REG_VAL(target_size, LCD_IF_LAYER0_DECOMP_TARGET_WORDS_Msk, LCD_IF_LAYER0_DECOMP_TARGET_WORDS_Pos) |
                                                 MAKE_REG_VAL(data_w, LCD_IF_LAYER0_DECOMP_COL_SIZE_Msk, LCD_IF_LAYER0_DECOMP_COL_SIZE_Pos);
 
-
-                layer_1line_total_bytes = compressed_size * 4 / 1;
-
                 // set decompression
                 HAL_EXT_DMA_GetConfig(target_size, &cfg0, &cfg1);
                 lcdc->Instance->LAYER0_DECOMP_CFG1 = cfg0;
                 lcdc->Instance->LAYER0_DECOMP_CFG0 = cfg1;
-
             }
-            else
-#endif /* LCDC_SUPPORTED_COMPRESSED_LAYER */
+
+#else /* !LCD_IF_LAYER0_DECOMP_ENABLE*/
+
             {
-                lcdc->Instance->LAYER0_DECOMP = 0;
+                HAL_LCDC_ASSERT(0 == (lcdc->Instance->COENG_CFG & LCD_IF_COENG_CFG_DECOMP_EN)); //Make sure no layer is using decompression
+
+                uint32_t col_size = CMPR_CHUNK_SIZE(data_w);
+                uint32_t chunks = CMPR_CHUNKS(data_w);
+                uint32_t epictl_cf;
+
+                switch (cfg->data_format)
+                {
+                case LCDC_PIXEL_FORMAT_RGB565:
+                    epictl_cf = EPIC_COLOR_RGB565;
+                    break;
+                case LCDC_PIXEL_FORMAT_RGB888:
+                    epictl_cf = EPIC_COLOR_RGB888;
+                    break;
+                default:
+                    HAL_LCDC_ASSERT(0);
+                    return HAL_ERROR;
+                }
+
+                target_size = HAL_EPICTL_CMPR_Target_size(col_size, epictl_cf, cfg->cmpr_rate);
+                HAL_EPICTL_CMPR_GetConfig(0, &cfg0, &cfg1);
+
+
+                lcdc->Instance->DECOMP_CFG0 = MAKE_REG_VAL(target_size, LCD_IF_DECOMP_CFG0_TARGET_WORDS_Msk, LCD_IF_DECOMP_CFG0_TARGET_WORDS_Pos)
+                                              | MAKE_REG_VAL(col_size, LCD_IF_DECOMP_CFG0_COL_SIZE_Msk, LCD_IF_DECOMP_CFG0_COL_SIZE_Pos)
+                                              | MAKE_REG_VAL(chunks, LCD_IF_DECOMP_CFG0_CHUNK_CNT_Msk, LCD_IF_DECOMP_CFG0_CHUNK_CNT_Pos)
+                                              ;
+                lcdc->Instance->DECOMP_CFG1 = cfg1;
+                lcdc->Instance->DECOMP_CFG2 = cfg0;
+                lcdc->Instance->COENG_CFG |= MAKE_REG_VAL(layeridx, LCD_IF_COENG_CFG_DECOMP_CH_SEL_Msk, LCD_IF_COENG_CFG_DECOMP_CH_SEL_Pos)
+                                             | LCD_IF_COENG_CFG_DECOMP_EN ;
             }
-        }
-#else
-#ifdef LCDC_SUPPORTED_COMPRESSED_LAYER
-        if (cfg->cmpr_en)
-        {
-            uint32_t cfg0;
-            uint32_t cfg1;
-            uint32_t compressed_size;
-            uint32_t target_size;
-            uint32_t col_size = data_w;
-            uint32_t chunks = 1;
 
-            HAL_EXT_DMA_CalcCompressedSize(data_w * 1 * bytes_per_pixel / 4, cfg->cmpr_rate,
-                                           1, bytes_per_pixel, &compressed_size, &target_size);
-            HAL_EXT_DMA_GetConfig(target_size, &cfg0, &cfg1);
-            layer_1line_total_bytes = compressed_size * 4 / 1;
-
-            HAL_LCDC_ASSERT(0 == (lcdc->Instance->COENG_CFG & LCD_IF_COENG_CFG_DECOMP_EN)); //Make sure no layer is using decompression
-
-
-            lcdc->Instance->DECOMP_CFG0 = MAKE_REG_VAL(target_size, LCD_IF_DECOMP_CFG0_TARGET_WORDS_Msk, LCD_IF_DECOMP_CFG0_TARGET_WORDS_Pos)
-                                          | MAKE_REG_VAL(col_size, LCD_IF_DECOMP_CFG0_COL_SIZE_Msk, LCD_IF_DECOMP_CFG0_COL_SIZE_Pos)
-                                          | MAKE_REG_VAL(chunks, LCD_IF_DECOMP_CFG0_CHUNK_CNT_Msk, LCD_IF_DECOMP_CFG0_CHUNK_CNT_Pos)
-                                          ;
-            lcdc->Instance->DECOMP_CFG1 = cfg1;
-            lcdc->Instance->DECOMP_CFG2 = cfg0;
-            lcdc->Instance->COENG_CFG |= LCD_IF_COENG_CFG_DECOMP_EN;
+#endif
+            //Calculate compression layer line bytes
+            layer_1line_total_bytes = target_size * chunks * 6; //1 target size=6 bytes
         }
 #endif /* LCDC_SUPPORTED_COMPRESSED_LAYER */
-#endif
 
         reg |= (layer_1line_total_bytes << LCD_IF_LAYER0_CONFIG_WIDTH_Pos); // layer line width
         pHwLayerx->CONFIG = reg;
