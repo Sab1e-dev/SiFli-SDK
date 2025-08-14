@@ -58,24 +58,25 @@ extern "C" {
 
 
 
-#ifndef SF32LB55X
+#ifndef SF32LB55X /* Features supported after 55x */
 #define EPIC_SUPPORT_MASK
 #define EPIC_SUPPORT_MONOCHROME_LAYER
 #define EPIC_SUPPORT_A4
 #define EPIC_SUPPORT_A8
 #define EPIC_SUPPORT_L8
-
-#ifndef SF32LB58X
+#ifndef SF32LB58X /* Features supported after 58x */
 #define EPIC_SUPPORT_YUV
 #define EPIC_SUPPORT_DITHER
-#ifndef SF32LB56X
+#ifndef SF32LB56X /* Features supported after 56x */
 #define EPIC_SUPPORT_A2
-#ifndef SF32LB52X
+#ifndef SF32LB52X /* Features supported after 52x */
 #define EPIC_SUPPORT_JPEGD
 #define EPIC_SUPPORT_DECOMP
 #define EPIC_SUPPORT_COMP
 #define EPIC_SUPPORT_COLOR_MATRIX
 #define HAL_EPICTL_ENABLED
+#define EPIC_SUPPORT_L4
+#define EPIC_SUPPORT_GREYSCALE
 #endif /* SF32LB52X */
 #endif /* SF32LB56X */
 #endif /* SF32LB58X */
@@ -109,6 +110,19 @@ extern "C" {
 #define EPIC_COLOR_A4              (6)              /**< A4 color format */
 #define EPIC_COLOR_A2              (7)              /**< A2 color format */
 #define EPIC_COLOR_MONO            (8)              /**< Monochrome color format */
+#define EPIC_COLOR_GRAY8              (9)              /**< Grayscale 8bit color format */
+#define EPIC_COLOR_GRAY4              (0xA)             /**< Grayscale 4bit color format */
+#define EPIC_COLOR_GRAY2              (0xB)             /**< Grayscale 2bit color format */
+#define EPIC_COLOR_L4              (0xC)             /**< L4 color format */
+
+#define EPIC_COLOR_SWAP_FLAG       (0x40)           /**< Color format swap flag */
+#define EPIC_COLOR_A4_SWAP         (EPIC_COLOR_SWAP_FLAG | EPIC_COLOR_A4)       /**< A4 color format with swapped pixels */
+#define EPIC_COLOR_A2_SWAP         (EPIC_COLOR_SWAP_FLAG | EPIC_COLOR_A2)       /**< A2 color format with swapped pixels */
+#define EPIC_COLOR_GRAY4_SWAP         (EPIC_COLOR_SWAP_FLAG | EPIC_COLOR_GRAY4)       /**< Grayscale 4bit color format with swapped pixels */
+#define EPIC_COLOR_GRAY2_SWAP         (EPIC_COLOR_SWAP_FLAG | EPIC_COLOR_GRAY2)       /**< Grayscale 2bit color format with swapped pixels */
+#define EPIC_COLOR_L4_SWAP         (EPIC_COLOR_SWAP_FLAG | EPIC_COLOR_L4)       /**< L4 color format with swapped pixels */
+#define EPIC_COLOR_RGB565_SWAP     (EPIC_COLOR_SWAP_FLAG | EPIC_COLOR_RGB565)  /**< RGB565 color format with swapped bytes */
+
 
 #define EPIC_COLOR_EZIP_FLAG        (0x80)           /**< EZIP color format flag, supported after A0*/
 #define EPIC_COLOR_EZIP             (0x81)           /**< EZIP color format */
@@ -138,6 +152,9 @@ extern "C" {
 #define EPIC_COLOR_JPEG_FLAG                 (0x200)
 #define EPIC_COLOR_JPEG                      (0x200)
 
+#define EPIC_COLOR_FLEX_FLAG                 (0x400)           /**< Flex color format flag, supported after 57x*/
+#define EPIC_COLOR_F2_332                    (0x401)           /**< Flex 2bit color format */
+
 
 /** @defgroup EPIC_Output_Color_Mode EPIC Output Color Mode
   * @{
@@ -146,12 +163,21 @@ extern "C" {
 #define EPIC_OUTPUT_ARGB8565       EPIC_COLOR_ARGB8565                   /*!< ARGB8565 EPIC output color mode   */
 #define EPIC_OUTPUT_RGB888         EPIC_COLOR_RGB888                     /*!< RGB888 EPIC output color mode   */
 #define EPIC_OUTPUT_ARGB8888       EPIC_COLOR_ARGB8888                   /*!< ARGB8888 EPIC output color mode   */
-
+#define EPIC_OUTPUT_A8             EPIC_COLOR_A8                         /*!< A8 EPIC output color mode   */
+#define EPIC_OUTPUT_GRAY8             EPIC_COLOR_GRAY8                         /*!< Grayscale 8bit EPIC output color mode   */
+#define EPIC_OUTPUT_GRAY4             EPIC_COLOR_GRAY4                         /*!< Grayscale 4bit EPIC output color mode   */
+#define EPIC_OUTPUT_GRAY2             EPIC_COLOR_GRAY2                         /*!< Grayscale 2bit EPIC output color mode   */
+#define EPIC_OUTPUT_GRAY4_SWAP         EPIC_COLOR_GRAY4_SWAP                   /*!< Grayscale 4bit EPIC output color mode with swapped pixels   */
+#define EPIC_OUTPUT_GRAY2_SWAP         EPIC_COLOR_GRAY2_SWAP                   /*!< Grayscale 2bit EPIC output color mode with swapped pixels   */
 /**
   * @}
   */
 #define EPIC_SUPPROT_OUT_FORMAT(cf)  ((EPIC_OUTPUT_RGB565 == (cf)) || (EPIC_OUTPUT_ARGB8565 == (cf)) \
-                                           || (EPIC_OUTPUT_RGB888 == (cf)) || (EPIC_OUTPUT_ARGB8888 == (cf)))
+                                        || (EPIC_OUTPUT_RGB888 == (cf)) || (EPIC_OUTPUT_ARGB8888 == (cf)) \
+                                        || (EPIC_OUTPUT_A8 == (cf)) || (EPIC_OUTPUT_GRAY8 == (cf)) \
+                                        || (EPIC_OUTPUT_GRAY4 == (cf)) || (EPIC_OUTPUT_GRAY2 == (cf)) \
+                                        || (EPIC_OUTPUT_GRAY4_SWAP == (cf)) || (EPIC_OUTPUT_GRAY2_SWAP == (cf)))
+
 
 
 /** @defgroup EPIC_Input_Color_Mode EPIC Input Color Mode
@@ -171,6 +197,11 @@ extern "C" {
 #define EPIC_INPUT_YUV420_PLANAR        EPIC_COLOR_YUV420_PLANAR                 /**< iYUV */
 #define EPIC_INPUT_MONO                EPIC_COLOR_MONO
 #define EPIC_INPUT_JPEG              EPIC_COLOR_JPEG
+#define EPIC_INPUT_L4                EPIC_COLOR_L4                  /*!< L4 color format */
+#define EPIC_INPUT_L4_SWAP          EPIC_COLOR_L4_SWAP            /*!< L4 color format with swapped pixels */
+#define EPIC_INPUT_A4_SWAP          EPIC_COLOR_A4_SWAP            /*!< A4 color format with swapped pixels */
+#define EPIC_INPUT_A2_SWAP          EPIC_COLOR_A2_SWAP            /*!< A2 color format with swapped pixels */
+#define EPIC_INPUT_RGB565_SWAP    EPIC_COLOR_RGB565_SWAP          /*!< RGB565 color format with swapped bytes */
 
 
 /**

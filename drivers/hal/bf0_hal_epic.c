@@ -141,11 +141,14 @@
 
 #define IS_NEED_TRANSFROM(rot_cfg) ((EPIC_INPUT_SCALING_FACTOR_1 != (rot_cfg)->scale_x) || (EPIC_INPUT_SCALING_FACTOR_1 != (rot_cfg)->scale_y) || (0 != (rot_cfg)->angle)\
                                     || (0 != (rot_cfg)->h_mirror)|| (0 != (rot_cfg)->v_mirror))
-#define IS_Ax_COLOR_MODE(c)        ((EPIC_COLOR_A2 == (c)) || (EPIC_COLOR_A4 == (c)) || (EPIC_COLOR_A8 == (c)) || (EPIC_COLOR_MONO == (c)))
+#define IS_Ax_COLOR_MODE(c)        ((EPIC_COLOR_A2 == (c)) || (EPIC_COLOR_A2_SWAP == (c)) \
+                                    || (EPIC_COLOR_A4 == (c)) || (EPIC_COLOR_A4_SWAP == (c)) \
+                                    || (EPIC_COLOR_A8 == (c)) || (EPIC_COLOR_MONO == (c)))
 #define IS_YUV_COLOR_MODE(c)       (EPIC_COLOR_YUV_FLAG == (EPIC_COLOR_YUV_FLAG&(c)))
-#define IS_NO_ALPHA_COLOR_MODE(c)  ((EPIC_COLOR_RGB565 == (c)) || (EPIC_COLOR_RGB888 == (c)) || IS_YUV_COLOR_MODE(c) || (EPIC_COLOR_MONO == (c)))
+#define IS_NO_ALPHA_COLOR_MODE(c)  ((EPIC_COLOR_RGB565 == (c)) || (EPIC_COLOR_RGB565_SWAP == (c)) || (EPIC_COLOR_RGB888 == (c)) || IS_YUV_COLOR_MODE(c) || (EPIC_COLOR_MONO == (c)))
 #define IS_EZIP_COLOR_MODE(c)       (EPIC_COLOR_EZIP_FLAG == (EPIC_COLOR_EZIP_FLAG&(c)))
 #define IS_JPEG_COLOR_MODE(c)       (EPIC_COLOR_JPEG_FLAG == (EPIC_COLOR_JPEG_FLAG&(c)))
+#define IS_SWAPPED_COLOR_MODE(c)    (EPIC_COLOR_SWAP_FLAG == (EPIC_COLOR_SWAP_FLAG&(c)))
 #define IS_MASK_MODE(m)            ((ALPHA_BLEND_MASK == (m)) || (ALPHA_BLEND_OVERWRITE == (m)))
 #define IS_ALPHA_MASK_LAYER(layer) (IS_Ax_COLOR_MODE((layer)->color_mode) && IS_MASK_MODE((layer)->ax_mode))
 
@@ -161,6 +164,7 @@
 #else
     #define EPIC_PREFETCH_THRESHOLD  0   //In bytes. Auto prefetch after 56x, enable prefetch always.
 #endif
+
 
 
 
@@ -484,10 +488,18 @@ static void EPIC_DISABLE(EPIC_HandleTypeDef *hepic)
     hepic->HalCnt  += HAL_GetElapsedTick(hepic->start_tick, hepic->end_tick) - hw_cnt;
 #endif /* EPIC_PERF_CNT_VAL */
 }
-
+/*
+   return the bits of a pixel in a color mode.
+    @param color_mode: Color mode of the pixel.
+    @return: the bits of a pixel in a color mode.
+    @note: This function is used to get the color depth of a pixel in a specific color mode.
+*/
 static uint32_t EPIC_GetColorDepth(uint32_t color_mode)
 {
     uint32_t color_depth;
+
+    //Swapped color modes have same depth as non-swapped modes
+    color_mode &= ~EPIC_COLOR_SWAP_FLAG;
 
     if (EPIC_COLOR_RGB565 == color_mode)
     {
@@ -501,15 +513,18 @@ static uint32_t EPIC_GetColorDepth(uint32_t color_mode)
     {
         color_depth = 24;
     }
-    else if ((EPIC_COLOR_A8 == color_mode) || (EPIC_COLOR_MONO == color_mode))
+    else if ((EPIC_COLOR_A8 == color_mode) || (EPIC_COLOR_MONO == color_mode) || (EPIC_COLOR_GRAY8 == color_mode))
     {
         color_depth = 8;
     }
-    else if (EPIC_COLOR_A4 == color_mode)
+    else if ((EPIC_COLOR_A4 == color_mode)
+             || (EPIC_COLOR_GRAY4 == color_mode)
+             || (EPIC_COLOR_L4 == color_mode)
+            )
     {
         color_depth = 4;
     }
-    else if (EPIC_COLOR_A2 == color_mode)
+    else if ((EPIC_COLOR_A2 == color_mode) || (EPIC_COLOR_GRAY2 == color_mode))
     {
         color_depth = 2;
     }
@@ -558,6 +573,9 @@ static uint32_t EPIC_GetColorBitMask(uint32_t color_mode, Alpha_BlendTypeDef ble
     */
     uint32_t bit_mask;
 
+    //Swapped color modes are same as non-swapped modes
+    color_mode &= ~EPIC_COLOR_SWAP_FLAG;
+
     if (EPIC_COLOR_RGB565 == color_mode)
     {
         bit_mask = 0x00F8FCF8;
@@ -596,7 +614,7 @@ static uint32_t EPIC_GetColorBitMask(uint32_t color_mode, Alpha_BlendTypeDef ble
         bit_mask = 0x00FFFFFF;
     }
     else if ((EPIC_COLOR_ARGB8888 == color_mode)
-             || (EPIC_COLOR_L8 == color_mode)
+             || (EPIC_COLOR_L8 == color_mode) || (EPIC_COLOR_L4 == color_mode)
              || (EPIC_COLOR_MONO == color_mode))
     {
         bit_mask = 0xFFFFFFFF;
@@ -609,10 +627,15 @@ static uint32_t EPIC_GetColorBitMask(uint32_t color_mode, Alpha_BlendTypeDef ble
     return bit_mask;
 }
 #endif /* EPIC_SUPPORT_DITHER */
-
+/*
+    Get the input layer color format from the color mode.
+ */
 static uint32_t EPIC_GetLayerColorFormat(uint32_t color_mode)
 {
     uint32_t layer_color_format;
+
+    //Swapped color modes are same as non-swapped modes
+    color_mode &= ~EPIC_COLOR_SWAP_FLAG;
 
     if (EPIC_COLOR_RGB565 == color_mode)
     {
@@ -662,6 +685,12 @@ static uint32_t EPIC_GetLayerColorFormat(uint32_t color_mode)
     {
         layer_color_format = EPIC_L0_CFG_FMT_RGB888; //Always set layer format to RGB888 at yuv color mode
     }
+#ifdef EPIC_SUPPORT_L4
+    else if (EPIC_COLOR_L4 == color_mode)
+    {
+        layer_color_format = EPIC_L0_CFG_FMT_L4;
+    }
+#endif
     else
     {
         HAL_ASSERT(0);
@@ -670,10 +699,61 @@ static uint32_t EPIC_GetLayerColorFormat(uint32_t color_mode)
     return layer_color_format;
 }
 
+/*
+    Get the output layer color format from the color mode.
+ */
+static uint32_t EPIC_GetOutputColorFormat(uint32_t color_mode)
+{
+    uint32_t ouput_color_format;
+
+    //Swapped color modes are same as non-swapped modes
+    color_mode &= ~EPIC_COLOR_SWAP_FLAG;
+
+    if (EPIC_COLOR_RGB565 == color_mode)
+    {
+        ouput_color_format = EPIC_AHB_CTRL_O_FMT_RGB565;
+    }
+    else if (EPIC_COLOR_ARGB8565 == color_mode)
+    {
+        ouput_color_format = EPIC_AHB_CTRL_O_FMT_ARGB8565;
+    }
+    else if (EPIC_COLOR_RGB888 == color_mode)
+    {
+        ouput_color_format = EPIC_AHB_CTRL_O_FMT_RGB888;
+    }
+    else if (EPIC_COLOR_ARGB8888 == color_mode)
+    {
+        ouput_color_format = EPIC_AHB_CTRL_O_FMT_ARGB8888;
+    }
+#ifdef EPIC_SUPPORT_GREYSCALE
+    else if (EPIC_COLOR_GRAY8 == color_mode)
+    {
+        ouput_color_format = EPIC_AHB_CTRL_O_FMT_GRAY8;
+    }
+    else if (EPIC_COLOR_GRAY4 == color_mode)
+    {
+        ouput_color_format = EPIC_AHB_CTRL_O_FMT_GRAY4;
+    }
+    else if (EPIC_COLOR_GRAY2 == color_mode)
+    {
+        ouput_color_format = EPIC_AHB_CTRL_O_FMT_GRAY2;
+    }
+#endif /* EPIC_SUPPORT_GREYSCALE*/
+    else
+    {
+        HAL_ASSERT(0);
+    }
+
+    return ouput_color_format;
+}
+
 #ifdef EPIC_SUPPORT_MASK
 static uint32_t EPIC_GetMaskLayerColorFormat(uint32_t color_mode)
 {
     uint32_t layer_color_format;
+
+    //Swapped color modes are same as non-swapped modes
+    color_mode &= ~EPIC_COLOR_SWAP_FLAG;
 
     if ((EPIC_COLOR_A8 == color_mode) || (EPIC_COLOR_MONO == color_mode))
     {
@@ -1632,7 +1712,15 @@ static HAL_StatusTypeDef EPIC_ConfigLayer(EPIC_HandleTypeDef *hepic, EPIC_LAYER_
     {
         ;//Keep layer width as 0
     }
+#ifdef EPIC_L0_FILL_PIXEL_ORDER
+    //Endian and pixel order
+    if (IS_SWAPPED_COLOR_MODE(config->color_mode))
+        layer_x->FILL |= EPIC_L0_FILL_PIXEL_ORDER | EPIC_L0_FILL_ENDIAN;
+    else
+        layer_x->FILL &= ~(EPIC_L0_FILL_PIXEL_ORDER | EPIC_L0_FILL_ENDIAN);
+#endif /* EPIC_L0_FILL_PIXEL_ORDER */
 
+    //Active layer
 #if defined(EPIC_SUPPORT_YUV)
     if (IS_YUV_COLOR_MODE(config->color_mode))
     {
@@ -1823,145 +1911,6 @@ static inline void EPIC_DisableOutputLayer(EPIC_TypeDef *epic)
 #endif /* EPIC_SUPPORT_DITHER */
 }
 
-/**
- * @brief  Configure output layer
- *
- * @param  epic EPIC instance
- * @param  fg foreground layer configuration
- * @param  bg background layer configuration
- * @param  dst output layer configuration
- *
- * @retval HAL status
- */
-static HAL_StatusTypeDef EPIC_ConfigOutputLayer(EPIC_TypeDef *epic,
-        EPIC_BlendingDataType *fg,
-        EPIC_BlendingDataType *bg,
-        EPIC_BlendingDataType *dst)
-{
-    uint8_t color_depth;
-    int16_t x0;
-    int16_t y0;
-    int16_t x1;
-    int16_t y1;
-    uint32_t offset;
-    uint32_t layer_color_format;
-
-    if ((dst->x_offset < 0)
-            || (dst->y_offset < 0))
-    {
-        return HAL_ERROR;
-    }
-
-    HAL_ASSERT(dst->total_width >= dst->width);
-
-    if (EPIC_COLOR_RGB565 == dst->color_mode)
-    {
-        layer_color_format = EPIC_AHB_CTRL_O_FMT_RGB565;
-        color_depth = 2;
-    }
-    else if (EPIC_COLOR_ARGB8565 == dst->color_mode)
-    {
-        layer_color_format = EPIC_AHB_CTRL_O_FMT_ARGB8565;
-        color_depth = 3;
-    }
-    else if (EPIC_COLOR_RGB888 == dst->color_mode)
-    {
-        layer_color_format = EPIC_AHB_CTRL_O_FMT_RGB888;
-        color_depth = 3;
-    }
-    else if (EPIC_COLOR_ARGB8888 == dst->color_mode)
-    {
-        layer_color_format = EPIC_AHB_CTRL_O_FMT_ARGB8888;
-        color_depth = 4;
-    }
-    else
-    {
-        return HAL_ERROR;
-    }
-
-    if (bg->data != dst->data)
-    {
-        x0 = dst->x_offset;
-        y0 = dst->y_offset;
-        x1 = dst->x_offset + dst->width - 1;
-        y1 = dst->y_offset + dst->height - 1;
-        offset = 0;
-    }
-    else
-    {
-        EPIC_AreaTypeDef intersect_area;
-        bool is_intersect;
-
-        /* calculate the intersect region */
-        is_intersect = EPIC_CalcIntersectArea(fg, dst, &intersect_area);
-
-        if (is_intersect)
-        {
-            x0 = intersect_area.x0;
-            y0 = intersect_area.y0;
-            x1 = intersect_area.x1;
-            y1 = intersect_area.y1;
-
-            offset = ((y0 - dst->y_offset) * dst->total_width + (x0 - dst->x_offset)) * color_depth;
-        }
-        else
-        {
-            return HAL_EPIC_NOTHING_TO_DO;
-        }
-    }
-
-    if ((x0 <= x1) && (y0 <= y1))
-    {
-        if ((!dst->color_en)   /* not filling using background color */
-                && ((EPIC_COLOR_ARGB8565 == dst->color_mode)
-                    || (EPIC_COLOR_ARGB8888 == dst->color_mode)))
-        {
-            /* don't blend with background color, output alpha directly */
-            epic->CANVAS_BG |= EPIC_CANVAS_BG_BG_BLENDING_BYPASS;
-        }
-        else
-        {
-            if (dst->color_en)
-            {
-                epic->CANVAS_BG &= ~(EPIC_CANVAS_BG_RED_Msk | EPIC_CANVAS_BG_GREEN_Msk | EPIC_CANVAS_BG_BLUE_Msk);
-                epic->CANVAS_BG |= MAKE_REG_VAL(dst->color_r, EPIC_CANVAS_BG_RED_Msk, EPIC_CANVAS_BG_RED_Pos)
-                                   | MAKE_REG_VAL(dst->color_g, EPIC_CANVAS_BG_GREEN_Msk, EPIC_CANVAS_BG_GREEN_Pos)
-                                   | MAKE_REG_VAL(dst->color_b, EPIC_CANVAS_BG_BLUE_Msk, EPIC_CANVAS_BG_BLUE_Pos);
-            }
-
-            epic->CANVAS_BG &= ~EPIC_CANVAS_BG_BG_BLENDING_BYPASS;
-        }
-
-
-        //Check overflow
-        if (EPCI_IS_TLBR_OVERFLOW(EPIC_CANVAS, x0, y0, x1, y1))
-        {
-            //Overflow
-            EPIC_DEBUG_PRINT_LAYER_INFO(dst, "Overflow");
-            HAL_ASSERT(0);
-            return HAL_ERROR;
-        }
-
-        epic->CANVAS_TL_POS = MAKE_REG_VAL(x0, EPIC_CANVAS_TL_POS_X0_Msk, EPIC_CANVAS_TL_POS_X0_Pos)
-                              | MAKE_REG_VAL(y0, EPIC_CANVAS_TL_POS_Y0_Msk, EPIC_CANVAS_TL_POS_Y0_Pos);
-        epic->CANVAS_BR_POS = MAKE_REG_VAL(x1, EPIC_CANVAS_BR_POS_X1_Msk, EPIC_CANVAS_BR_POS_X1_Pos)
-                              | MAKE_REG_VAL(y1, EPIC_CANVAS_BR_POS_Y1_Msk, EPIC_CANVAS_BR_POS_Y1_Pos);
-
-        epic->AHB_STRIDE = (dst->total_width - (x1 - x0 + 1)) * color_depth;
-        MODIFY_REG(epic->AHB_CTRL,
-                   EPIC_AHB_CTRL_DESTINATION_Msk | EPIC_AHB_CTRL_O_FORMAT_Msk,
-                   EPIC_AHB_CTRL_DEST_RAM | layer_color_format);
-
-        epic->AHB_MEM = (uint32_t)dst->data + offset;
-        return HAL_OK;
-    }
-    else
-    {
-        return HAL_EPIC_NOTHING_TO_DO;
-    }
-
-}
-
 #ifdef EPIC_SUPPORT_COLOR_MATRIX
 static void EPIC_ConfigColorMatrix(EPIC_TypeDef *epic, uint32_t *color_matrix)
 {
@@ -1988,10 +1937,12 @@ static void EPIC_ConfigColorMatrix(EPIC_TypeDef *epic, uint32_t *color_matrix)
 }
 #endif /* EPIC_SUPPORT_COLOR_MATRIX */
 
-static HAL_StatusTypeDef EPIC_ConfigOutputLayerEx(EPIC_HandleTypeDef *hepic,
-        EPIC_BlendingDataType *input,
-        uint8_t input_num,
-        EPIC_BlendingDataType *output)
+/**
+ *  Clip the output layer according to the p_clip_area and setup the registers.
+ *   If the p_clip_area is NULL, it will not clip the output layer.
+ * */
+static HAL_StatusTypeDef EPIC_ClipAndSetupOutputLayer(EPIC_TypeDef *epic,
+        EPIC_BlendingDataType *output, EPIC_AreaTypeDef *p_clip_area)
 {
     uint8_t color_depth;
     int16_t x0;
@@ -2001,60 +1952,19 @@ static HAL_StatusTypeDef EPIC_ConfigOutputLayerEx(EPIC_HandleTypeDef *hepic,
     uint32_t offset;
     uint32_t layer_color_format;
 
-    if ((output->x_offset < 0)
-            || (output->y_offset < 0))
-    {
-        RETURN_ERROR(hepic, HAL_ERROR);
-    }
     HAL_ASSERT(output->total_width >= output->width);
+    color_depth = EPIC_GetColorDepth(output->color_mode) >> 3;
+    layer_color_format = EPIC_GetOutputColorFormat(output->color_mode);
 
-    if (EPIC_COLOR_RGB565 == output->color_mode)
-    {
-        layer_color_format = EPIC_AHB_CTRL_O_FMT_RGB565;
-        color_depth = 2;
-    }
-    else if (EPIC_COLOR_ARGB8565 == output->color_mode)
-    {
-        layer_color_format = EPIC_AHB_CTRL_O_FMT_ARGB8565;
-        color_depth = 3;
-    }
-    else if (EPIC_COLOR_RGB888 == output->color_mode)
-    {
-        layer_color_format = EPIC_AHB_CTRL_O_FMT_RGB888;
-        color_depth = 3;
-    }
-    else if (EPIC_COLOR_ARGB8888 == output->color_mode)
-    {
-        layer_color_format = EPIC_AHB_CTRL_O_FMT_ARGB8888;
-        color_depth = 4;
-    }
-    else
-    {
-        RETURN_ERROR(hepic, HAL_ERROR);
-    }
 
-    if ((2 == input_num)
-            && (input[0].data == output->data))
+    if (p_clip_area)
     {
-        EPIC_AreaTypeDef intersect_area;
-        bool is_intersect;
+        x0 = p_clip_area->x0;
+        y0 = p_clip_area->y0;
+        x1 = p_clip_area->x1;
+        y1 = p_clip_area->y1;
 
-        /* calculate the intersect region */
-        is_intersect = EPIC_CalcIntersectArea(&input[1], output, &intersect_area);
-
-        if (is_intersect)
-        {
-            x0 = intersect_area.x0;
-            y0 = intersect_area.y0;
-            x1 = intersect_area.x1;
-            y1 = intersect_area.y1;
-
-            offset = ((y0 - output->y_offset) * output->total_width + (x0 - output->x_offset)) * color_depth;
-        }
-        else
-        {
-            return HAL_EPIC_NOTHING_TO_DO;
-        }
+        offset = ((y0 - output->y_offset) * output->total_width + (x0 - output->x_offset)) * color_depth;
     }
     else
     {
@@ -2065,9 +1975,9 @@ static HAL_StatusTypeDef EPIC_ConfigOutputLayerEx(EPIC_HandleTypeDef *hepic,
         offset = 0;
     }
 
+
     if ((x0 <= x1) && (y0 <= y1))
     {
-        EPIC_TypeDef *epic = hepic->Instance;
         if ((!output->color_en)   /* not filling using background color */
                 && ((EPIC_COLOR_ARGB8565 == output->color_mode)
                     || (EPIC_COLOR_ARGB8888 == output->color_mode)))
@@ -2113,7 +2023,12 @@ static HAL_StatusTypeDef EPIC_ConfigOutputLayerEx(EPIC_HandleTypeDef *hepic,
         MODIFY_REG(epic->AHB_CTRL,
                    EPIC_AHB_CTRL_DESTINATION_Msk | EPIC_AHB_CTRL_O_FORMAT_Msk,
                    EPIC_AHB_CTRL_DEST_RAM | layer_color_format);
-
+#ifdef EPIC_AHB_CTRL_GREY_ORDER
+        if (IS_SWAPPED_COLOR_MODE(output->color_mode))
+            epic->AHB_CTRL |= EPIC_AHB_CTRL_GREY_ORDER;
+        else
+            epic->AHB_CTRL &= ~EPIC_AHB_CTRL_GREY_ORDER;
+#endif /* EPIC_AHB_CTRL_GREY_ORDER */
         epic->AHB_MEM = (uint32_t)output->data + offset;
         return HAL_OK;
     }
@@ -2122,6 +2037,75 @@ static HAL_StatusTypeDef EPIC_ConfigOutputLayerEx(EPIC_HandleTypeDef *hepic,
         return HAL_EPIC_NOTHING_TO_DO;
     }
 
+}
+
+/**
+ * @brief  Configure output layer
+ *
+ * @param  epic EPIC instance
+ * @param  fg foreground layer configuration
+ * @param  bg background layer configuration
+ * @param  dst output layer configuration
+ *
+ * @retval HAL status
+ */
+static HAL_StatusTypeDef EPIC_ConfigOutputLayer(EPIC_TypeDef *epic,
+        EPIC_BlendingDataType *fg,
+        EPIC_BlendingDataType *bg,
+        EPIC_BlendingDataType *dst)
+{
+    if ((dst->x_offset < 0) || (dst->y_offset < 0))
+    {
+        return HAL_ERROR;
+    }
+
+    if (bg->data != dst->data)
+    {
+        return EPIC_ClipAndSetupOutputLayer(epic, dst, NULL);
+    }
+    else
+    {
+        EPIC_AreaTypeDef intersect_area;
+        if (EPIC_CalcIntersectArea(fg, dst, &intersect_area))
+        {
+            return EPIC_ClipAndSetupOutputLayer(epic, dst, &intersect_area);
+        }
+        else
+        {
+            return HAL_EPIC_NOTHING_TO_DO;
+        }
+    }
+}
+
+
+static HAL_StatusTypeDef EPIC_ConfigOutputLayerEx(EPIC_HandleTypeDef *hepic,
+        EPIC_BlendingDataType *input,
+        uint8_t input_num,
+        EPIC_BlendingDataType *output)
+{
+    if ((output->x_offset < 0) || (output->y_offset < 0))
+    {
+        RETURN_ERROR(hepic, HAL_ERROR);
+    }
+
+    if ((2 == input_num)
+            && (input[0].data == output->data))
+    {
+        EPIC_AreaTypeDef intersect_area;
+
+        if (EPIC_CalcIntersectArea(&input[1], output, &intersect_area))
+        {
+            return EPIC_ClipAndSetupOutputLayer(hepic->Instance, output, &intersect_area);
+        }
+        else
+        {
+            return HAL_EPIC_NOTHING_TO_DO;
+        }
+    }
+    else
+    {
+        return EPIC_ClipAndSetupOutputLayer(hepic->Instance, output, NULL);
+    }
 }
 
 static inline HAL_StatusTypeDef EPIC_ContConfigOutputLayer(EPIC_HandleTypeDef *hepic,
@@ -2936,6 +2920,14 @@ static HAL_StatusTypeDef EPIC_ConfigVideoLayer(EPIC_HandleTypeDef *epic_handle,
     {
         ;//Keep layer width as 0
     }
+
+#ifdef EPIC_VL_FILL_PIXEL_ORDER
+    //Endian and pixel order
+    if (IS_SWAPPED_COLOR_MODE(config->color_mode))
+        Vlayer_x->FILL |= EPIC_VL_FILL_PIXEL_ORDER | EPIC_VL_FILL_ENDIAN;
+    else
+        Vlayer_x->FILL &= ~(EPIC_VL_FILL_PIXEL_ORDER | EPIC_VL_FILL_ENDIAN);
+#endif /* EPIC_VL_FILL_PIXEL_ORDER */
 
 #if defined(EPIC_SUPPORT_YUV)
     if (IS_YUV_COLOR_MODE(config->color_mode))

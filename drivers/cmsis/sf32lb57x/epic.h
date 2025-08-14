@@ -483,6 +483,7 @@ typedef struct
 #define EPIC_L0_CFG_FMT_A4              (5 << EPIC_L0_CFG_FORMAT_Pos)
 #define EPIC_L0_CFG_FMT_L8              (6 << EPIC_L0_CFG_FORMAT_Pos)
 #define EPIC_L0_CFG_FMT_A2              (7 << EPIC_L0_CFG_FORMAT_Pos)
+#define EPIC_L0_CFG_FMT_L4              (8 << EPIC_L0_CFG_FORMAT_Pos)
 #define EPIC_L0_CFG_ALPHA_SEL_Pos       (4U)
 #define EPIC_L0_CFG_ALPHA_SEL_Msk       (0x1UL << EPIC_L0_CFG_ALPHA_SEL_Pos)
 #define EPIC_L0_CFG_ALPHA_SEL           EPIC_L0_CFG_ALPHA_SEL_Msk
@@ -1166,6 +1167,13 @@ typedef struct
 #define EPIC_AHB_CTRL_O_FMT_RGB888      (1 << EPIC_AHB_CTRL_O_FORMAT_Pos)
 #define EPIC_AHB_CTRL_O_FMT_ARGB8888    (2 << EPIC_AHB_CTRL_O_FORMAT_Pos)
 #define EPIC_AHB_CTRL_O_FMT_ARGB8565    (3 << EPIC_AHB_CTRL_O_FORMAT_Pos)
+#define EPIC_AHB_CTRL_O_FMT_A8          (4 << EPIC_AHB_CTRL_O_FORMAT_Pos)
+#define EPIC_AHB_CTRL_O_FMT_GRAY8       (5 << EPIC_AHB_CTRL_O_FORMAT_Pos)
+#define EPIC_AHB_CTRL_O_FMT_GRAY4       (6 << EPIC_AHB_CTRL_O_FORMAT_Pos)
+#define EPIC_AHB_CTRL_O_FMT_GRAY2       (7 << EPIC_AHB_CTRL_O_FORMAT_Pos)
+#define EPIC_AHB_CTRL_O_FMT_F8          (8 << EPIC_AHB_CTRL_O_FORMAT_Pos)
+#define EPIC_AHB_CTRL_O_FMT_F4          (9 << EPIC_AHB_CTRL_O_FORMAT_Pos)
+#define EPIC_AHB_CTRL_O_FMT_F2          (0xA << EPIC_AHB_CTRL_O_FORMAT_Pos)
 #define EPIC_AHB_CTRL_AHB_SEL_Pos       (5U)
 #define EPIC_AHB_CTRL_AHB_SEL_Msk       (0x1UL << EPIC_AHB_CTRL_AHB_SEL_Pos)
 #define EPIC_AHB_CTRL_AHB_SEL           EPIC_AHB_CTRL_AHB_SEL_Msk
