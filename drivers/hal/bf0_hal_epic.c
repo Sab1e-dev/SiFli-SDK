@@ -3864,6 +3864,7 @@ static void EPIC_InitRamInstance(EPIC_HandleTypeDef *hepic)
         hepic->RamInstance->COEF0 = 0x12A19204;
         hepic->RamInstance->COEF1 = 0x000664D0;
 #endif /* EPIC_SUPPORT_YUV */
+        hepic->RamInstance->SETTING |= EPIC_SETTING_AUTO_GATE_EN;
     }
 }
 static void EPIC_WaitValidInstance(EPIC_HandleTypeDef *hepic)
@@ -3967,6 +3968,7 @@ HAL_StatusTypeDef HAL_EPIC_Init(EPIC_HandleTypeDef *epic)
 #ifndef SF32LB55X
     HAL_RCC_EnableModule(RCC_MOD_EPIC);
 #endif /* SF32LB55X */
+    epic->HwInstance->SETTING |= EPIC_SETTING_AUTO_GATE_EN;
     epic->coeng_state = 0;
 
     epic->State = HAL_EPIC_STATE_READY;
