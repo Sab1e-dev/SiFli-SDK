@@ -347,6 +347,8 @@ int rt_hw_flash4_init()
     uint8_t hex[16];
     debug_print("\r\nFLASH4 INIT : ID 0x");
     debug_print((char *)htoa(hex, spi_flash_handle[3].dev_id));
+	  debug_print(" , Size: 0x ");
+	  debug_print((char *)htoa(hex, spi_flash_handle[3].total_size));
     debug_print(" ,res ");
     debug_print((char *)htoa(hex, res));
     debug_print("\r\n");

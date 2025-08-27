@@ -5,6 +5,7 @@
 #include "stdarg.h"
 #include "stdio.h"
 #include "string.h"
+#include "flash_table.h"
 
 
 UART_HandleTypeDef UartHandle;
@@ -153,6 +154,10 @@ static void JLINK_DRV_BSP_PIN_Init(void)
 
 void HAL_MspInit(void)
 {
+    
+    spi_nor_table_init();
+    spi_nand_table_init();
+
     JLINK_DRV_BSP_PIN_Init();
 
     /*##-1- Configure the UART peripheral ######################################*/
