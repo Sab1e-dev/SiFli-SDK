@@ -111,7 +111,8 @@ static void mpu_clear_region(void)
     }
 }
 
-#define DCACH_SIZE 16384
+#define DCACHE_SIZE 16384
+#define ICACHE_SIZE (DCACHE_SIZE<<1)
 
 #ifdef PSRAM_CACHE_WB
 __WEAK int mpu_dcache_clean(void *data, uint32_t size)
@@ -119,7 +120,7 @@ __WEAK int mpu_dcache_clean(void *data, uint32_t size)
     int r = 0;
     if (IS_DCACHED_RAM(data))
     {
-        if (size > DCACH_SIZE)
+        if (size > DCACHE_SIZE)
         {
             SCB_CleanDCache();
             r = 1;
@@ -137,7 +138,7 @@ __WEAK int mpu_dcache_invalidate(void *data, uint32_t size)
     int r = 0;
     if (IS_DCACHED_RAM(data))
     {
-        if (size > DCACH_SIZE)
+        if (size > DCACHE_SIZE)
         {
             SCB_InvalidateDCache();
             r = 1;
@@ -148,6 +149,23 @@ __WEAK int mpu_dcache_invalidate(void *data, uint32_t size)
     return r;
 }
 
+__WEAK int mpu_icache_invalidate(void *data, uint32_t size)
+{
+    int r = 0;
+    if (IS_DCACHED_RAM(data))
+    {
+        if (size > ICACHE_SIZE)
+        {
+            SCB_InvalidateICache();
+            r = 1;
+        }
+        else
+            SCB_InvalidateICache_by_Addr(data, size);
+    }
+    return r;
+}
+
+
 #if defined(SOC_BF0_HCPU)
 __WEAK void mpu_config(void)
 {
@@ -155,8 +173,8 @@ __WEAK void mpu_config(void)
     uint32_t rnr, rbar, rlar;
 
 
-    SCB_InvalidateDCache();
-    SCB_InvalidateICache();
+    SCB_DisableDCache();
+    SCB_DisableICache();
 
     ARM_MPU_Disable();
 
@@ -235,6 +253,9 @@ __WEAK void mpu_config(void)
     ARM_MPU_Enable(MPU_CTRL_HFNMIENA_Msk);
 //#endif
 
+    SCB_EnableDCache();
+    //TODO: need to be enabled if hw fix the cache issue
+    // SCB_EnableICache();
 }
 #else
 __WEAK void mpu_config(void)
@@ -403,8 +424,7 @@ void SystemInit(void)
         }
 #endif
 
-        cache_enable();
-
+        // cache_enable();
     }
 
     SystemPowerOnModeInit();
