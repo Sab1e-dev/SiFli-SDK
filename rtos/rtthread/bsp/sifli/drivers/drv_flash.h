@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_flash.h
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef __DRV_FLASH_H__
@@ -57,7 +18,6 @@ extern "C" {
 #define SPI_NOR_SECT_SIZE             (4096)
 #define SPI_NOR_BLK32_SIZE            (0X8000)
 #define SPI_NOR_BLK64_SIZE            (0X10000)
-
 
 #define FLASH1_ENABLED      (1<<0)
 #define FLASH2_ENABLED      (1<<1)
@@ -76,7 +36,6 @@ typedef enum
     FLASH_CACHE_AUTO,
     FLASH_CACHE_CNT
 } FLASH_CACHE_MODE_T;
-
 
 /**
 * @brief  Init drv_flash module variables
@@ -133,7 +92,6 @@ void rt_flash_lock(uint32_t addr);
  */
 void rt_flash_unlock(uint32_t addr);
 //#endif /* SOC_BF_Z0 */
-
 
 /**
  * @brief get current flash chip index.
@@ -218,7 +176,6 @@ uint32_t rt_flash_get_clk(uint32_t addr);
 
 int rt_flash_get_total_size(uint32_t addr);
 
-
 /**
 * @brief  Set flash to deep power down or wake up, it should not call when XIP.
 * @param addr flash base address.
@@ -260,7 +217,6 @@ int rt_flash_get_pass_id(uint32_t addr);
 * @retval Read uid length, 0 if fail.
 */
 int rt_flash_get_uid(uint32_t addr, uint8_t *uid, uint32_t length);
-
 
 #ifdef BSP_USING_SPI_NAND
 
@@ -472,7 +428,6 @@ rt_err_t rt_flash_config_lock(uint8_t page);
 */
 int rt_flash_get_last_status(uint32_t addr);
 
-
 #ifdef RT_USING_MTD_NOR
 
 /**
@@ -487,7 +442,6 @@ void register_nor_device(uint32_t flash_base, uint32_t offset, uint32_t size, ch
 #else
 #define register_nor_device(flash_base,offset,size,name)
 #endif
-
 
 #ifdef RT_USING_MTD_NAND
 /**
@@ -525,10 +479,9 @@ void register_mtd_dhara_device(uint32_t flash_base, uint32_t offset, uint32_t si
  */
 void register_mtd_device(uint32_t address, uint32_t size, char *name);
 
-
 #ifdef __cplusplus
 }
 #endif
 
 #endif  /* __DRV_FLASH_H__ */
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

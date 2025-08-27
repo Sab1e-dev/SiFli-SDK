@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   main.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2021 - 2021,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2021-2021 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -54,15 +15,27 @@
 #include "ble_connection_manager.h"
 #define LOG_TAG "ble_app"
 #include "log.h"
-
+#include "button.h"
 
 /* Choose one HID type. */
-//#define HID_KEYBOARD
-#define HID_CONSUMER
+#define HID_KEYBOARD
+// #define HID_CONSUMER
 
+#define HIDS_TEST
 /* 24 * 1.25 = 30ms */
 #define BLE_APP_HIGH_PERFORMANCE_INTERVAL (24)
 #define BLE_APP_TIMEOUT_INTERVAL (5000)
+
+typedef struct
+{
+    uint8_t key_code;      // Physical keycode
+    uint8_t hid_code;      // HID keycode
+} key_mapping_t;
+
+static key_mapping_t key_mapping_table[1] =
+{
+    {0x01, 0x04}        // HID keycode for 'a'
+};
 
 typedef struct
 {
@@ -98,7 +71,6 @@ static app_env_t *ble_app_get_env(void);
  * Changing this configuration would require separate implementation of
  * BOOT mode report generation.
  */
-
 
 enum
 {
@@ -141,7 +113,6 @@ static struct hids_report input =
 
 static uint8_t ctrl_point;
 
-
 #ifdef HID_KEYBOARD
 
 /* Number of bytes in key report
@@ -151,8 +122,6 @@ static uint8_t ctrl_point;
  * rest - non-control keys
  */
 
-
-
 #define KEY_CTRL_CODE_MIN 224 /* Control key codes - required 8 of them */
 #define KEY_CTRL_CODE_MAX 231 /* Control key codes - required 8 of them */
 #define KEY_CODE_MIN      0   /* Normal key codes */
@@ -160,7 +129,6 @@ static uint8_t ctrl_point;
 #define KEY_PRESS_MAX     6   /* Maximum number of non-control keys pressed simultaneously*/
 
 #define INPUT_REPORT_KEYS_MAX_LEN (1 + 1 + KEY_PRESS_MAX)
-
 
 static struct keyboard_state
 {
@@ -227,17 +195,14 @@ enum
     HIDS_CTRL_BACK,
 };
 
-
 #define KEY_CODE_MIN      HIDS_CTRL_PLAY   /* Normal key codes */
 #define KEY_CODE_MAX      HIDS_CTRL_BACK /* Normal key codes */
-
 
 /* Report as bit..*/
 static struct consume_key_state
 {
     uint8_t key_state;
 } hid_consume_state;
-
 
 static const uint8_t report_map[] =
 {
@@ -273,7 +238,6 @@ static const uint8_t report_map[] =
 #error "Invalid config"
 #endif
 
-
 /// HID Service Attributes Indexes
 enum
 {
@@ -294,7 +258,6 @@ enum
     HIDS_IDX_CTRL_VAL,
     HDIS_ATT_NB
 };
-
 
 struct attm_desc hids_att_db[] =
 {
@@ -362,7 +325,6 @@ uint8_t *ble_hids_gatts_get_cbk(uint8_t conn_idx, uint8_t idx, uint16_t *len)
     }
     return ret_val;
 }
-
 
 uint8_t ble_hids_gatts_set_cbk(uint8_t conn_idx, sibles_set_cbk_t *para)
 {
@@ -516,15 +478,11 @@ void key_report_send(uint8_t *key_val, uint16_t key_val_len)
         value.len = key_val_len;
         value.value = key_val;
         sibles_write_value(env->conn_idx, &value);
+        LOG_I("key_report_send: sibles_write_value called");
     }
 }
 
-
-
-
-
 /********************** End of HID Application *********************************/
-
 
 SIBLES_ADVERTISING_CONTEXT_DECLAR(g_app_advertising_bg_context);
 
@@ -549,7 +507,6 @@ static uint8_t ble_app_background_advertising_event(uint8_t event, void *context
     }
     return 0;
 }
-
 
 /* Enable advertise via advertising service. */
 static void ble_app_bg_advertising_start(void)
@@ -595,9 +552,6 @@ static void ble_app_bg_advertising_start(void)
     rt_free(para.adv_data.manufacturer_data);
 }
 
-
-
-
 SIBLES_ADVERTISING_CONTEXT_DECLAR(g_app_advertising_context);
 
 static uint8_t ble_app_advertising_event(uint8_t event, void *context, void *data)
@@ -628,7 +582,6 @@ static uint8_t ble_app_advertising_event(uint8_t event, void *context, void *dat
     }
     return 0;
 }
-
 
 #define DEFAULT_LOCAL_NAME "SIFLI_APP"
 /* Enable advertise via advertising service. */
@@ -678,6 +631,20 @@ static void ble_app_advertising_start(void)
         memcpy(para.adv_data.completed_uuid->uuid_list[0].uuid.uuid_16, &uuid_hids, para.adv_data.completed_uuid->uuid_list[0].uuid_len);
     }
 
+    /* Prepare appearance filed .*/
+    para.adv_data.appearance = rt_malloc(2);
+#ifdef HID_KEYBOARD
+    // Keyboard (HID subtype)
+    uint16_t appearance = 961;
+#elif defined(HID_CONSUMER)
+    // Mouse (HID subtype)
+    uint16_t appearance = 962;
+#endif
+    memcpy(para.adv_data.appearance, &appearance, 2);
+
+    // set ad type flag
+    para.adv_data.disc_mode = GAPM_ADV_MODE_GEN_DISC;
+
     /* Prepare manufacturer filed .*/
     para.adv_data.manufacturer_data = rt_malloc(sizeof(sibles_adv_type_manufacturer_data_t) + sizeof(manu_additnal_data));
     para.adv_data.manufacturer_data->company_id = manu_company_id;
@@ -691,19 +658,65 @@ static void ble_app_advertising_start(void)
     {
         sibles_advertising_start(g_app_advertising_context);
     }
-
+    rt_free(para.rsp_data.appearance);
     rt_free(para.rsp_data.completed_name);
     rt_free(para.adv_data.manufacturer_data);
 }
 
+#ifdef HIDS_TEST
 
+    #ifdef HID_KEYBOARD
+        #define HID_KEY_SET(key) hid_kbd_state_key_set(key)
+        #define HID_KEY_CLEAR(key) hid_kbd_state_key_clear(key)
+        #define HID_KEY_SEND() key_report_send((uint8_t *)&hid_keyboard_state, sizeof(hid_keyboard_state))
+    #elif defined(HID_CONSUMER)
+        #define HID_KEY_SET(key) hid_consume_state_key_set_bit(key)
+        #define HID_KEY_CLEAR(key) hid_consume_state_key_clear_bit(key)
+        #define HID_KEY_SEND() key_report_send((uint8_t *)&hid_consume_state, sizeof(hid_consume_state))
+    #endif
+#endif
+#ifdef HID_KEYBOARD
+static void key_button_handler(int32_t pin, button_action_t action)
+{
+    uint8_t hid_code = key_mapping_table[0].hid_code;
+    switch (action)
+    {
+    case BUTTON_PRESSED:
+        HID_KEY_SET(hid_code);
+        HID_KEY_SEND();
+        break;
+    case BUTTON_RELEASED:
+        HID_KEY_CLEAR(hid_code);
+        HID_KEY_SEND();
+        break;
+    default:
+        break;
+    }
+}
+
+static void key_button_init(void)
+{
+    button_cfg_t key_cfg =
+    {
+        .pin = BSP_KEY1_PIN,
+        .mode = PIN_MODE_INPUT_PULLUP,
+        .active_state = BUTTON_ACTIVE_HIGH,
+        .button_handler = key_button_handler,
+    };
+    int key_id = button_init(&key_cfg);
+    if (key_id >= 0)button_enable(key_id);
+
+}
+#endif
 int main(void)
 {
     int count = 0;
     app_env_t *env = ble_app_get_env();
     env->mb_handle = rt_mb_create("app", 8, RT_IPC_FLAG_FIFO);
     sifli_ble_enable();
-
+#ifdef HID_KEYBOARD
+    key_button_init(); // Initialize key button
+#endif
     while (1)
     {
         uint32_t value;
@@ -721,7 +734,6 @@ int main(void)
     }
     return RT_EOK;
 }
-
 
 static void ble_app_update_conn_param(uint8_t conn_idx, uint16_t inv_max, uint16_t inv_min, uint16_t timeout)
 {
@@ -795,19 +807,7 @@ int ble_app_event_handler(uint16_t event_id, uint8_t *data, uint16_t len, uint32
 }
 BLE_EVENT_REGISTER(ble_app_event_handler, NULL);
 
-
-#define HIDS_TEST
 #ifdef HIDS_TEST
-
-#ifdef HID_KEYBOARD
-    #define HID_KEY_SET(key) hid_kbd_state_key_set(key)
-    #define HID_KEY_CLEAR(key) hid_kbd_state_key_clear(key)
-    #define HID_KEY_SEND() key_report_send((uint8_t *)&hid_keyboard_state, sizeof(hid_keyboard_state))
-#elif defined(HID_CONSUMER)
-    #define HID_KEY_SET(key) hid_consume_state_key_set_bit(key)
-    #define HID_KEY_CLEAR(key) hid_consume_state_key_clear_bit(key)
-    #define HID_KEY_SEND() key_report_send((uint8_t *)&hid_consume_state, sizeof(hid_consume_state))
-#endif
 
 static rt_err_t test_hids(int argc, char **argv)
 {
@@ -829,8 +829,4 @@ static rt_err_t test_hids(int argc, char **argv)
 FINSH_FUNCTION_EXPORT(test_hids, Test HIDS);
 MSH_CMD_EXPORT(test_hids, Test HIDS);
 #endif
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

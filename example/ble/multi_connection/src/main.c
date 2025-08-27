@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   main.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2021 - 2021,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2021-2021 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -62,7 +23,6 @@
     #include "time.h"
 #endif
 
-
 #ifdef BSP_BLE_HRPC
     #include "bf0_ble_hrpc.h"
 #endif
@@ -83,7 +43,6 @@ typedef enum
     BLE_APP_UUID_TYPE_DESCRIPTOR,
     BLE_APP_UUID_TYPE_TOTAL
 } ble_app_uuid_display_type_t;
-
 
 #define app_svc_uuid { \
     0x73, 0x69, 0x66, 0x6c, \
@@ -107,7 +66,6 @@ typedef enum
 #define BLE_APP_MAX_CONN_COUNT 8
 #define APP_MAX_DESC 2
 #define BLE_APP_BIT_CONVERT_DIGIT_INC(n, m) (((n & (1 << m)) != 0) * (m+1))
-
 
 typedef struct
 {
@@ -145,8 +103,6 @@ static app_env_t g_app_env;
 static rt_mailbox_t g_app_mb;
 
 static uint8_t g_app_svc[ATT_UUID_128_LEN] = app_svc_uuid;
-
-
 
 struct attm_desc_128 app_att_db[] =
 {
@@ -197,7 +153,6 @@ static const char *const s_ble_app_info_type[] =
     "",
 };
 
-
 static const char *const s_ble_app_uuid_type[BLE_APP_UUID_TYPE_TOTAL] =
 {
     "Service",
@@ -218,19 +173,14 @@ static const char *const s_ble_app_chara_prop[] =
     "Extended_properties",
 };
 
-
 static uint8_t ble_app_get_dev_by_idx(app_env_t *env, uint8_t conn_idx);
-
 
 static app_env_t *ble_app_get_env(void)
 {
     return &g_app_env;
 }
 
-
 static void ble_write_to_remote(void *param);
-
-
 
 SIBLES_ADVERTISING_CONTEXT_DECLAR(g_app_advertising_context);
 
@@ -257,7 +207,6 @@ static uint8_t ble_app_advertising_event(uint8_t event, void *context, void *dat
     }
     return 0;
 }
-
 
 #define DEFAULT_LOCAL_NAME "SIFLI_APP"
 #define EXAMPLE_LOCAL_NAME "SIFLI_EXAMPLE"
@@ -342,7 +291,6 @@ static void update_adv_content()
     rt_free(para.rsp_data.completed_name);
     rt_free(para.adv_data.manufacturer_data);
 }
-
 
 // Hanlde read operation
 uint8_t *ble_app_gatts_get_cbk(uint8_t conn_idx, uint8_t idx, uint16_t *len)
@@ -471,7 +419,6 @@ static void ble_write_to_remote(void *param)
     }
 }
 
-
 static void ble_write_to_remote_master(uint8_t conn_idx, uint16_t handle, uint32_t data_count, uint32_t data_length)
 {
     app_env_t *env = ble_app_get_env();
@@ -492,7 +439,6 @@ static void ble_write_to_remote_master(uint8_t conn_idx, uint16_t handle, uint32
         value.value = (uint8_t *)raw_data;
 
         int8_t ret = sibles_write_remote_value(env->conn[conn_idx].rmt_svc_hdl, env->conn[conn_idx].conn_idx, &value);
-
 
         if (ret == SIBLES_WRITE_NO_ERR)
         {
@@ -527,7 +473,6 @@ static void ble_write_to_remote_master(uint8_t conn_idx, uint16_t handle, uint32
     }
 }
 
-
 static void ble_app_service_init(void)
 {
     app_env_t *env = ble_app_get_env();
@@ -543,7 +488,6 @@ static void ble_app_service_init(void)
     if (env->srv_handle)
         sibles_register_cbk(env->srv_handle, ble_app_gatts_get_cbk, ble_app_gatts_set_cbk);
 }
-
 
 #ifdef ULOG_USING_FILTER
 static void app_log_filter_set(void)
@@ -593,7 +537,6 @@ int main(void)
     return RT_EOK;
 }
 
-
 static void ble_app_update_conn_param(uint8_t conn_idx, uint16_t inv_max, uint16_t inv_min, uint16_t timeout)
 {
     ble_gap_update_conn_param_t conn_para;
@@ -607,10 +550,6 @@ static void ble_app_update_conn_param(uint8_t conn_idx, uint16_t inv_max, uint16
     conn_para.time_out = timeout;
     ble_gap_update_conn_param(&conn_para);
 }
-
-
-
-
 
 static bool ble_app_adv_filter(app_env_t *env, ble_gap_ext_adv_report_ind_t *ind)
 {
@@ -770,7 +709,6 @@ static void ble_app_display_uuid(ble_app_uuid_display_type_t type, uint8_t uuid_
     }
 }
 
-
 static void ble_app_display_service(sibles_svc_remote_svc_t *svc)
 {
     if (svc == NULL || svc->att_db == NULL)
@@ -808,7 +746,6 @@ static void ble_app_display_service(sibles_svc_remote_svc_t *svc)
     }
 
 }
-
 
 int ble_app_gattc_event_handler(uint16_t event_id, uint8_t *data, uint16_t len)
 {
@@ -1009,7 +946,6 @@ int ble_app_event_handler(uint16_t event_id, uint8_t *data, uint16_t len, uint32
 }
 BLE_EVENT_REGISTER(ble_app_event_handler, NULL);
 
-
 static uint8_t ble_app_create_connection(ble_gap_addr_t *peer_addr, uint8_t own_addr_type, uint16_t super_timeout,
         uint16_t conn_itv, uint16_t scan_itv, uint16_t scan_wd)
 {
@@ -1054,10 +990,8 @@ static void write_cccd(uint8_t current_conn_idx, uint16_t write_handle)
     sibles_write_remote_value(env->conn[current_conn_idx].rmt_svc_hdl, env->conn[current_conn_idx].conn_idx, &value);
     LOG_I("current_conn_idx %d, conn_idx %d", current_conn_idx, env->conn[current_conn_idx].conn_idx);
 
-
     free(write_data);
 }
-
 
 static void ble_app_display_command(void)
 {
@@ -1356,10 +1290,7 @@ int cmd_diss(int argc, char *argv[])
     return 0;
 }
 
-
 FINSH_FUNCTION_EXPORT_ALIAS(cmd_diss, __cmd_diss, My device information service.);
-
-
 
 #ifdef BSP_BLE_HRPC
 static const char *body_location[] =
@@ -1373,7 +1304,6 @@ static const char *body_location[] =
     [HR_FOOT] = "FOOT",
 };
 #endif
-
 
 int profile_msg_handler(uint16_t event_id, uint8_t *data, uint16_t len, uint32_t context)
 {
@@ -1701,5 +1631,4 @@ void lcpu_rom_config(void)
     }
 }
 #endif
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_common.c
-  * @author Sifli software development team
-  * @brief Common functions for BSP driver
-  * @{
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "rtthread.h"
@@ -82,9 +41,6 @@
     #include "drv_mailbox.h"
 #endif
 
-
-
-
 #if defined(BSP_USING_PSRAM) && defined(RT_USING_MEMHEAP_AS_HEAP)
     static struct rt_memheap _psram_heap;
 #endif
@@ -104,7 +60,6 @@
     #endif /* SOC_BF0_HCPU */
     static rt_device_t hal_delay_us_timer;
 #endif /* BSP_PM_FREQ_SCALING && !SYSTICK_HIGH_PRICISION_FIXED_CLK_SUPPORT */
-
 
 #ifdef RT_USING_BT
     #include "drv_bt.h"
@@ -137,7 +92,6 @@
     #endif
 
 #endif // SF32LB55X
-
 
 #ifdef RT_HAL_DEBUG
 void HAL_DBG_printf(const char *fmt, ...)
@@ -262,8 +216,6 @@ void SysTick_Handler(void)
 #endif /* RT_USING_PIN */
     }
 #endif
-
-
 
 #ifdef RT_USING_PIN
     drv_pin_check();
@@ -413,7 +365,6 @@ uint32_t HAL_GetTick(void)
     return t_in_ms;
 }
 
-
 void HAL_SuspendTick(void)
 {
 }
@@ -431,14 +382,12 @@ void HAL_Delay(__IO uint32_t Delay)
     }
 }
 
-
 /* re-implement tick interface for BF0 HAL */
 HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority)
 {
     /* Return function status */
     return HAL_OK;
 }
-
 
 #ifndef LXT_FREQ
     #define LXT_FREQ 32768
@@ -471,7 +420,6 @@ __HAL_ROM_USED float HAL_LPTIM_GetFreq()
         return LXT_FREQ;
     }
 }
-
 
 /**
   * @brief  This function is executed in case of error occurrence.
@@ -518,9 +466,6 @@ int8_t bt_rf_get_init_tx_pwr(void)
 #endif
     return pwr;
 }
-
-
-
 
 /**
  * @brief This function will delay for some us.
@@ -594,7 +539,6 @@ __ROM_USED void drv_get_hpsys_clk(hpsys_clk_setting_t *clk_setting)
     clk_setting->pclk1 = HAL_RCC_GetPCLKFreq(CORE_ID_HCPU, 1);
     clk_setting->pclk2 = HAL_RCC_GetPCLKFreq(CORE_ID_HCPU, 0);
 
-
 }
 __ROM_USED void drv_get_lpsys_clk(lpsys_clk_setting_t *clk_setting)
 {
@@ -608,7 +552,6 @@ __ROM_USED void drv_get_lpsys_clk(lpsys_clk_setting_t *clk_setting)
     clk_setting->hclk = HAL_RCC_GetHCLKFreq(CORE_ID_LCPU);
     clk_setting->pclk1 = HAL_RCC_GetPCLKFreq(CORE_ID_LCPU, 1);
     clk_setting->pclk2 = HAL_RCC_GetPCLKFreq(CORE_ID_LCPU, 0);
-
 
 #ifdef SF32LB52X
     HAL_HPAON_CANCEL_LP_ACTIVE_REQUEST();
@@ -712,12 +655,10 @@ RT_WEAK void rt_hw_board_init()
     }
 #endif
 
-
     /* Heap initialization */
 #if defined(RT_USING_HEAP)
     rt_system_heap_init((void *)HEAP_BEGIN, (void *)HEAP_END);
 #endif
-
 
     /* Pin driver initialization is open by default */
 #ifdef RT_USING_PIN
@@ -752,10 +693,10 @@ RT_WEAK void rt_hw_board_init()
     rt_console_set_device(RT_CONSOLE_DEVICE_NAME);
 #endif
 
-
 #ifdef SOC_BF0_HCPU
     rt_kprintf("Serial:%x,Chip:%x,Package:%x,Rev:%x  Reason:%08x\r\n",
                __HAL_SYSCFG_GET_SID(), __HAL_SYSCFG_GET_CID(), __HAL_SYSCFG_GET_PID(), __HAL_SYSCFG_GET_REVID(), HAL_PMU_GET_WSR());
+    __HAL_SYSCFG_CHECK_REVID();
 
 #ifdef RT_USING_PM
     rt_kprintf("Serial PowerOnMOde:%d rtc_record:%08x\n", SystemPowerOnModeGet(), HAL_Get_backup(RTC_BACKUP_MODULE_RECORD));
@@ -767,7 +708,6 @@ RT_WEAK void rt_hw_board_init()
 //    extern int rt_sys_spi_flash_init(void);
     //rt_sys_spi_flash_init();
 //#endif
-
 
     /* Board underlying hardware initialization */
 #ifdef RT_USING_COMPONENTS_INIT
@@ -1031,7 +971,6 @@ void HAL_RCC_MspInit(void)
     HAL_RCC_DisableModule(RCC_MOD_USART3);
 #endif /* BSP_USING_UART3 */
 
-
 #ifndef BSP_USING_SPI1
     HAL_RCC_DisableModule(RCC_MOD_SPI1);
 #endif /* !BSP_USING_SPI1 */
@@ -1205,7 +1144,6 @@ void HAL_RCC_MspInit(void)
 }
 #endif /* SF32LB58X */
 
-
 #ifdef SF32LB56X
 void HAL_RCC_MspInit(void)
 {
@@ -1220,7 +1158,6 @@ void HAL_RCC_MspInit(void)
 #ifndef BSP_USING_UART3
     HAL_RCC_DisableModule(RCC_MOD_USART3);
 #endif /* BSP_USING_UART3 */
-
 
 #ifndef BSP_USING_SPI1
     HAL_RCC_DisableModule(RCC_MOD_SPI1);
@@ -1373,7 +1310,6 @@ void HAL_RCC_MspInit(void)
 }
 #endif /* SF32LB56X */
 
-
 #ifdef SF32LB52X
 void HAL_RCC_MspInit(void)
 {
@@ -1385,7 +1321,6 @@ void HAL_RCC_MspInit(void)
 #ifndef BSP_USING_UART3
     HAL_RCC_DisableModule(RCC_MOD_USART3);
 #endif /* BSP_USING_UART3 */
-
 
 #ifndef BSP_USING_SPI1
     HAL_RCC_DisableModule(RCC_MOD_SPI1);
@@ -1466,4 +1401,3 @@ void HAL_RCC_MspInit(void)
 /// @} bsp_driver
 /// @} file
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

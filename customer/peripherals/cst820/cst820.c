@@ -18,24 +18,15 @@
 #define LOG_TAG              "drv.cst820"
 #include <drv_log.h>
 
-
-
-
-
 #define TOUCH_SLAVE_ADDRESS             (0x15)
 
 #define TOUCH_CHIP_ID_CST820           (0xB5)
-
 
 /*register address*/
 #define FTS_REG_CHIP_ID                 0xA7
 #define FTS_REG_MODE_DEEP_SLEEP         0xD105
 #define FTS_REG_MODE_NORMOL             0xD109
 #define FTS_REG_GET_POSI                0xD000
-
-
-
-
 
 /* function and value-----------------------------------------------------------*/
 #define CST820_USE_DMA_RW //Enable I2C DMA read/write
@@ -96,9 +87,6 @@ rt_err_t cst820_i2c_read_reg8(uint8_t reg, uint8_t *p_data, uint8_t len)
 
 }
 
-
-
-
 rt_size_t cst820_i2c_read(uint8_t device_addr, const uint16_t reg, uint8_t *p_data, uint16_t len)
 {
     rt_size_t res;
@@ -107,8 +95,6 @@ rt_size_t cst820_i2c_read(uint8_t device_addr, const uint16_t reg, uint8_t *p_da
 
     return res;
 }
-
-
 
 void cst820_irq_handler(void *arg)
 {
@@ -192,10 +178,8 @@ static rt_err_t init(void)
     */
     LOG_I("cst820 probe OK");
 
-
     rt_touch_irq_pin_attach(PIN_IRQ_MODE_FALLING, cst820_irq_handler, NULL);
     rt_touch_irq_pin_enable(1);     //Must enable before read I2C
-
 
     LOG_D("cst820 init OK");
     return RT_EOK;
@@ -250,14 +234,12 @@ static rt_bool_t probe(void)
     return RT_TRUE;
 }
 
-
 static struct touch_ops ops =
 {
     read_point,
     init,
     deinit
 };
-
 
 static int rt_cst820_init(void)
 {
@@ -271,6 +253,4 @@ static int rt_cst820_init(void)
     return 0;
 }
 INIT_COMPONENT_EXPORT(rt_cst820_init);
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

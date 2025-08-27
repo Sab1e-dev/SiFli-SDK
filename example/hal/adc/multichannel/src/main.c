@@ -347,5 +347,3 @@ int main(void)
     return 0;
 }
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
-

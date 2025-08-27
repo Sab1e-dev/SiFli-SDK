@@ -56,29 +56,22 @@
 #define REG_RASET              0x2B
 #define REG_PART_CASET         0x30
 #define REG_PART_RASET         0x31
-#define REG_VSCRDEF            0x33 /* Vertical Scroll Definition */
-#define REG_VSCSAD             0x37 /* Vertical Scroll Start Address of RAM */
-#define REG_TEARING_EFFECT     0x35
-#define REG_NORMAL_DISPLAY     0x36
+#define REG_TEARING_EFFECT_OFF 0x34
+#define REG_TEARING_EFFECT_ON  0x35
+#define REG_MADCTL             0x36
 #define REG_IDLE_MODE_OFF      0x38
 #define REG_IDLE_MODE_ON       0x39
 #define REG_COLOR_MODE         0x3A
 #define REG_CONTINUE_WRITE_RAM 0x3C
 #define REG_WBRIGHT            0x51 /* Write brightness*/
-#define REG_RBRIGHT            0x53 /* Read brightness*/
-#define REG_PORCH_CTRL         0xB2
-#define REG_FRAME_CTRL         0xB3
-#define REG_GATE_CTRL          0xB7
-#define REG_VCOM_SET           0xBB
-#define REG_LCM_CTRL           0xC0
-#define REG_SET_TIME_SRC       0xC2
-#define REG_SET_DISP_MODE      0xC4
-#define REG_VCOMH_OFFSET_SET   0xC5
-#define REG_FR_CTRL            0xC6
-#define REG_POWER_CTRL         0xD0
-#define REG_PV_GAMMA_CTRL      0xE0
-#define REG_NV_GAMMA_CTRL      0xE1
-#define REG_SPI2EN             0xE7
+#define REG_RBRIGHT            0x52 /* Read brightness*/
+#define REG_WRITE_CTRL_DISPLAY 0x53
+#define REG_WRHBMDISBV         0x63
+#define REG_SET_DISPLAY_MODE   0xC2
+#define REG_SET_SPI_MODE       0xC4
+#define REG_PASSWD1            0xF4
+#define REG_PASSWD2            0xF5
+#define REG_CMD_PAGE_SWITCH    0xFE
 
 #define ROW_OFFSET  (0x00)
 #define COL_OFFSET  (0x00)
@@ -208,50 +201,50 @@ static void LCD_Drv_Init(LCDC_HandleTypeDef *hlcdc)
     //     return;
     // }
     parameter[0] = 0x20;
-    LCD_WriteReg(hlcdc, 0xFE, parameter, 1); //Pass word unlock
+    LCD_WriteReg(hlcdc, REG_CMD_PAGE_SWITCH, parameter, 1); //Pass word unlock
     parameter[0] = 0x5A;
-    LCD_WriteReg(hlcdc, 0xF4, parameter, 1);
+    LCD_WriteReg(hlcdc, REG_PASSWD1, parameter, 1);
     parameter[0] = 0x59;
-    LCD_WriteReg(hlcdc, 0xF5, parameter, 1);
+    LCD_WriteReg(hlcdc, REG_PASSWD2, parameter, 1);
 
     parameter[0] = 0x20;
-    LCD_WriteReg(hlcdc, 0xFE, parameter, 1); //Pass word lock
+    LCD_WriteReg(hlcdc, REG_CMD_PAGE_SWITCH, parameter, 1); //Pass word lock
     parameter[0] = 0xA5;
-    LCD_WriteReg(hlcdc, 0xF4, parameter, 1);
+    LCD_WriteReg(hlcdc, REG_PASSWD1, parameter, 1);
     parameter[0] = 0xA5;
-    LCD_WriteReg(hlcdc, 0xF5, parameter, 1);
+    LCD_WriteReg(hlcdc, REG_PASSWD2, parameter, 1);
 
     parameter[0] = 0x00;
-    LCD_WriteReg(hlcdc, 0xFE, parameter, 1);
+    LCD_WriteReg(hlcdc, REG_CMD_PAGE_SWITCH, parameter, 1);
     parameter[0] = 0x80;
-    LCD_WriteReg(hlcdc, 0xC4, parameter, 1);
+    LCD_WriteReg(hlcdc, REG_SET_SPI_MODE, parameter, 1);
     parameter[0] = 0x55;
-    LCD_WriteReg(hlcdc, 0x3A, parameter, 1);
+    LCD_WriteReg(hlcdc, REG_COLOR_MODE, parameter, 1);
     parameter[0] = 0x00;
-    LCD_WriteReg(hlcdc, 0x35, parameter, 1);
+    LCD_WriteReg(hlcdc, REG_TEARING_EFFECT_ON, parameter, 1);
     parameter[0] = 0x20;
-    LCD_WriteReg(hlcdc, 0x53, parameter, 1);
+    LCD_WriteReg(hlcdc, REG_WRITE_CTRL_DISPLAY, parameter, 1);
     //parameter[0] = 0x10;
-    //ICNA3310_WriteReg(hlcdc, 0x51, parameter, 1);
+    //ICNA3310_WriteReg(hlcdc, REG_WBRIGHT, parameter, 1);
 
     parameter[0] = 0xff;
-    LCD_WriteReg(hlcdc, 0x63, parameter, 1);
+    LCD_WriteReg(hlcdc, REG_WRHBMDISBV, parameter, 1);
 
     parameter[0] = (COL_OFFSET >> 8) & 0xFF;
     parameter[1] = COL_OFFSET & 0xFF;
     parameter[2] = ((REG_LCD_PIXEL_WIDTH + COL_OFFSET - 1) >> 8) & 0xFF;
     parameter[3] = (REG_LCD_PIXEL_WIDTH + COL_OFFSET - 1) & 0xFF;
-    LCD_WriteReg(hlcdc, 0x2A, parameter, 4);
+    LCD_WriteReg(hlcdc, REG_CASET, parameter, 4);
     parameter[0] = (ROW_OFFSET >> 8) & 0xFF;
     parameter[1] = ROW_OFFSET & 0xFF;
     parameter[2] = ((REG_LCD_PIXEL_HEIGHT + ROW_OFFSET - 1) >> 8) & 0xFF;
     parameter[3] = (REG_LCD_PIXEL_HEIGHT + ROW_OFFSET - 1) & 0xFF;
-    LCD_WriteReg(hlcdc, 0x2B, parameter, 4);
+    LCD_WriteReg(hlcdc, REG_RASET, parameter, 4);
 
-    LCD_WriteReg(hlcdc, 0x11, (uint8_t *)NULL, 0);
+    LCD_WriteReg(hlcdc, REG_SLEEP_OUT, (uint8_t *)NULL, 0);
     //sleep out+display on
     rt_thread_delay(120);
-    LCD_WriteReg(hlcdc, 0x29, (uint8_t *)NULL, 0);
+    LCD_WriteReg(hlcdc, REG_DISPLAY_ON, (uint8_t *)NULL, 0);
     rt_thread_delay(70);
 
 

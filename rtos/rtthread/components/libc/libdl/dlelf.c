@@ -181,7 +181,7 @@ rt_err_t dlmodule_load_shared_object(struct rt_dlmodule *module, void *module_pt
         }
         if (DL_OPEN == module_mode)
         {
-            rt_kprintf("dlmodule_load_shared_object: invalid %s, %p, %d", module->parent.name, module->mem_space, module_size);
+            rt_kprintf("dlmodule_load_shared_object: invalid %s, %p, %d\n", module->parent.name, module->mem_space, module_size);
             dlm_cache_invalid(module->mem_space, module_size);
         }
         module->exec_mem_space = module->mem_space;
@@ -351,7 +351,7 @@ rt_err_t dlmodule_load_shared_object(struct rt_dlmodule *module, void *module_pt
 
     if (DL_OPEN == module_mode)
     {
-        rt_kprintf("dlmodule_load_shared_object: clean %s, %p, %d", module->parent.name, module->mem_space, module_size);
+        rt_kprintf("dlmodule_load_shared_object: clean %s, %p, %d\n", module->parent.name, module->mem_space, module_size);
         dlm_cache_clean(module->mem_space, module_size);
     }
 

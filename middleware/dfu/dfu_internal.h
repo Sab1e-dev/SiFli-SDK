@@ -1,51 +1,12 @@
-/**
-  ******************************************************************************
-  * @file   dfu_internal.h
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2021 - 2021,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2021-2021 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
-
 
 #ifndef __DFU_INTERNAL_H
 #define __DFU_INTERNAL_H
+
 
 #include "rtthread.h"
 #include <stdio.h>
@@ -54,6 +15,11 @@
 #include "dfu_service.h"
 #include "data_service.h"
 #include "mem_section.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define DFU_DB "SIF_DFU"
 #define DFU_DB_PARTIAL "dfu"
@@ -94,9 +60,6 @@
 #define DFU_PROTOCOL_PKT_BUFF_ALLOC(msg_id, msg_struct) \
     (msg_struct *)dfu_protocol_packet_buffer_alloc(msg_id, sizeof(msg_struct));
 
-
-
-
 #ifdef BSP_USING_PSRAM
     #define DFU_NON_RET_SECT_BEGIN L2_CACHE_RET_BSS_SECT_BEGIN(kvdb)
     #define DFU_NON_RET_SECT_END   L2_CACHE_RET_BSS_SECT_END
@@ -104,12 +67,6 @@
     #define DFU_NON_RET_SECT_BEGIN L1_NON_RET_BSS_SECT_BEGIN(dfu_not)
     #define DFU_NON_RET_SECT_END   L1_NON_RET_BSS_SECT_END
 #endif
-
-
-
-
-
-
 
 #ifdef HCPU_PATCH_BURN_ADDR
     #define DFU_NAND_PATCH_DOWNLOAD_ADDR HCPU_PATCH_BURN_ADDR
@@ -120,13 +77,24 @@
     #define DFU_NAND_HCPU_BACK_UP_SIZE HCPU_FLASH_CODE_Y_SIZE
     #define DFU_NAND_PATCH_DOWNLOAD_SIZE HCPU_PATCH_SIZE
 #else
-    #define DFU_NAND_PATCH_DOWNLOAD_ADDR 0
-    #define DFU_NAND_HCPU_FIRST_ADDR 0x14000000
-    #define DFU_NAND_HCPU_BACK_UP_ADDR 0x14200000
 
-    #define DFU_NAND_HCPU_DOWNLOAD_SIZE 0x200000
-    #define DFU_NAND_HCPU_BACK_UP_SIZE 0x200000
-    #define DFU_NAND_PATCH_DOWNLOAD_SIZE 0
+    #ifdef HCPU_FLASH_CODE_LOAD_REGION_START_ADDR
+        #define DFU_NAND_PATCH_DOWNLOAD_ADDR 0
+        #define DFU_NAND_HCPU_FIRST_ADDR HCPU_FLASH_CODE_LOAD_REGION_START_ADDR
+        #define DFU_NAND_HCPU_BACK_UP_ADDR HCPU_FLASH_CODE_LOAD_REGION2_START_ADDR
+
+        #define DFU_NAND_HCPU_DOWNLOAD_SIZE HCPU_FLASH_CODE_LOAD_REGION_SIZE
+        #define DFU_NAND_HCPU_BACK_UP_SIZE HCPU_FLASH_CODE_LOAD_REGION2_SIZE
+        #define DFU_NAND_PATCH_DOWNLOAD_SIZE 0
+    #else
+        #define DFU_NAND_PATCH_DOWNLOAD_ADDR 0
+        #define DFU_NAND_HCPU_FIRST_ADDR 0x14000000
+        #define DFU_NAND_HCPU_BACK_UP_ADDR 0x14200000
+
+        #define DFU_NAND_HCPU_DOWNLOAD_SIZE 0x200000
+        #define DFU_NAND_HCPU_BACK_UP_SIZE 0x200000
+        #define DFU_NAND_PATCH_DOWNLOAD_SIZE 0
+    #endif
 #endif
 
 // 32K for lcpu rom patch download
@@ -134,12 +102,10 @@
 #define DFU_LCPU_DOWNLOAD_ADDR DFU_NAND_PATCH_DOWNLOAD_ADDR + DFU_LCPU_PATCH_DOWNLOAD_SIZE
 #define DFU_LCPU_PATCH_DOWNLOAD_ADDR DFU_NAND_PATCH_DOWNLOAD_ADDR
 
-
 // change size later
 #define APP_L2_CACHE_RET_OTA_SECT_BEGIN(section_name)        L2_CACHE_RET_OTA_SECT_BEGIN(section_name)
 /** L2 cachable retained bss section end*/
 #define APP_L2_CACHE_RET_OTA_SECT_END                        L2_CACHE_RET_OTA_SECT_END
-
 
 /** L2 cachable retained bss section begin*/
 #define L2_CACHE_RET_OTA_SECT_BEGIN(section_name)        SECTION_ZIDATA_BEGIN(section_name)
@@ -272,13 +238,11 @@ typedef enum
     if (!x) \
         return;
 
-
 struct img_header_compress_info
 {
     uint32_t    total_len;
     uint32_t    pksize;
 };
-
 
 typedef struct
 {
@@ -297,7 +261,6 @@ typedef struct
 {
     uint32_t curr_img_length;
 } dfu_install_img_info_t;
-
 
 typedef struct
 {
@@ -340,7 +303,6 @@ typedef struct
     dfu_image_header_int_t img_header[DFU_USER_BIN_UPGRADE_BIN_SIZE];
     dfu_img_info_t curr_img_info;
 } dfu_dl_ota_image_header_t;
-
 
 typedef struct
 {
@@ -458,7 +420,6 @@ typedef struct
     } fw_context;
 } dfu_download_progress_ext_t;
 
-
 typedef struct
 {
     // @ dfu_ota_state
@@ -542,14 +503,6 @@ typedef struct
     uint32_t old_pos;
     uint32_t new_pos;
 
-
-
-
-
-
-
-
-
     // record download information
     uint8_t using_patch;
     uint32_t download_addr;
@@ -569,7 +522,6 @@ typedef struct
     // uint32_t diff_buf_used_len;
     // uint32_t diff_buf_pos;
 
-
     // uint32_t extra_addr;
     // uint32_t extra_count;
     // uint32_t *extra_size;
@@ -578,7 +530,6 @@ typedef struct
     // uint32_t extra_buf_total_len;
     // uint32_t extra_buf_used_len;
     // uint32_t extra_buf_pos;
-
 
     // // record image's flash addr has read
     // uint32_t image_addr;
@@ -594,7 +545,6 @@ typedef struct
     // uint32_t old_size;
     // uint32_t new_size;
 
-
     // uint32_t erase_start_pos;
     // uint32_t erase_buf_pos;
     // uint32_t erase_len;
@@ -602,7 +552,6 @@ typedef struct
     //uint32_t old_size
     //uint32_t dest_len;
 } dfu_patch_state_t;
-
 
 typedef struct
 {
@@ -670,7 +619,6 @@ typedef struct
     uint32_t size;
 } flash_write_t;
 
-
 typedef struct
 {
     uint8_t msg_type;
@@ -679,7 +627,6 @@ typedef struct
     uint32_t size;
     uint8_t data[2048];
 } flash_write_package_t;
-
 
 typedef struct
 {
@@ -705,7 +652,6 @@ typedef struct
     uint8_t image_info[0];
 } dfu_package_install_packet_t;
 
-
 typedef struct
 {
     uint8_t id;
@@ -720,7 +666,6 @@ typedef struct
     uint32_t offset;
     uint32_t len;
 } dfu_package_image_info_t;
-
 
 int dfu_packet_erase_flash(dfu_image_header_int_t *header, uint32_t offset, uint32_t size);
 
@@ -747,10 +692,8 @@ dfu_image_header_int_t *dfu_img_get_img_header_by_img_id(dfu_ctrl_env_t *env, ui
 dfu_image_header_int_t *dfu_img_get_img_header_by_img_id_ext(dfu_ctrl_ext_env_t *env, uint8_t img_id);
 dfu_image_header_int_t *dfu_img_get_img_header_by_img_id_ota_only(dfu_ctrl_env_t *env, uint8_t img_id);
 
-
 void dfu_update_img_header(dfu_ctrl_env_t *env);
 void dfu_update_img_header_ext(dfu_ctrl_ext_env_t *env);
-
 
 int8_t dfu_ctrl_ctrl_header_sig_verify(dfu_ctrl_env_t *env, uint8_t *packet, uint16_t total_len, uint8_t *sig);
 int8_t dfu_ctrl_ctrl_header_sig_verify_ext(uint8_t *packet, uint16_t total_len, uint8_t *sig);
@@ -762,7 +705,6 @@ uint8_t dfu_img_verification_ext(dfu_ctrl_ext_env_t *env);
 
 uint8_t *dfu_dec_verify(uint8_t *key, uint32_t offset,
                         uint8_t *in_data, uint8_t *out_data, int size, uint8_t *hash);
-
 
 int8_t dfu_integrate_verify(uint8_t *in_data, int size, uint8_t *hash);
 
@@ -818,7 +760,6 @@ int dfu_flash_read(uint32_t addr, uint8_t *data, int size);
 
 int dfu_flash_write(uint32_t addr, uint8_t *data, int size);
 int dfu_flash_erase(uint32_t dest, uint32_t size);
-
 
 int dfu_get_version(uint8_t *version, uint8_t size);
 
@@ -883,6 +824,8 @@ uint32_t dfu_get_download_addr_by_imgid(uint8_t img_id, uint8_t flag);
 
 uint32_t crc32_update(uint32_t crc, const uint8_t *data, size_t len);
 
+#ifdef __cplusplus
+}
+#endif
 #endif //__DFU_INTERNAL_H
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

@@ -1,6 +1,7 @@
 #ifndef GUI_APP_FWK2_H
 #define GUI_APP_FWK2_H
 
+
 #include "intent.h"
 
 /**
@@ -15,12 +16,17 @@
 * @{
 */
 
-/************************ Application framework *******************************************************/
 /**
     @brief Page state notification messages
 
     Messages be send to page's msg handler by firmware while page's state changed
 */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/************************ Application framework *******************************************************/
 typedef enum
 {
     /**
@@ -239,5 +245,8 @@ int gui_app_fwk_resume(void);
   * @} gui_app_fwk
   */
 
+#ifdef __cplusplus
+}
+#endif
 #endif
 

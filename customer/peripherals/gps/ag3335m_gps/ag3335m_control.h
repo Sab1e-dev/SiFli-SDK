@@ -3,7 +3,13 @@
  *********************/
 #ifndef _AT_AG3335M_CONTROL_H
 #define _AT_AG3335M_CONTROL_H
+
 #include "rtdevice.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define GPS_MAX_CMD_BUFF_LEN  (352)
 
@@ -23,4 +29,7 @@ void ag3335m_set_cmd_table(at_client_t client);
 
 void ag3335m_send_ex(char *cmd_buf);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* _AT_AG3335M_CONTROL_H */

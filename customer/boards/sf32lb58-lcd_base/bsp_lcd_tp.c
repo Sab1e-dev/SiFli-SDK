@@ -25,7 +25,7 @@ void BSP_LCD_PowerDown(void)
 
 void BSP_LCD_PowerUp(void)
 {
-
+    BSP_LCD_Reset(1);
 }
 
 void BSP_TP_PowerUp(void)

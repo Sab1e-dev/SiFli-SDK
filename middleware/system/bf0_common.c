@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   bf0_mbox_common.c
-  * @author Sifli software development team
-  * @brief
- * @{
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -71,7 +30,6 @@
 
 #define LOG_TAG      "mw.sys"
 #include "log.h"
-
 
 #ifdef SOC_BF0_HCPU
     #define SYS_HL_IPC_QUEUE  (1)
@@ -120,7 +78,6 @@ typedef struct
     struct rt_device_graphic_info lcd_info;
 } clk_setting_t;
 
-
 #ifdef USING_IPC_QUEUE
     #ifdef SOC_BF0_HCPU
         static ipc_queue_handle_t sys_hl_ipc_queue = IPC_QUEUE_INVALID_HANDLE;
@@ -136,7 +93,6 @@ typedef struct
         #endif /* RT_DEBUG && SF32LB55X */
     #endif /* SOC_BF0_LCPU */
 #endif /* USING_IPC_QUEUE */
-
 
 /** @addtogroup mailbox library
  * @ingroup middleware
@@ -199,7 +155,6 @@ ipc_queue_handle_t sys_get_lh_ipc_queue(void)
 #endif // SOC_BF0_HCPU
 #endif // USING_IPC_QUEUE
 
-
 /* Trigger peer core assert. */
 #ifdef RT_DEBUG
 #if defined(SF32LB55X) && defined(USING_IPC_QUEUE)
@@ -259,7 +214,6 @@ static void assert_hook_rom(const char *ex, const char *func, rt_size_t line)
 {
     rt_assert_handler(ex, func, line);
 }
-
 
 rt_err_t exception_handler(void *context)
 {
@@ -384,7 +338,6 @@ void adc_resume(void)
 }
 #endif
 
-
 #define HUMAN_FORMAT "%.2f%c"
 static void print_clk_str(char *buf,  size_t buf_len, const char *format, uint32_t freq)
 {
@@ -438,7 +391,6 @@ static void print_clk_str(char *buf,  size_t buf_len, const char *format, uint32
         } \
     }while(0)
 
-
 /**
  * @brief
  * @param buf - print to console if NULL
@@ -449,7 +401,6 @@ __ROM_USED void print_sysinfo(char *buf, uint32_t buf_len)
     rt_device_t device;
     rt_err_t err;
     clk_setting_t clk_setting;
-
 
     drv_get_hpsys_clk(&clk_setting.hpsys_clk);
     drv_get_lpsys_clk(&clk_setting.lpsys_clk);
@@ -520,7 +471,6 @@ __ROM_USED void print_sysinfo(char *buf, uint32_t buf_len)
 #endif /* BSP_USING_PSRAM5 */
 #endif /* BSP_ENABLE_MPI5 */
 
-
 #endif  /* SF32LB55X */
 
     device = rt_device_find("lcd");
@@ -545,16 +495,13 @@ __ROM_USED void print_sysinfo(char *buf, uint32_t buf_len)
     print_clk_str(buf, buf_len,   "PCLK1: "HUMAN_FORMAT"Hz\n", clk_setting.hpsys_clk.pclk1);
     print_clk_str(buf, buf_len,   "PCLK2: "HUMAN_FORMAT"Hz\n", clk_setting.hpsys_clk.pclk2);
 
-
     print_clk_str(buf, buf_len,   "\nLPSYS\nSYSCLK: "HUMAN_FORMAT"Hz\n", clk_setting.lpsys_clk.sysclk);
     print_clk_str(buf, buf_len,   "HCLK: "HUMAN_FORMAT"Hz\n", clk_setting.lpsys_clk.hclk);
     print_clk_str(buf, buf_len,   "PCLK1: "HUMAN_FORMAT"Hz\n", clk_setting.lpsys_clk.pclk1);
     print_clk_str(buf, buf_len,   "PCLK2: "HUMAN_FORMAT"Hz\n", clk_setting.lpsys_clk.pclk2);
 
-
     print_clk_str(buf, buf_len,   "\nBLESYS\nSYSCLK: "HUMAN_FORMAT"Hz\n", clk_setting.blesys_clk.sysclk);
     print_clk_str(buf, buf_len,   "HCLK: "HUMAN_FORMAT"Hz\n", clk_setting.blesys_clk.hclk);
-
 
 #ifdef SF32LB55X
 #if  ((defined BSP_USING_FLASH)||(defined BSP_USING_SPI_FLASH))
@@ -591,9 +538,7 @@ __ROM_USED void print_sysinfo(char *buf, uint32_t buf_len)
     print_clk_str(buf, buf_len,   "MPI5: "HUMAN_FORMAT"Hz\n", clk_setting.mpi5_clk);
 #endif /* BSP_ENABLE_MPI5 */
 
-
 #endif /* SF32LB55X */
-
 
     /*********print LCD info ***********/
     print_clk_str(buf, buf_len,  "\nLCD\nBandwidth: "HUMAN_FORMAT"bps\n", clk_setting.lcd_info.bandwidth);
@@ -801,8 +746,6 @@ void *sifli_memcpy(void *dst, const void *src, rt_ubase_t count)
 #undef EDMA_MAX_SIZE
 }
 
-
-
 HAL_RAM_RET_CODE_SECT(sifli_record_module,  void sifli_record_module(uint16_t module))
 {
 #if defined(SOC_BF0_HCPU) && defined(USING_MODULE_RECORD)
@@ -874,7 +817,6 @@ void sifli_record_clear(void)
     return;
 }
 
-
 #if defined(FINSH_USING_MSH)
 static char *cmd_line(int argc, char **argv)
 {
@@ -940,7 +882,6 @@ __ROM_USED int lcpu(int argc, char **argv)
 }
 MSH_CMD_EXPORT(lcpu, forward lcpu command);
 
-
 #endif
 
 __ROM_USED int sysinfo(int argc, char **argv)
@@ -955,11 +896,7 @@ MSH_CMD_EXPORT(sysinfo, Show system information);
 
 #endif
 
-
 #endif
-
 
 /** @} */
 
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

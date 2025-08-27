@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include "register.h"
 #include "ad9361.h"
@@ -2734,4 +2739,3 @@ void bt_rf_cal_9364(void)
     ad9364_bt_cfg();
 
 }
-

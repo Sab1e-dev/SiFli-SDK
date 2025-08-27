@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   sifli_cmsis_dsp.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "rtthread.h"
@@ -63,7 +24,6 @@ void arm_dsp_facc_init(void)
 #endif
     HAL_FACC_Init(&hfacc);
 }
-
 
 static void arm_conv_facc(
     uint8_t *pSrcA,
@@ -119,7 +79,6 @@ static void arm_conv_facc(
     if (HAL_FACC_SetConvKernel(&hfacc, (uint8_t *)pSrcB, srcBLen) != HAL_OK)
         goto __EXIT;
 
-
     while (srcALen > FACC_MAX_BLOCK_SIZE)
     {
         if (HAL_FACC_Config(&hfacc, &config) != HAL_OK ||
@@ -161,7 +120,6 @@ void arm_conv_q15_facc(
 {
     arm_conv_facc((uint8_t *)pSrcA, srcALen, (uint8_t *)pSrcB, srcBLen, (uint8_t *)pDst, 0);
 }
-
 
 void arm_fir_init_q7_facc(
     arm_fir_instance_q7 *S,
@@ -261,8 +219,6 @@ void arm_fir_q15_facc(
     return arm_fir_facc((const arm_fir_instance_q7 *)S, (uint8_t *)pSrc, (uint8_t *)pDst, blockSize, 0);
 }
 
-
-
 void arm_iir_facc(
     const arm_iir_instance_q7 *S,
     const q7_t *pSrc,
@@ -300,7 +256,6 @@ void arm_iir_facc(
     //HAL_DBG_print_data((char *)S->pState, 0, FACC_IIR_STATE_SIZE);
     return;
 }
-
 
 void arm_iir_q7_facc(
     const arm_iir_instance_q7 *S,
@@ -379,4 +334,3 @@ void arm_iir_init_q15_facc(
 }
 #endif
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

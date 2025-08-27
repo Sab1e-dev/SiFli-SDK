@@ -7,7 +7,6 @@
 #include <stdlib.h>
 #include "bf0_hal_tsen.h"
 
-
 static TSEN_HandleTypeDef   TsenHandle;
 
 void TSEN_IRQHandler(void)
@@ -16,10 +15,6 @@ void TSEN_IRQHandler(void)
     rt_kprintf("IRQ Fired\n");
     HAL_TSEN_IRQHandler(&TsenHandle);
 }
-
-
-
-
 
 static void testcase(void)
 {
@@ -62,6 +57,4 @@ int main(void)
     }
 
 }
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

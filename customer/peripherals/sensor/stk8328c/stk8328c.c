@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   stk8328c.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "stk8328c.h"
@@ -55,7 +16,6 @@
 #define LOG_TAG              "drv.stk"
 #include <drv_log.h>
 
-
 #define STK8328C_DEV_NAME        "slw_dev"
 
 #define STK8328C_I2C_ADDR_H (0x1F)
@@ -66,7 +26,6 @@
 //#define STK8328C_USE_INT
 #define STK8328C_UES_INT1  0
 #define STK8328C_UES_INT2  1
-
 
 struct STK8328C_CONT_T
 {
@@ -82,7 +41,6 @@ static struct STK8328C_CONT_T stk8328c_content;
     static struct rt_semaphore stk_int_sem;
     rt_thread_t stk8328c_thread = NULL;
 #endif
-
 
 static int stk8328c_power_on()
 {
@@ -166,7 +124,6 @@ void stk8328c_power_onoff(bool onoff)
     }
 }
 
-
 static int stk8328c_i2c_init(void)
 {
     /* get i2c bus device */
@@ -247,9 +204,7 @@ static int32_t stk_i2c_write(void *ctx, uint8_t reg, uint8_t *data, uint16_t len
             res = -RT_ERROR;
         }
 
-
     }
-
 
     return res;
 
@@ -378,7 +333,6 @@ static int stk8328c_gpio_int_disable(void)
 
 }
 
-
 void stk8328c_sensor_task(void *params)  //20ms
 {
     int32_t ret;
@@ -394,7 +348,6 @@ void stk8328c_sensor_task(void *params)  //20ms
     }
 }
 #endif // STK8328C_USE_INT
-
 
 int stk8328c_reg_init(void)
 {
@@ -491,10 +444,8 @@ int stk8328c_open(void)
     if (stk8328c_content.open_flag == 1) // opened before
         return 0;
 
-
     ret = stk8328c_reg_init();
     rt_kprintf("stk8328c_reg_init ret %d\n", ret);
-
 
 #ifdef STK8328C_USE_INT
     // start a thread to check data available
@@ -544,7 +495,6 @@ int stk8328c_close(void)
 
     stk8328c_reg_deinit();
 
-
     stk8328c_power_onoff(0);
     rt_device_close((rt_device_t)(stk8328c_content.bus_handle));
     stk8328c_content.open_flag = 0;
@@ -568,7 +518,6 @@ uint8_t stk8328c_get_fifo_count(void)
 
     return value;
 }
-
 
 int stk8328c_read_fifo(uint8_t *buf, int len)
 {
@@ -615,9 +564,6 @@ int stk8328c_get_fifo_empty_status(void)
     return (int)value;
 }
 
-
-
-
 // function for handle and address --------------------
 uint32_t stk8328c_get_bus_handle(void)
 {
@@ -646,7 +592,5 @@ int stk8328c_self_check(void)
     return 0;
 }
 
-
-
 #endif /*ACC_USING_SC7A22*/
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

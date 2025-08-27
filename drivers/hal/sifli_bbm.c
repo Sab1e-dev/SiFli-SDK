@@ -1,4 +1,10 @@
 /*
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
 */
 #include <stdint.h>
 #include <string.h>
@@ -1298,4 +1304,3 @@ static int bbm_get_test_format(uint16_t blk, uint8_t page)
 #ifdef BBM_UT
     #include "test_bbm.c"
 #endif
-

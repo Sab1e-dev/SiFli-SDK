@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2016 STMicroelectronics
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: BSD-3-Clause AND Apache-2.0
+ */
 
 /* Includes ------------------------------------------------------------------*/
 #include "bf0_hal.h"
@@ -8,6 +14,8 @@
 
 #ifdef HAL_HCD_MODULE_ENABLED
 
+
+
 #include "bf0_hal_usb_common.h"
 
 
@@ -15,6 +23,17 @@
   * @brief HCD HAL module driver
   * @{
   */
+#ifndef SF32LB55X
+    #define USB_TX_DMA_ENABLED 1
+    //#define USB_RX_DMA_ENABLED 1
+    #define USB_RX_CONT_DMA_ENABLED  1
+#endif /*SF32LB55X*/
+#define USB_DATA_DEBUG  0
+#if USB_DATA_DEBUG
+    #include "rtthread.h"
+#endif /*USB_DATA_DEBUG*/
+
+static uint8_t tx_packet_max = 0, rx_packet_max = 0;
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -63,7 +82,7 @@ void __HAL_HCD_ENABLE(HCD_HandleTypeDef *hhcd)
 #else
     mbase->intrtxe = hhcd->epmask;
     mbase->intrrxe = hhcd->epmask & 0xfffe;
-#endif
+#endif /*defined(SF32LB52X) || defined(SF32LB56X)*/
 
     mbase->intrusbe = 0xf7;
 }
@@ -89,8 +108,7 @@ static int ep_2_ch(HCD_HandleTypeDef *hhcd, int ep_num)
 
     for (chnum = 0; chnum < 16; chnum++)
     {
-        if (((ep_num & USB_DIR_IN) && (hhcd->hc[chnum].ep_is_in == 0)) ||
-                ((ep_num & USB_DIR_IN) == 0 && (hhcd->hc[chnum].ep_is_in)))
+        if (((ep_num & USB_DIR_IN) ? 1 : 0) != hhcd->hc[chnum].ep_is_in)
             continue;
         if (hhcd->hc[chnum].ep_num == (ep_num & 0x7f) && hhcd->hc[chnum].max_packet > 0)
         {
@@ -152,20 +170,7 @@ HAL_StatusTypeDef HAL_HCD_Init(HCD_HandleTypeDef *hhcd)
     }
 
     hhcd->State = HAL_HCD_STATE_BUSY;
-
-#if 1
-    /* Disable the Interrupts */
     __HAL_HCD_DISABLE(hhcd);
-
-    /* Init the Core (common init.) */
-    //(void)USB_CoreInit(hhcd->Instance, hhcd->Init);
-
-    /* Force Host Mode*/
-    //(void)USB_SetCurrentMode(hhcd->Instance, USB_HOST_MODE);
-
-    /* Init Host */
-    //(void)USB_HostInit(hhcd->Instance, hhcd->Init);
-#endif
 
     hhcd->State = HAL_HCD_STATE_READY;
 
@@ -216,27 +221,17 @@ HAL_StatusTypeDef HAL_HCD_HC_Init(HCD_HandleTypeDef *hhcd,
 
     if ((epnum & 0x80U) == 0x80U)
     {
-        hhcd->hc[ch_num].ep_is_in = 1U;
+        hhcd->hc[ch_num].ep_is_in = 1U;//rx
     }
     else
     {
-        hhcd->hc[ch_num].ep_is_in = 0U;
+        hhcd->hc[ch_num].ep_is_in = 0U;//tx
     }
 
     hhcd->hc[ch_num].speed = speed;
     hhcd->epmask |= (1 << hhcd->hc[ch_num].ep_num);
     __HAL_HCD_ENABLE(hhcd);
 
-#if 0
-    HCD_TypeDef *mbase = hhcd->Instance;
-    status =  USB_HC_Init(hhcd->Instance,
-                          ch_num,
-                          epnum,
-                          dev_address,
-                          speed,
-                          ep_type,
-                          mps);
-#endif
     __HAL_UNLOCK(hhcd);
 
     return status;
@@ -259,7 +254,7 @@ HAL_StatusTypeDef HAL_HCD_HC_Halt(HCD_HandleTypeDef *hhcd, uint8_t ch_num)
     int ep_num = (hhcd->hc[ch_num].ep_num & 0x00E3);
 #else
     int ep_num = (hhcd->hc[ch_num].ep_num & 0x7f);
-#endif
+#endif/*defined(SF32LB52X) || defined(SF32LB56X)    */
 
 
     hhcd->epmask &= ~(1 << ep_num);
@@ -320,12 +315,22 @@ HAL_StatusTypeDef HAL_HCD_DeInit(HCD_HandleTypeDef *hhcd)
   */
 __weak void  HAL_HCD_MspInit(HCD_HandleTypeDef *hhcd)
 {
-    /* Prevent unused argument(s) compilation warning */
-    UNUSED(hhcd);
-
-    /* NOTE : This function should not be modified, when the callback is needed,
-              the HAL_HCD_MspInit could be implemented in the user file
-     */
+    HAL_RCC_EnableModule(RCC_MOD_USBC);
+#ifdef SF32LB58X
+    //hwp_usbc->utmicfg12 = hwp_usbc->utmicfg12 | 0x3; //set xo_clk_sel
+    hwp_usbc->utmicfg23 = 0xd8;
+    hwp_usbc->ldo25 = hwp_usbc->ldo25 | 0xa; //set psw_en and ldo25_en
+    HAL_Delay(1);
+    hwp_usbc->swcntl3 = 0x1; //set utmi_en for USB2.0
+    hwp_usbc->usbcfg = hwp_usbc->usbcfg | 0x40; //enable usb PLL.
+    hwp_usbc->dpbrxdisl = 0xff;
+    hwp_usbc->dpbtxdisl = 0xff;
+    hwp_usbc->utmicfg25 = hwp_usbc->utmicfg25 | 0xc0;
+#elif defined(SF32LB56X)||defined(SF32LB52X)
+    hwp_hpsys_cfg->USBCR |= HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_DP_EN | HPSYS_CFG_USBCR_USB_EN;
+#elif defined(SF32LB55X)
+    hwp_hpsys_cfg->USBCR |= HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_USB_EN;
+#endif /*SF32LB58X*/
 }
 
 /**
@@ -335,12 +340,16 @@ __weak void  HAL_HCD_MspInit(HCD_HandleTypeDef *hhcd)
   */
 __weak void  HAL_HCD_MspDeInit(HCD_HandleTypeDef *hhcd)
 {
-    /* Prevent unused argument(s) compilation warning */
-    UNUSED(hhcd);
-
-    /* NOTE : This function should not be modified, when the callback is needed,
-              the HAL_HCD_MspDeInit could be implemented in the user file
-     */
+#ifdef SF32LB58X
+    hwp_usbc->usbcfg &= ~0x40;  // Disable usb PLL.
+    hwp_usbc->swcntl3 = 0x0;
+    hwp_usbc->ldo25 &= ~0xa;    // Disable psw_en and ldo25_en
+#elif defined(SF32LB56X)||defined(SF32LB52X)
+    hwp_hpsys_cfg->USBCR &= ~(HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_DP_EN | HPSYS_CFG_USBCR_USB_EN);
+#elif defined(SF32LB55X)
+    hwp_hpsys_cfg->USBCR &= ~(HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_USB_EN);
+#endif/*SF32LB58X*/
+    HAL_RCC_DisableModule(RCC_MOD_USBC);
 }
 
 /**
@@ -385,6 +394,7 @@ __weak void  HAL_HCD_MspDeInit(HCD_HandleTypeDef *hhcd)
   *           0 : do ping inactive / 1 : do ping active
   * @retval HAL status
   */
+
 HAL_StatusTypeDef HAL_HCD_HC_SubmitRequest(HCD_HandleTypeDef *hhcd,
         uint8_t ch_num,
         uint8_t direction,
@@ -415,12 +425,12 @@ HAL_StatusTypeDef HAL_HCD_HC_SubmitRequest(HCD_HandleTypeDef *hhcd,
             //HAL_DBG_printf("tx ep0: fifox=%p, length=%d\n", fifox, length);
             for (i = 0; i < length; i++) // REVISIT: Use 16bits/32bits FIFO to speed up
                 *fifox = *(pbuff + i);
-#if 0
-            HAL_DBG_printf("%s %d TX ep=%d usb chnum=%d tx\n", __func__, __LINE__, ep_num, ch_num);
+#if USB_DATA_DEBUG
+            rt_kprintf("%s %d TX ep=%d usb chnum=%d tx\n", __func__, __LINE__, ep_num, ch_num);
             for (i = 0; i < length; i++)
-                HAL_DBG_printf("%x ", pbuff[i]);
-            HAL_DBG_printf("\n");
-#endif
+                rt_kprintf("%x ", pbuff[i]);
+            rt_kprintf("\n");
+#endif/*USB_DATA_DEBUG */
             csr = USB_CSR0_TXPKTRDY;
             //HAL_DBG_print_data((char *)pBuf, 0, len);
 
@@ -444,19 +454,21 @@ HAL_StatusTypeDef HAL_HCD_HC_SubmitRequest(HCD_HandleTypeDef *hhcd,
         {
             int i;
             uint16_t csr;
+#if USB_DATA_DEBUG
+            //pbuff = 0x20004ac4;
+            rt_kprintf("%s %d TX ep=%d usb chnum=%d tx pbuff=0x%p\n", __func__, __LINE__, ep_num, ch_num, pbuff);
+            for (i = 0; i < length; i++)
+                rt_kprintf("%x ", pbuff[i]);
+            rt_kprintf("\n");
+#endif /*USB_DATA_DEBUG */
 #if defined(SF32LB52X) || defined(SF32LB56X)
             __IO struct musb_epN_regs *epn = &(hhcd->Instance->ep[ch_num].epN);
 #else
             __IO struct musb_epN_regs *epn = &(hhcd->Instance->ep[ep_num].epN);
-#endif
+#endif /*defined(SF32LB52X) || defined(SF32LB56X)*/
+            uint8_t num = ch_num;
             epn->txcsr = USB_TXCSR_FLUSHFIFO;
             csr = epn->txcsr;
-#if defined(SF32LB52X) || defined(SF32LB56X)
-            __IO uint8_t *fifox = (__IO uint8_t *) & (hhcd->Instance->fifox[ch_num]);
-#else
-            __IO uint8_t *fifox = (__IO uint8_t *) & (hhcd->Instance->fifox[ep_num]);
-#endif
-
             csr &= ~(USB_TXCSR_H_NAKTIMEOUT
                      | USB_TXCSR_AUTOSET
                      | USB_TXCSR_DMAENAB
@@ -465,14 +477,58 @@ HAL_StatusTypeDef HAL_HCD_HC_SubmitRequest(HCD_HandleTypeDef *hhcd,
                      | USB_TXCSR_H_ERROR
                      | USB_TXCSR_TXPKTRDY);
             csr |= USB_TXCSR_MODE;
+
+#ifdef USB_TX_DMA_ENABLED
+            if (IS_DCACHED_RAM((uint32_t)pbuff))
+                mpu_dcache_clean((void *)pbuff, length);
+            csr |= USB_TXCSR_DMAENAB | USB_TXCSR_AUTOSET;
+            epn->txcsr = csr;
+            epn->txmaxp = hhcd->hc[num].max_packet;
+            //epn->txinterval = (HAL_HCD_GetCurrentSpeed(hhcd) == HCD_SPEED_HIGH ? 16 : 2);
+#if defined(SF32LB52X) || defined(SF32LB56X)
+            epn->txtype = (hhcd->hc[ep_num].ep_type << 4) + ep_num;
+#else
+            epn->txtype = (hhcd->hc[ch_num].ep_type << 4) + ep_num;
+#endif /*defined(SF32LB52X) || defined(SF32LB56X)*/
+            struct musb_dma_regs *dma = (struct musb_dma_regs *) & (hhcd->Instance->dma[num]);
+            dma->addr = (REG32)pbuff;
+            dma->count = length;
+            dma->cntl = (1 << USB_DMACTRL_TRANSMIT_SHIFT) |
+#if defined(SF32LB52X) || defined(SF32LB56X)
+                        ((num) << USB_DMACTRL_ENDPOINT_SHIFT) |
+#else
+                        ((ep_num) << USB_DMACTRL_ENDPOINT_SHIFT) |
+#endif /*defined(SF32LB52X) || defined(SF32LB56X) */
+                        (1 << USB_DMACTRL_IRQENABLE_SHIFT) | USB_DMACTRL_BURSTMODE;
+            if (length / hhcd->hc[num].max_packet)
+            {
+                dma->cntl |= (1 << USB_DMACTRL_ENABLE_SHIFT) | (1 << USB_DMACTRL_MODE1_SHIFT);
+                tx_packet_max = 1;
+            }
+            else
+            {
+                dma->cntl |= (1 << USB_DMACTRL_ENABLE_SHIFT) | (0 << USB_DMACTRL_MODE1_SHIFT);
+                tx_packet_max = 0;
+            }
+#if USB_DATA_DEBUG
+            rt_kprintf("%s %d dma usb num=%d tx\n", __func__, __LINE__, num);
+#endif /*USB_DATA_DEBUG */
+
+#else /*no dma*/
+
+#if defined(SF32LB52X) || defined(SF32LB56X)
+            __IO uint8_t *fifox = (__IO uint8_t *) & (hhcd->Instance->fifox[ch_num]);
+#else
+            __IO uint8_t *fifox = (__IO uint8_t *) & (hhcd->Instance->fifox[ep_num]);
+#endif /*defined(SF32LB52X) || defined(SF32LB56X) */
             for (i = 0; i < length; i++) // REVISIT: Use 16bits/32bits FIFO to speed up
                 *fifox = *(pbuff + i);
-#if 0
-            HAL_DBG_printf("%s %d TX ep=%d usb chnum=%d tx\n", __func__, __LINE__, ep_num, ch_num);
+#if USB_DATA_DEBUG
+            rt_kprintf("%s %d TX ep=%d usb chnum=%d tx num=%d ep_type=%d\n", __func__, __LINE__, ep_num, ch_num, num, hhcd->hc[num].ep_type);
             for (i = 0; i < length; i++)
-                HAL_DBG_printf("%x ", pbuff[i]);
-            HAL_DBG_printf("\n");
-#endif
+                rt_kprintf("%x ", pbuff[i]);
+            rt_kprintf("\n");
+#endif /*USB_DATA_DEBUG */
             csr |= USB_TXCSR_AUTOSET;
             csr |= USB_TXCSR_TXPKTRDY;
 
@@ -481,11 +537,16 @@ HAL_StatusTypeDef HAL_HCD_HC_SubmitRequest(HCD_HandleTypeDef *hhcd,
 
             epn->txinterval = (HAL_HCD_GetCurrentSpeed(hhcd) == HCD_SPEED_HIGH ? 16 : 2);
             epn->txcsr = csr;
+
+#endif
+
         }
     }
     else//RX
     {
         uint16_t csr;
+        uint16_t csr_tx;
+
         ep_num &= 0x7f;
         hhcd->hc[ch_num].xfer_buff = pbuff;
         if (ep_num == 0)
@@ -498,19 +559,77 @@ HAL_StatusTypeDef HAL_HCD_HC_SubmitRequest(HCD_HandleTypeDef *hhcd,
         }
         else
         {
+#if defined(SF32LB52X) || defined(SF32LB56X)
+            __IO struct musb_epN_regs *epn = &(hhcd->Instance->ep[ch_num].epN);
+#ifndef SF32LB55X
+            struct musb_rqpktcount *count_t = (struct musb_rqpktcount *) & (hhcd->Instance->rqpktcount[ch_num - 1]);
+#endif
+#else
             __IO struct musb_epN_regs *epn = &(hhcd->Instance->ep[ep_num].epN);
+#ifndef SF32LB55X
+            struct musb_rqpktcount *count_t = (struct musb_rqpktcount *) & (hhcd->Instance->rqpktcount[ep_num - 1]);
+#endif /*SF32LB55X*/
+#endif /*defined(SF32LB52X) || defined(SF32LB56X)*/
+
+            epn->rxcsr &= ~(USB_RXCSR_H_REQPKT
+                            | USB_RXCSR_DMAENAB
+                            | USB_RXCSR_AUTOCLEAR
+                            | USB_RXCSR_H_AUTOREQ);
+#if USB_DATA_DEBUG
+            rt_kprintf("%s %d RX ep=%d usb chnum=%d rx pbuff=0x%p\n", __func__, __LINE__, ep_num, ch_num, pbuff);
+#endif /*USB_DATA_DEBUG */
+#ifdef USB_RX_CONT_DMA_ENABLED
+            uint32_t packet_num = length / hhcd->hc[ch_num].max_packet;
+            if (packet_num > 1)
+            {
+#ifndef SF32LB55X
+                count_t->count = packet_num;
+#endif/*SF32LB55X*/
+                //RT_ASSERT(0);
+            }
+            struct musb_dma_regs *dma = (struct musb_dma_regs *) & (hhcd->Instance->dma[ch_num]);
+            dma->addr = (REG32)pbuff;
+            dma->count = length;
+            hhcd->hc[ch_num].xfer_count = length;
+            dma->cntl = (0 << USB_DMACTRL_TRANSMIT_SHIFT) | //RX
+#if defined(SF32LB52X) || defined(SF32LB56X)
+                        ((ch_num) << USB_DMACTRL_ENDPOINT_SHIFT) |
+#else
+                        ((ep_num) << USB_DMACTRL_ENDPOINT_SHIFT) |
+#endif/*defined(SF32LB52X) || defined(SF32LB56X) */
+                        (1 << USB_DMACTRL_IRQENABLE_SHIFT) | USB_DMACTRL_BURSTMODE;
+            if (packet_num > 1)
+            {
+                dma->cntl |= (1 << USB_DMACTRL_ENABLE_SHIFT) | (1 << USB_DMACTRL_MODE1_SHIFT);
+                rx_packet_max = 1;
+            }
+            else
+            {
+                rx_packet_max = 0;
+            }
+
+#endif/*USB_RX_CONT_DMA_ENABLED */
 
             csr = epn->rxcsr;
-            //HAL_ASSERT((csr & (USB_RXCSR_RXPKTRDY | USB_RXCSR_DMAENAB | USB_RXCSR_H_REQPKT)) == 0);
+            csr_tx = epn->txcsr;
+            csr_tx &= ~USB_TXCSR_MODE;
+
             /* scrub any stale state, leaving toggle alone */
-            csr &= USB_RXCSR_DISNYET;
+            // csr &= USB_RXCSR_DISNYET;
             csr |= USB_RXCSR_H_REQPKT;
+#ifdef USB_RX_CONT_DMA_ENABLED
+            if (rx_packet_max)
+                csr |= USB_RXCSR_DMAENAB | USB_RXCSR_AUTOCLEAR | USB_RXCSR_H_AUTOREQ;
+#endif/*USB_RX_CONT_DMA_ENABLED */
             epn->rxmaxp = hhcd->hc[ch_num].max_packet;
             epn->rxtype = (hhcd->hc[ch_num].ep_type << 4) + ep_num;
             epn->rxinterval = (HAL_HCD_GetCurrentSpeed(hhcd) == HCD_SPEED_HIGH ? 16 : 2);
+            epn->txcsr = csr_tx;
             epn->rxcsr = csr;
-
+            //if(test_pcd) RT_ASSERT(0);
         }
+
+
     }
     return HAL_OK;
 }
@@ -566,13 +685,40 @@ static int musbh_stage0_irq(HCD_HandleTypeDef *hhcd, uint8_t int_usb)
 
     if (int_usb & USB_INTR_RESET)
     {
-
+        __HAL_HCD_DISABLE(hhcd);
+        HAL_HCD_Disconnect_Callback(hhcd);
     }
 
 
     return r;
 }
-
+void HAL_HCD_Timerout_Callback(HCD_HandleTypeDef *hhcd)
+{
+#if !defined(SF32LB55X) && !defined(SF32LB52X)
+    HCD_TypeDef *mbase = hhcd->Instance;
+    mbase->rsvd0 = 0x5f;
+    mbase->utmicfg13 = 0x4;
+    mbase->swcntl1 = 0x40;
+    mbase->swcntl2 = 0x03;
+    if (mbase->swcntl2 & 0x80)
+    {
+        mbase->rsvd0 = 0;
+        mbase->utmicfg13 = 0;
+        mbase->swcntl1 = 0;
+        mbase->swcntl2 = 0;
+        mbase->devctl = 0x00;
+        mbase->usbcfg &= 0xf7;
+        HAL_HCD_Disconnect_Callback(hhcd);
+    }
+    else
+    {
+        mbase->rsvd0 = 0;
+        mbase->utmicfg13 = 0;
+        mbase->swcntl1 = 0;
+        mbase->swcntl2 = 0;
+    }
+#endif/*SF32LB55X && SF32LB52X*/
+}
 /**
   * @brief  Handle HCD interrupt request.
   * @param  hhcd HCD handle
@@ -580,14 +726,15 @@ static int musbh_stage0_irq(HCD_HandleTypeDef *hhcd, uint8_t int_usb)
   */
 void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
 {
+    uint32_t reg;
     int ep_num;
     uint8_t int_usb = hhcd->Instance->intrusb;
     uint16_t int_tx = hhcd->Instance->intrtx;
     uint16_t int_rx = hhcd->Instance->intrrx;
     uint32_t dmaintr = hhcd->Instance->dmaintr;
-
-    HAL_DBG_printf("USB interrupt usb=%x, tx=%d, rx=%d, usbe=%x, dma_intr=%x\r\n", int_usb, int_tx, int_rx, hhcd->Instance->intrusbe, dmaintr);
-
+#if USB_DATA_DEBUG
+    rt_kprintf("USB interrupt usb=%x, tx=%d, rx=%d, usbe=%x, dma_intr=%x\r\n", int_usb, int_tx, int_rx, hhcd->Instance->intrusbe, dmaintr);
+#endif /*USB_DATA_DEBUG */
     if (int_usb != USB_INTR_SOF)
     {
         musbh_stage0_irq(hhcd, int_usb);
@@ -596,6 +743,72 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
     if (int_tx & 1)
         HCD_HC_EP0_IRQHandler(hhcd);
 
+#if defined(USB_TX_DMA_ENABLED)||defined(USB_RX_DMA_ENABLED) || defined(USB_RX_CONT_DMA_ENABLED)
+    reg = (dmaintr >> 1);
+    ep_num = 1;
+    while (reg)
+    {
+        if (reg & 1)
+        {
+            uint8_t ch_num = hhcd->hc[ep_num].ep_num;
+#if defined(SF32LB52X) || defined(SF32LB56X)
+            __IO struct musb_epN_regs *epn = &(hhcd->Instance->ep[ep_num].epN);
+
+#else
+            __IO struct musb_epN_regs *epn = &(hhcd->Instance->ep[ch_num].epN);
+
+#endif/*defined(SF32LB52X) || defined(SF32LB56X)*/
+            uint16_t csr = epn->txcsr;
+            if (hhcd->hc[ep_num].ep_is_in)
+            {
+//rx
+#if USB_DATA_DEBUG
+                rt_kprintf("%d usb chnum=%d RX,epn->rxcount=%d xfer_buff=%p\n", __LINE__, ep_num, hhcd->hc[ep_num].xfer_count, hhcd->hc[ep_num].xfer_buff);
+                for (int i = 0; i < 0x20; i++)
+                    rt_kprintf("%x ", hhcd->hc[ep_num].xfer_buff[i]);
+                rt_kprintf("\n");
+#endif/*USB_DATA_DEBUG */
+                hhcd->hc[ep_num].state = HC_XFRC;
+                hhcd->hc[ep_num].urb_state = URB_DONE;
+                if (0 == rx_packet_max)
+                    epn->rxcsr &= (~USB_RXCSR_RXPKTRDY);//
+                epn->rxcsr &= ~(USB_RXCSR_H_REQPKT
+                                | USB_RXCSR_DMAENAB
+                                | USB_RXCSR_AUTOCLEAR
+                                | USB_RXCSR_H_AUTOREQ);
+                HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)ep_num, hhcd->hc[ep_num].urb_state);
+            }
+            else
+            {
+//tx
+
+                epn->txmaxp = hhcd->hc[ep_num].max_packet;
+                if (0 == tx_packet_max)
+                {
+                    csr |= USB_TXCSR_AUTOSET;
+                    csr |= USB_TXCSR_TXPKTRDY;
+
+#if USB_DATA_DEBUG
+                    rt_kprintf("11111111111111 ch_num=%d,ep_num=%d dmaintr=%x,ep_is_in=%d csr=0x%x\n", ep_num, ch_num, dmaintr, hhcd->hc[ep_num].ep_is_in, csr);
+#endif/*USB_DATA_DEBUG */
+                    epn->txcsr = csr;
+                }
+                else if (!(epn->txcsr & USB_TXCSR_TXPKTRDY))
+                {
+                    HCD_HC_OUT_IRQHandler(hhcd, ep_num);
+                }
+                else
+                    hhcd->hc[ep_2_ch(hhcd, ep_num)].max_packet_unfinish = 1;
+
+            }
+
+
+        }
+        ep_num++;
+        reg >>= 1;
+    }
+#endif/*defined(USB_TX_DMA_ENABLED)||defined(USB_RX_DMA_ENABLED) || defined(USB_RX_CONT_DMA_ENABLED) */
+
     if (int_tx & 0xFFFE)
     {
         int_tx >>= 1;
@@ -603,7 +816,15 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
         while (int_tx)
         {
             if (int_tx & 1)
-                HCD_HC_OUT_IRQHandler(hhcd, ep_num);
+            {
+                if ((0 == tx_packet_max) ||
+                        (hhcd->hc[ep_2_ch(hhcd, ep_num)].max_packet_unfinish == 1))
+                {
+                    if (hhcd->hc[ep_2_ch(hhcd, ep_num)].max_packet_unfinish == 1)
+                        hhcd->hc[ep_2_ch(hhcd, ep_num)].max_packet_unfinish = 0;
+                    HCD_HC_OUT_IRQHandler(hhcd, ep_num);
+                }
+            }
             int_tx >>= 1;
             ep_num++;
         }
@@ -616,7 +837,9 @@ void HAL_HCD_IRQHandler(HCD_HandleTypeDef *hhcd)
         while (int_rx)
         {
             if (int_rx & 1)
+            {
                 HCD_HC_IN_IRQHandler(hhcd, ep_num);
+            }
             int_rx >>= 1;
             ep_num++;
         }
@@ -1054,11 +1277,12 @@ HAL_StatusTypeDef HAL_HCD_Start(HCD_HandleTypeDef *hhcd)
 
     __HAL_HCD_ENABLE(hhcd);
     mbase->testmode = 0;
-
-    power |= USB_POWER_SOFTCONN;
 #ifdef SF32LB58X
-    power |= USB_POWER_HSENAB;
-#endif
+    power |= USB_POWER_HSENAB;//hs
+    //power &= (~USB_POWER_HSENAB);//fs
+#endif/*SF32LB58X */
+    power |= USB_POWER_SOFTCONN;
+
     mbase->power = power;
 
     // Start Host
@@ -1067,8 +1291,7 @@ HAL_StatusTypeDef HAL_HCD_Start(HCD_HandleTypeDef *hhcd)
 #else
     mbase->usbcfg &= 0xEF;
     mbase->devctl |= 0x01;
-
-#endif
+#endif/*SF32LB55X */
 
     HAL_DBG_printf("%s %d,mbase->devctl=%d\n", __func__, __LINE__, mbase->devctl);
     __HAL_UNLOCK(hhcd);
@@ -1115,16 +1338,33 @@ HAL_StatusTypeDef HAL_HCD_ResetPort(HCD_HandleTypeDef *hhcd)
     }
     else
     {
+#if defined(SF32LB58X)
+        mbase->utmicfg25 |= 0xc0;
+        mbase->utmicfg21 = 0x23;
+        mbase->swcntl2 = 0x7c;
+        mbase->utmicfg0 = 0x30;
+
+#endif/*SF32LB58X */
         power &= 0xf0;
         mbase->power = power | USB_POWER_RESET;
 #if defined(SF32LB58X)
         hwp_usbc->rsvd0 = 0xc;//58
-#endif
-        HAL_Delay(50);
+#endif/*SF32LB58X */
+        HAL_Delay(500);
+        //__asm("B .");
         mbase->power &= (~USB_POWER_RESET);
+        HAL_Delay(5);
+        //mbase->power &= (~USB_POWER_HSENAB);
 #if defined(SF32LB58X)
         hwp_usbc->rsvd0 = 0x0;//58
-#endif
+#endif /* SF32LB58X*/
+#if defined(SF32LB58X)
+        mbase->utmicfg25 &= ~0xc0;
+        mbase->utmicfg21 = 0x2f;
+        mbase->swcntl2 = 0x40;
+        mbase->utmicfg0 = 0x00;
+#endif/*SF32LB58X */
+
     }
 
     return HAL_OK;
@@ -1236,12 +1476,12 @@ uint32_t HAL_HCD_GetCurrentSpeed(HCD_HandleTypeDef *hhcd)
     HCD_TypeDef *mbase = hhcd->Instance;
 
     HAL_ASSERT((mbase->devctl & USB_DEVCTL_HM));
-    if (mbase->devctl & USB_DEVCTL_LSDEV)
-        return HCD_SPEED_LOW;
-    if (mbase->devctl & USB_DEVCTL_FSDEV)
-        return HCD_SPEED_FULL;
     if (mbase->power & USB_POWER_HSMODE)
         return HCD_SPEED_HIGH;
+    if (mbase->devctl & USB_DEVCTL_FSDEV)
+        return HCD_SPEED_FULL;
+    if (mbase->devctl & USB_DEVCTL_LSDEV)
+        return HCD_SPEED_LOW;
     return  HCD_SPEED_FULL;
 }
 
@@ -1268,9 +1508,11 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t ep_num)
     USBC_X_Typedef *musb = hhcd->Instance;
     uint8_t *pBuf;
     __IO uint8_t *fifox = (__IO uint8_t *) & (hhcd->Instance->fifox[ep_num]);
-    int chnum = 0;
-
-    chnum = ep_2_ch(hhcd, ep_num | USB_DIR_IN);
+#ifdef SF32LB58X
+    int chnum = ep_2_ch(hhcd, ep_num | USB_DIR_IN);
+#else
+    int chnum = ep_num;//ep_2_ch(hhcd, ep_num | USB_DIR_IN);
+#endif/*SF32LB58X */
     if (chnum < 0)
         return;
 
@@ -1278,11 +1520,15 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t ep_num)
     uint16_t rxcsr = epn->rxcsr;
     uint16_t rx_count = epn->rxcount;
     //HAL_DBG_printf("rx complete: ep_num=%d,chnum=%d,csr=0x%x, count=%d\n", ep_num, chnum, rxcsr,rx_count);
-
+#if USB_DATA_DEBUG
+    rt_kprintf("%s %d ep_num=%d,chnum=%d,rxcsr=0x%x,rx_count=%d\n", __func__, __LINE__, ep_num, chnum, rxcsr, rx_count);
+#endif/*USB_DATA_DEBUG */
     if (rxcsr & USB_RXCSR_H_RXSTALL)
     {
         hhcd->hc[chnum].state = HC_STALL;
         hhcd->hc[chnum].urb_state = URB_STALL;
+        epn->rxcsr &= (~USB_RXCSR_H_RXSTALL);
+        HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
     }
     else if (rxcsr & USB_RXCSR_H_ERROR)
     {
@@ -1291,6 +1537,8 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t ep_num)
 
         hhcd->hc[chnum].state = HC_XACTERR;
         hhcd->hc[chnum].urb_state = URB_ERROR;
+        epn->rxcsr &= (~USB_RXCSR_H_ERROR);
+        HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
     }
     else if (rxcsr & USB_RXCSR_DATAERROR)
     {
@@ -1298,26 +1546,69 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t ep_num)
         rxcsr &= ~USB_RXCSR_DATAERROR;
         hhcd->hc[chnum].state = HC_DATATGLERR;
         hhcd->hc[chnum].urb_state = URB_ERROR;
-
+        epn->rxcsr &= (~USB_RXCSR_DATAERROR);
+        HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
     }
     else
     {
         int i;
-        hhcd->hc[chnum].xfer_count = rx_count;
-        pBuf = hhcd->hc[chnum].xfer_buff;
-        for (i = 0; i < rx_count; i++)
-            *(pBuf + i) = *fifox;
-#if 0
-        HAL_DBG_printf("%d usb chnum=%d rx\n", __LINE__, chnum);
-        for (i = 0; i < rx_count; i++)
-            HAL_DBG_printf("%x ", pBuf[i]);
-        HAL_DBG_printf("\n");
-#endif
-        hhcd->hc[chnum].state = HC_XFRC;
-        hhcd->hc[chnum].urb_state = URB_DONE;
-        epn->rxcsr &= (~USB_RXCSR_RXPKTRDY);
+        if ((rxcsr | USB_RXCSR_H_DATATOGGLE))
+        {
+            hhcd->hc[chnum].xfer_count = rx_count;
+            pBuf = hhcd->hc[chnum].xfer_buff;
+            HAL_DBG_printf("%s %d chnum=%d,ep_num=%d,rxcsr=0x%x\n", __func__, __LINE__, chnum, ep_num, rxcsr);
+            HCD_HCTypeDef *ep = &hhcd->hc[chnum];
+            struct musb_dma_regs *dma = (struct musb_dma_regs *) & (hhcd->Instance->dma[chnum]);
+#if USB_RX_DMA_ENABLED
+            //__IO struct musb_epN_regs *epn = &(hhcd->Instance->ep[chnum].epN);
+
+            HAL_DBG_printf("DMA RX pipe=%d, len=%d,xfer_buff=%p\n", chnum,  epn->rxcount, ep->xfer_buff);
+            if (epn->rxcount)
+            {
+                if (IS_DCACHED_RAM(ep->xfer_buff))
+                    SCB_InvalidateDCache_by_Addr(ep->xfer_buff, epn->rxcount);
+
+                dma->addr = (REG32)ep->xfer_buff;
+                dma->count = epn->rxcount;
+                ep->xfer_count = dma->count;
+                //epn->rxcount = 0;
+                dma->cntl = (1 << USB_DMACTRL_ENABLE_SHIFT)   |
+                            (0 << USB_DMACTRL_TRANSMIT_SHIFT) |
+                            (0 << USB_DMACTRL_MODE1_SHIFT)    |
+                            (ep_num << USB_DMACTRL_ENDPOINT_SHIFT) |
+                            (1 << USB_DMACTRL_IRQENABLE_SHIFT);
+            }
+#elif USB_RX_CONT_DMA_ENABLED
+            if (0 == rx_packet_max)
+            {
+                if (IS_DCACHED_RAM(ep->xfer_buff))
+                    SCB_InvalidateDCache_by_Addr(ep->xfer_buff, epn->rxcount);
+                ep->xfer_count = rx_count;
+                epn->rxcsr &= ~(USB_RXCSR_H_REQPKT
+                                | USB_RXCSR_DMAENAB
+                                | USB_RXCSR_AUTOCLEAR
+                                | USB_RXCSR_H_AUTOREQ);
+                dma->cntl |= (1 << USB_DMACTRL_ENABLE_SHIFT) | (0 << USB_DMACTRL_MODE1_SHIFT);
+            }
+#else
+            for (i = 0; i < rx_count; i++)
+                *(pBuf + i) = *fifox;
+#if USB_DATA_DEBUG
+            rt_kprintf("%d usb chnum=%d rx\n", __LINE__, chnum);
+            for (i = 0; i < rx_count; i++)
+                rt_kprintf("%x ", pBuf[i]);
+            rt_kprintf("\n");
+#endif/*USB_DATA_DEBUG */
+            hhcd->hc[chnum].state = HC_XFRC;
+            hhcd->hc[chnum].urb_state = URB_DONE;
+            epn->rxcsr &= (~USB_RXCSR_RXPKTRDY);
+            if ((rxcsr | USB_RXCSR_H_DATATOGGLE))
+                HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
+#endif/*USB_RX_DMA_ENABLED */
+        }
+
     }
-    HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
+
 #if 0
     if ((USBx_HC(ch_num)->HCINT & USB_OTG_HCINT_AHBERR) == USB_OTG_HCINT_AHBERR)
     {
@@ -1511,7 +1802,8 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t ep_num)
     {
         /* ... */
     }
-#endif
+#endif/* USB_RX_DMA_ENABLED */
+
 }
 
 /**
@@ -1521,35 +1813,53 @@ static void HCD_HC_IN_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t ep_num)
   *         This parameter can be a value from 1 to 15
   * @retval none
   */
-static void HCD_HC_OUT_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t chnum)
+static void HCD_HC_OUT_IRQHandler(HCD_HandleTypeDef *hhcd, uint8_t ep_num)
 {
     USBC_X_Typedef *musb = hhcd->Instance;
-    //int chnum = ep_2_ch(hhcd, ep_num);
-    uint16_t txcsr = musb->ep[chnum].epN.txcsr;
+#ifdef SF32LB58X
+    uint8_t chnum = ep_2_ch(hhcd, ep_num | USB_DIR_OUT);
+#else
+    uint8_t chnum = ep_num;
+#endif/*SF32LB58X */
+    uint16_t txcsr = musb->ep[ep_num].epN.txcsr;
 
-    HAL_DBG_printf("tx complete: chnum=%d,csr=0x%x\n", chnum, txcsr);
+    if (chnum < 0)
+        return;
     if (txcsr & USB_TXCSR_H_RXSTALL)
     {
         hhcd->hc[chnum].state = HC_STALL;
         hhcd->hc[chnum].urb_state = URB_STALL;
+        txcsr &= (~USB_TXCSR_H_RXSTALL);
+        HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
     }
     else if (txcsr & USB_TXCSR_H_ERROR)
     {
         hhcd->hc[chnum].state = HC_XACTERR;
         hhcd->hc[chnum].urb_state = URB_ERROR;
+        HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
     }
     else if (txcsr & USB_TXCSR_H_NAKTIMEOUT)
     {
         hhcd->hc[chnum].state = HC_NAK;
         hhcd->hc[chnum].urb_state  = URB_NOTREADY;
-        musb->ep[chnum].epN.txcsr = USB_TXCSR_H_WZC_BITS | USB_TXCSR_TXPKTRDY;
+        musb->ep[ep_num].epN.txcsr = USB_TXCSR_H_WZC_BITS | USB_TXCSR_TXPKTRDY;
+        musb->ep[ep_num].epN.txcsr &= ~USB_TXCSR_H_NAKTIMEOUT;
+        HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
+    }
+    else if (txcsr & 0x0002)
+    {
+        //HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
     }
     else
     {
         hhcd->hc[chnum].state = HC_XFRC;
         hhcd->hc[chnum].urb_state  = URB_DONE;
+        txcsr &= (~0xa000);
+        if (txcsr == 0x000) HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
+        if ((txcsr | USB_TXCSR_H_DATATOGGLE)) HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
+        else musb->ep[chnum].epN.txcsr &= ~USB_TXCSR_H_DATATOGGLE;
     }
-    HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
+
 }
 
 
@@ -1577,9 +1887,10 @@ static void HCD_HC_EP0_IRQHandler(HCD_HandleTypeDef *hhcd)
         HAL_ASSERT(0);
     }
     HAL_DBG_printf("ep0 ISR: csr=0x%x, len=%d, chnum=%d\r\n", csr, len, chnum);
-    if (csr == 0xa0)
+    if ((csr & 0xa0) == 0xa0)
     {
-        csr = USB_CSR0_RXPKTRDY;
+        //csr = USB_CSR0_RXPKTRDY;
+        ep0->csr0 &= (~0xa0);
     }
 
     //HAL_DBG_printf("ep0 ISR: csr=0x%x, len=%d, chnum=%d\r\n", csr, len, chnum);
@@ -1589,18 +1900,21 @@ static void HCD_HC_EP0_IRQHandler(HCD_HandleTypeDef *hhcd)
         hhcd->hc[chnum].state = HC_XACTERR;
         hhcd->hc[chnum].urb_state = URB_ERROR;
         ep0->csr0 &= (~USB_CSR0_H_ERROR);
+        HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
     }
     else if (csr & USB_CSR0_H_RXSTALL)
     {
         hhcd->hc[chnum].state = HC_STALL;
         hhcd->hc[chnum].urb_state = URB_STALL;
         ep0->csr0 &= (~USB_CSR0_H_RXSTALL);
+        HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
     }
     else if (csr & USB_CSR0_H_NAKTIMEOUT)
     {
         hhcd->hc[chnum].state = HC_NAK;
         hhcd->hc[chnum].urb_state = URB_NYET;
         ep0->csr0 &= (~USB_CSR0_H_NAKTIMEOUT);
+        HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
     }
     else
     {
@@ -1611,19 +1925,21 @@ static void HCD_HC_EP0_IRQHandler(HCD_HandleTypeDef *hhcd)
             uint8_t *pBuf = hhcd->hc[chnum].xfer_buff;
             for (i = 0; i < len; i++)
                 *(pBuf + i) = *fifox;
-#if 0
-            HAL_DBG_printf("%d usb chnum=%d rx\n", __LINE__, chnum);
+#if USB_DATA_DEBUG
+            rt_kprintf("%d usb chnum=%d rx\n", __LINE__, chnum);
             for (i = 0; i < len; i++)
-                HAL_DBG_printf("%x ", pBuf[i]);
-            HAL_DBG_printf("\n");
-#endif
+                rt_kprintf("%x ", pBuf[i]);
+            rt_kprintf("\n");
+#endif/*USB_DATA_DEBUG */
             ep0->csr0 &= (~USB_CSR0_RXPKTRDY);
         }
         hhcd->hc[chnum].state = HC_XFRC;
         hhcd->hc[chnum].urb_state = URB_DONE;
+        if ((csr | USB_CSR0_H_DATATOGGLE))
+            HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
     }
     hhcd->ep0_state = HAL_HCD_EP0_IDLE;
-    HAL_HCD_HC_NotifyURBChange_Callback(hhcd, (uint8_t)chnum, hhcd->hc[chnum].urb_state);
+
 }
 
 #if 0
@@ -1704,5 +2020,3 @@ static void HCD_RXQLVL_IRQHandler(HCD_HandleTypeDef *hhcd)
 /**
   * @}
   */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

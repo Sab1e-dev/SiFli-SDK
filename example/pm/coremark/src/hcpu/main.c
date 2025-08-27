@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   main.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2021 - 2021,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2021-2021 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -105,7 +66,6 @@ static void enable_module1(void)
 #endif /* SF32LB58X */
 }
 
-
 static void disable_module2(void)
 {
 #ifdef SF32LB58X
@@ -150,7 +110,6 @@ int run_coremark(int argc, char *argv[])
     uint32_t freq = atoi(argv[1]);
 
     disable_module1();
-
 
     rt_kprintf("Current HCPU freq: %d\n", HAL_RCC_GetHCLKFreq(CORE_ID_HCPU));
 
@@ -212,7 +171,6 @@ int run_while_loop(int argc, char *argv[])
         return -1;
     }
     uint32_t freq = atoi(argv[1]);
-
 
     disable_module1();
 
@@ -289,7 +247,6 @@ int run_while_loop(int argc, char *argv[])
     return 0;
 }
 MSH_CMD_EXPORT(run_while_loop, "While loop benchmark")
-
 
 static void alarm_callback(rt_alarm_t alarm, time_t timestamp)
 {
@@ -453,7 +410,6 @@ static void reconfig_flash_clock(void)
 
 }
 
-
 void aon_irq_handler_hook(uint32_t wsr)
 {
     reconfig_flash_clock();
@@ -521,7 +477,6 @@ static void ipc_rx_thread_entry(void *p)
         }
     }
 }
-
 
 static int h2l_ipc_init(void)
 {
@@ -601,7 +556,6 @@ static void rsp_timeout(void *parameter)
 }
 
 #endif /* SF32LB52X */
-
 
 #ifdef DVFS_TEST
 
@@ -751,7 +705,6 @@ static void pin_event_handler(void *args)
     rt_tick_t curr_tick;
     int32_t tick_diff;
 
-
     curr_tick = rt_tick_get();
     curr_val = rt_pin_read((rt_base_t)args);
 
@@ -774,7 +727,6 @@ static void pin_event_handler(void *args)
 
     LOG_I("pin:%d,%d", (uint32_t)args, rt_pin_read((rt_base_t)args));
 }
-
 
 int pin_test(int argc, char **argv)
 {
@@ -883,7 +835,6 @@ int main(void)
         continue;
 #endif /* DEEPSLEEP_PIN_WAKEUP_TEST */
 
-
 #ifndef DVFS_TEST
         rt_thread_mdelay(400000);
 #else
@@ -895,7 +846,4 @@ int main(void)
 
     return RT_EOK;
 }
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

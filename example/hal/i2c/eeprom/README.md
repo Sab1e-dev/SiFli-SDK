@@ -4,6 +4,7 @@
 例程可以运行在以下开发板.
 * sf32lb52-lcd_n16r8
 * sf32lb58-lcd_n16r64n4
+* sf32lb56-lcd_n16r12n1
 
 ## 概述
 * 通过对EEPROM芯片AT24CO8SC模块的读写操作进行I2C Hal函数演示
@@ -11,16 +12,17 @@
 ## 例程的使用
 
 ### 硬件连接
-AT24CO8SC的VCC,GND分别连接5v和GND供电\
+AT24CO8SC的VCC,GND分别连接5v和GND供电
 AT24CO8SC的SDA,SCK分别按照下表，根据开发板型号进行连接
 
 |开发板    |SDA管脚|SDA管脚名称|SCL管脚|SCL管脚名称|
 |:---     |:---    |:---     |:---   |:---      |
 |sf32lb52-lcd_n16r8 |3       |PA42     |5      |PA41      |
-|sf32lb58-lcd_n16r64n4 |3       |PB29     |5      |PB28      |
+|sf32lb58-lcd_n16r64n4 |3 (CONN1)   |PB29     |5 (CONN1)  |PB28      |
+|sf32lb56-lcd_n16r12n1 |3       |PA12     |5      |PA20      |
 
-* 更详细的引脚定义请参考\
-`[sf32lb52-lcd_n16r8]()`\
+* 更详细的引脚定义请参考
+`[sf32lb52-lcd_n16r8]()`
 `[sf32lb58-lcd_n16r64n4]()`
 
 * AT24C08SC
@@ -123,6 +125,11 @@ void EEPROM_init(void)
     #define EXAMPLE_I2C_IRQ I2C6_IRQn // i2c number of interruput when using interrupte mode 
     HAL_PIN_Set(PAD_PB28, I2C6_SCL, PIN_PULLUP, 1); // i2c io select
     HAL_PIN_Set(PAD_PB29, I2C6_SDA, PIN_PULLUP, 1);
+#elif defined(SF32LB56X)
+#define EXAMPLE_I2C I2C3 // i2c number of cpu
+#define EXAMPLE_I2C_IRQ I2C3_IRQn // i2c number of interruput when using interrupte mode 
+    HAL_PIN_Set(PAD_PA20, I2C3_SCL, PIN_PULLUP, 1); // i2c io select
+    HAL_PIN_Set(PAD_PA12, I2C3_SDA, PIN_PULLUP, 1);
 #endif
 
     // 2. i2c init
@@ -135,6 +142,16 @@ void EEPROM_init(void)
     rt_kprintf("EEPROM_init%d\n", ret);
 }
 ```
+* 依据芯片类型区分开发板，在初始化函数中，针对特定芯片，配置与之对应的I2C引脚
+* 例如通过`#elif defined(SF32LB52X)`<br>芯片来进行一个判断使用的是哪个开发板
+* 通过`#define EXAMPLE_I2C I2C2`<br>为该芯片使用的I2C控制器编号（比如I2C6、I2C3）
+* 通过`#define EXAMPLE_I2C_IRQ I2C6_IRQn`<br>为该I2C控制器对应的中断号（用于中断模式）
+* 最后再通过HAL_PIN_Set()函数配置I2C的SCL和SDA引脚，并且需要设置为上拉模式
+
+**注意**: 
+1. 除55x芯片外,可以配置到任意带有PA*_I2C_UART功能的IO输出I2C的SDA,SCLK波形
+2.  HAL_PIN_Set 最后一个参数为hcpu/lcpu选择, 1:选择hcpu,0:选择lcpu 
+
 * AT24C08SC设备地址\
 ![alt text](assets/at24c08sc_device_address.png)
 
@@ -174,9 +191,7 @@ ret = HAL_I2C_Master_Transmit(&i2c_Handle, EEPROM_I2C_ADDRESS, &addr, 1, 1000);
 ret = HAL_I2C_Master_Receive(&i2c_Handle, EEPROM_I2C_ADDRESS, (uint8_t *)pdata, 2, 1000);
 ```
 
-**注意**: 
-1. 除55x芯片外,可以配置到任意带有PA*_I2C_UART功能的IO输出I2C的SDA,SCLK波形
-2.  HAL_PIN_Set 最后一个参数为hcpu/lcpu选择, 1:选择hcpu,0:选择lcpu 
+
 ## 异常诊断
 * I2C无波形输出
 1. 对照芯片手册检查CPU的I2C是否选择正确

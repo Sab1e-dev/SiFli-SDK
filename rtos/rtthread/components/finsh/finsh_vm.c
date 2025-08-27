@@ -78,28 +78,6 @@ __ROM_USED void finsh_syscall_append(const char *name, syscall_func func)
 }
 #endif
 
-#if defined(_MSC_VER) || (defined(__GNUC__) && defined(__x86_64__))
-__ROM_USED struct finsh_syscall *finsh_syscall_next(struct finsh_syscall *call)
-{
-    unsigned int *ptr;
-    ptr = (unsigned int *)(call + 1);
-    while ((*ptr == 0) && ((unsigned int *)ptr < (unsigned int *) _syscall_table_end))
-        ptr ++;
-
-    return (struct finsh_syscall *)ptr;
-}
-
-__ROM_USED struct finsh_sysvar *finsh_sysvar_next(struct finsh_sysvar *call)
-{
-    unsigned int *ptr;
-    ptr = (unsigned int *)(call + 1);
-    while ((*ptr == 0) && ((unsigned int *)ptr < (unsigned int *) _sysvar_table_end))
-        ptr ++;
-
-    return (struct finsh_sysvar *)ptr;
-}
-#endif
-
 __ROM_USED struct finsh_syscall *finsh_syscall_lookup(const char *name)
 {
     struct finsh_syscall *index;

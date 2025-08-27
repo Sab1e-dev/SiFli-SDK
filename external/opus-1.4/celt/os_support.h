@@ -73,10 +73,10 @@ static OPUS_INLINE void *do_opus_alloc (size_t size, const char *file, int line)
 
 #else
     p = opus_heap_malloc(size);
-
-
+#ifndef BF0_ACPU
+    rt_kprintf("opus alloc=%d 0x%p\r\n", size, p);
 #endif
-   rt_kprintf("opus alloc=%d 0x%p\r\n", size, p);
+#endif
 #endif
    return p;
 }
@@ -99,11 +99,12 @@ static OPUS_INLINE void opus_free (void *ptr)
     extern void* acpu_call_hcpu_free(void *p);
     acpu_call_hcpu_free(ptr);
     return;
-#endif
+#else
 #ifdef SOLUTION_WATCH
     return audio_mem_free(ptr);
 #else
     opus_heap_free(ptr);
+#endif
 #endif
 }
 #endif

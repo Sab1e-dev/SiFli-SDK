@@ -146,6 +146,18 @@ const void * lv_font_get_bitmap_fmt_txt(lv_font_glyph_dsc_t * g_dsc, lv_draw_buf
                 bitmap_out_tmp += stride;
             }
         }
+        else if(fdsc->bpp == 8) {
+            if(stride == gdsc->box_w) {        
+                lv_memcpy(bitmap_out, bitmap_in, gdsc->box_h * gdsc->box_w);
+            }
+            else {
+                for(y = 0; y < gdsc->box_h; y ++) {
+                    lv_memcpy(bitmap_out_tmp, bitmap_in, gdsc->box_w);
+                    bitmap_out_tmp += stride;
+                    bitmap_in += gdsc->box_w;
+                }
+            }
+        }
         return draw_buf;
     }
     /*Handle compressed bitmap*/

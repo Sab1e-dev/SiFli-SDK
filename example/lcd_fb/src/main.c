@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   main.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2021 - 2021,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2021-2021 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -53,7 +14,6 @@
     #include "drv_epic.h"
 #endif /* BSP_USING_LCD_FRAMEBUFFER */
 #include "mem_section.h"
-
 
 static uint8_t get_pixel_size(uint16_t color_format)
 {
@@ -74,7 +34,6 @@ static uint8_t get_pixel_size(uint16_t color_format)
 
     return pixel_size;
 }
-
 
 #ifdef BSP_USING_EPIC
 static void fill_color(uint8_t *buf, uint32_t width, uint32_t height,
@@ -112,10 +71,8 @@ static void fill_color(uint8_t *buf, uint32_t width, uint32_t height,
 }
 #endif /* BSP_USING_EPIC */
 
-
 #if defined(BSP_USING_LCD) && defined(BSP_USING_LCD_FRAMEBUFFER)
 //#define L1_FRAMEBUFFER_ONLY
-
 
 #define FB_COLOR_FORMAT RTGRAPHIC_PIXEL_FORMAT_RGB565
 #define FB_PIXEL_BYTES  2
@@ -149,20 +106,15 @@ static int l1_only_test(uint32_t test_seconds, uint32_t rendering_period)
         .format = FB_COLOR_FORMAT,
     };
 
-
     /*
         Check macro values
     */
     RT_ASSERT(get_pixel_size(FB_COLOR_FORMAT) == FB_PIXEL_BYTES);
 
-
-
-
     uint8_t color = 0;
     drv_lcd_fb_init("lcd");
     drv_lcd_fb_set(&fb_dsc);
     write_fb_cbk cb = NULL;
-
 
     uint32_t test_start_ms = rt_tick_get_millisecond();
 
@@ -200,7 +152,6 @@ static int l1_only_test(uint32_t test_seconds, uint32_t rendering_period)
             if (3 == color) fill_color((uint8_t *)p_render_fb, L1_FB_WIDTH, height, FB_COLOR_FORMAT, 0xFFFFFFFF); //Fill WHITE color
             if (4 == color) fill_color((uint8_t *)p_render_fb, L1_FB_WIDTH, height, FB_COLOR_FORMAT, 0xFFFFFF00); //Fill YELLOW color
 
-
             if (last_one)
             {
                 uint32_t cur_ms = rt_tick_get_millisecond();
@@ -222,7 +173,6 @@ static int l1_only_test(uint32_t test_seconds, uint32_t rendering_period)
     return RT_EOK;
 }
 
-
 #else /*!L1_FRAMEBUFFER_ONLY*/
 #define L1_FB_WIDTH  LCD_HOR_RES_MAX
 #define L1_FB_HEIGHT (LCD_VER_RES_MAX/4)
@@ -231,7 +181,6 @@ static int l1_only_test(uint32_t test_seconds, uint32_t rendering_period)
 #define L2_FB_WIDTH  LCD_HOR_RES_MAX
 #define L2_FB_HEIGHT LCD_VER_RES_MAX
 #define L2_FB_TOTAL_BYTES (L2_FB_WIDTH * L2_FB_HEIGHT *FB_PIXEL_BYTES)
-
 
 /*
     Define L1 framebuffer for rendering
@@ -253,15 +202,11 @@ static void dummy_func(void)
 {
 }
 
-
-
 static struct rt_semaphore done_sema;
 static void lcd_flush_done(lcd_fb_desc_t *fb_desc)
 {
     rt_sem_release(&done_sema);
 }
-
-
 
 static int l1_and_l2_test(uint32_t test_seconds, uint32_t l1_framebuf_cnt, uint32_t l2_framebuf_cnt, uint32_t rendering_period)
 {
@@ -278,22 +223,16 @@ static int l1_and_l2_test(uint32_t test_seconds, uint32_t l1_framebuf_cnt, uint3
         .format = FB_COLOR_FORMAT,
     };
 
-
     /*
         Check macro values
     */
     RT_ASSERT(get_pixel_size(FB_COLOR_FORMAT) == FB_PIXEL_BYTES);
 
-
-
-
     uint8_t color = 0;
     drv_lcd_fb_init("lcd");
     drv_lcd_fb_set(&fb_dsc);
 
-
     rt_sem_init(&done_sema, "donesem", 1, RT_IPC_FLAG_FIFO);
-
 
     uint8_t *p_render_fb = (uint8_t *)&l1_framebuffer1[0];
 
@@ -371,7 +310,6 @@ static int l1_and_l2_test(uint32_t test_seconds, uint32_t l1_framebuf_cnt, uint3
 
     }
 
-
     drv_lcd_fb_deinit();
     rt_sem_detach(&done_sema);
 
@@ -380,7 +318,6 @@ static int l1_and_l2_test(uint32_t test_seconds, uint32_t l1_framebuf_cnt, uint3
 #endif /* L1_FRAMEBUFFER_ONLY */
 
 #endif
-
 
 int main(void)
 {
@@ -396,9 +333,4 @@ int main(void)
 
     return RT_EOK;
 }
-
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

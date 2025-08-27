@@ -46,6 +46,7 @@ ChildProjList = []
 EnvList = []
 ParentProjStack = [{'name': 'main'}]
 CustomImgList = []
+BOARD_SEARCH_PATH = os.path.abspath(os.environ.get('SIFLI_SDK_BOARD_SEARCH_PATH', '')) if 'SIFLI_SDK_BOARD_SEARCH_PATH' in os.environ else None
 
 def is_verbose():
     if (logging.root.level<=logging.DEBUG):
@@ -183,6 +184,82 @@ def ImgFileBuilder(target, source, env):
         shutil.move(os.path.join(source_path, target_filename), '{}'.format(target[0]))
     else:
         subprocess.run(EZIP_PATH + ' -convert ' + str(source[0]) + ' ' + env['FLAGS'] + ' -outdir {}'.format(tgt_directory), shell=True, check=True)
+        # 从.c转为.c的情况下会让scons陷入到依赖循环导致出错。
+        # 因此将转换后的文件后缀修改为`.tmp.c`。
+        # 现在将转换后的真实的.c文件转为.tmp.c后缀以让scons后续编译能正常进行
+        shutil.move('{}'.format(target[0]).replace(".tmp.c", ".c"), '{}'.format(target[0])) 
+
+def FontConvertBuild(target, source, env):
+    """
+    Build action to convert font files to C array using the internal converter
+    """
+    try:
+        source_file = str(source[0])
+        target_file = str(target[0])
+        
+        # Get font name from environment or use default
+        font_name = env['FLAGS']
+
+        # Check if source font file exists
+        if not os.path.exists(source_file):
+            logging.error(f"Source font file not found: {source_file}")
+            return -1
+            
+        # Convert font to C array directly in this function
+        with open(source_file, 'rb') as f:
+            font_data = f.read()
+        
+        font_size = len(font_data)
+        
+        # Generate C content
+        c_content = f"__attribute__((section(\".font_data\"))) const unsigned char {font_name}[{font_size}] = {{\n"
+        
+        # Convert font data to C array format, 12 bytes per line
+        bytes_per_line = 12
+        for i in range(0, font_size, bytes_per_line):
+            line_data = font_data[i:i + bytes_per_line]
+            hex_values = ', '.join(f'0x{b:02X}' for b in line_data)
+            
+            if i + bytes_per_line < font_size:
+                c_content += f"    {hex_values},\n"
+            else:
+                c_content += f"    {hex_values}\n"
+        
+        c_content += "};\n\n\n"
+        c_content += f"const int {font_name}_size = sizeof({font_name});\n"
+
+
+        # Write C file directly to target location
+        with open(target_file, 'w', encoding='utf-8') as f:
+            f.write(c_content)
+    
+
+        logging.info(f"Font conversion completed!")
+        logging.info(f"Input file: {source_file}")
+        logging.info(f"Output file: {target_file}")
+        logging.info(f"Array name: {font_name}")
+        logging.info(f"File size: {font_size} bytes")
+        
+        return 0
+        
+    except Exception as e:
+        logging.error(f"Error during font conversion: {e}")
+        return -1
+
+
+def ModifyFontConvertTargets(target, source, env):
+    """
+    Modify the target file name of the FontConvert builder
+    """
+    target = []
+    
+    # If no font name is specified, use the default name.
+    font_name = env.get('FLAGS', 'font_data')
+
+    target_path = font_name + '.c'
+
+    target.append(target_path)
+    return target, source
 
 def FontFileBuild(target, source, env):
     SIFLI_SDK = os.getenv('SIFLI_SDK')
@@ -199,6 +276,23 @@ def ModifyFontTargets(target, source, env):
     target.append(target_path)
             
     return target, source
+
+def ConvertFont(env, source, flags):
+    """
+    A helper method to convert font files in a more convenient way
+    Usage: 
+        objs1 = env.ConvertFont('path/to/font.ttf1', 'my_font_name1')
+        objs2 = env.ConvertFont('path/to/font.ttf2', 'my_font_name2')
+    """
+    target = []
+    if isinstance(source, str):
+        source = [source]
+        
+    for s in source:
+        t = env.FontConvert(s,FLAGS = flags)
+        target.extend(t)
+    
+    return target
 
 def ImgResource(env, source, flags):
     target = []
@@ -420,6 +514,9 @@ def FsBuild(target, source, env):
         
     found=0
     for mem in mems:
+        if 'version' in mem:
+            # skip header
+            continue
         mem_base = int(mem['base'], 0)
         for region in mem['regions']:
             offset = int(region['offset'], 0)
@@ -680,7 +777,8 @@ def AddChildProj(proj_name, proj_path, img_embedded=False, shared_option=None, c
 
         proj_env = Environment(tools = ['mingw'],
             AS = rtconfig.AS, ASFLAGS = rtconfig.AFLAGS,
-            CC = rtconfig.CC, CCFLAGS = rtconfig.CFLAGS,
+            CC = rtconfig.CC, CFLAGS = rtconfig.CFLAGS,
+            CXX = rtconfig.CXX, CXXFLAGS = rtconfig.CXXFLAGS,
             AR = rtconfig.AR, ARFLAGS = '-rc', LIBPATH=['.'],
             LINK = rtconfig.LINK, LINKFLAGS = rtconfig.LFLAGS)
             
@@ -835,7 +933,7 @@ def PrepareBuilding(env, has_libcpu=False, remove_components=[], buildlib=None):
                 AR = rtconfig.AR, ARFLAGS = '',
                 LINK = rtconfig.LINK, LINKFLAGS = rtconfig.LFLAGS)
             env.PrependENVPath('PATH', 'X:/bin/Hostx64/x64/')
-    
+
     if 'name' not in env:
         env['name'] = 'main'
         env['full_name'] = 'main'
@@ -1130,7 +1228,7 @@ def PrepareBuilding(env, has_libcpu=False, remove_components=[], buildlib=None):
             env['EXPANDED_LDIR'] = expand_ldir
             env["TEMPFILE"] = SCons.Platform.TempFileMunge
             #env["LINKCOM"] = "${TEMPFILE('%s','$LINKCOMSTR')}"%env['LINKCOM']    
-            env["LINKCOM"] = "${TEMPFILE('$LINK -o $EXPANDED_TARGETS $LINKFLAGS $__RPATH $EXPANDED_SOURCES $EXPANDED_LDIR $_LIBFLAGS','$LINKCOMSTR')}"  
+            env["LINKCOM"] = "${TEMPFILE('$LINK -o $EXPANDED_TARGETS $LINKFLAGS $__RPATH $EXPANDED_SOURCES $EXPANDED_LDIR -Wl,--start-group $_LIBFLAGS -Wl,--end-group','$LINKCOMSTR')}"  
             #if hasattr(SCons.Platform.TempFileMunge, 'version'):
             #    env["CCCOM"] = "${TEMPFILE('%s','$CCCOMSTR')}"%env['CCCOM']
             #    env["CXXCOM"] = "${TEMPFILE('%s','$CXXCOMSTR')}"%env['CXXCOM']
@@ -1142,11 +1240,13 @@ def PrepareBuilding(env, has_libcpu=False, remove_components=[], buildlib=None):
         win32_spawn.env = env
         env['SPAWN'] = win32_spawn.spawn
 
-    if env['PLATFORM'] == 'win32':
-        os.environ['PATH'] = rtconfig.EXEC_PATH + ";" + os.environ['PATH']
-    else:
-        os.environ['PATH'] = rtconfig.EXEC_PATH + ":" + os.environ['PATH']
-
+    if os.getenv("LEGACY_ENV"):
+        # make Keil toolchain is availabe by subprocess
+        if env['PLATFORM'] == 'win32':
+            os.environ['PATH'] = rtconfig.EXEC_PATH + ";" + os.environ['PATH']
+        else:
+            os.environ['PATH'] = rtconfig.EXEC_PATH + ":" + os.environ['PATH']
+    
     # add program path
     env.PrependENVPath('PATH', rtconfig.EXEC_PATH)
     # add rtconfig.h/BSP path into Kernel group
@@ -1162,6 +1262,13 @@ def PrepareBuilding(env, has_libcpu=False, remove_components=[], buildlib=None):
 
     DefineGroup("Kernel", [], [], CPPPATH=path)
 
+
+    # add font converter builder
+    font_convert_action = SCons.Action.Action(FontConvertBuild, 'ConvertFont $TARGET')
+    bld = Builder(action = font_convert_action, suffix = '.c', src_suffix = '.ttf', emitter = ModifyFontConvertTargets)
+    Env.Append(BUILDERS = {"FontConvert": bld})
+    Env.AddMethod(ConvertFont, "ConvertFont")
+
     # add library build action
     act = SCons.Action.Action(BuildLibInstallAction, 'Install compiled library... $TARGET')
     bld = Builder(action = act)
@@ -1169,7 +1276,7 @@ def PrepareBuilding(env, has_libcpu=False, remove_components=[], buildlib=None):
     
     # add image builder
     img_file_action = SCons.Action.Action(ImgFileBuilder, 'GenImgFile $TARGET')
-    bld = Builder(action = img_file_action, suffix = '.c', src_suffix = '.png')
+    bld = Builder(action = img_file_action, suffix = '.tmp.c', src_suffix = '.c')
     Env.Append(BUILDERS = {"ImgFile": bld})
     Env.AddMethod(ImgResource, "ImgResource")
 
@@ -1284,7 +1391,8 @@ def PrepareBuilding(env, has_libcpu=False, remove_components=[], buildlib=None):
                     help = 'make menuconfig for RT-Thread BSP')
     if GetOption('menuconfig'):
         board = f"--board={GetOption('board')}"
-        board_search_path = f"--board_search_path={GetOption('board_search_path')}"
+        global BOARD_SEARCH_PATH
+        board_search_path = f"--board_search_path={BOARD_SEARCH_PATH}" if 'BOARD_SEARCH_PATH' in globals() else ''
         subprocess.run([sys.executable, os.path.join(SIFLI_SDK, 'tools',"kconfig" , 'menuconfig.py'), board, board_search_path], check=True)
         exit(0)
 
@@ -1494,6 +1602,7 @@ def InitBuild(bsp_root, build_dir, board):
 
 def PrepareModuleBuilding(env, root_directory, bsp_directory):
     import rtconfig
+    import platform
 
     global BuildOptions
     global Env
@@ -1527,11 +1636,44 @@ def PrepareModuleBuilding(env, root_directory, bsp_directory):
                 action='store_true',
                 default=False,
                 help='clean up the library by --buildlib')
+        AddOption('--no_cc',
+                dest = 'no_cc',
+                action = 'store_true',
+                default = False,
+                help = 'Do not compile')
     except:
         pass
 
+    platform_name = platform.system()
+    if platform_name == 'Windows':
+        tool_suffix = '.exe'
+    elif platform_name == 'Linux': 
+        tool_suffix = '_linux'
+    elif platform_name == 'Darwin':
+        tool_suffix = '_mac'
+    else:
+        raise ValueError('Unsupported platform: {}'.format(platform_name))
+
+    env['tool_suffix'] = tool_suffix
+
     # add program path
     env.PrependENVPath('PATH', rtconfig.EXEC_PATH)
+
+    # add image builder
+    img_file_action = SCons.Action.Action(ImgFileBuilder, 'GenImgFile $TARGET')
+    bld = Builder(action = img_file_action, suffix = '.c', src_suffix = '.png')
+    Env.Append(BUILDERS = {"ImgFile": bld})
+    Env.AddMethod(ImgResource, "ImgResource")
+
+    # add font builder
+    font_file_action = SCons.Action.Action(FontFileBuild, 'GenFontFile $TARGET')
+    bld = Builder(action = font_file_action, suffix = '.c', src_suffix = '.ttf', prefix = 'lvsf_font_', emitter = ModifyFontTargets)
+    Env.Append(BUILDERS = {"FontFile": bld})
+
+    # add lang builder
+    lang_action = SCons.Action.Action(LangBuild, 'Generating langpack ...')
+    bld = Builder(action = lang_action, src_suffix = '.json', emitter = ModifyLangTargets)
+    Env.Append(BUILDERS = {"Lang": bld})
 
 def GetConfigValue(name):
     assert type(name) == str, 'GetConfigValue: only string parameter is valid'
@@ -2240,6 +2382,69 @@ def SifliIarEnv(cpu):
     #env.Replace(ARFLAGS = [''])
     #env.Replace(LINKCOM = env["LINKCOM"] + ' --map rt-thread.map')
 
+def GetKeilMcpu():
+    if GetDepend('SOC_SF32LB55X'):
+        mcpu = 'cortex-m33'
+    elif GetDepend('SOC_SF32LB56X'):
+        mcpu = 'cortex-m33+cdecp1'
+    elif GetDepend('SOC_SF32LB58X'):
+        mcpu = 'cortex-m33+cdecp1'
+    elif GetDepend('SOC_SF32LB52X'):  
+        if GetDepend("BF0_LCPU"):
+            mcpu = 'cortex-m33+nodsp'
+        else:
+            mcpu = 'cortex-m33+cdecp1'
+    elif GetDepend('SOC_SF32LB57X'):  
+        if GetDepend("BF0_LCPU"):
+            mcpu = 'cortex-m33+nodsp'
+        else:
+            mcpu = 'cortex-m33+cdecp1'
+    else:
+        raise Exception("Unknown chip series")
+    
+    return mcpu
+
+# ref.: https://gcc.gnu.org/onlinedocs/gcc/ARM-Options.html
+# -mcpu=cortex-m33+cdecp1 is not supported by GCC14, -mcpu=star-mc1+cdecp1 neither, so we use the combination of -mtune and -march
+# -mtune=cortex-m33 doesn't enable dsp and fp by default, so need to enable them by -march
+def GetMtune():
+    if GetDepend('SOC_SF32LB55X'):
+        mtune = 'cortex-m33'
+    elif GetDepend('SOC_SF32LB56X'):
+        mtune = 'cortex-m33'
+    elif GetDepend('SOC_SF32LB58X'):
+        mtune = 'cortex-m33'
+    elif GetDepend('SOC_SF32LB52X'):  
+        mtune = 'cortex-m33'
+    elif GetDepend('SOC_SF32LB57X'):  
+        mtune = 'cortex-m33'
+    else:
+        raise Exception("Unknown chip series")
+    
+    return ' -mtune=' + mtune
+
+def GetMarch():
+    if GetDepend('SOC_SF32LB55X'):
+        march = 'armv8-m.main+dsp+fp'
+    elif GetDepend('SOC_SF32LB56X'):
+        march = 'armv8-m.main+dsp+fp+cdecp1'
+    elif GetDepend('SOC_SF32LB58X'):
+        march = 'armv8-m.main+dsp+fp+cdecp1'
+    elif GetDepend('SOC_SF32LB52X'):  
+        if GetDepend("BF0_LCPU"):
+            march = 'armv8-m.main'
+        else:
+            march = 'armv8-m.main+dsp+fp+cdecp1'
+    elif GetDepend('SOC_SF32LB57X'):  
+        if GetDepend("BF0_LCPU"):
+            march = 'armv8-m.main'
+        else:
+            march = 'armv8-m.main+dsp+fp+cdecp1'
+    else:
+        raise Exception("Unknown chip series")
+    
+    return ' -march=' + march
+
 def SifliGccEnv(cpu):
     import rtconfig
     
@@ -2249,7 +2454,7 @@ def SifliGccEnv(cpu):
     # toolchains
     if rtconfig.ARCH=='arm':
         rtconfig.PREFIX = 'arm-none-eabi-'
-        DEVICE = ' -mcpu=' + cpu + ' -mthumb -ffunction-sections -fdata-sections'
+        DEVICE = GetMtune() + GetMarch() + ' -mthumb -ffunction-sections -fdata-sections'
     elif rtconfig.ARCH=='risc-v':
         rtconfig.PREFIX = 'riscv64-unknown-elf-'
         DEVICE = ' -march=rv32ima_zca_zcb_zcf_zcmp_zcmt_xxlcz -mabi=ilp32'
@@ -2267,30 +2472,33 @@ def SifliGccEnv(cpu):
 
     if GetDepend('CPU_HAS_NO_DSP_FP'):
         no_dsp_fp = True
-        cpu += '+nodsp'
     else:
         no_dsp_fp = False
 
+
+    SIFLI_SDK = os.getenv('SIFLI_SDK')
     if rtconfig.ARCH=='arm':
         if not no_dsp_fp:
             rtconfig.CFLAGS = DEVICE + ' -mfpu=fpv5-sp-d16 -mfloat-abi=hard'
         else:
             rtconfig.CFLAGS = DEVICE + ' -mfloat-abi=soft'
-    rtconfig.CFLAGS += ' -std=c99 -funsigned-char -fshort-enums -fshort-wchar'
-    rtconfig.CFLAGS += ' -mlittle-endian -gdwarf-3 -Wno-packed -Wno-missing-prototypes -Wno-missing-noreturn -Wno-sign-conversion -Wno-unused-macros -Wnull-dereference'
+    rtconfig.CFLAGS += ' -funsigned-char -fshort-enums -fshort-wchar'
+    # We don't need to delete the SDK prefix now, as this would make debugging inconvenient.
+    # rtconfig.CFLAGS += f' -ffile-prefix-map={SIFLI_SDK}=./'
+    rtconfig.CFLAGS += ' -mlittle-endian -gdwarf-3 -Wno-packed -Wno-missing-noreturn -Wno-sign-conversion -Wno-unused-macros -Wnull-dereference'
     rtconfig.CFLAGS += ' -fno-unwind-tables -fno-exceptions'
     rtconfig.CFLAGS += ' -fno-common'
     
-    rtconfig.CFLAGS += ' -Os -D_GNU_SOURCE'
+    rtconfig.CFLAGS += ' -Os'
     rtconfig.CXXFLAGS = rtconfig.CFLAGS
     if no_dsp_fp:
         rtconfig.CXXFLAGS += ' -fno-exceptions -fno-rtti'
-    rtconfig.CCFLAGS =  rtconfig.CFLAGS
+    rtconfig.CCFLAGS =  rtconfig.CFLAGS + ' -std=c99 -Wno-missing-prototypes'
     rtconfig.AFLAGS = ' -c' + DEVICE + ' -x assembler-with-cpp'
     if rtconfig.ARCH=='arm':
         rtconfig.AFLAGS += ' -Wa,-mimplicit-it=thumb'
         if not no_dsp_fp:
-            rtconfig.AFLAGS += ' -mfpu=fpv4-sp-d16 -mfloat-abi=hard'
+            rtconfig.AFLAGS += ' -mfpu=fpv5-sp-d16 -mfloat-abi=hard'
         else:
             rtconfig.AFLAGS += ' -mfloat-abi=soft'
     elif rtconfig.ARCH=='risc-v':
@@ -2407,11 +2615,12 @@ def SifliKeilEnv(cpu, BSP_ROOT=''):
             rtconfig.CFLAGS+= ' -DARMCM33 '        
             DEVICE += ' -mfpu=none -mfloat-abi=soft '   
             asm_cpu = cpu + '.no_dsp'
-            cpu += "+nodsp"
+
+        cpu = GetKeilMcpu()
     else:
         assert false, "Unknown cpu: {}".format(cpu)
     
-    rtconfig.CFLAGS +=' -mcpu=' + cpu +  DEVICE + ' -c -ffunction-sections --target=arm-arm-none-eabi'
+    rtconfig.CFLAGS += ' -mcpu=' + cpu +  DEVICE + ' -c -ffunction-sections --target=arm-arm-none-eabi'
     rtconfig.CFLAGS += ' -fno-rtti -funsigned-char -fshort-enums -fshort-wchar'
 	# -Werror 
     rtconfig.CFLAGS += ' -mlittle-endian -gdwarf-3 -Wno-builtin-macro-redefined -Wno-pointer-sign -Wno-typedef-redefinition '
@@ -2424,13 +2633,13 @@ def SifliKeilEnv(cpu, BSP_ROOT=''):
     rtconfig.AFLAGS += ' --cpreproc_opts=-D__UVISION_VERSION="532" '
     rtconfig.AFLAGS += ' --diag_suppress=A1609 '
 
-    rtconfig.CXXFLAGS = rtconfig.CFLAGS + ' -xc++ -std=c++14 -fno-exceptions ' 
+    rtconfig.CXXFLAGS = rtconfig.CFLAGS + ' -xc++ -fno-exceptions ' 
     rtconfig.CXXFLAGS += ' -I' + rtconfig.EXEC_PATH + '/ARM/ARMCLANG/include/libcxx'
     rtconfig.CCFLAGS =  rtconfig.CFLAGS
     rtconfig.CFLAGS = rtconfig.CFLAGS + ' -xc -std=c99 '
     rtconfig.LFLAGS = ' --cpu=' + asm_cpu 
     if no_dsp_fp:
-        rtconfig.LFLAGS = ' --fpu=SoftVFP'    
+        rtconfig.LFLAGS += ' --fpu=SoftVFP'    
     rtconfig.LFLAGS += ' --strict --scatter '+ rtconfig.LINK_SCRIPT+ '.sct --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols --info sizes --info totals --info unused --info veneers --any_contingency '
     
     rtconfig.LFLAGS += ' --list ' + os.path.join(rtconfig.OUTPUT_DIR, rtconfig.TARGET_NAME + '.map') + ' '
@@ -2549,9 +2758,8 @@ def GetBoardPath(board):
 
 
     board_root = os.path.join(SIFLI_SDK, 'customer/boards')
-    board_search_path = os.getenv('BOARD_SEARCH_PATH')
-    if (board_search_path is not None) and os.path.exists(os.path.join(board_search_path, board_path)):
-        board_root = board_search_path
+    if (BOARD_SEARCH_PATH is not None) and os.path.exists(os.path.join(BOARD_SEARCH_PATH, board_path)):
+        board_root = BOARD_SEARCH_PATH
     board_path1 = os.path.join(board_root, board_path).replace('\\', '/')
     board_path2 = os.path.join(board_path1, subfolder).replace('\\', '/')
 
@@ -2595,7 +2803,7 @@ def IsInitBuild():
         return False    
 
 
-def PrepareEnv(board=None, board_search_path=None):
+def PrepareEnv(board=None):
     import rtconfig
     global BuildOptions
 
@@ -2608,7 +2816,7 @@ def PrepareEnv(board=None, board_search_path=None):
         AddOption('--board_search_path',
                     dest = 'board_search_path',
                     type = 'string',
-                    default=board_search_path,
+                    default=None,
                     help = 'board search path in addition to sdk board path')            
         AddOption('--bconf',
                     dest = 'bconf',
@@ -2638,8 +2846,9 @@ def PrepareEnv(board=None, board_search_path=None):
     logging.info("Board: {}".format(board))
 
     if GetOption('board_search_path'):
-        os.environ["BOARD_SEARCH_PATH"] = os.path.abspath(GetOption('board_search_path'))
-        logging.info("Board search path: {}".format(os.getenv('BOARD_SEARCH_PATH')))
+        global BOARD_SEARCH_PATH
+        BOARD_SEARCH_PATH = os.path.abspath(GetOption('board_search_path'))
+        logging.info(f"Board search path: {BOARD_SEARCH_PATH}")
 
     if board:
         LoadRtconfig(board)
@@ -2703,7 +2912,7 @@ def AddLCPU(SIFLI_SDK, chip,target_file=None):
         proj_path = None
         proj_path = os.path.join(SIFLI_SDK, 'example/ble/lcpu_general/project/common')
         lcpu_proj_name = 'lcpu'
-        AddChildProj(lcpu_proj_name, proj_path, True, core="LCPU")
+        return AddChildProj(lcpu_proj_name, proj_path, True, core="LCPU")
     elif "SF32LB55X" == chip:
         import rtconfig
         if target_file != None:
@@ -2719,7 +2928,7 @@ def AddLCPU(SIFLI_SDK, chip,target_file=None):
                 shutil.copy(os.path.join(SIFLI_SDK, 'example/rom_bin/lcpu_general_ble_img/lcpu_general_6600.c'), target_file)
             elif "SS6600_A3"==rtconfig.PACKAGE:
                 shutil.copy(os.path.join(SIFLI_SDK, 'example/rom_bin/lcpu_general_ble_img/lcpu_general_6600_a3.c'), target_file)
-            
+        return None   
 # For parent project, BSP_Root should be None
 def SifliEnv(BSP_Root = None):
     import rtconfig

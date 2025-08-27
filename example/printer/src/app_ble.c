@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   main.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2021 - 2021,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2021-2021 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "app_common.h"
@@ -52,7 +13,6 @@
 
 OS_TIMER_DECLAR(g_app_timer);
 
-
 enum ble_app_att_list
 {
     BLE_APP_SVC,
@@ -61,7 +21,6 @@ enum ble_app_att_list
     BLE_APP_CLIENT_CHAR_CONFIG_DESCRIPTOR,
     BLE_APP_ATT_NB
 };
-
 
 #define app_svc_uuid { \
     0x73, 0x69, 0x66, 0x6c, \
@@ -82,15 +41,12 @@ enum ble_app_att_list
 #define BLE_APP_HIGH_PERFORMANCE_INTERVAL (24)
 #define BLE_APP_TIMEOUT_INTERVAL (5000)
 
-
-
 static app_env_t g_app_env;
 static rt_mailbox_t g_app_mb;
 
 static uint8_t g_app_svc[ATT_UUID_128_LEN] = app_svc_uuid;
 
 static uint8_t ble_connect_count;
-
 
 struct attm_desc_128 app_att_db[] =
 {
@@ -139,7 +95,6 @@ static uint8_t ble_app_background_advertising_event(uint8_t event, void *context
     }
     return 0;
 }
-
 
 /* Enable advertise via advertising service. */
 static void ble_app_bg_advertising_start(void)
@@ -218,7 +173,6 @@ static uint8_t ble_app_advertising_event(uint8_t event, void *context, void *dat
     return 0;
 }
 
-
 #define DEFAULT_LOCAL_NAME "SIFLI_APP"
 /* Enable advertise via advertising service. */
 void ble_app_advertising_start(void)
@@ -278,8 +232,6 @@ void ble_app_advertising_start(void)
     rt_free(para.rsp_data.completed_name);
     rt_free(para.adv_data.manufacturer_data);
 }
-
-
 
 // Hanlde read operation
 uint8_t *ble_app_gatts_get_cbk(uint8_t conn_idx, uint8_t idx, uint16_t *len)
@@ -426,7 +378,6 @@ void ble_app_service_init(void)
         sibles_register_cbk(env->data.srv_handle, ble_app_gatts_get_cbk, ble_app_gatts_set_cbk);
 }
 
-
 void app_timeout_handler(void *parameter)
 {
     app_env_t *env = ble_app_get_env();
@@ -442,9 +393,6 @@ void app_timeout_handler(void *parameter)
     }
 }
 
-
-
-
 #ifndef NVDS_AUTO_UPDATE_MAC_ADDRESS_ENABLE
 ble_common_update_type_t ble_request_public_address(bd_addr_t *addr)
 {
@@ -459,7 +407,6 @@ ble_common_update_type_t ble_request_public_address(bd_addr_t *addr)
     return BLE_UPDATE_ONCE;
 }
 #endif // NVDS_AUTO_UPDATE_MAC_ADDRESS_ENABLE
-
 
 static void ble_app_update_conn_param(uint8_t conn_idx, uint16_t inv_max, uint16_t inv_min, uint16_t timeout)
 {
@@ -650,7 +597,6 @@ int cmd_diss(int argc, char *argv[])
 
 MSH_CMD_EXPORT(cmd_diss, My device information service.);
 
-
 int ble_config(int argc, char *argv[])
 {
     if (argc < 3)
@@ -689,6 +635,4 @@ int ble_config(int argc, char *argv[])
 MSH_CMD_EXPORT(ble_config, "BLE Configure")
 
 #endif
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

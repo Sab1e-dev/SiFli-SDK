@@ -43,32 +43,70 @@
 + 喇叭。
 
 ### menuconfig配置
-
 1. 本例程需要读写文件，所以需要用到文件系统，配置`FAT`文件系统：
-![RT_USING_DFS_ELMFAT](./assets/mc_fat.png)
-
-     ```{tip}
+    - 路径：RTOS → RT-Thread Components → Device virtual file system
+    - 开启：Enable elm-chan fatfs
+        - 宏开关：`CONFIG_RT_USING_DFS_ELMFAT`
+        - 作用：开启fatfs文件系统
+    ```{tip}
      mnt_init 中mount root分区。
-     ```
+    ```
 2. 使能AUDIO CODEC 和 AUDIO PROC：
-![AUDIO CODEC & PROC](./assets/mc_audcodec_audprc.png)
+    - 路径：On-chip Peripheral RTOS Drivers
+    - 开启：Enable Audio Process driver
+        - 宏开关：`CONFIG_BSP_ENABLE_AUD_PRC`
+        - 作用：使能Audio process device，主要用于音频数据处理（包括重采样、音量调节等）
+    - 开启：Enable Audio codec driver
+        - 宏开关：`CONFIG_BSP_ENABLE_AUD_CODEC`
+        - 作用：使能Audio codec device，主要用于进行DAC转换
 3. 使能AUDIO(`AUDIO`)：
-![AUDIO](./assets/mc_audio.png)
-4. 使能AUDIO MANAGER.(`AUDIO_USING_MANAGER`)
-![AUDIO_USING_MANAGER](./assets/mc_audio_manager.png)
-5. (`AUDIO_LOCAL_MUSIC`)
-![AUDIO_LOCAL_MUSIC](./assets/mc_local_music.png)
+    - 路径：Sifli middleware
+    - 开启：Enable Audio
+        - 作用：使能音频配置选项
+4. 使能AUDIO MANAGER(`AUDIO_USING_MANAGER`)：
+    - 路径：Sifli middleware → Enable Audio
+    - 开启：Enable audio manager
+        - 宏开关：`CONFIG_AUDIO_USING_MANAGER`
+        - 作用：使用audio manager模块进行audio的流程处理
+5. 使能本地音频(`AUDIO_LOCAL_MUSIC`)
+    - 路径：Sifli middleware → Enable Audio
+    - 开启：Enable local audio
+        - 宏开关：`CONFIG_AUDIO_LOCAL_MUSIC`
+        - 作用：使能本地音频功能
 6. 预置音频文件，放到如下\disk\目录下即可预置下载：  
 * 音频文件在music_source/disk/test.mp3
 7. 使能蓝牙(`BLUETOOTH`)：
-![BLUETOOTH](./assets/mc_bluetooth.png)
+    - 路径：Sifli middleware → Bluetooth
+    - 开启：Enable bluetooth
+        - 宏开关：`CONFIG_BLUETOOTH`
+        - 作用：使能蓝牙功能
 8. 使能A2DP source和AVRCP：
-![A2DP SRC & AVRCP](./assets/mc_bt_a2dp_avrcp.png)
-6. 使能BT connection manager：
-![BT CM](./assets/mc_bt_cm.png)
-7. 使能NVDS
-![NVDS](./assets/mc_bt_nvds.png)
-
+    - 路径：Sifli middleware → Bluetooth → Bluetooth service → Classic BT service
+    - 开启：Enable BT finsh（可选）
+        - 宏开关：`CONFIG_BT_FINSH`
+        - 作用：使能finsh命令行，用于控制蓝牙
+    - 开启：Manually select profiles
+        - 宏开关：`CONFIG_BT_PROFILE_CUSTOMIZE`
+        - 作用：手动选择使能的配置文件
+    - 开启：Enable A2DP
+        - 宏开关：`CONFIG_CFG_AV`
+        - 作用：使能A2DP
+    - 开启：Enable A2DP source profile
+        - 宏开关：`CONFIG_CFG_AV_SRC`
+        - 作用：使能A2DP SOURCE ROLE
+    - 开启：Enable AVRCP
+        - 宏开关：`CONFIG_CFG_AVRCP`
+        - 作用：使能AVRCP profile
+9. 使能BT connection manager：
+    - 路径：Sifli middleware → Bluetooth → Bluetooth service → Classic BT service
+    - 开启：Enable BT connection manager
+        - 宏开关：`CONFIG_BSP_BT_CONNECTION_MANAGER`
+        - 作用：使用connection manager模块管理bt的连接
+10. 使能NVDS：
+    - 路径：Sifli middleware → Bluetooth → Bluetooth service → Common service
+    - 开启：Enable NVDS synchronous
+        - 宏开关：`CONFIG_BSP_BLE_NVDS_SYNC`
+        - 作用：蓝牙NVDS同步。当蓝牙被配置到HCPU时，BLE NVDS可以同步访问，打开该选项；蓝牙被配置到LCPU时，需要关闭该选项
 
 ### 编译和烧录
 切换到例程project目录，运行scons命令执行编译：

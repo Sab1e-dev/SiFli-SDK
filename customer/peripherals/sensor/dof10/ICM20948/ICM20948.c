@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   ICM20948.c
-  * @author Sifli software development team
-  * @brief   This file includes the invsense ICM20948 driver functions
-  *
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "board.h"
@@ -57,7 +16,6 @@
 ICM20948_ST_SENSOR_DATA gstGyroOffset = {0, 0, 0};
 static struct rt_i2c_bus_device *i2cbus = NULL;
 static uint8_t icm_slave_addr = I2C_ADD_ICM20948;
-
 
 static bool invmsICM20948MagCheck(void);
 static void invmsICM20948CalAvgValue(uint8_t *pIndex, int16_t *pAvgBuffer, int16_t InVal, int32_t *pOutVal);
@@ -139,7 +97,6 @@ static uint8_t I2C_ReadOneByte(uint8_t DevAddr, uint8_t RegAddr)
 #endif
     return 0xff;
 }
-
 
 extern uint8_t invmsICM20948Check(void)
 {
@@ -541,7 +498,6 @@ static void ICM20948_get_mag(int16_t *ps16X, int16_t *ps16Y, int16_t *ps16Z)
         invmsICM20948MagRead(ps16X, ps16Y, ps16Z);
 }
 
-
 int cmd_icmt(int argc, char *argv[])
 {
     int16_t x, y, z;
@@ -727,4 +683,3 @@ FINSH_FUNCTION_EXPORT_ALIAS(cmd_icmt, __cmd_icmt, Test driver icm20948);
 
 #endif  // SENSOR_USING_ICM20948
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

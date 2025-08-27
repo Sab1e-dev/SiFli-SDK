@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_ext_dma.c
-  * @author Sifli software development team
-  * @brief EXT DMA Interrupt handler.
-  *
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -50,7 +9,6 @@
 #include <string.h>
 #include "drv_ext_dma.h"
 #include "bf0_hal_ext_dma.h"
-
 
 pCallback full_cb = NULL;
 pCallback err_cb = NULL;
@@ -61,7 +19,6 @@ rt_sem_t ExtDma_sema = NULL;
 
 static void EXT_DMA_CPLT_CB(EXT_DMA_HandleTypeDef *_hdma);
 static void EXT_DMA_ERR_CB(EXT_DMA_HandleTypeDef *_hdma);
-
 
 static int EXT_DMA_Init(void)
 {
@@ -106,7 +63,6 @@ void EXTDMA_IRQHandler(void)
     rt_interrupt_leave();
 }
 
-
 rt_err_t EXT_DMA_ConfigCmpr(uint8_t src_inc, uint8_t dst_inc, const EXT_DMA_CmprTypeDef *cmpr)
 {
     rt_err_t res = 0;
@@ -126,7 +82,6 @@ rt_err_t EXT_DMA_ConfigCmpr(uint8_t src_inc, uint8_t dst_inc, const EXT_DMA_Cmpr
         gExtDma.Init.DstInc = HAL_EXT_DMA_DST_INC | HAL_EXT_DMA_DST_BURST16;
     else
         gExtDma.Init.DstInc = HAL_EXT_DMA_DST_BURST1;
-
 
     gExtDma.Init.cmpr_en = cmpr->cmpr_en;
     gExtDma.Init.src_format = cmpr->src_format;
@@ -151,7 +106,6 @@ rt_err_t EXT_DMA_Config(uint8_t src_inc, uint8_t dst_inc)
 rt_err_t EXT_DMA_START_ASYNC(uint32_t src, uint32_t dst, uint32_t len)
 {
     HAL_StatusTypeDef res;
-
 
 #ifdef RT_USING_PM
     rt_pm_request(PM_SLEEP_MODE_IDLE);
@@ -254,7 +208,6 @@ static void EXT_DMA_ERR_CB(EXT_DMA_HandleTypeDef *_hdma)
     if (err_cb)
         err_cb();
 }
-
 
 INIT_BOARD_EXPORT(EXT_DMA_Init);
 
@@ -562,7 +515,5 @@ int cmd_edma(int argc, char *argv[])
 
 FINSH_FUNCTION_EXPORT_ALIAS(cmd_edma, __cmd_edma, Test ext_dma driver);
 
-
 #endif  // DRV_EXT_DMA_TEST
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

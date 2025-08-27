@@ -1,55 +1,13 @@
-/**
-  ******************************************************************************
-  * @file   os_adaptor_rtthread.h
-  * @author Sifli software development team
-  * @brief Header file - OS adatpor interface with RTThread OS.
- *
-  ******************************************************************************
-*/
 /*
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
-*/
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #ifndef __OS_ADAPTOR_RTTHREAD_H
 #define __OS_ADAPTOR_RTTHREAD_H
 
 #include "rtconfig.h"
-
 
 #ifdef BSP_USING_RTTHREAD
 
@@ -116,15 +74,12 @@
 #define os_delay(ms) \
     rt_thread_mdelay((int32_t)ms)
 
-
 #ifdef RT_USING_MESSAGEQUEUE
 #define os_message_queue_create(queue, max_count, msg_size, mem_pool, pool_size) \
     queue = os_message_queue_create_int(STRINGIFY(queue), max_count, msg_size, mem_pool, pool_size)
 
-
 #define os_message_put(queue, data, data_size, timeout) \
     rt_mq_send((rt_mq_t)(((os_handle_t)queue)->handle), data, data_size)
-
 
 #define os_message_get(queue, data, data_size, timeout) \
     rt_mq_recv((rt_mq_t)(((os_handle_t)queue)->handle), data, data_size, timeout)
@@ -149,7 +104,6 @@
 
 #endif // RT_USING_MAILBOX
 
-
 #ifdef RT_USING_EVENT
 #define os_event_create(event) \
     event = (os_event_t)rt_event_create(STRINGIFY(event), RT_IPC_FLAG_FIFO)
@@ -164,11 +118,7 @@
     rt_event_delete(event)
 #endif // RT_USING_EVENT
 
-
 #endif // BSP_USING_RTTHREAD
-
-
 
 #endif // __OS_ADAPTOR_RTTHREAD_H
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

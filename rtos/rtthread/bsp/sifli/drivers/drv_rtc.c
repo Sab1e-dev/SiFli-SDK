@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_rtc.c
-  * @author Sifli software development team
-  * @brief Real Timer Clock BSP driver
-  This driver is validated by using MSH command 'date'.
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <string.h>
@@ -219,7 +178,6 @@ void drv_rtc_callback(int reason)
         HAL_RTC_DeactivateWakeUpTimer(&RTC_Handler);
     }
 
-
 #endif
 }
 
@@ -251,7 +209,6 @@ void rtc_rc10_calculate_div(RTC_HandleTypeDef *hdl, uint32_t value)
     LOG_I("DIVA=%d, DIVA_FRA=%d, DIVB=%d\n",
           hdl->Init.DivAInt, hdl->Init.DivAFrac, hdl->Init.DivB);
 }
-
 
 #if defined(LXT_DISABLE) && defined(BF0_HCPU)
 bool rtc_reconfig()
@@ -319,7 +276,6 @@ static rt_err_t rt_rtc_config(struct rt_device *dev)
         if (value)
             rtc_rc10_calculate_div(&RTC_Handler, value);
     }
-
 
     if (0 == SystemPowerOnModeGet() &&                      // Cold boot
             HAL_Get_backup(RTC_BACKUP_INITIALIZED) == 0)    // And not software reboot, which RTC already initialized.
@@ -417,7 +373,6 @@ void drv_rtc_calculate_delta(int reset)
     }
 #endif
 }
-
 
 /** @defgroup rtc_device Real time clock device functions registered to OS
   * @ingroup drv_rtc
@@ -600,7 +555,6 @@ __HAL_ROM_USED int rt_hw_rtc_init(void)
 }
 INIT_DEVICE_EXPORT(rt_hw_rtc_init);
 
-
 /**
   * @brief  This function handles Alarm interrupt request.
   * @retval None
@@ -613,7 +567,6 @@ void RTC_IRQHandler(void)
     /* leave interrupt */
     rt_interrupt_leave();
 }
-
 
 #endif /* BSP_USING_ONCHIP_RTC */
 
@@ -634,7 +587,6 @@ void RTC_IRQHandler(void)
 /// @} bsp_sample_rtc
 /// @} bsp_sample
 
-
 #ifdef APP_BSP_TEST
 #include <finsh.h>
 #include <rtdevice.h>
@@ -643,7 +595,6 @@ void RTC_IRQHandler(void)
 
 static rt_alarm_t g_alarm, g_alarm2, g_alarm3;
 static rt_device_t device;
-
 
 static void alarm_callback(rt_alarm_t alarm, time_t timestamp)
 {
@@ -712,6 +663,3 @@ MSH_CMD_EXPORT(alarm, set alarm [hour min sec]);
 #endif /* defined(RT_USING_FINSH) && defined(FINSH_USING_MSH)*/
 #endif /* BSP_TEST*/
 
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

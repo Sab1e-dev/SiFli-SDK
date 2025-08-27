@@ -124,7 +124,7 @@ SECTIONS
 #ifndef FLASH_TABLE_ONLY
   .vectors :
   {
-    _stext = ABSOLUTE(.);  
+    _stext = ABSOLUTE(.);
     KEEP(*(.vectors));
     /* workaround to avoid load address of .retm_data doesn't skip .vectors region */
     . = . + 4;
@@ -168,19 +168,19 @@ SECTIONS
     *bsp_pinmux.o       (.text* .rodata*)
     *bsp_power.o        (.text* .rodata*)
     *bf0_hal_gpio.o     (.text* .rodata*)
-    
+
     *.o (.retm_data_*)
 
     . = ALIGN(4);
     __rw_retm_code_end__ = .;
 
   } > RET_RAM AT > ROM
-  
+
   .retm_data :
   {
     . = ALIGN(4);
     __rw_retm_data_start__ = .;
-    
+
     *.o (.retm_data_*)
 
     . = ALIGN(4);
@@ -193,13 +193,13 @@ SECTIONS
     . = ALIGN(4);
     __rw_itcm_code_start__ = .;
     __ER_ITCM$$RO_start__ = .;
-    __ER_ITCM$$RO_load_start__ = LOADADDR(.itcm_code);    
-    
+    __ER_ITCM$$RO_load_start__ = LOADADDR(.itcm_code);
+
 
     . = ALIGN(4);
     __rw_itcm_code_end__ = .;
     __ER_ITCM$$RO_end__ = .;
-    __ER_ITCM$$RO_load_end__ = LOADADDR(.itcm_code) + SIZEOF(.itcm_code);    
+    __ER_ITCM$$RO_load_end__ = LOADADDR(.itcm_code) + SIZEOF(.itcm_code);
 
   } > ITCM AT > ROM
 
@@ -208,7 +208,7 @@ SECTIONS
     . = ALIGN(4);
     __rw_itcm_data_start__ = .;
     __ER_ITCM$$RW_start__ = .;
-    
+
 
     . = ALIGN(4);
     __rw_itcm_data_end__ = .;
@@ -218,7 +218,7 @@ SECTIONS
 
   .rom_ex :
   {
-  
+
     . = ALIGN(4);
     __rw_rom_ex_start__ = .;
     __ER_IROM1_EX$$RO_start__ = .;
@@ -241,7 +241,7 @@ SECTIONS
     __rw_rom_ex_end__ = .;
     __ER_IROM1_EX$$RO_end__ = .;
     __ER_IROM1_EX$$RO_load_end__ = LOADADDR(.rom_ex) + SIZEOF(.rom_ex);
-    
+
   } > ROM_EX AT > ROM
 
 
@@ -252,7 +252,7 @@ SECTIONS
   .text :
   {
 #ifdef FLASH_TABLE_ONLY
-    KEEP(*ftab.o(.text* .rodata*)) 
+    KEEP(*ftab.o(.text* .rodata*))
 #else
     *(.text*)
     *(.rodata*)
@@ -296,7 +296,7 @@ SECTIONS
     LcdDriverDescTab_start = .;
     KEEP(*(LcdDriverDescTab))
     LcdDriverDescTab_end = .;
-    
+
     . = ALIGN(4);
     __rt_utest_tc_tab_start = .;
     KEEP(*(UtestTcTab))
@@ -333,12 +333,21 @@ SECTIONS
     KEEP(*(SORT(.bt_sifli_reg*)))
     __bt_sifli_reg_end__ = .;
 
+    . = ALIGN(4);
+    __usbh_class_info_start__ = .;
+    KEEP(*(.usbh_class_info))
+    __usbh_class_info_end__ = .;
+
     KEEP(*(.eh_frame*))
     _etext = ABSOLUTE(.);
 #endif
-  } > ROM 
-  
-#ifndef FLASH_TABLE_ONLY      
+  } > ROM
+
+#ifdef ZBT
+#include "zbt_rom.lds"
+#endif
+
+#ifndef FLASH_TABLE_ONLY
 
   /*
    * SG veneers:
@@ -379,31 +388,31 @@ SECTIONS
     LONG (LOADADDR(.retm_data))
     LONG (ADDR(.retm_data))
     LONG (SIZEOF(.retm_data))
-    
+
     LONG (LOADADDR(.rom_ex))
     LONG (ADDR(.rom_ex))
-    LONG (SIZEOF(.rom_ex))    
+    LONG (SIZEOF(.rom_ex))
 
     LONG (LOADADDR(.itcm_code))
     LONG (ADDR(.itcm_code))
-    LONG (SIZEOF(.itcm_code))  
-    
+    LONG (SIZEOF(.itcm_code))
+
     LONG (LOADADDR(.itcm_data))
     LONG (ADDR(.itcm_data))
-    LONG (SIZEOF(.itcm_data))  
+    LONG (SIZEOF(.itcm_data))
 
     __copy_table_end__ = .;
   } > ROM
-  
+
 
   .zero.table :
   {
     . = ALIGN(4);
     __zero_table_start__ = .;
     /* Add each additional bss section here */
-    
+
     LONG (__bss_start__)
-    LONG (__bss_end__ - __bss_start__)    
+    LONG (__bss_end__ - __bss_start__)
 
     LONG (ADDR(.retm_bss))
     LONG (SIZEOF(.retm_bss))
@@ -421,7 +430,7 @@ SECTIONS
     __rw_retm_bss_start__ = .;
     __RW_IRAM_RET$$ZI_start__ = .;
     * (.bss.retm_bss_*)
- 
+
     *idle.o (.bss.idle_thread_stack)
     *drv_psram.o(.bss.bf0_psram_handle)
 
@@ -434,7 +443,7 @@ SECTIONS
     . = ALIGN(4);
     __rw_itcm_bss_start__ = .;
     __ER_ITCM$$ZI_start__ = .;
-    
+
 
     . = ALIGN(4);
     __rw_itcm_bss_end__ = .;
@@ -453,20 +462,20 @@ SECTIONS
     * (.*l2_cache_non_ret_data_*)
     * (.*l2_cache_non_ret_bss_*)
     * (.nand_cache)
-#endif 
+#endif
 
-  } > RAM 
+  } > RAM
 
   /**
    * Location counter can end up 2byte aligned with narrow Thumb code but
    * __etext is assumed by startup code to be the LMA of a section in RAM
-   * which must be 4byte aligned 
+   * which must be 4byte aligned
    */
   __etext = ALIGN (4);
 
   .data :
   {
-    _sdata = ABSOLUTE(.);    
+    _sdata = ABSOLUTE(.);
     __data_start__ = .;
     __RW_IRAM1_start__ = .;
     *(vtable)
@@ -500,7 +509,7 @@ SECTIONS
     /* finit data */
     PROVIDE(__dtors_start__ = .);
     PROVIDE_HIDDEN (__fini_array_start = .);
-    
+
     KEEP(*(SORT(.dtors.*)))
     KEEP(*(.dtors))
 
@@ -509,12 +518,16 @@ SECTIONS
     PROVIDE_HIDDEN (__fini_array_end = .);
     PROVIDE(__dtors_end__ = .);
 
+#ifdef ZBT
+#include "zbt_data.lds"
+#endif
+
     KEEP(*(.jcr*))
     . = ALIGN(4);
     /* All data end */
     __data_end__ = .;
     __RW_IRAM1_end__ = .;
-    _edata = ABSOLUTE(.);    
+    _edata = ABSOLUTE(.);
   } > RAM AT > ROM
 
   /*
@@ -565,7 +578,7 @@ SECTIONS
     *(.bss)
     *(.bss.*)
     *(COMMON)
-    *(.l1_ret_bss_*)   
+    *(.l1_ret_bss_*)
     . = ALIGN(4);
     __bss_end__ = .;
     __bss_end = .;
@@ -573,7 +586,7 @@ SECTIONS
     __end__ = .;
     PROVIDE(end = .);
   } > RAM AT > RAM
-  
+
   /*
    * Secondary bss section, optional
    *
@@ -595,7 +608,7 @@ SECTIONS
 
   /* Check if data + heap + stack exceeds RAM limit */
   /* ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed with stack") */
-  
+
   .rom2 :
   {
     *(.ROM1_IMG)

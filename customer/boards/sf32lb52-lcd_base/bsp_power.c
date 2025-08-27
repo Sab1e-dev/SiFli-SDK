@@ -32,6 +32,12 @@ __WEAK void BSP_PowerUpCustom(bool is_deep_sleep)
 void BSP_Power_Up(bool is_deep_sleep)
 {
     BSP_PowerUpCustom(is_deep_sleep);
+#ifdef BSP_USING_BOARD_SF32LB52_LCD_52J_SD
+    if (is_deep_sleep)
+    {
+        HAL_PIN_Set(PAD_PA21, GPIO_A21, PIN_NOPULL, 1);
+    }
+#endif /* BSP_USING_BOARD_SF32LB52_LCD_52J_SD */
 }
 
 

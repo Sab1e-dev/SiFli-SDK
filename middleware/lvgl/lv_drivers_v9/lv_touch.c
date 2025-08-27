@@ -1,53 +1,13 @@
-/**
-  ******************************************************************************
-  * @file   lv_touch.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "littlevgl2rtt.h"
 #include "lvgl.h"
 #include "board.h"
 #include "drv_touch.h"
-
 
 /*********************
  *      DEFINES
@@ -152,7 +112,6 @@ static lv_touchscreen_t *touchscreen_init(rt_device_t dev)
         return NULL;
     }
 
-
     touchscreen->rt_device = dev;
     touchscreen->data_cnt = 0;
     touchscreen->indev_drv = indev = lv_indev_create();
@@ -162,15 +121,12 @@ static lv_touchscreen_t *touchscreen_init(rt_device_t dev)
     lv_indev_set_driver_data(indev, touchscreen);
     lv_indev_add_event_cb(indev, touchscreen_delete_cb, LV_EVENT_DELETE, indev);
 
-
-
 #ifdef BSP_USING_LVGL_INPUT_AGENT
     {
         extern void lv_indev_agent_init(lv_indev_drv_t *drv);
         lv_indev_agent_init(indev);
     }
 #endif
-
 
     return touchscreen;
 
@@ -195,7 +151,6 @@ lv_indev_t *lv_touchscreen_create(const char *dev_path)
 
     LV_ASSERT_NULL(dev_path);
     LV_LOG_USER("touchscreen %s opening", dev_path);
-
 
     /*Open touch device*/
     dev = rt_device_find(dev_path);
@@ -227,10 +182,6 @@ lv_indev_t *lv_touchscreen_create(const char *dev_path)
         dev->user_data = touchscreen;
     }
 
-
     return touchscreen->indev_drv;
 }
 
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

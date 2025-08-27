@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_usbd.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -236,12 +197,15 @@ static rt_size_t _ep_read_prepare(rt_uint8_t address, void *buffer, rt_size_t si
 {
     //LOG_D("_ep_read_prepare %d, %d\n", address, size);
     //HAL_PCD_EP_Receive(&_sifli_pcd, address, buffer, size);
+    //rt_kprintf("_ep_read_prepare %d, %d\n", address, size);
+
     HAL_PCD_EP_Prepare_Receive(&_sifli_pcd, address, buffer, size);
     return size;
 }
 
 static rt_size_t _ep_write(rt_uint8_t address, void *buffer, rt_size_t size)
 {
+    //rt_kprintf("_ep_write %d, %d\n", address, size);
     HAL_PCD_EP_Transmit(&_sifli_pcd, address, buffer, size);
     return size;
 }
@@ -268,41 +232,6 @@ static rt_err_t _test_mode(rt_uint16_t tm, uint8_t *data, uint8_t len)
     return RT_EOK;
 }
 
-void HAL_PCD_MspInit(PCD_HandleTypeDef *hpcd)
-{
-    HAL_RCC_EnableModule(RCC_MOD_USBC);
-
-#ifdef SOC_SF32LB58X
-    //hwp_usbc->utmicfg12 = hwp_usbc->utmicfg12 | 0x3; //set xo_clk_sel
-    hwp_usbc->ldo25 = hwp_usbc->ldo25 | 0xa; //set psw_en and ldo25_en
-    HAL_Delay(1);
-    hwp_usbc->swcntl3 = 0x1; //set utmi_en for USB2.0
-    hwp_usbc->usbcfg = hwp_usbc->usbcfg | 0x40; //enable usb PLL.
-#elif defined(SOC_SF32LB56X)||defined(SOC_SF32LB52X)
-    hwp_hpsys_cfg->USBCR |= HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_DP_EN | HPSYS_CFG_USBCR_USB_EN;
-#elif defined(SOC_SF32LB55X)
-    hwp_hpsys_cfg->USBCR |= HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_USB_EN;
-#endif
-}
-
-void HAL_PCD_MspDeInit(PCD_HandleTypeDef *hpcd)
-{
-#ifdef SOC_SF32LB58X
-    hwp_usbc->usbcfg &= ~0x40;  // Disable usb PLL.
-    hwp_usbc->swcntl3 = 0x0;
-    hwp_usbc->ldo25 &= ~0xa;    // Disable psw_en and ldo25_en
-#elif defined(SOC_SF32LB56X)||defined(SOC_SF32LB52X)
-    hwp_hpsys_cfg->USBCR &= ~(HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_DP_EN | HPSYS_CFG_USBCR_USB_EN);
-#elif defined(SOC_SF32LB55X)
-    hwp_hpsys_cfg->USBCR &= ~(HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_USB_EN);
-#endif
-    /* reset USB to make DP change to PULLDOWN state */
-    hwp_hpsys_rcc->RSTR2 |= HPSYS_RCC_RSTR2_USBC;
-    HAL_Delay_us(100);
-    hwp_hpsys_rcc->RSTR2 &= ~HPSYS_RCC_RSTR2_USBC;
-    HAL_RCC_DisableModule(RCC_MOD_USBC);
-}
-
 static rt_err_t _init(rt_device_t device)
 {
     PCD_HandleTypeDef *pcd;
@@ -313,7 +242,11 @@ static rt_err_t _init(rt_device_t device)
     pcd->Instance = hwp_usbc;
     memset(&pcd->Init, 0, sizeof pcd->Init);
     pcd->Init.dev_endpoints = 8;
+#ifdef SOC_SF32LB58X
+    pcd->Init.speed = PCD_SPEED_HIGH;
+#else
     pcd->Init.speed = PCD_SPEED_FULL;
+#endif
     pcd->Init.ep0_mps = 16;
     pcd->Init.phy_itface = PCD_PHY_EMBEDDED;
     /* Initialize LL Driver */
@@ -362,6 +295,102 @@ int sifli_usbd_register(void)
     return RT_EOK;
 }
 INIT_DEVICE_EXPORT(sifli_usbd_register);
+
+__weak void BSP_USB_Power_Down(void)
+{
+}
+__weak void BSP_USB_Power_Up(void)
+{
+
+}
+static void enabled_usb_protocol(void)
+{
+    BSP_USB_Power_Up();
+    HAL_PCD_MspInit(NULL);
+}
+static void disabled_usb_protocol(void)
+{
+    //HAL_PCD_DisconnectCallback(NULL);
+    HAL_PCD_MspDeInit(NULL);
+    BSP_USB_Power_Down();
+}
+
+#if defined(RT_USING_PM)
+static struct rt_device rt_usb_device;
+static PCD_HandleTypeDef *usb_pcd;
+static rt_err_t rt_usb_control(struct rt_device *dev, int cmd, void *args)
+{
+    switch (cmd)
+    {
+    case RT_DEVICE_CTRL_RESUME:
+    {
+        _init(dev);
+        HAL_PCD_MspDeInit(NULL);
+    }
+    break;
+    case RT_DEVICE_CTRL_SUSPEND:
+    {
+
+    }
+    break;
+    case RT_DEVICE_OFLAG_OPEN:
+    {
+        enabled_usb_protocol();
+    }
+    break;
+    case RT_DEVICE_OFLAG_CLOSE:
+    {
+        disabled_usb_protocol();
+    }
+    break;
+    default:
+        break;
+    }
+    return RT_EOK;
+}
+
+#ifdef RT_USING_DEVICE_OPS
+static const rt_device_ops usb_device_ops =
+{
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    rt_usb_control,
+};
+#endif
+static int rt_usb_register_rt_device(void)
+{
+    rt_err_t err = RT_EOK;
+    rt_device_t device;
+
+    device = &rt_usb_device;
+
+    device->type        = RT_Device_Class_Miscellaneous;
+    device->rx_indicate = RT_NULL;
+    device->tx_complete = RT_NULL;
+
+#ifdef RT_USING_DEVICE_OPS
+    device->ops         = &usb_device_ops;
+#else
+    device->init        = RT_NULL;
+    device->open        = RT_NULL;
+    device->close       = RT_NULL;
+    device->read        = RT_NULL;
+    device->write       = RT_NULL;
+    device->control     = rt_usb_control;
+#endif
+    device->user_data = &_sifli_pcd;
+
+    err = rt_device_register(device, "usb_reg", RT_DEVICE_FLAG_RDWR);
+    RT_ASSERT(RT_EOK == err);
+    return 0;
+}
+INIT_APP_EXPORT(rt_usb_register_rt_device);
+#endif
+
 #if (RT_DEBUG_USB==1)
 void HAL_DBG_printf(const char *fmt, ...)
 {
@@ -428,6 +457,205 @@ int cmd_usbdtest(int argc, char *argv[])
 MSH_CMD_EXPORT_ALIAS(cmd_usbdtest, usbd, Test USB device);
 #endif  /* USBD_FUNC_TEST */
 
+#if defined(SF32LB56X) || defined(SF32LB52X)
+#define TEST_FAIL       0x0
+#define TEST_PASS       0x1
+#define TEST_UNFINISHED 0x2
+
+static void wait(uint32_t cycle)
+{
+
+    for (uint32_t i = 0; i < cycle; i++)
+    {
+        __NOP();
+    }
+
+}
+
+static uint8_t usbc_test_packet(void)
+{
+    uint32_t error_flag = 0;
+    uint32_t usb_rx_len;
+    uint32_t ep00_rdata;
+    uint32_t ep1_rdata;
+    uint32_t set_addr_flag;
+    uint32_t ep0_fifo_addr = USBC_BASE + 0x20;
+    uint32_t tx_src_addr = USBC_BASE + 0x8;
+    uint32_t tx_src_addr2 = USBC_BASE + 0x10;
+    uint32_t tx_dst_addr = 0x20018800;
+    uint32_t rx_src_addr = 0x20018800;
+    uint32_t rx_dst_addr = USBC_BASE + 0xc;
+    int i, sel;
+
+    hwp_hpsys_cfg->USBCR |= HPSYS_CFG_USBCR_DM_PD;
+    hwp_hpsys_cfg->USBCR |= HPSYS_CFG_USBCR_DP_EN;
+    hwp_hpsys_cfg->USBCR |= HPSYS_CFG_USBCR_USB_EN;
+    hwp_hpsys_rcc->ENR2 |= HPSYS_RCC_ENR2_USBC;
+    hwp_pinmux1->PAD_PA17 = hwp_pinmux1->PAD_PA17 & (~HPSYS_PINMUX_PAD_PA17_PE);
+    hwp_pinmux1->PAD_PA18 = hwp_pinmux1->PAD_PA18 & (~HPSYS_PINMUX_PAD_PA18_PE);
+
+    while (!(hwp_hpsys_aon->ACR & HPSYS_AON_ACR_HXT48_RDY_Msk));
+    hwp_pmuc->HXT_CR1 |= PMUC_HXT_CR1_BUF_DLL_EN;
+
+    LOG_I("Enable DLL1\n");
+    // enable DLL1 (120MHz)
+    hwp_hpsys_cfg->CAU2_CR |= HPSYS_CFG_CAU2_CR_HPBG_EN;
+    hwp_hpsys_cfg->CAU2_CR |= HPSYS_CFG_CAU2_CR_HPBG_VDDPSW_EN;
+    hwp_hpsys_rcc->DLL1CR = (hwp_hpsys_rcc->DLL1CR & ~HPSYS_RCC_DLL1CR_STG_Msk) |
+                            (0x9 << HPSYS_RCC_DLL1CR_STG_Pos);
+    hwp_hpsys_rcc->DLL1CR = (hwp_hpsys_rcc->DLL1CR & ~HPSYS_RCC_DLL1CR_OUT_DIV2_EN_Msk) |
+                            (0x1 << HPSYS_RCC_DLL1CR_OUT_DIV2_EN_Pos);
+    hwp_hpsys_rcc->DLL1CR |= HPSYS_RCC_DLL1CR_EN;
+    while (!(hwp_hpsys_rcc->DLL1CR & HPSYS_RCC_DLL1CR_READY_Msk));
+
+    // select DLL1 as sys clock
+    hwp_hpsys_rcc->CSR = (hwp_hpsys_rcc->CSR & ~HPSYS_RCC_CSR_SEL_SYS_Msk) |
+                         (0x3 << HPSYS_RCC_CSR_SEL_SYS_Pos);
+
+    hwp_hpsys_rcc->CFGR = (hwp_hpsys_rcc->CFGR & ~HPSYS_RCC_CFGR_HDIV_Msk) |
+                          (0x1 << HPSYS_RCC_CFGR_HDIV_Pos);
+
+    LOG_I("Enable DLL2\n");
+    // enable DLL2 (240MHz)
+    hwp_hpsys_rcc->DLL2CR = (hwp_hpsys_rcc->DLL2CR & ~HPSYS_RCC_DLL2CR_STG_Msk) |
+                            (0x9 << HPSYS_RCC_DLL2CR_STG_Pos);
+    hwp_hpsys_rcc->DLL2CR = (hwp_hpsys_rcc->DLL2CR & ~HPSYS_RCC_DLL2CR_OUT_DIV2_EN_Msk) |
+                            (0x0 << HPSYS_RCC_DLL2CR_OUT_DIV2_EN_Pos);
+    hwp_hpsys_rcc->DLL2CR |= HPSYS_RCC_DLL2CR_EN;
+    while (!(hwp_hpsys_rcc->DLL2CR & HPSYS_RCC_DLL2CR_READY_Msk)) {};
 
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+    //sel = RAND(1, 0);
+    //if(sel == 1){
+    LOG_I("Configure USBC clock to SYSCLK/2\n");
+    // select SYS clock as USBC source and DIV=2
+    hwp_hpsys_rcc->CSR &= ~HPSYS_RCC_CSR_SEL_USBC;
+    hwp_hpsys_rcc->USBCR = 0x2;
+    wait(1000);
+    //}
+    //else {
+    //  rt_krt_kprint("Configure USBC clock to DLL2/4\n");
+    // select SYS clock as USBC source and DIV=4
+    //  hwp_hpsys_rcc->USBCR = 0x4;
+    //  hwp_hpsys_rcc->CSR |= HPSYS_RCC_CSR_SEL_USBC;
+    //  wait(1000);
+    //}
+
+    NVIC_EnableIRQ(USBC_IRQn);
+
+//---------------------------------------------------//
+//-------------------set addr ep0--------------------//
+//---------------------------------------------------//
+
+    LOG_I("USBC LOG: *******get state*******!\n");
+// rt_krt_kprint( "USBC INFO: devctl=0x%x ",hwp_usbc->devctl);
+    //hwp_usbc->usbcfg = hwp_usbc->usbcfg & 0xef;
+    //hwp_usbc->usbcfg = hwp_usbc->usbcfg | 0x20;
+    //hwp_usbc->usbcfg = hwp_usbc->usbcfg | 0x40; //enable usb
+    //hwp_usbc->power = 0x40;   //soft_con
+    hwp_usbc->testmode = 0x20; //force_FS
+    //hwp_usbc->intrusbe = hwp_usbc->intrusbe | 0x30;
+    //hwp_usbc->rxmaxp = 0x40;
+    //hwp_usbc->txmaxp = 0x40;
+    //hwp_usbc->dpbtxdisl = 0x2;
+    //hwp_usbc->dpbrxdisl = 0x2;
+    hwp_usbc->devctl = hwp_usbc->devctl | 0x1; // set session
+    hwp_usbc->testmode = 0x8; //force_FS
+    while (1)
+    {
+        //-------usb rst int--------//
+        hwp_usbc->fifox[0] = 0x00000000;
+        hwp_usbc->fifox[0] = 0x00000000;
+        hwp_usbc->fifox[0] = 0xAAAAAA00;
+        hwp_usbc->fifox[0] = 0xAAAAAAAA;
+        hwp_usbc->fifox[0] = 0xEEEEEEAA;
+        hwp_usbc->fifox[0] = 0xEEEEEEEE;
+        hwp_usbc->fifox[0] = 0xFFFFFEEE;
+        hwp_usbc->fifox[0] = 0xFFFFFFFF;
+        hwp_usbc->fifox[0] = 0xFFFFFFFF;
+        hwp_usbc->fifox[0] = 0xDFBF7FFF;
+        hwp_usbc->fifox[0] = 0xFDFBF7EF;
+        hwp_usbc->fifox[0] = 0xDFBF7EFC;
+        hwp_usbc->fifox[0] = 0xFDFBF7EF;
+        (*(volatile unsigned char *)((0x50047020))) = (0x7e);
+
+        //hwp_usbc->testmode = 0x28; //force_FS
+        hwp_usbc->csr0_txcsr = 0x2;
+        wait(20000);
+        hwp_hpsys_rcc->RSTR2 |= HPSYS_RCC_RSTR2_USBC;
+        wait(50);
+        hwp_hpsys_rcc->RSTR2 &= ~HPSYS_RCC_RSTR2_USBC;
+        wait(40);
+        hwp_usbc->testmode = 0x28; //force_FS
+        hwp_usbc->devctl = hwp_usbc->devctl | 0x1; // set session
+    }
+    //__WFI();
+
+    //hwp_usbc->power = hwp_usbc->power | 0x8;
+    //wait(2000);
+    //hwp_usbc->power = hwp_usbc->power & 0xf7;
+
+    //while(1);
+
+    //if(usb_int_sta1!=0)
+    //   rt_krt_kprint( "R\n");
+    //if(usb_int_sta2!=0)
+    //   return  TEST_FAIL;
+    //if(usb_int_sta3!=0)
+    //   return  TEST_FAIL;
+
+    ////---------ep1 din----------//
+    // hwp_usbc->index = 0x1;
+    // hwp_usbc->rxmaxp = 0x40;
+    // hwp_usbc->txmaxp = 0x40;
+    // hwp_usbc->csr0_txcsr = 0x2000;  //tx*/
+
+    // for(i=0;i<2;i++)
+    //    hwp_usbc->fifox[1] = i+0x10000000;
+
+    // hwp_usbc->csr0_txcsr = 0x2001;
+
+    //__WFI();
+    //if(usb_int_sta1!=0)
+    //   error_flag=1;
+    //if(usb_int_sta2==2)
+    //   rt_krt_kprint( "1i\n");
+    //else
+    //   error_flag=1;
+    //if(usb_int_sta3!=0)
+    //   error_flag=1;
+
+    ////---------ep1 dout----------//
+    //hwp_usbc->csr0_txcsr = 0x0;  //rx
+    //__WFI();
+    //if(usb_int_sta1!=0)
+    //   error_flag=1;
+    //if(usb_int_sta2!=0)
+    //   error_flag=1;
+    //if(usb_int_sta3==2)
+    //   rt_krt_kprint( "1o\n");
+    //else
+    //   error_flag=1;
+
+    // usb_rx_len = hwp_usbc->rxcount;
+    //
+    // for(i=0;i<(usb_rx_len>>2);i++)
+    // {
+    //    ep00_rdata = hwp_usbc->fifox[1];
+    //    if(ep00_rdata!=i+0x10000000)
+    //      {error_flag=1;
+    //        rt_krt_kprint( "E1\n");}
+    // }
+
+    //while(1);
+// rt_krt_kprint( "USBC ERR: error ep1 expet=0x%x , get= 0x%x\n",i,ep1_rdata);
+    if (error_flag == 1)
+        return  TEST_FAIL;
+    else
+        return TEST_PASS; // or TEST_FAIL, add conditional checker in C
+}
+
+MSH_CMD_EXPORT(usbc_test_packet, eye_test);
+
+#endif /* SF32LB56X || SF32LB52X */
+

@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   hqerror.h
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef HQERR_H_
@@ -64,7 +25,6 @@
  The upper 8 bits are free for the function to use for what ever purpose except for
  the first 10 enums where the 8 most significant bits should always be 0.
 */
-
 
 typedef enum
 {
@@ -92,7 +52,6 @@ typedef enum
     HQ_ERR_DATA_NOT_INITIALIZED     = 18,
     HQ_ERR_PROCESSING_INCOMPLETE    = 19,   // // eg if still busy with a calculation
 
-
     // memory related errors
     HQ_ERR_MEM_NOT_INITIALIZED      = 20,
     HQ_ERR_NULL_POINTER             = 21,
@@ -116,7 +75,6 @@ typedef enum
     HQ_ERR_HW_NOT_PRESENT           = 38,
     HQ_ERR_HW_NOT_ACTIVE            = 39,
 
-
     // communication errors
     HQ_ERR_COMMS_CRC                = 41,
     HQ_ERR_COMMS_TIMEOUT            = 42,
@@ -135,14 +93,12 @@ typedef enum
     HQ_ERR_TIMEOUT                  = 56,
     HQ_ERR_VALIDATION_FAILED        = 57,
 
-
     // session related errors
     HQ_ERR_INVALID_STATE            = 61,
     HQ_ERR_ALG                      = 65,
 
     HQ_ERR_UNKNOWN                  = 0xEE,
     //HQ_ERR_UNKNOWN                 = 0xEEEE,  // old declaration
-
 
     // lifeqscore errors
     ERR_AGE_OUT_OF_RANGE            = HQ_ERR_DATA_OUT_OF_RANGE | (51 << 8),
@@ -167,12 +123,10 @@ typedef enum
     ERR_ALG_NOT_ENABLED             = HQ_ERR_DATA_OUT_OF_RANGE | (108 << 8),
     ERR_ALG_AFE_INPUT_WRONG         = RET_FAIL | (109 << 8), // Input function used in algorithm does not correspond with PP_Set_Device_AFE.
 
-
     // Application specific errors
     HQ_DSP_WARN_NOTCH_DESIGN        = HQ_ERR_ALG               | (201 << 8),
 
 } hqret_t;
 
-
 #endif /* HQERR_H_ */
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   data_service.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "rtdef.h"
@@ -66,7 +27,6 @@
 #define DBG_LVL           DBG_LOG
 #include "rtdbg.h"
 
-
 #ifndef RT_MAIN_THREAD_PRIORITY
     #define RT_MAIN_THREAD_PRIORITY       (RT_THREAD_PRIORITY_MAX / 3)
 #endif
@@ -78,14 +38,12 @@
 #define DATA_SERVICE_MAX_NUM  (32)
 #define DATA_SERVICE_SYSTEM_SERVICE_ID   (0)
 
-
 #define ROUT_ID_CONN_ID_OFFSET     (0)
 #define ROUT_ID_CONN_ID_MASK       (0xFF)
 #define ROUT_ID_SERV_ID_OFFSET     (8)
 #define ROUT_ID_SERV_ID_MASK       (0x7F)
 #define ROUT_ID_CORE_ID_OFFSET     (15)
 #define ROUT_ID_CORE_ID_MASK       (1)
-
 
 #define MAKE_ROUT_ID_PART(part, mask, offset)      (((part) & (mask)) << (offset))
 #define GET_ROUT_ID_PART(rout_id, mask, offset)    (((rout_id) >> (offset)) & (mask))
@@ -166,7 +124,6 @@ static int32_t sys_service_msg_handler(datas_handle_t service, data_msg_t *msg);
 
 static struct rt_mutex g_data_service_mutex;
 
-
 static void *data_service_list[DATA_SERVICE_MAX_NUM];
 
 static rt_list_t data_service_db;
@@ -179,7 +136,6 @@ static data_service_config_t sys_service_config =
     .queue = RT_NULL,
     .msg_handler = sys_service_msg_handler,
 };
-
 
 #ifndef DS_MBOX_DISABLED
 static void ds_init_proxy(ipc_queue_rx_ind_t rx_ind)
@@ -201,8 +157,6 @@ static void ds_init_proxy(ipc_queue_rx_ind_t rx_ind)
     RT_ASSERT(0 == ret);
 }
 #endif /* !DS_MBOX_DISABLED */
-
-
 
 static inline void ds_enter_critical(void)
 {
@@ -415,14 +369,12 @@ static data_service_t *find_service(char *name)
     return service;
 }
 
-
 static data_service_t *get_service(uint8_t serv_id)
 {
     RT_ASSERT(serv_id < DATA_SERVICE_MAX_NUM)
 
     return data_service_list[serv_id];
 }
-
 
 static data_service_t *add_service(const char *name, data_service_config_t *config, uint8_t serv_id)
 {
@@ -502,7 +454,6 @@ static rt_err_t forward_msg(data_service_t *service, data_msg_t *msg)
 
     return result;
 }
-
 
 static rt_err_t dispatch_msg(data_msg_t *msg)
 {
@@ -619,7 +570,6 @@ static data_connection_t *get_conn(uint8_t conn_id)
 
     return user_data;
 }
-
 
 static bool is_valid_handle(uint8_t handle)
 {
@@ -825,7 +775,6 @@ static int8_t datac_rx_int(data_msg_t *msg)
     return result;
 }
 #endif
-
 
 #if 0
 static int datac_filter(rt_device_t dev, int len, uint8_t *data)
@@ -1206,7 +1155,6 @@ void datac_delayed_usr_cbk(data_service_mq_t *arg_msg)
     }
 }
 
-
 datac_handle_t datac_open(void)
 {
     uint8_t cid;
@@ -1553,7 +1501,6 @@ __ERR:
     return -RT_ERROR;
 }
 
-
 /*
     Start data service,
 */
@@ -1682,7 +1629,6 @@ uint8_t *data_service_get_msg_body(data_msg_t *msg)
 
     return body;
 }
-
 
 uint8_t *data_service_init_msg(data_msg_t *msg, uint16_t msg_id, uint16_t body_len)
 {
@@ -1871,8 +1817,6 @@ rt_err_t datas_data_ready(datas_handle_t svc, uint32_t size, uint8_t *data)
     return result;
 }
 
-
-
 rt_err_t datas_send_response_data(datas_handle_t svc, data_msg_t *msg_req, uint32_t len, uint8_t *data)
 {
     data_service_t *service = (data_service_t *)svc;
@@ -2032,7 +1976,6 @@ void list_data_service_detail(char *serv_name)
     }
 }
 
-
 void list_data_service(int argc, char **argv)
 {
     if (argc > 1)
@@ -2065,4 +2008,4 @@ void list_data_service(int argc, char **argv)
 }
 MSH_CMD_EXPORT(list_data_service, view data service provider);
 #endif
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

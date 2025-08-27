@@ -1,7 +1,13 @@
 #ifndef SDMMC_TST_DRV_H
 #define SDMMC_TST_DRV_H
 
+
 #include "stdint.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define SD_SUCCESS 0
 #define SD_TIMEOUT 1
@@ -53,4 +59,7 @@ void sd_read(uint8_t wire_mode,uint8_t block_num);
 uint32_t sd_wait_read();
 uint32_t sd_tuning_emmc(uint8_t wire_mode,uint64_t *tuning_err); 
 
+#ifdef __cplusplus
+}
+#endif
 #endif

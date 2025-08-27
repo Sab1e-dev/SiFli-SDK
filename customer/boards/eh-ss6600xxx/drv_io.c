@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_io.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "bsp_board.h"
@@ -91,7 +52,6 @@
         BSP_GPIO_Set(pin_num, 0, IS_HCPU); \
     } while(0)
 
-
 #define INPUT_Z(pin_num) \
     do \
     { \
@@ -100,7 +60,6 @@
         HAL_PIN_SetMode(PAD_BASE + pin_num, IS_HCPU, PIN_ANALOG_INPUT); \
         HAL_GPIO_DeInit(HWP, pin_num); \
     } while(0)
-
 
 #define OUTPUT_1_PULLUP(pin_num) \
         do \
@@ -116,11 +75,9 @@ static uint16_t flash3_div = 4;
 static uint16_t flash4_div = 4;
 static uint32_t otp_flash_addr = SYSCFG_FACTORY_ADDRESS;
 
-
 #ifdef PMIC_CTRL_ENABLE
     static uint16_t g_lcd_tp_power = 0;
 #endif
-
 
 uint16_t BSP_GetFlash1DIV(void)
 {
@@ -166,7 +123,6 @@ uint32_t BSP_GetOtpBase(void)
 {
     return otp_flash_addr;
 }
-
 
 #ifdef SOC_BF0_HCPU
 
@@ -228,7 +184,6 @@ void HAL_PreInit(void)
         HAL_RCC_LCPU_ClockSelect(RCC_CLK_MOD_SYS, RCC_SYSCLK_HXT48);
 #endif /* !PM_USE_RC48 */
 
-
         HAL_RCC_LCPU_SetDiv(1, 1, 3);
 
 #ifndef PM_USE_RC48
@@ -238,7 +193,6 @@ void HAL_PreInit(void)
         HAL_RCC_LCPU_ClockSelect(RCC_CLK_MOD_UART3, RCC_CLK_USART_HRC48);
         HAL_RCC_LCPU_ClockSelect(RCC_CLK_MOD_UART5, RCC_CLK_USART_HRC48);
 #endif /* !PM_USE_RC48 */
-
 
         if (HAL_PMU_LXT_DISABLED())
         {
@@ -281,9 +235,6 @@ void HAL_PreInit(void)
     rt_psram_init();
 #endif
 
-
-
-
 #elif defined(SOC_BF0_LCPU)
 
 #ifndef PM_USE_RC48
@@ -310,8 +261,6 @@ void HAL_PreInit(void)
 #endif
 }
 
-
-
 void BSP_GPIO_Set(int pin, int val, int is_porta)
 {
     GPIO_TypeDef *gpio = (is_porta) ? hwp_gpio1 : hwp_gpio2;
@@ -327,7 +276,6 @@ void BSP_GPIO_Set(int pin, int val, int is_porta)
     HAL_GPIO_WritePin(gpio, pin, (GPIO_PinState)val);
 }
 
-
 void BSP_LCD_PowerUp(void)
 {
     /*Keep LCD_RESET output low during LCD analog poweron*/
@@ -339,7 +287,6 @@ void BSP_LCD_PowerUp(void)
     HAL_PIN_Set(PAD_PA42, GPIO_A42, PIN_PULLDOWN, 1); //LCDC1_SPI_DIO3
     HAL_PIN_Set(PAD_PA77, GPIO_A77, PIN_PULLDOWN, 1); //LCDC1_SPI_TE
     BSP_LCD_Reset(0);
-
 
     HAL_Delay(2); //Delay > 1ms
 #ifdef PMIC_CTRL_ENABLE
@@ -353,7 +300,6 @@ void BSP_LCD_PowerUp(void)
     BSP_GPIO_Set(LCD_BOARD_POWER_PIN, 1, 1);
 #endif
     HAL_Delay(2); //Delay > 1ms
-
 
     HAL_PIN_Set(PAD_PA20, LCDC1_SPI_CLK, PIN_NOPULL, 1);        // LCDC 1  QAD-SPI mode
     HAL_PIN_Set(PAD_PA31, LCDC1_SPI_CS, PIN_NOPULL, 1);
@@ -394,7 +340,6 @@ void BSP_LCD_PowerDown(void)
     BSP_LCD_Reset(0);
     OUTPUT_0(LCD_BACKLIGHT_POWER);
 }
-
 
 void BSP_LCD_Reset(uint8_t high1_low0)
 {
@@ -452,8 +397,6 @@ void BSP_TP_Reset(uint8_t high1_low0)
     BSP_GPIO_Set(TP_RESET_PIN, high1_low0, 1);
 }
 
-
-
 void BSP_QSPI_PowerUp(void)
 {
 #ifndef PMIC_CTRL_ENABLE
@@ -494,7 +437,6 @@ void BSP_QSPI_PowerDown(void)
 #endif /* HDK_U4O5 */
 #endif
 }
-
 
 void BSP_Power_Up(bool is_deep_sleep)
 {
@@ -570,9 +512,6 @@ void BSP_IO_Init(void)
     BSP_Power_Up(true);
 }
 
-
-
-
 static void BSP_OTHER_PowerDown(void)
 {
 #ifdef SOC_BF0_HCPU
@@ -623,7 +562,6 @@ static void BSP_OTHER_PowerDown(void)
     INPUT_Z(19); //SPI3_DI
     INPUT_Z(44); //SPI3_INT
 
-
     INPUT_Z(25);      // encode key 1
     INPUT_Z(29);      // encode key 2
 
@@ -634,7 +572,6 @@ static void BSP_OTHER_PowerDown(void)
     //HAL_PIN_Set(PAD_PB46, USART3_RXD, PIN_PULLDOWN, 0);        //UART3 RX
     INPUT_Z(45);    // UART3 TX
     INPUT_Z(46);
-
 
     //HAL_PIN_Set(PAD_PB48, GPIO_B48, PIN_NOPULL, 0);            //FPC_KEY, wakeup key, set by sensor_service.c
 #endif //SOC_BF0_HCPU
@@ -666,7 +603,3 @@ void BSP_IO_Power_Down(int coreid, bool is_deep_sleep)
 #endif
 }
 
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

@@ -1,54 +1,11 @@
-/**
-  ******************************************************************************
-  * @file   drv_hwtimer.c
-  * @author Sifli software development team
-  * @brief Hardware Timer BSP driver
-  * @{
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <stdio.h>
 #include <board.h>
-
-
 
 /** @addtogroup bsp_driver Driver IO
   * @{
@@ -58,7 +15,6 @@
   * @brief Hardware Timer BSP driver
   * @{
   */
-
 
 #if defined(BSP_USING_TIM) || defined(_SIFLI_DOXYGEN_)
 #include "drv_config.h"
@@ -74,7 +30,6 @@
 
 #if defined(RT_USING_HWTIMER) || defined(_SIFLI_DOXYGEN_)
 
-
 /* #if defined(BSP_USING_GPTIM1) || defined(BSP_USING_GPTIM2) || defined(BSP_USING_GPTIM3) \
     || defined(BSP_USING_GPTIM4) || defined(BSP_USING_GPTIM5) \
     || defined(BSP_USING_BTIM1) || defined(BSP_USING_BTIM2) \
@@ -86,7 +41,6 @@
 //#if defined(BSP_USING_LPTIM1) || defined(BSP_USING_LPTIM2) || defined(BSP_USING_LPTIM3)
 #define BSP_USING_LPTIM
 //#endif
-
 
 #ifdef BSP_USING_GPT_BTIM
 
@@ -253,7 +207,6 @@ enum
  * @ingroup drv_hwtimer
  * @{
  */
-
 
 /**
   * @brief  Initialize HW timer device.
@@ -491,7 +444,6 @@ static void lp_timer_init(struct rt_hwtimer_device *timer, rt_uint32_t state)
             /* enable the TIMx global Interrupt */
             HAL_NVIC_EnableIRQ(tim_device->tim_irqn);
 
-
             LOG_D("%s init success", tim_device->name);
         }
     }
@@ -524,7 +476,6 @@ static rt_err_t lp_timer_start(rt_hwtimer_t *timer, rt_uint32_t t, rt_hwtimer_mo
         tim->Mode = HAL_LPTIM_PERIOD;
     }
 
-
     /* start timer */
     if (HAL_LPTIM_Counter_Start_IT(tim, t) != HAL_OK)
     {
@@ -551,7 +502,6 @@ static void lp_timer_stop(rt_hwtimer_t *timer)
     HAL_LPTIM_Counter_Stop_IT(tim);
 
 }
-
 
 static uint32_t lp_timer_freq_div_calc(rt_uint32_t freq)
 {
@@ -674,7 +624,6 @@ static rt_uint32_t lp_timer_counter_get(rt_hwtimer_t *timer)
 
 }
 
-
 // TODO: For A0 LCPU RC10K only, Revisit for future Chipset
 #if /*defined(LXT_DISABLE)&&*/defined(SOC_SF32LB55X)&&defined(BF0_LCPU)
     __ROM_USED const struct rt_hwtimer_ops _lp_ops =
@@ -788,7 +737,6 @@ void GPTIM5_IRQHandler(void)
 }
 #endif
 
-
 #if defined(BSP_USING_BTIM1) || defined(_SIFLI_DOXYGEN_)
 void BTIM1_IRQHandler(void)
 {
@@ -874,7 +822,6 @@ void LPTIM1_IRQHandler(void)
 }
 #endif
 
-
 /**
   * @brief  HW timer periodical timeout call back
   * @param[in]  htim: low leverl HW timer device.
@@ -897,7 +844,6 @@ void LPTIM1_IRQHandler(void)
         rt_device_hwtimer_isr(&bf0_hwtimer_obj[ATIM2_INDEX].time_device);
     }
 #endif
-
 
 #if defined(BSP_USING_GPTIM1)
     if (htim->Instance == GPTIM1)
@@ -994,7 +940,6 @@ void LPTIM1_IRQHandler(void)
 /**
 @}
 */
-
 
 __ROM_USED int bf0_gptimer_init2(struct bf0_hwtimer *hwtimers, uint8_t cnt)
 {
@@ -1182,7 +1127,6 @@ static void bf0_hwtimer_recovery(uint8_t *user_data)
 
 /// @} drv_hwtimer
 /// @} bsp_driver
-
 
 /** @addtogroup bsp_sample BSP driver sample commands.
   * @{
@@ -1372,4 +1316,4 @@ FINSH_FUNCTION_EXPORT_ALIAS(cmd_hwtimer, __cmd_hwtimer, Test hw timers);
 
 #endif /* RT_USING_HWTIMER */
 #endif /* BSP_USING_TIM */
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

@@ -236,6 +236,13 @@ config RT_USING_SPI
             select RT_USING_DFS
             default n
 
+        config MSD_SPI_BUS_NAME
+            string "SPI bus name for MSD driver"
+            default "spi1"
+            help
+            Specify the SPI bus name used by the MSD (SD card) driver.
+            e.g. spi0, spi1, spi2, etc.
+        
         config RT_USING_SFUD
             bool "Using Serial Flash Universal Driver"
             default n

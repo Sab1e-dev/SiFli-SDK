@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_io.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "board.h"
@@ -71,7 +32,6 @@
 #define QSPI_POWER_PIN          (58)      // GPIO_A58
 #define QSPI2_CLK_PIN           (60)      // GPIO_A60
 
-
 #ifdef DEBUG
     #define DEBUG_PRINTF(...)   LOG_I(__VA_ARGS__)
 #else
@@ -84,13 +44,11 @@
 
 //#define ENABLE_EFUSE_SYSCONF
 
-
 static uint16_t flash1_div = 1;
 static uint16_t flash2_div = 1;
 static uint16_t flash3_div = 4;
 static uint16_t flash4_div = 4;
 static uint32_t otp_flash_addr = SYSCFG_FACTORY_ADDRESS;
-
 
 uint16_t BSP_GetFlash1DIV(void)
 {
@@ -131,7 +89,6 @@ void BSP_SetFlash4DIV(uint16_t div)
 {
     flash4_div = div;
 }
-
 
 uint32_t BSP_GetOtpBase(void)
 {
@@ -197,7 +154,6 @@ void HAL_PreInit(void)
         HAL_RCC_LCPU_ClockSelect(RCC_CLK_MOD_SYS, RCC_SYSCLK_HXT48);
 #endif /* !PM_USE_RC48 */
 
-
         HAL_RCC_LCPU_SetDiv(1, 1, 3);
 
 #ifndef PM_USE_RC48
@@ -248,9 +204,6 @@ void HAL_PreInit(void)
     rt_psram_init();
 #endif
 
-
-
-
 #elif defined(SOC_BF0_LCPU)
 
 #ifndef PM_USE_RC48
@@ -277,8 +230,6 @@ void HAL_PreInit(void)
 #endif
 }
 
-
-
 void BSP_GPIO_Set(int pin, int val, int is_porta)
 {
     GPIO_TypeDef *gpio = (is_porta) ? hwp_gpio1 : hwp_gpio2;
@@ -293,7 +244,6 @@ void BSP_GPIO_Set(int pin, int val, int is_porta)
     // set sensor pin to high == power on sensor board
     HAL_GPIO_WritePin(gpio, pin, (GPIO_PinState)val);
 }
-
 
 void BSP_LCD_PowerUp(void)
 {
@@ -348,7 +298,6 @@ void BSP_LCD_PowerDown(void)
 #endif /* BSP_LCDC_USING_JDI_PARALLEL */
 }
 
-
 void BSP_LCD_Reset(uint8_t high1_low0)
 {
 #ifndef BSP_LCDC_USING_JDI_PARALLEL
@@ -387,7 +336,6 @@ void BSP_TP_Reset(uint8_t high1_low0)
     BSP_GPIO_Set(TP_RESET_PIN, high1_low0, 1);
 }
 
-
 void BSP_QSPI_PowerUp(void)
 {
     BSP_GPIO_Set(QSPI_POWER_PIN, 1, 1);
@@ -411,7 +359,6 @@ void BSP_QSPI_PowerDown(void)
     HAL_PIN_Set(PAD_PA60, GPIO_A60, PIN_NOPULL, 1);
     BSP_GPIO_Set(QSPI2_CLK_PIN, 0, 1);
 }
-
 
 void BSP_Power_Up(bool is_deep_sleep)
 {
@@ -467,7 +414,6 @@ void BSP_IO_Init(void)
     BSP_Power_Up(true);
 }
 
-
 //#define LP_DEBUG
 #ifdef LP_DEBUG
 #define _WWORD(reg,value) \
@@ -504,7 +450,6 @@ void debug_lp(void)
     _WWORD(0x4000e06c, 0x200);   //PA21
     _WWORD(0x4000e070, 0x200);   //PA22
     _WWORD(0x4000e074, 0x200);   //PA23
-
 
     //_WWORD(0x4000e078, 0x200);   //PA24
     //_WWORD(0x4000e07c, 0x200);   //PA25
@@ -563,7 +508,6 @@ void debug_lp(void)
     _WWORD(0x4004e088, 0x200);   //PB34
     _WWORD(0x4004e08c, 0x200);   //PB35
 
-
     _WWORD(0x4001e010, 0xf);    //PA DOER0
     _WWORD(0x4001e008, 0x0);    //PA DOR0
     _WWORD(0x4001e014, 0x80);   //PA DOER1
@@ -572,7 +516,6 @@ void debug_lp(void)
     _WWORD(0x40058008, 0x00);    //PB DOR0
 
     _WWORD(0x40030024, 0xC000000F);    //HPSYS ACR
-
 
     hwp_lpsys_rcc->RSTR = 0x00000001; //reset LCPU
     hwp_hpsys_rcc->CSR = 0;
@@ -592,7 +535,6 @@ void debug_lp(void)
 #else
 #define debug_lp()
 #endif
-
 
 void BSP_IO_Power_Down(int coreid, bool is_deep_sleep)
 {
@@ -621,7 +563,6 @@ void BSP_IO_Power_Down(int coreid, bool is_deep_sleep)
 
 #endif
 }
-
 
 #ifdef HAL_PSRAM_MODULE_ENABLED
 
@@ -680,7 +621,3 @@ void HAL_PSRAM_MspInit(PSRAM_HandleTypeDef *hpsram)
 #endif
 #endif /* HAL_PSRAM_MODULE_ENABLED */
 
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

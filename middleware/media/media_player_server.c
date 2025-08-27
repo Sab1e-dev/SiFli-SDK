@@ -1176,7 +1176,11 @@ static void ezip_audio_decode_thread(void *p)
         //LOG_I("audio get");
         os_message_get(thiz->av_pkt_queue_audio, &pkt, sizeof(pkt), OS_WAIT_FORVER);
         //LOG_I("audio get ok=%p", pkt.buf);
+#if EZIP_DECODE_AUDIO_USING_FFMPEG
         ezip_audio_decode(thiz, audio_callback_func, parser);
+#else
+        ezip_audio_decode(thiz, audio_callback_func, NULL);
+#endif
     }
 #if EZIP_DECODE_AUDIO_USING_FFMPEG
     AVPacket packet;

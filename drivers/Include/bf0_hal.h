@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   bf0_hal.h
-  * @author Sifli software development team
-  * @brief   This file contains all the functions prototypes for the HAL
-  *          module driver.
-  * @{
-  ******************************************************************************
-*/
 /*
- * Copyright (c) 2019 - 2022,  Sifli Technology
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef __BF0_CP_HAL_H
@@ -158,11 +117,19 @@ extern "C" {
 #define __HAL_SYSCFG_GET_SID()            (hwp_hpsys_cfg->IDR>>HPSYS_CFG_IDR_SID_Pos)           /*!< Get serial ID*/
 #define __HAL_SYSCFG_GET_CID()            ((hwp_hpsys_cfg->IDR>>HPSYS_CFG_IDR_CID_Pos)&0xff)    /*!< Get Chip ID*/
 #define __HAL_SYSCFG_GET_PID()            ((hwp_hpsys_cfg->IDR>>HPSYS_CFG_IDR_PID_Pos)&0xff)    /*!< Get Package ID*/
-#ifndef SOC_SF32LB55X
+#ifndef SF32LB55X
 #define __HAL_SYSCFG_GET_REVID()          (hwp_hpsys_cfg->IDR&0xff)                             /*!< Get Revision ID*/
 #else
 #define __HAL_SYSCFG_GET_REVID()          ((hwp_hpsys_cfg->USBCR>>HPSYS_CFG_USBCR_RSVD1_Pos)&0xff) /*!< Get Revision ID*/
-#endif
+#endif /* SF32LB55X */
+
+#ifdef SF32LB52X
+#define __HAL_SYSCFG_CHECK_REVID()      HAL_ASSERT((__HAL_SYSCFG_GET_REVID() <= HAL_CHIP_REV_ID_A3) || \
+                                                   (__HAL_SYSCFG_GET_REVID() == HAL_CHIP_REV_ID_A4) || \
+                                                   (__HAL_SYSCFG_GET_REVID() == HAL_CHIP_REV_ID_B4))
+#else
+#define __HAL_SYSCFG_CHECK_REVID()
+#endif /* SF32LB52X */
 
 #define __HAL_SYSCFG_Enable_USB()         (hwp_hpsys_cfg->USBCR|=HPSYS_CFG_USBCR_USB_EN)        /*!< Enable USB module*/
 #define __HAL_SYSCFG_USB_DM_PD()         (hwp_hpsys_cfg->USBCR|=HPSYS_CFG_USBCR_DM_PD)        /*!< Pull Down USB DM pin, host only*/
@@ -252,17 +219,17 @@ extern "C" {
 
 /** @brief  CHIP ID for A3.
   */
-#ifdef SOC_SF32LB55X
+#ifdef SF32LB55X
 #define HAL_CHIP_REV_ID_A3 0x80
+#elif defined(SF32LB52X)
+#define HAL_CHIP_REV_ID_A3 0x03
+/* actually it's the B3 revision id */
+#define HAL_CHIP_REV_ID_A4 0x07
+#define HAL_CHIP_REV_ID_B4 0x0F
 #else
 #define HAL_CHIP_REV_ID_A3 0xFF // Not defined
-#endif
-
-#ifdef SF32LB52X
-#define HAL_CHIP_REV_ID_A4 0x07
-#else
 #define HAL_CHIP_REV_ID_A4 0xFF
-#endif
+#endif /* SF32LB55X */
 
 
 #if defined(RTC_CR_LPCKSEL)
@@ -563,7 +530,3 @@ __STATIC_INLINE uint32_t HAL_GetElapsedTick(uint32_t prev_tick, uint32_t curr_ti
 #endif
 
 #endif /* __BF0_CP_HAL_H */
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_adc.c
-  * @author Sifli software development team
-  * @brief ADC BSP driver
-  * @{
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <board.h>
@@ -110,7 +69,6 @@ struct sifli_adc
 #define ADC_BIG_RANGE_VOL2           (2500)
 #define ADC_SML_RANGE_VOL1           (300)
 #define ADC_SML_RANGE_VOL2           (800)
-
 
 #define ADC_RATIO_ACCURATE          (1000)
 
@@ -286,7 +244,6 @@ static rt_err_t sifli_adc_use_gptime_init()
 
     hw_gptimer.time_device.info = &hwtimer_info;
 
-
     if ((1000000 <= hw_gptimer.time_device.info->maxfreq) && (1000000 >= hw_gptimer.time_device.info->minfreq))
     {
         hw_gptimer.time_device.freq = 1000000;
@@ -298,7 +255,6 @@ static rt_err_t sifli_adc_use_gptime_init()
     hw_gptimer.time_device.mode = HWTIMER_MODE_PERIOD;
     hw_gptimer.time_device.cycles = 0;
     hw_gptimer.time_device.overflow = 0;
-
 
     uint32_t  prescaler_value = HAL_RCC_GetPCLKFreq(
                                     hw_gptimer.core,
@@ -342,7 +298,6 @@ static rt_err_t sifli_adc_use_gptime_init()
     __HAL_GPT_SET_PRESCALER(&tim,  val - 1);
     tim.Instance->EGR |= GPT_EVENTSOURCE_UPDATE; /* Update frequency value */
     hw_gptimer.time_device.freq = 1000000;
-
 
     rt_hwtimerval_t t_value;
     t_value.sec = 0;
@@ -482,7 +437,6 @@ static void sifli_adc_vbat_fact_calib(uint32_t voltage, uint32_t reg)
     vol_from_reg = (reg - adc_vol_offset) * adc_vol_ratio / ADC_RATIO_ACCURATE;
     adc_vbat_factor = (float)voltage / vol_from_reg;
 }
-
 
 static rt_err_t sifli_adc_enabled(struct rt_adc_device *device, rt_uint32_t channel, rt_bool_t enabled)
 {
@@ -636,7 +590,10 @@ static rt_err_t sifli_get_adc_value(struct rt_adc_device *device, rt_uint32_t ch
 #ifndef  SF32LB55X
         ADC_SET_MUTE(sifli_adc_handler);
 #ifdef SF32LB52X
-        rt_thread_delay(1);
+        if (channel == 7)
+            rt_thread_delay(1);
+        else
+            rt_thread_delay(10);
 #else
         rt_thread_delay(10);
 #endif
@@ -669,7 +626,6 @@ static rt_err_t sifli_get_adc_value(struct rt_adc_device *device, rt_uint32_t ch
     //rt_kprintf("ch[%d]average val =%f;\n", channel, fave);
 
 #endif
-
 
 #ifndef SF32LB52X   // TODO: remove macro check after 52x ADC calibration work
     float fval = sifli_adc_get_float_mv(fave) * 10; // mv to 0.1mv based
@@ -715,11 +671,8 @@ static rt_err_t sifli_op_adc_init(struct rt_adc_device *device)
             ADC_ChannelConfTypeDef ADC_ChanConf;
 
             /*configure all channels*/
-#ifdef SF32LB52X
-            uint8_t ch_num = 7;
-#else
             uint8_t ch_num = 8;
-#endif
+
             rt_memset(&ADC_ChanConf, 0, sizeof(ADC_ChanConf));
             HAL_ADC_Set_MultiMode(sifli_adc_handler, 1);
             for (uint8_t ch = 0; ch < ch_num; ch++)
@@ -897,6 +850,8 @@ static int sifli_adc_init(void)
         sifli_adc_obj[i].ADC_Handler.Init.avdd_v18_en = 0;
 #endif
 #endif
+
+        sifli_adc_obj[i].ADC_Handler.Init.en_slot = 1;
         if (HAL_ADC_Init(&sifli_adc_obj[i].ADC_Handler) != HAL_OK)
         {
             LOG_E("%s init failed", name_buf);
@@ -908,7 +863,6 @@ static int sifli_adc_init(void)
             uint32_t adc_freq = 240000; // use 240k for 52x to meet ATE setting
             HAL_ADC_SetFreq(&sifli_adc_obj[i].ADC_Handler, adc_freq);
 #endif
-
 
 #ifdef BSP_GPADC_SUPPORT_MULTI_CH_SAMPLING
             {
@@ -958,7 +912,6 @@ static int sifli_adc_init(void)
 
     // set default adc thd to register max value
     adc_thd_reg = GPADC_ADC_RDATA0_SLOT0_RDATA >> GPADC_ADC_RDATA0_SLOT0_RDATA_Pos;
-
 
     FACTORY_CFG_ADC_T cfg;
     int len = sizeof(FACTORY_CFG_ADC_T);
@@ -1055,7 +1008,6 @@ static int sifli_adc_pm_register(void)
 INIT_ENV_EXPORT(sifli_adc_pm_register);
 
 #endif  /* RT_USING_PM */
-
 
 #ifdef RT_USING_FINSH
 //#define DRV_GPADC_TEST
@@ -1647,4 +1599,4 @@ FINSH_FUNCTION_EXPORT_ALIAS(cmd_gpadc, __cmd_gpadc, Test gpadc driver);
 /// @} bsp_driver
 
 /// @} file
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

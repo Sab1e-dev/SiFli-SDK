@@ -30,10 +30,16 @@
 + 手机设备。
 
 ### menuconfig配置
-1. 使能蓝牙(`BLUETOOTH`)：\
-![BLUETOOTH](./assets/bluetooth.png)
-2. 使能NVDS：\
-![NVDS](./assets/bt_nvds.png)
+1. 使能蓝牙(`BLUETOOTH`)：
+    - 路径：Sifli middleware → Bluetooth
+    - 开启：Enable bluetooth
+        - 宏开关：`CONFIG_BLUETOOTH`
+        - 作用：使能蓝牙功能
+2. 使能NVDS：
+    - 路径：Sifli middleware → Bluetooth → Bluetooth service → Common service
+    - 开启：Enable NVDS synchronous
+        - 宏开关：`CONFIG_BSP_BLE_NVDS_SYNC`
+        - 作用：Bluetooth NVDS同步。当蓝牙配置为HCPU时，BLE NVDS可以同步访问，所以使能此选项；当蓝牙配置为LCPU时，此选项需要关闭。
 
 
 ### 编译和烧录

@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   system_bf0_ap.c
-  * @author Sifli software development team
-  * @brief    CMSIS Device System Source File for
- *           ARMCM33 Device
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "bf0_hal.h"
@@ -173,8 +132,8 @@ __WEAK void mpu_config(void)
     uint32_t rnr, rbar, rlar;
 
 
-    SCB_InvalidateDCache();
-    SCB_InvalidateICache();
+    SCB_DisableDCache();
+    SCB_DisableICache();
 
     ARM_MPU_Disable();
 
@@ -198,10 +157,21 @@ __WEAK void mpu_config(void)
     rlar = ARM_MPU_RLAR(0x0002ffff, ATTR_RAM_IDX);
     ARM_MPU_SetRegion(rnr++, rbar, rlar);
 
-    //  flash1, region 1
+#ifdef DUAL_FLASH
+    //  flash1 and flash2 region a
+    rbar = ARM_MPU_RBAR(0x10000000, ARM_MPU_SH_NON, 1, 1, 0); //Non-shareable,RO,any privilege,executable
+    rlar = ARM_MPU_RLAR(0x12ffffff, ATTR_CODE_IDX);
+    ARM_MPU_SetRegion(rnr++, rbar, rlar);
+    //  flash2, region b
+    rbar = ARM_MPU_RBAR(0x13000000, ARM_MPU_SH_NON, 1, 1, 0); //Non-shareable,RO,any privilege,executable
+    rlar = ARM_MPU_RLAR(0x13ffffff, ATTR_RAM_IDX);
+    ARM_MPU_SetRegion(rnr++, rbar, rlar);
+#else
+    //  flash1 and flash2
     rbar = ARM_MPU_RBAR(0x10000000, ARM_MPU_SH_NON, 1, 1, 0); //Non-shareable,RO,any privilege,executable
     rlar = ARM_MPU_RLAR(0x1fffffff, ATTR_CODE_IDX);
     ARM_MPU_SetRegion(rnr++, rbar, rlar);
+#endif /* DUAL_FLASH */
 
     // hpsys ram, disable sram cache
     rbar = ARM_MPU_RBAR(0x20000000, ARM_MPU_SH_NON, 0, 1, 0); //Non-shareable,RW,any privilege,executable
@@ -247,6 +217,8 @@ __WEAK void mpu_config(void)
     ARM_MPU_Enable(MPU_CTRL_HFNMIENA_Msk);
 //#endif
 
+    SCB_EnableDCache();
+    SCB_EnableICache();
 }
 #else
 __WEAK void mpu_config(void)
@@ -438,4 +410,3 @@ void lcpu_rom_jump(void)
     __asm("MOV PC, %0" :: "r"(hwp_lpsys_aon->PCR));
 #endif
 }
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

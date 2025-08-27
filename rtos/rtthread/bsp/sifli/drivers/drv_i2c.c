@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_i2c.c
-  * @author Sifli software development team
-  * @brief I2C BSP driver
-  * @{
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <string.h>
@@ -55,7 +14,6 @@
 
 #include <drv_log.h>
 
-
 /** @addtogroup bsp_driver Driver IO
   * @{
   */
@@ -64,7 +22,6 @@
   * @brief I2C BSP driver
   * @{
   */
-
 
 /**********************************
     SFLB55X LCPU ROM patch
@@ -75,9 +32,7 @@ static void register_i2c_device(uint8_t i);
 extern const struct rt_i2c_bus_device_ops i2c_ops_rom;
 static struct rt_i2c_bus_device_ops lcpu_patch_ops;
 
-
 #if BSP_LB55X_CHIP_ID > 2 //A3
-
 
 struct rt_i2c_bus_device_a3
 {
@@ -121,7 +76,6 @@ static bf0_i2c_config_t bf0_i2c_cfg[] =
     BF0_I2C6_CFG,
 #endif
 };
-
 
 static bf0_i2c_a3_t i2c_a3_obj[I2C_NUM] = {0};
 static struct rt_i2c_configuration rt_i2c_cfg_default[I2C_NUM] =
@@ -179,7 +133,6 @@ static void I2Cx_IRQHandler(uint32_t index)
     {
         handle->XferISR(handle, 0, 0);
     }
-
 
     /* leave interrupt */
     rt_interrupt_leave();
@@ -272,8 +225,6 @@ static rt_size_t master_xfer_lcpu_patch_a3(struct rt_i2c_bus_device *bus, struct
 
     ret_v = i2c_ops_rom.master_xfer(bus, msgs, num);
 
-
-
     if (__HAL_I2C_GET_FLAG(hi2c, I2C_SR_UB) == SET) //Fix I2C STOP not finished in ROM
     {
         HAL_Delay_us(100); //STOP bit takes 100us at I2C 10KHz
@@ -297,7 +248,6 @@ static rt_err_t i2c_bus_control_lcpu_patch_a3(struct rt_i2c_bus_device *bus, rt_
     LOG_I("i2c_bus_control_lcpu_patch_a3 %d, %x", get_index_by_bus_handle(bus), &bf0_i2c->handle);
 
     ret_v = i2c_ops_rom.i2c_bus_control(bus, cmd, arg);
-
 
     return ret_v;
 }
@@ -343,7 +293,6 @@ static rt_err_t i2c_bus_configure_lcpu_patch_a3(struct rt_i2c_bus_device *bus, s
         //bug2: I2C enter slave mode while enable, enable it only in master_xfer
         __HAL_I2C_DISABLE(hi2c);
 
-
         //bug3: The clock divider of Fast mode & Standard mode are not correct
         uint32_t i2c_clk = HAL_RCC_GetPCLKFreq(hi2c->core, 1);
 
@@ -351,13 +300,11 @@ static rt_err_t i2c_bus_configure_lcpu_patch_a3(struct rt_i2c_bus_device *bus, s
         /* Standard mode only use to send bus reset, use lowest frequence */
         uint32_t slv = I2C_LCR_SLV_Msk >> I2C_LCR_SLV_Pos;
 
-
         int div2 = 7 + hi2c->Init.ClockSpeed / 200000;  // verify on 100k, 200k and 400k
         flv = ((i2c_clk / hi2c->Init.ClockSpeed - hi2c->dnf - div2) / 2);
 
         HAL_ASSERT(flv <= (I2C_LCR_FLV_Msk >> I2C_LCR_FLV_Pos));
         MODIFY_REG(hi2c->Instance->LCR, I2C_LCR_FLV_Msk | I2C_LCR_SLV_Msk, (flv << I2C_LCR_FLV_Pos) | (slv << I2C_LCR_SLV_Pos));
-
 
         hi2c->Instance->IER = 0;
 
@@ -377,7 +324,6 @@ static void register_i2c_device(uint8_t i)
     i2c_a3_obj[i].bus.parent.user_data = &bf0_i2c_cfg[i];
     i2c_a3_obj[i].bus.ops = &lcpu_patch_ops; //Replace with patch 'ops'
     i2c_a3_obj[i].handle.Instance = bf0_i2c_cfg[i].Instance;
-
 
     if (i2c_a3_obj[i].i2c_dma_flag)
     {
@@ -410,7 +356,6 @@ int rt_hw_i2c_init_lcpu_a3(void)
     //lcpu_patch_ops.slave_xfer =  ignore use ROM
     //lcpu_patch_ops.i2c_bus_control = i2c_bus_control_lcpu_patch_a3;
     lcpu_patch_ops.i2c_bus_configure = i2c_bus_configure_lcpu_patch_a3;
-
 
 #ifdef BSP_I2C4_USING_DMA
     static struct dma_config i2c4_trx_dma = I2C4_TRX_DMA_CONFIG;
@@ -461,7 +406,6 @@ extern bf0_i2c_t i2c_obj[]; //size 0x414
 extern struct rt_i2c_configuration rt_i2c_cfg_default[];
 extern bf0_i2c_config_t bf0_i2c_cfg[];
 
-
 static uint32_t get_index_by_bus_handle(struct rt_i2c_bus_device *bus)
 {
     for (int i = 0; i < I2C_NUM; i++)
@@ -484,7 +428,6 @@ static void I2Cx_IRQHandler(uint32_t index)
     {
         handle->XferISR(handle, 0, 0);
     }
-
 
     /* leave interrupt */
     rt_interrupt_leave();
@@ -556,7 +499,6 @@ void I2C6_DMA_IRQHandler(void)
 #endif /* !DMA_SUPPORT_DYN_CHANNEL_ALLOC */
 #endif
 
-
 static rt_size_t master_xfer_mem_access_lcpu_patch_a0(struct rt_i2c_bus_device *bus, struct rt_i2c_msg msgs[], rt_uint32_t num)
 {
     rt_size_t ret = (0);
@@ -592,7 +534,6 @@ static rt_size_t master_xfer_mem_access_lcpu_patch_a0(struct rt_i2c_bus_device *
                 status = HAL_I2C_Mem_Write(&bf0_i2c->handle, msg->addr, msg->mem_addr, mem_addr_type, msg->buf, msg->len, bus->timeout);
             }
         }
-
 
         while (status == HAL_OK)
         {
@@ -641,7 +582,6 @@ static rt_size_t master_xfer_lcpu_patch_a0(struct rt_i2c_bus_device *bus, struct
     {
         ret_v = i2c_ops_rom.master_xfer(bus, msgs, num);
     }
-
 
     if (__HAL_I2C_GET_FLAG(hi2c, I2C_SR_UB) == SET) //Fix I2C STOP not finished in ROM
     {
@@ -701,7 +641,6 @@ static rt_err_t i2c_bus_configure_lcpu_patch_a0(struct rt_i2c_bus_device *bus, s
         hi2c->Instance->LCR = 0;
     }
 
-
     ret_v = i2c_ops_rom.i2c_bus_configure(bus, configuration);
     //ret_v = i2c_bus_configure(bus, configuration);
 
@@ -715,7 +654,6 @@ static rt_err_t i2c_bus_configure_lcpu_patch_a0(struct rt_i2c_bus_device *bus, s
         //bug2: I2C enter slave mode while enable, enable it only in master_xfer
         __HAL_I2C_DISABLE(hi2c);
 
-
         //bug3: The clock divider of Fast mode & Standard mode are not correct
         uint32_t i2c_clk = HAL_RCC_GetPCLKFreq(hi2c->core, 1);
 
@@ -723,13 +661,11 @@ static rt_err_t i2c_bus_configure_lcpu_patch_a0(struct rt_i2c_bus_device *bus, s
         /* Standard mode only use to send bus reset, use lowest frequence */
         uint32_t slv = I2C_LCR_SLV_Msk >> I2C_LCR_SLV_Pos;
 
-
         int div2 = 7 + hi2c->Init.ClockSpeed / 200000;  // verify on 100k, 200k and 400k
         flv = ((i2c_clk / hi2c->Init.ClockSpeed - hi2c->dnf - div2) / 2);
 
         HAL_ASSERT(flv <= (I2C_LCR_FLV_Msk >> I2C_LCR_FLV_Pos));
         MODIFY_REG(hi2c->Instance->LCR, I2C_LCR_FLV_Msk | I2C_LCR_SLV_Msk, (flv << I2C_LCR_FLV_Pos) | (slv << I2C_LCR_SLV_Pos));
-
 
         hi2c->Instance->IER = 0;
 
@@ -773,7 +709,6 @@ static void register_i2c_device(uint8_t i)
     LOG_I("%s bus init done, %x", i2c_obj[i].bf0_i2c_cfg->device_name, i2c_obj[i].handle.Instance);
 }
 
-
 int rt_hw_i2c_init_lcpu_a0(void)
 {
     int r = RT_EOK;
@@ -783,7 +718,6 @@ int rt_hw_i2c_init_lcpu_a0(void)
     //lcpu_patch_ops.slave_xfer =  ignore use ROM
     lcpu_patch_ops.i2c_bus_control = i2c_bus_control_lcpu_patch_a0;
     lcpu_patch_ops.i2c_bus_configure = i2c_bus_configure_lcpu_patch_a0;
-
 
 #ifdef BSP_I2C4_USING_DMA
     static struct dma_config i2c4_trx_dma = I2C4_TRX_DMA_CONFIG;
@@ -822,7 +756,6 @@ int rt_hw_i2c_init_lcpu_a0(void)
 INIT_BOARD_EXPORT(rt_hw_i2c_init_lcpu_a0);
 
 #endif
-
 
 #else //HCPU || !SF32LB55X
 
@@ -920,7 +853,6 @@ static struct rt_i2c_configuration rt_i2c_cfg_default[I2C_NUM] =
 #endif
 
 };
-
 
 static bf0_i2c_t i2c_obj[I2C_NUM];
 static rt_sem_t i2c_sema[I2C_NUM];
@@ -1404,7 +1336,6 @@ static rt_err_t i2c_bus_configure(struct rt_i2c_bus_device *bus, struct rt_i2c_c
     return ret;
 }
 
-
 static const struct rt_i2c_bus_device_ops ops =
 {
     .master_xfer = master_xfer,
@@ -1412,7 +1343,6 @@ static const struct rt_i2c_bus_device_ops ops =
     .i2c_bus_control = i2c_bus_control,
     .i2c_bus_configure = i2c_bus_configure,
 };
-
 
 static void I2Cx_IRQHandler(uint32_t index)
 {
@@ -1465,11 +1395,9 @@ static void I2Cx_DMA_IRQHandler(uint32_t index)
                 HAL_DMA_IRQHandler(handle->hdmarx);
     }
 
-
     /* leave interrupt */
     rt_interrupt_leave();
 }
-
 
 #if defined(BSP_USING_I2C1)
 void I2C1_IRQHandler(void)
@@ -1512,9 +1440,6 @@ void I2C3_DMA_IRQHandler(void)
 }
 #endif /* !DMA_SUPPORT_DYN_CHANNEL_ALLOC */
 #endif
-
-
-
 
 #if defined(BSP_USING_I2C4)
 void I2C4_IRQHandler(void)
@@ -1679,14 +1604,6 @@ INIT_BOARD_EXPORT(rt_hw_i2c_init);
 
 #endif /*defined(SOC_SF32LB55X)&&defined(SOC_BF0_LCPU)*/
 
-
-
-
-
-
-
-
-
 //#define DRV_TEST
 
 #ifdef DRV_TEST
@@ -1841,4 +1758,3 @@ FINSH_FUNCTION_EXPORT_ALIAS(cmd_i2c, __cmd_i2c, Test i2c sensor);
 
 /// @} file
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

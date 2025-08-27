@@ -1,61 +1,19 @@
-/**
-  ******************************************************************************
-  * @file   sensor_stk8328c.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "sensor_stk8328c.h"
 #include "sensor_service.h"
 
-
 #ifdef RT_USING_SENSOR
 
 #include <rtdbg.h>
 
-
 static struct stk8328c_device *stk_dev = RT_NULL;
 static rt_sensor_t sensor_acce = RT_NULL;
 static uint8_t stk8328c_inited = 0;
-
 
 static rt_err_t _stk8328c_init(void)
 {
@@ -152,11 +110,9 @@ static int _stk8328c_read_all_fifo_data(uint8_t *buf, int len)
         //rt_kprintf("STK8328C_FIFO_PATTERN_XLX1:0x%x 0x%x %d %d\r\n",sdata[0],sdata[1],f_buf->acce_fifo->acce_x[fcount[0]],fcount[0]);
         fcount[0] ++;
 
-
         f_buf->acce_fifo->acce_y[fcount[1]] = (int16_t)((sdata[3] << 8) | (sdata[2]));
         //rt_kprintf("STK8328C_FIFO_PATTERN_XLY1:0x%x 0x%x %d %d\r\n",sdata[2],sdata[3],f_buf->acce_fifo->acce_y[fcount[1]],fcount[1]);
         fcount[1] ++;
-
 
         f_buf->acce_fifo->acce_z[fcount[2]] = (int16_t)((sdata[5] << 8) | (sdata[4]));
         //rt_kprintf("STK8328C_FIFO_PATTERN_XLZ1:0x%x 0x%x %d %d\r\n",sdata[4],sdata[5],f_buf->acce_fifo->acce_z[fcount[2]],fcount[2]);
@@ -189,7 +145,6 @@ static rt_size_t _stk8328c_polling_get_data(rt_sensor_t sensor, struct rt_sensor
     stk8328c_set_fifo_mode(STK_FIFO_MODE_VAL);
 
     return (uint32_t)buf_fifo->total_count;
-
 
 }
 
@@ -277,7 +232,6 @@ int rt_hw_stk8328c_register(const char *name, struct rt_sensor_config *cfg)
         }
     }
 
-
     LOG_I("sensor init success");
     return RT_EOK;
 
@@ -342,4 +296,4 @@ int rt_hw_stk8328c_deinit(void)
 }
 
 #endif // RT_USING_SENSOR
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

@@ -1,50 +1,12 @@
-/**
-  ******************************************************************************
-  * @file   sc7a22_reg.h
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef __STK8328C_REG_H__
 #define __STK8328C_REG_H__
+
 #include <stdint.h>
 
 /* STK832x PSEUDO CODE
@@ -56,6 +18,11 @@
  */
 
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* SPI mode needs to open this macro, IIC mode is blocked */
 #define STK_SPI_MODE    0
 
@@ -65,11 +32,9 @@
 #define STK832x_RANGE_8G        0x08
 #define STK832x_RANGE_16G       0x0C
 
-
 #define STK_REG_POWMODE     0x11
 #define STK_SUSPEND_MODE    0x80
 #define STK_PWR_MODE_VAL    0x74 // odr 50hz
-
 
 #define STK832x_SET_ODR_25HZ
 //#define   STK832x_SET_ODR_50HZ
@@ -105,9 +70,6 @@
 
 #define STK_REG_FIFO_DATA   0x3F
 
-
-
-
 typedef int32_t (*stmdev_write_ptr)(void *, uint8_t, uint8_t *, uint16_t);
 typedef int32_t (*stmdev_read_ptr)(void *, uint8_t, uint8_t *, uint16_t);
 
@@ -136,5 +98,8 @@ int32_t stk8328c_read_fifo_data(sifdev_sensor_ctx_t *ctx, uint8_t *data, uint16_
 
 
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* __SC7A22_REG_H__*/
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

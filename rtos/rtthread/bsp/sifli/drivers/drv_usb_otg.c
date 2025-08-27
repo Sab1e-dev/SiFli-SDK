@@ -44,6 +44,3 @@ void USBC_IRQHandler(void)
     rt_interrupt_leave();
 
 }
-
-
-

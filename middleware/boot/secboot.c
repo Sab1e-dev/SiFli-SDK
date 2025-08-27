@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   secboot.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtconfig.h>
@@ -60,7 +21,6 @@
 #define SPLIT_THRESHOLD     (256)
 #define SECBOOT_SIGKEY_PUB_ERR      (1)
 #define SECBOOT_IMG_HASH_SIG_ERR    (2)
-
 
 #define IS_MPI_ADDR(addr, i) ((addr >= MPI##i##_MEM_BASE) && (addr < (MPI##i##_MEM_BASE + QSPI##i##_MAX_SIZE)))
 
@@ -102,7 +62,6 @@ uint8_t sig_pub_key[DFU_SIG_KEY_SIZE] =
     0x09, 0x02, 0x03, 0x01, 0x00, 0x01
 };
 
-
 __WEAK uint8_t *sifli_get_sig_pub_key(void)
 {
     return sig_pub_key;
@@ -139,7 +98,6 @@ static int hash_calculate(uint8_t *in, uint32_t in_size, uint8_t *out, uint8_t a
     ex_data_size = DFU_UID_SIZE;
     ex_data = uid;
 #endif /* SECBOOT_APP_IMG_SIG_BY_UID_ENABLD */
-
 
 #ifdef HAL_HASH_MODULE_ENABLED
     HAL_HASH_reset();
@@ -252,8 +210,6 @@ static void secboot_exception(uint8_t excpt)
 
 #endif /* SECBOOT_USING_APP_IMG_SIG_VERIFIY  */
 
-
-
 static uint8_t is_addr_in_flash(uint32_t addr)
 {
     uint8_t is_in_flash = 0;
@@ -272,7 +228,6 @@ static uint8_t is_addr_in_flash(uint32_t addr)
         is_in_flash = 1;
     return is_in_flash;
 }
-
 
 static uint8_t is_addr_in_mpi(uint32_t addr)
 {
@@ -331,7 +286,6 @@ static void boot_copy_img(uint8_t *dest, uint8_t *src, uint32_t len)
     SCB_CleanDCache();
 }
 
-
 static void run_img(uint8_t *dest)
 {
     __asm("LDR SP, [%0]" :: "r"(dest));
@@ -379,10 +333,10 @@ void dfu_boot_img_in_flash(int flashid)
             is_flash = 0;
         }
 
-        if (coreid < 4 * CORE_MAX)
+        if (coreid < 2 * CORE_MAX)
         {
             coreid %= CORE_MAX;
-            if (coreid == CORE_HCPU || coreid == CORE_BL)
+            if (coreid == CORE_HCPU || coreid == CORE_BL || coreid == CORE_LCPU)
             {
                 if (is_addr_in_mpi((uint32_t)dest))
                 {
@@ -450,10 +404,10 @@ void dfu_boot_img_in_flash(int flashid)
             boot_copy_img(dest, src, img_hdr->length);
 #endif /* SECBOOT_USING_APP_IMG_SIG_VERIFIY */
         }
-        if (coreid < 4 * CORE_MAX)
+        if (coreid < 2 * CORE_MAX)
         {
             coreid %= CORE_MAX;
-            if (coreid == CORE_HCPU || coreid == CORE_BL)
+            if (coreid == CORE_HCPU || coreid == CORE_BL || coreid == CORE_LCPU)
             {
                 if (is_addr_in_flash((uint32_t)dest))
                 {
@@ -626,7 +580,6 @@ int32_t boot_sha256_calculate(uint8_t *in, uint32_t in_size, uint8_t *uid, uint3
     return 0;
 }
 
-
 __WEAK void boot_precheck(void)
 {
 #if 0
@@ -665,5 +618,3 @@ __WEAK void boot_precheck(void)
 #endif
 }
 
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

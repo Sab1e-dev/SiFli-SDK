@@ -2,6 +2,7 @@
 #define __TC_UTILS__
 
 
+
 #include "stdlib.h"
 #include "stdint.h"
 #include "string.h"
@@ -9,6 +10,10 @@
 
 #ifndef ABS
     #define ABS(_x) ((_x) < 0 ? -(_x) : (_x))
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 #ifndef MIN
@@ -50,5 +55,8 @@ uint32_t dwtGetCycles(void);
 #define ENTER_INTERRUPT() rt_interrupt_enter()            // RT-Thread requried interrupt enter function, other OS might be different
 #define LEAVE_INTERRUPT() rt_interrupt_leave()            // RT-Thread requried interrupt leave function, other OS might be different
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* __TC_UTILS__ */
 

@@ -78,7 +78,7 @@ enum
     DL_INSTALL
 };
 
-#ifdef SOLUTION_WATCH
+#if defined(SOLUTION_WATCH) || defined(RT_MODULE_MEM_CUSTOM)
     #include "app_mem.h"
     #define dlm_malloc(x) app_cache_alloc(x, IMAGE_CACHE_PSRAM)
     #define dlm_free      app_cache_free

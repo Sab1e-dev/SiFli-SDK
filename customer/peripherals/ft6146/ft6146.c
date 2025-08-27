@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   ft6146.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -70,11 +31,8 @@
 #define FT_READ_ID_H            (0xA3)
 #define FT_READ_ID_L            (0x9F)
 
-
-
 #define FT_MAX_WIDTH                   (390)
 #define FT_MAX_HEIGHT                  (450)
-
 
 typedef enum
 {
@@ -84,13 +42,11 @@ typedef enum
     CTP_RESERVE = 3,
 } ctp_pen_state_enum;
 
-
 // rotate to left with 90, 180, 270
 // rotate to left with 360 for mirror
 //#define FT_ROTATE_LEFT                 (90)
 
 /* function and value-----------------------------------------------------------*/
-
 
 static void ft6146_correct_pos(touch_msg_t ppos);
 static rt_err_t write_reg(uint8_t reg, rt_uint8_t data);
@@ -156,8 +112,6 @@ static rt_err_t read_regs(rt_uint8_t reg, rt_uint8_t len, rt_uint8_t *buf)
     return res;
 }
 
-
-
 static void ft6146_correct_pos(touch_msg_t ppos)
 {
     ppos->x = FT_MAX_WIDTH - ppos->x;
@@ -173,7 +127,6 @@ static void ft6146_correct_pos(touch_msg_t ppos)
     }
     return;
 }
-
 
 static rt_err_t read_point(touch_msg_t p_msg)
 {
@@ -255,7 +208,6 @@ static rt_err_t read_point(touch_msg_t p_msg)
 exit_work_func:
     return RT_EEMPTY;
 }
-
 
 void ft6146_irq_handler(void *arg)
 {
@@ -349,7 +301,6 @@ static rt_err_t init(void)
     BSP_TP_Reset(1);
     rt_thread_mdelay(80);
 
-
     {
         uint8_t chip_id[2] = { 0 };
         err = read_regs(FT_READ_ID_H, 1, &chip_id[0]);
@@ -411,7 +362,6 @@ static rt_bool_t probe(void)
         return RT_FALSE;
     }
 
-
     {
         struct rt_i2c_configuration configuration =
         {
@@ -424,12 +374,10 @@ static rt_bool_t probe(void)
         rt_i2c_configure(ft_bus, &configuration);
     }
 
-
     LOG_I("ft6146 probe OK");
 
     return RT_TRUE;
 }
-
 
 static struct touch_ops ops =
 {
@@ -437,8 +385,6 @@ static struct touch_ops ops =
     init,
     deinit
 };
-
-
 
 static int rt_ft6146_init(void)
 {
@@ -493,4 +439,3 @@ int cmd_ft_test(int argc, char *argv[])
 FINSH_FUNCTION_EXPORT_ALIAS(cmd_ft_test, __cmd_ft_test, Test hw ft6146);
 #endif  /* ADS7846_FUNC_TEST */
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

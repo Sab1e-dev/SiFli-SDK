@@ -16,10 +16,16 @@
  */
 #ifndef __APP_CLOCK_MAIN_H__
 #define __APP_CLOCK_MAIN_H__
+
 #include <rtthread.h>
 #include "lvgl.h"
 #include "gui_app_fwk.h"
 #include "lv_ext_resource_manager.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct
 {
@@ -100,4 +106,7 @@ int32_t app_clock_register(const char *id, const app_clock_ops_t *operations);
     void app_clock_img_cache_free(lv_img_dsc_t *p_img);
 #endif
 
+#ifdef __cplusplus
+}
+#endif
 #endif /*__APP_CLOCK_MAIN_H_*/

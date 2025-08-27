@@ -1,54 +1,12 @@
-/**
-  ******************************************************************************
-  * @file   bf0_lcpu_init.c
-  * @author Sifli software development team
-  * @brief
- * @{
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2025,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtconfig.h>
 #include <bf0_hal.h>
 #include <string.h>
-
 
 #if defined (APP_BSP_TEST)
     #define bt_rf_cal()
@@ -59,13 +17,11 @@
     extern void bt_rf_cal(void);
 #endif
 
-
 #ifdef LXT_DISABLE
     #define USE_LXT 0
 #else
     #define USE_LXT 1
 #endif
-
 
 #if defined(SOC_BF0_HCPU)
 extern void lcpu_patch_install();
@@ -84,7 +40,6 @@ __WEAK void lcpu_img_install(void)
 #else
 #define lcpu_img_install()
 #endif
-
 
 void lcpu_rom_config_default(void)
 {
@@ -106,7 +61,8 @@ void lcpu_rom_config_default(void)
     {
         uint32_t tx_queue = HCPU2LCPU_MB_CH1_BUF_START_ADDR;
         hal_lcpu_bluetooth_rom_config_t config = {0};
-        config.bit_valid |= 1 << 10 | 1 << 6;
+        config.bit_valid |= 1 << 10 | 1 << 6 | 1 << 2;
+        config.lld_prog_delay = 3;
         config.is_fpga = 0;
         config.default_xtal_enabled = is_enable_lxt;
         HAL_LCPU_CONFIG_set(HAL_LCPU_CONFIG_HCPU_TX_QUEUE, &tx_queue, 4);
@@ -115,13 +71,10 @@ void lcpu_rom_config_default(void)
 #endif // defined(SF32LB52X_REV_B) || defined(SF32LB52X_REV_AUTO)
 }
 
-
 __WEAK void lcpu_rom_config(void)
 {
     lcpu_rom_config_default();
 }
-
-
 
 static void lcpu_ble_patch_install()
 {
@@ -160,11 +113,16 @@ void lcpu_disable_rf_cal(uint8_t is_disable)
     g_lcpu_rf_cal_disable = is_disable;
 }
 
+__WEAK __NOINLINE void lcpu_nvds_config()
+{
+}
+
 uint8_t lcpu_power_on(void)
 {
     HAL_HPAON_WakeCore(CORE_ID_LCPU);
     HAL_RCC_Reset_and_Halt_LCPU(0);
 
+    lcpu_nvds_config();
     lcpu_rom_config();
 
     /* LPSYS HCLK cannot exceed 24MHz when loading code */
@@ -206,8 +164,5 @@ uint8_t lcpu_power_on(void)
 }
 #endif /* SOC_BF0_HCPU */
 
-
 /** @} */
 
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

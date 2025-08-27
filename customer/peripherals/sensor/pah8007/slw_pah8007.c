@@ -5,8 +5,6 @@
   ******************************************************************************
 */
 
-
-
 #include "slw_pah8007.h"
 
 #include "ulog.h"
@@ -17,19 +15,15 @@
 //#define DBG_LVL DBG_INFO
 //#include <rtdbg.h>
 
-
 #define PAH8007_ADDR               0x48
 
-
 static struct rt_i2c_bus_device *i2c_bus = RT_NULL;
-
 
 void pah8007_write_reg(uint8_t reg, uint8_t data)
 {
     struct rt_i2c_msg msgs[2];
     uint8_t value[2];
     uint32_t res;
-
 
     if (i2c_bus)
     {
@@ -53,7 +47,6 @@ void pah8007_write_reg(uint8_t reg, uint8_t data)
         }
     }
 }
-
 
 void pah8007_read_reg(uint8_t reg, uint8_t *buf, uint8_t len)
 {
@@ -90,7 +83,6 @@ void pah8007_read_reg(uint8_t reg, uint8_t *buf, uint8_t len)
     }
 }
 
-
 void *pah8007_get_bus(void)
 {
     return (void *)i2c_bus;
@@ -101,9 +93,7 @@ uint8_t pah8007_get_dev_addr(void)
     return PAH8007_ADDR;
 }
 
-
 #include "pah_8007.h"
-
 
 int pah8007_init(void)
 {
@@ -150,15 +140,13 @@ int pah8007_init(void)
     }
 #endif
 
-
     if (!pah_sensor_init())
     {
         return -1;
     }
 
-
     return 0;
 }
 
 #endif // RT_USING_SENSOR
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

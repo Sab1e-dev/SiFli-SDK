@@ -1,52 +1,12 @@
-/**
-  ******************************************************************************
-  * @file   data_service_provider.h
-  * @author Sifli software development team
-  * @brief Sifli Data service provider interface
-  * @{
-  ******************************************************************************
-*/
 /*
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef DATA_SERVICE_PROVIDER_H
 #define DATA_SERVICE_PROVIDER_H
+
 #include <rtthread.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -61,11 +21,15 @@
 ****************************************************************************************
 */
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define DATA_SERVICE_INVALID_ID   (0x7F)
 
 /** Data service client */
 typedef void *datas_handle_t;
-
 
 /** service message handler */
 typedef int32_t (*data_service_msg_handler_t)(datas_handle_t service, data_msg_t *msg);
@@ -91,9 +55,7 @@ typedef struct data_service_config_tag
     data_service_msg_handler_t msg_handler;
 } data_service_config_t;
 
-
 #if defined(BSP_USING_DATA_SVC)||defined(_SIFLI_DOXYGEN_)
-
 
     /**
     @brief Trigger service main thread to send customer message to the subscriber
@@ -120,7 +82,6 @@ typedef struct data_service_config_tag
     @retval RT_EOK if successful, otherwise return error number < 0.
     */
     int32_t datas_push_msg_to_client_no_copy(datas_handle_t svc, uint16_t msg_id, uint32_t len, uint8_t *data);
-
 
     /**
     @brief  Inform service that data is available to
@@ -168,6 +129,8 @@ typedef struct data_service_config_tag
 /// @} data_service_provider
 /// @} file
 
+#ifdef __cplusplus
+}
 #endif
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+#endif
 

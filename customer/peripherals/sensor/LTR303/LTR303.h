@@ -1,9 +1,15 @@
 #ifndef _LTR303_H_
 #define _LTR303_H_
 
+
 #include <stdint.h>
 #include "rtthread.h"
 #include "sensor.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define LTR303_ADDRESS 0x29 // default address
 
@@ -61,4 +67,7 @@ uint16_t LTR303_ReadVisible(void);
 void LTR303_PowerOn(void);
 void LTR303_PowerOff(void);
 
+#ifdef __cplusplus
+}
+#endif
 #endif // _LTR303_H_

@@ -1,6 +1,7 @@
 #ifndef MEDIA_DEC_H
 #define MEDIA_DEC_H
 
+
 #include <rtthread.h>
 #include <string.h>
 #include <stdlib.h>
@@ -33,6 +34,10 @@
 
 #ifndef FFMPEG_NAND_URL_FMT
     #define FFMPEG_NAND_URL_FMT "nand://addr=0x%x&len=0x%x"
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 #define VIDEO_BUFFER_CAPACITY       3
@@ -203,5 +208,8 @@ void ffmpeg_send_frame_to_decoder(ffmpeg_handle thiz, media_packet_t *p);
 ffmpeg_handle ffmpeg_player_status_get(void);
 
 
+#ifdef __cplusplus
+}
+#endif
 #endif
 

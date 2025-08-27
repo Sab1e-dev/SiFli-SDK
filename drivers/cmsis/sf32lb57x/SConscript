@@ -49,7 +49,6 @@ elif GetDepend(['BF0_HCPU']):
     src += ['Templates/system_bf0_ap.c']
     if  rtconfig.PLATFORM != 'gcc':
         ASFLAGS = ' --cpreproc'
-        CCFLAGS = ' -march=armv8-m.main+cdecp1'
     if rtconfig.PLATFORM == 'gcc':
         src += ['Templates/gcc/startup_bf0_hcpu.s']
     elif rtconfig.PLATFORM == 'armcc':

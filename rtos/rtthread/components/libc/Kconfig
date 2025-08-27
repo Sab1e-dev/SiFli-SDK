@@ -41,7 +41,10 @@ if RT_USING_LIBC && RT_USING_DFS
         config RT_USING_XIP_MODULE
         bool "Dynamic module is loaded into nor flash file system and execute in place"
         default n
-	
+        config RT_MODULE_MEM_CUSTOM 
+        bool "Use custom memory interfaces" 
+        default n 
+
 	config RT_XIP_MODULE_DIR
 	string "XIP Module Directory"
 	depends on RT_USING_XIP_MODULE

@@ -1,9 +1,15 @@
 #ifndef __AW_MONITOR_H__
 #define __AW_MONITOR_H__
+
 #include <stdint.h>
 
 #include "aw882xx.h"
 #include "aw_audio_common.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct aw_table;
 
@@ -182,5 +188,8 @@ int aw_monitor_init(void *dev);
 void aw_monitor_set_handle(void *dev);
 void aw_monitor_deinit(void *dev);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
 

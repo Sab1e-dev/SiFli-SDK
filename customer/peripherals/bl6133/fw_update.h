@@ -1,8 +1,14 @@
 #ifndef    _FW_UPDATE_H_
 #define    _FW_UPDATE_H_
+
 /*****************************************************************
-**头文件加载
+**头募
 *****************************************************************/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if 1//defined( TSC_USING_BL6133)
     #include "bl_chip_common.h"
     #include "fw_update.h"
@@ -23,5 +29,9 @@
         void bl_enter_update_with_int(void);
         void bl_exit_update_with_int(void);
     #endif
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 #endif

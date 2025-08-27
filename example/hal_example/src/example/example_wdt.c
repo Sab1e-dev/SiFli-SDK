@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   example_wdt.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <stdlib.h>
@@ -74,8 +35,6 @@ void WDT_IRQHandler(void)
     __HAL_WDT_CLEAR(&WdtHandle);            // Clear interrupt will reset timer 1
 }
 
-
-
 static void testcase(int argc, char **argv)
 {
 
@@ -106,7 +65,6 @@ static void testcase(int argc, char **argv)
     WdtHandle.Init.Reload = (uint32_t)g_tmout * freq;       // first Reload timeout will generate WDT interrupt is enabled (only apply to hwp_wdt1/hwp_wdt2).
     WdtHandle.Init.Reload2 = WdtHandle.Init.Reload * 2;     // Second Reload2 timeout after frist one will reset HCPU/LCPU if use hwp_wdt1/hwp_wdt2
     // reset whole system if use hwp_iwdt
-
 
     __HAL_WDT_STOP(&WdtHandle);                             // Stop previous watch dog
     while ((WdtHandle.Instance->WDT_SR & WDT_WDT_SR_WDT_ACTIVE) != 0);  // Make sure watch stop is done.
@@ -164,6 +122,5 @@ static void testcase(int argc, char **argv)
     UTEST_TC_EXPORT(testcase, "example_wdt", utest_tc_init, utest_tc_cleanup, 10);
 #endif
 
-
 #endif /*HAL_CRC_MODULE_ENABLED*/
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

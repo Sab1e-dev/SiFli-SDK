@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   example_spi.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <stdlib.h>
@@ -57,18 +18,15 @@
         2. For A0 and Z0 evb, it may connect to different SPI and pin mux set.
 */
 
-
 #define LSM6DSL_ID            0x6AU
 #define LSM6DSL_WHO_AM_I      0x0FU
 
 static SPI_HandleTypeDef spi_Handle = {0};
 
-
 static void spi2_test_init(int lineNum, int mode)  //mode 0:sync mode    mode 1: INT mode   mode 2: DMA mode
 {
 
 }
-
 
 static rt_err_t utest_tc_init(void)
 {
@@ -92,7 +50,6 @@ static void gpio_set(uint16_t pin)
 
     HAL_GPIO_WritePin(hwp_gpio2, pin, 1);
 }
-
 
 static void testcase(int argc, char **argv)
 {
@@ -149,5 +106,3 @@ UTEST_TC_EXPORT(testcase, "example_spi", utest_tc_init, utest_tc_cleanup, 10);
 
 #endif /* HAL_SPI_MODULE_ENABLED */
 
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

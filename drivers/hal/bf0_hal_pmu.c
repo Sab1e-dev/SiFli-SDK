@@ -1,49 +1,9 @@
-/**
-  ******************************************************************************
-  * @file   bf0_hal_pmu.c
-  * @author Sifli software development team
-  * @brief   PMU HAL module driver.
-  *          This file provides firmware functions to manage the following
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
+
 #include "rtconfig.h"
 #include "string.h"
 #include "bf0_hal.h"
@@ -98,7 +58,7 @@ typedef struct
     FACTORY_CFG_VBK_LDO_T data;
 } PMU_CalDataTypeDef;
 
-static PMU_CalDataTypeDef pmu_cal_data;
+HAL_RETM_BSS_SECT(pmu_cal_data, static PMU_CalDataTypeDef pmu_cal_data);
 #endif /* (SF32LB52X || SF32LB56X || SF32LB57X) && SOC_BF0_HCPU*/
 
 #ifdef PMUC_CR_PIN0_SEL
@@ -240,7 +200,29 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_RC10Kconfig(void)
     /* reduce VBAT_LDO output voltage to 3V to avoid leakage current if VCC is lower than 3.3V */
     MODIFY_REG(hwp_pmuc->AON_LDO, PMUC_AON_LDO_VBAT_LDO_SET_VOUT_Msk,
                MAKE_REG_VAL(0, PMUC_AON_LDO_VBAT_LDO_SET_VOUT_Msk, PMUC_AON_LDO_VBAT_LDO_SET_VOUT_Pos));
+
+    /* turn off LDO2 to ensure flash changing to 3byte address mode when boot up */
+    HAL_PMU_ConfigPeriLdo(PMU_PERI_LDO2_3V3, 0, 1);
+    HAL_Delay_us_(8000);
+    /* Change RC48 to default frequency */
+    if (RCC_SYSCLK_HRC48 == HAL_RCC_HCPU_GetClockSrc(RCC_CLK_MOD_SYS))
+    {
+        HAL_HPAON_EnableXT48();
+        HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_SYS, RCC_SYSCLK_HXT48);
+    }
+
+    hwp_pmuc->HRC_CR = 0xA50C015;
+
+    /* configure default delays in boot options when not set */
+    uint32_t bootopt = HAL_Get_backup(RTC_BACKUP_BOOTOPT);
+    if ((bootopt & (RTC_BACKUP_BOOTOPT_PD_DELAY_Msk | RTC_BACKUP_BOOTOPT_PU_DELAY_Msk)) == 0U) {
+        HAL_Set_backup(RTC_BACKUP_BOOTOPT,
+                       (bootopt |
+                        RTC_BACKUP_BOOTOPT_PD_DELAY_MS(5) |
+                        RTC_BACKUP_BOOTOPT_PU_DELAY_MS(5)));
+    }
 #endif /* SF32LB52X */
+
     /* clear WSR as it's not cleared if triggered in sleep */
     HAL_PMU_CLEAR_WSR(hwp_pmuc->WSR);
 
@@ -269,6 +251,27 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_RC10Kconfig(void)
     /* reduce VBAT_LDO output voltage to 3V to avoid leakage current if VCC is lower than 3.3V */
     MODIFY_REG(hwp_pmuc->AON_LDO, PMUC_AON_LDO_VBAT_LDO_SET_VOUT_Msk,
                MAKE_REG_VAL(0, PMUC_AON_LDO_VBAT_LDO_SET_VOUT_Msk, PMUC_AON_LDO_VBAT_LDO_SET_VOUT_Pos));
+
+    /* turn off LDO2 to ensure flash changing to 3byte address mode when boot up */
+    HAL_PMU_ConfigPeriLdo(PMU_PERI_LDO2_3V3, 0, 1);
+    HAL_Delay_us_(8000);
+    /* Change RC48 to default frequency */
+    if (RCC_SYSCLK_HRC48 == HAL_RCC_HCPU_GetClockSrc(RCC_CLK_MOD_SYS))
+    {
+        HAL_HPAON_EnableXT48();
+        HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_SYS, RCC_SYSCLK_HXT48);
+    }
+
+    hwp_pmuc->HRC_CR = 0xA50C015;
+
+    /* configure default delays in boot options when not set */
+    uint32_t bootopt = HAL_Get_backup(RTC_BACKUP_BOOTOPT);
+    if ((bootopt & (RTC_BACKUP_BOOTOPT_PD_DELAY_Msk | RTC_BACKUP_BOOTOPT_PU_DELAY_Msk)) == 0U) {
+        HAL_Set_backup(RTC_BACKUP_BOOTOPT,
+                       (bootopt |
+                        RTC_BACKUP_BOOTOPT_PD_DELAY_MS(5) |
+                        RTC_BACKUP_BOOTOPT_PU_DELAY_MS(5)));
+    }
 #endif /* SF32LB52X */
 
     /* clear WSR as it's not cleared if triggered in sleep */
@@ -580,8 +583,27 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_EnableBuck2(void)
 #endif
 
 #if defined(SF32LB52X)
+    /* turn off LDO2 to ensure flash changing to 3byte address mode when boot up */
     HAL_PMU_ConfigPeriLdo(PMU_PERI_LDO2_3V3, 0, 1);
     HAL_Delay_us_(8000);
+
+    /* Change RC48 to default frequency */
+    if (RCC_SYSCLK_HRC48 == HAL_RCC_HCPU_GetClockSrc(RCC_CLK_MOD_SYS))
+    {
+        HAL_HPAON_EnableXT48();
+        HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_SYS, RCC_SYSCLK_HXT48);
+    }
+
+    hwp_pmuc->HRC_CR = 0xA50C015;
+
+    /* configure default delays in boot options when not set */
+    uint32_t bootopt = HAL_Get_backup(RTC_BACKUP_BOOTOPT);
+    if ((bootopt & (RTC_BACKUP_BOOTOPT_PD_DELAY_Msk | RTC_BACKUP_BOOTOPT_PU_DELAY_Msk)) == 0U) {
+        HAL_Set_backup(RTC_BACKUP_BOOTOPT,
+                       (bootopt |
+                        RTC_BACKUP_BOOTOPT_PD_DELAY_MS(5) |
+                        RTC_BACKUP_BOOTOPT_PU_DELAY_MS(5)));
+    }
 #endif
 
     if (hwp_pmuc->CR & PMUC_CR_REBOOT)
@@ -1591,5 +1613,3 @@ HAL_RAM_RET_CODE_SECT(HAL_PMU_GetHpsysVoutRef, HAL_StatusTypeDef HAL_PMU_ConfigH
 /**
   * @}
   */
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

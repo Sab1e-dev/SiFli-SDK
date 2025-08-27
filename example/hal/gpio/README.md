@@ -5,7 +5,7 @@
 例程可以运行在以下开发板.
 * sf32lb52-lcd_n16r8
 * sf32lb58-lcd_n16r64n4
-
+* sf32lb56-lcd_n16r12n1
 ## 示例概述
 * 配置GPIO输出，输入中断操作，进行GPIO HAL函数演示
 * 每一秒翻转GPIO_out电平值，输入GPIO在上升沿和下降沿触发中断，串口打印中断信息
@@ -33,6 +33,7 @@ HPSYS的硬件GPIO模块为 `hwp_gpio1` (或称为GPIO_A), LPSYS的硬件GPIO模
 |:---     |:---    |:---      |:---   |:---      |
 |sf32lb52-lcd_n16r8 |5       |PA41      |3      |PA42      |
 |sf32lb58-lcd_n16r64n4 |5       |PB28      |3      |PB29      |
+|sf32lb56-lcd_n16r12n1 |5       |PA20      |3      |PB12   |
 
 * 更详细的引脚定义请参考\
 `[sf32lb52-lcd_n16r8]()`\
@@ -134,6 +135,12 @@ Pin_In 42, value = 0
     #define GPIO_IRQn GPIO2_IRQn
     #define hwp_gpio hwp_gpio2
     #define RCC_MOD_GPIO RCC_MOD_GPIO2
+#elif defined(SF32LB56X)
+    #define Pin_Out 20
+    #define Pin_In 12
+    #define GPIO_IRQn GPIO1_IRQn
+    #define hwp_gpio hwp_gpio1
+    #define RCC_MOD_GPIO RCC_MOD_GPIO1
 #endif
 ```
 

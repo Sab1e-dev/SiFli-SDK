@@ -1,49 +1,9 @@
-/**
-  ******************************************************************************
-  * @file   mod_installer.c
-  * @author Sifli software development team
-  * @brief Sibles source of wrapper device for ipc queue
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
- *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
+
 #include "rtthread.h"
 #include <stdint.h>
 #include <stdbool.h>
@@ -400,6 +360,68 @@ __EXIT:
     return ret;
 }
 
+
+struct rt_dlmodule *app_open(const char *res_package_path,
+                             const char *package_path)
+{
+    struct rt_dlmodule *module = NULL;
+
+    if (res_package_path)
+    {
+        res_module = dlopen(res_package_path, 0);
+        if (!res_module)
+        {
+            rt_kprintf("app_open open res module: %s failed.\n", res_package_path);
+            goto __EXIT;
+        }
+        RT_ASSERT(RT_EOK == dlmodule_register_ex_symbol_resolver(find_resource_symbol));
+    }
+
+    module = dlopen(package_path, 0);
+    if (res_module)
+    {
+        dlmodule_unregister_ex_symbol_resolver();
+    }
+    if (!module)
+    {
+        rt_kprintf("app_open open %s failed.\n", package_path);
+        if (res_module)
+        {
+            dlclose(res_module);
+            res_module = NULL;
+        }
+        goto __EXIT;
+    }
+    else
+    {
+        if (res_module)
+        {
+            module->res_module = res_module;
+            res_module = NULL;
+        }
+    }
+
+__EXIT:
+    return module;
+}
+
+rt_err_t app_close(struct rt_dlmodule *module)
+{
+    rt_err_t ret = RT_EOK;
+    if (!module)
+    {
+        rt_kprintf("app_close invalid module.\n");
+        return RT_ERROR;
+    }
+    if (module->res_module)
+    {
+        dlclose(module->res_module);
+        module->res_module = NULL;
+    }
+    dlclose(module);
+
+    return ret;
+}
 
 static int mod(int argc, char **argv)
 {

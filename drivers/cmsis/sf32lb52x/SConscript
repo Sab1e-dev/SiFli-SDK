@@ -45,7 +45,6 @@ CPPDEFINES=['SF32LB52X']
 if GetDepend(['BF0_HCPU']):
     if  rtconfig.PLATFORM != 'gcc':
         ASFLAGS = ' --cpreproc'
-        CCFLAGS = ' -march=armv8-m.main+cdecp1'
     if rtconfig.PLATFORM == 'gcc':
         src += ['Templates/gcc/startup_bf0_hcpu.S']
     elif rtconfig.PLATFORM == 'armcc':
@@ -55,7 +54,6 @@ if GetDepend(['BF0_HCPU']):
 elif GetDepend(['BF0_LCPU']):
     if  rtconfig.PLATFORM != 'gcc':
         ASFLAGS = ' --cpreproc'
-        CCFLAGS = ' -march=armv8-m.main+cdecp1'    
     if rtconfig.PLATFORM == 'gcc':
         if GetDepend(['ROM_ATTR']):
             src += ['Templates/gcc/startup_bf0_lcpu_rom.S']

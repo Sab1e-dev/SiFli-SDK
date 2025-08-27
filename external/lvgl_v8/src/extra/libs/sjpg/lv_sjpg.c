@@ -56,10 +56,10 @@
 #include "app_mem.h"
 #define lv_mem_alloc(size) app_cache_alloc(size,IMAGE_CACHE_PSRAM)
 #define lv_mem_free(data) app_cache_free(data)
+
+#endif
 #undef LV_IMG_CF_RAW
 #define LV_IMG_CF_RAW LV_IMG_CF_USER_ENCODED_0
-#endif
-
 /*********************
  *      DEFINES
  *********************/

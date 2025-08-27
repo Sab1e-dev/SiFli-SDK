@@ -2,6 +2,7 @@
 #ifndef SENSOR_ST_LSM6DSL_H__
 #define SENSOR_ST_LSM6DSL_H__
 
+
 #include <rtthread.h>
 #include <rtdevice.h>
 #include "board.h"
@@ -16,11 +17,18 @@
 #else
     #define RT_SIZE_TYPE   rt_size_t
 #endif
-
 #include "lsm6dsl.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #define LSM6DSL_ADDR_DEFAULT (0x6A)
 
 int rt_hw_lsm6dsl_init(const char *name, struct rt_sensor_config *cfg);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

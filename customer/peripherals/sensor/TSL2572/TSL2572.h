@@ -1,7 +1,13 @@
 #ifndef _TSL2572_H_
 #define _TSL2572_H_
 
+
 #include <stdint.h>
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define TSL25721_ID           (0x34)
 #define TSL25723_ID           (0x3d)
@@ -104,4 +110,7 @@ uint32_t TSL2572_Read_Visible(void);
 uint8_t TSL2572_Get_ID();
 void *TSL2572_Get_Bus();
 
+#ifdef __cplusplus
+}
+#endif
 #endif  // _TSL2572_H_

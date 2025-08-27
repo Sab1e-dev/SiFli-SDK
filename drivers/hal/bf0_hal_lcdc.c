@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   bf0_hal_lcdc.c
-  * @author Sifli software development team
-  * @brief   lcdc HAL module driver.
-  *          This file provides firmware functions to manage the following
-  ******************************************************************************
-*/
-/**
+/*
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
  *
- * Copyright (c) 2019 - 2022,  Sifli Technology
- *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <string.h>
@@ -1294,7 +1253,9 @@ static HAL_StatusTypeDef SendSingleCmd(LCDC_HandleTypeDef *lcdc, uint32_t addr, 
 
 }
 
-
+/*
+    Waiting for LCDC interface(except RAMLESS interface) busy flag clear.
+*/
 static HAL_StatusTypeDef WaitBusy(LCDC_HandleTypeDef *lcdc)
 {
     const uint32_t timeout_ms = LCDC_TIMEOUT_SECONDS * 1000;
@@ -1330,6 +1291,38 @@ static HAL_StatusTypeDef WaitBusy(LCDC_HandleTypeDef *lcdc)
     return HAL_TIMEOUT;
 }
 
+/*
+    Waitting all LCDC interface busy flag clear.
+*/
+static HAL_StatusTypeDef WaitBusy2(LCDC_HandleTypeDef *lcdc)
+{
+    const uint32_t timeout_ms = LCDC_TIMEOUT_SECONDS * 1000;
+
+    uint32_t start_tick = HAL_GetTick();
+
+    do
+    {
+        if ((lcdc->Instance->STATUS & LCD_IF_STATUS_LCD_BUSY) || (lcdc->Instance->LCD_SINGLE & LCD_IF_LCD_SINGLE_LCD_BUSY)) continue;
+
+#ifdef HAL_DSI_MODULE_ENABLED
+        if (HAL_LCDC_IS_DSI_IF(lcdc->Init.lcd_itf))
+        {
+#ifndef HAL_USING_HTOL
+            if (HAL_DSI_IsBusy(&lcdc->hdsi)) continue;
+#endif /* HAL_USING_HTOL */
+        }
+#endif /* HAL_DSI_MODULE_ENABLED */
+
+        return HAL_OK;
+    }
+    while (HAL_GetTick() - start_tick < timeout_ms);
+
+    lcdc->ErrorCode |= HAL_LCDC_ERROR_TIMEOUT;
+    LCDC_LOG_E("WaitBusy2 Timeout");
+    //HAL_LCDC_ASSERT(0);
+
+    return HAL_TIMEOUT;
+}
 
 
 
@@ -1406,6 +1399,10 @@ static HAL_StatusTypeDef LayerUpdate(LCDC_HandleTypeDef *lcdc)
         reg = 0;
         switch (cfg->data_format)
         {
+        case LCDC_PIXEL_FORMAT_RGB332:
+            reg |= LCD_IF_LAYER0_CONFIG_FORMAT_RGB332;
+            break;
+
         case LCDC_PIXEL_FORMAT_RGB565:
             reg |= LCD_IF_LAYER0_CONFIG_FORMAT_RGB565;
             break;
@@ -1780,17 +1777,17 @@ static HAL_StatusTypeDef _SendLayerData(LCDC_HandleTypeDef *lcdc, LCDC_AsyncMode
     {
 
         uint32_t max_col, max_line, start_line, end_line, start_col, end_col;
+        JDI_LCD_CFG *jdi_cfg = &(lcdc->Init.cfg.jdi);
+
+        max_col = (jdi_cfg->bank_col_head + jdi_cfg->valid_columns + jdi_cfg->bank_col_tail) / 2;
+        max_line = (jdi_cfg->bank_row_head + jdi_cfg->valid_rows + jdi_cfg->bank_row_tail) * 2;
 
 
-        max_col = (lcdc->Init.cfg.jdi.bank_col_head + lcdc->Init.cfg.jdi.valid_columns + lcdc->Init.cfg.jdi.bank_col_tail) / 2;
-        max_line = (lcdc->Init.cfg.jdi.bank_row_head + lcdc->Init.cfg.jdi.valid_rows + lcdc->Init.cfg.jdi.bank_row_tail) * 2;
+        start_line = (jdi_cfg->bank_row_head + lcdc->roi.y0) * 2 + 1;
+        end_line   = (jdi_cfg->bank_row_head + lcdc->roi.y1 + 1) * 2;
 
-
-        start_line = (lcdc->Init.cfg.jdi.bank_row_head + lcdc->roi.y0) * 2 + 1;
-        end_line   = (lcdc->Init.cfg.jdi.bank_row_head + lcdc->roi.y1 + 1) * 2;
-
-        start_col = (lcdc->Init.cfg.jdi.bank_col_head + lcdc->roi.x0) / 2;
-        end_col   = (lcdc->Init.cfg.jdi.bank_col_head + lcdc->roi.x1 + 1) / 2  - 1;
+        start_col = (jdi_cfg->bank_col_head + lcdc->roi.x0) / 2;
+        end_col   = (jdi_cfg->bank_col_head + lcdc->roi.x1 + 1) / 2  - 1;
 
 
         lcdc->Instance->JDI_PAR_CONF2 = (start_line << LCD_IF_JDI_PAR_CONF2_ST_LINE_Pos) | (end_line << LCD_IF_JDI_PAR_CONF2_END_LINE_Pos);
@@ -1803,14 +1800,6 @@ static HAL_StatusTypeDef _SendLayerData(LCDC_HandleTypeDef *lcdc, LCDC_AsyncMode
         /* Interrupt after send half of 'max_line' data */
         lcdc->Instance->JDI_PAR_CTRL &= ~LCD_IF_JDI_PAR_CTRL_INT_LINE_NUM_Msk;
         lcdc->Instance->JDI_PAR_CTRL |= ((max_line / 2) - 1) << LCD_IF_JDI_PAR_CTRL_INT_LINE_NUM_Pos;
-
-
-        if (lcdc->Instance->JDI_PAR_EX_CTRL & LCD_IF_JDI_PAR_EX_CTRL_CNT_EN)
-        {
-            //wait fall edge
-            while (0 == (lcdc->Instance->JDI_PAR_EX_CTRL & LCD_IF_JDI_PAR_EX_CTRL_XFRP));
-            while (0 != (lcdc->Instance->JDI_PAR_EX_CTRL & LCD_IF_JDI_PAR_EX_CTRL_XFRP));
-        }
 
         lcdc->Instance->SETTING |= LCD_IF_SETTING_JDI_PARL_INTR_MASK | LCD_IF_SETTING_EOF_MASK;
         //Pull up rst
@@ -2019,19 +2008,17 @@ static void LCDC_TransErrCallback(LCDC_HandleTypeDef *lcdc, HAL_StatusTypeDef er
 
 static void HAL_LCDC_JDIParallelInit(LCDC_HandleTypeDef *lcdc)
 {
-    uint32_t lcdc_clk_MHz = LCDC_GetIntfClkFreq(lcdc) / 1000000;
+    uint32_t lcdc_clk_Hz = HAL_RCC_GetHCLKFreq(GET_LCDC_SYSID(lcdc));
     uint32_t lcdc_pclk_Hz = HAL_RCC_GetPCLKFreq(GET_LCDC_SYSID(lcdc), 1);
-
+    JDI_LCD_CFG *jdi_cfg = &(lcdc->Init.cfg.jdi);
 
     uint32_t max_col, max_line;
 
-    max_col = (lcdc->Init.cfg.jdi.bank_col_head + lcdc->Init.cfg.jdi.valid_columns + lcdc->Init.cfg.jdi.bank_col_tail) / 2;
-    max_line = (lcdc->Init.cfg.jdi.bank_row_head + lcdc->Init.cfg.jdi.valid_rows + lcdc->Init.cfg.jdi.bank_row_tail) * 2;
-
-    const uint32_t hck_ns = 660;  //hck pulse width, half period time
+    max_col = (jdi_cfg->bank_col_head + jdi_cfg->valid_columns + jdi_cfg->bank_col_tail) / 2;
+    max_line = (jdi_cfg->bank_row_head + jdi_cfg->valid_rows + jdi_cfg->bank_row_tail) * 2;
 
 
-    uint32_t hck_tk     = ((hck_ns  * lcdc_clk_MHz) + 500) / 1000;
+    uint32_t hck_tk     = ((lcdc_clk_Hz + (lcdc->Init.freq - 1)) / lcdc->Init.freq) >> 1;
     uint32_t hst_tk     = hck_tk;
     uint32_t hst_dly_tk = hst_tk;
     uint32_t hck_dly_tk = hck_tk / 2;
@@ -2064,26 +2051,16 @@ static void HAL_LCDC_JDIParallelInit(LCDC_HandleTypeDef *lcdc)
                                     | LCD_IF_JDI_PAR_CONF7_DP_MODE;
 
 
-    lcdc->Instance->JDI_PAR_CONF8 = ((32) << LCD_IF_JDI_PAR_CONF8_ENB_ST_COL_Pos) | ((95) << LCD_IF_JDI_PAR_CONF8_ENB_END_COL_Pos);
-    lcdc->Instance->JDI_PAR_CTRL = (0 << LCD_IF_JDI_PAR_CTRL_ENBPOL_Pos)
-                                   | (0 << LCD_IF_JDI_PAR_CTRL_HCKPOL_Pos)
-                                   | (0 << LCD_IF_JDI_PAR_CTRL_HSTPOL_Pos)
-                                   | (0 << LCD_IF_JDI_PAR_CTRL_VCKPOL_Pos)
-                                   | (0 << LCD_IF_JDI_PAR_CTRL_VSTPOL_Pos)
-                                   | (0 << LCD_IF_JDI_PAR_CTRL_INT_LINE_NUM_Pos);
+    lcdc->Instance->JDI_PAR_CONF8 = ((jdi_cfg->enb_start_col) << LCD_IF_JDI_PAR_CONF8_ENB_ST_COL_Pos) | ((jdi_cfg->enb_end_col) << LCD_IF_JDI_PAR_CONF8_ENB_END_COL_Pos);
+    lcdc->Instance->JDI_PAR_CTRL = (jdi_cfg->enb_pol_invert << LCD_IF_JDI_PAR_CTRL_ENBPOL_Pos)
+                                   | (jdi_cfg->hck_pol_invert << LCD_IF_JDI_PAR_CTRL_HCKPOL_Pos)
+                                   | (jdi_cfg->hst_pol_invert << LCD_IF_JDI_PAR_CTRL_HSTPOL_Pos)
+                                   | (jdi_cfg->vck_pol_invert << LCD_IF_JDI_PAR_CTRL_VCKPOL_Pos)
+                                   | (jdi_cfg->vst_pol_invert << LCD_IF_JDI_PAR_CTRL_VSTPOL_Pos);
 
 
 
     lcdc->Instance->JDI_PAR_CTRL &= ~LCD_IF_JDI_PAR_CTRL_XRST;
-
-
-    lcdc->Instance->JDI_PAR_EX_CTRL &= ~(LCD_IF_JDI_PAR_EX_CTRL_MAX_CNT_Msk | LCD_IF_JDI_PAR_EX_CTRL_CNT_EN);
-    lcdc->Instance->JDI_PAR_EX_CTRL |= (lcdc_pclk_Hz / 60) << LCD_IF_JDI_PAR_EX_CTRL_MAX_CNT_Pos;
-
-
-
-
-
 }
 
 
@@ -2604,6 +2581,8 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_DeInit(LCDC_HandleTypeDef *lcdc)
         /* Disable DPI */
         lcdc->Instance->DPI_CTRL &= ~LCD_IF_DPI_CTRL_DPI_EN;
     }
+
+    WaitBusy2(lcdc);
 
     return HAL_OK;
 }
@@ -6091,5 +6070,3 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_Resume(LCDC_HandleTypeDef *lcdc)
 /**
   * @}
   */
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

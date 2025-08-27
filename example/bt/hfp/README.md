@@ -66,10 +66,22 @@ HFP_HF通话获取状态信息的demo：
 + 一块本例程支持的开发板（[支持的平台](#Platform_bt_hfp)）。
 
 ### menuconfig配置
-1. 使能蓝牙：
-![BLUETOOTH](./assets/mc_bluetooth.png)
+1. 使能蓝牙(`BLUETOOTH`)：
+    - 路径：Sifli middleware → Bluetooth
+    - 开启：Enable bluetooth
+        - 宏开关：`CONFIG_BLUETOOTH`
+        - 作用：使能蓝牙功能
 2. 使能handfree hf role：
-![HandFree HF](./assets/mc_bt_handfree_hf.png)
+    - 路径：Sifli middleware → Bluetooth → Bluetooth service → Classic BT service
+    - 开启：Enable BT finsh（可选）
+        - 宏开关：`CONFIG_BT_FINSH`
+        - 作用：使能finsh命令行，用于控制蓝牙
+    - 开启：Manually select profiles
+        - 宏开关：`CONFIG_BT_PROFILE_CUSTOMIZE`
+        - 作用：手动选择使能的配置文件
+    - 开启：Enable Handsfree HF
+        - 宏开关：`CONFIG_CFG_HFP_HF`
+        - 作用：使能Hands free hf ROLE
 
 ### 编译和烧录
 切换到例程project目录，运行scons命令执行编译：

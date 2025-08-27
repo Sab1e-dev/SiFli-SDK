@@ -18,7 +18,7 @@ config LCD_SDL2
 
 config LCD_WINDOWS
     bool "Enable PC Windows simulator"
-    default n
+    default y
     
 config BSP_USING_PSRAM
     bool "Enable PSRAM simulation"

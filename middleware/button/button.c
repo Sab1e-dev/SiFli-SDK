@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   button.c
-  * @author Sifli software development team
-  * @brief Sibles button library source.
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
- *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 
@@ -65,7 +24,6 @@
 #define GROUP_PIN_NUM    (64)
 #define MAX_GROUP_NUM    (4)
 #define MAX_PIN          (MAX_GROUP_NUM * GROUP_PIN_NUM - 1)
-#define BUTTON_VOLT_VALID_RANGE (50)
 
 
 #ifndef BUTTON_SERVICE_MAX_CLIENT_NUM
@@ -101,6 +59,7 @@ typedef struct
 typedef struct
 {
     uint16_t voltage;
+    uint16_t volt_range;
     adc_button_handler_t handler;
 #ifdef BUTTON_SERVICE_ENABLED
     datas_handle_t service_handle;
@@ -138,15 +97,15 @@ static button_ctx_t s_button_ctx;
 static adc_button_cfg_t s_adc_button_group1[ADC_BUTTON_GROUP1_MAX_NUM] =
 {
 #ifdef ADC_BUTTON_GROUP1_BUTTON1_VOLT
-    {ADC_BUTTON_GROUP1_BUTTON1_VOLT, NULL},
+    {ADC_BUTTON_GROUP1_BUTTON1_VOLT, ADC_BUTTON_GROUP1_BUTTON1_RANGE, NULL},
 #endif /* ADC_BUTTON_GROUP1_BUTTON1_VOLT */
 
 #ifdef ADC_BUTTON_GROUP1_BUTTON2_VOLT
-    {ADC_BUTTON_GROUP1_BUTTON2_VOLT, NULL},
+    {ADC_BUTTON_GROUP1_BUTTON2_VOLT, ADC_BUTTON_GROUP1_BUTTON2_RANGE, NULL},
 #endif /* ADC_BUTTON_GROUP1_BUTTON2_VOLT */
 
 #ifdef ADC_BUTTON_GROUP1_BUTTON3_VOLT
-    {ADC_BUTTON_GROUP1_BUTTON3_VOLT, NULL}
+    {ADC_BUTTON_GROUP1_BUTTON3_VOLT, ADC_BUTTON_GROUP1_BUTTON3_RANGE, NULL}
 #endif /* ADC_BUTTON_GROUP1_BUTTON3_VOLT */
 };
 
@@ -156,15 +115,15 @@ static adc_button_cfg_t s_adc_button_group1[ADC_BUTTON_GROUP1_MAX_NUM] =
 static adc_button_cfg_t s_adc_button_group2[ADC_BUTTON_GROUP2_MAX_NUM] =
 {
 #ifdef ADC_BUTTON_GROUP2_BUTTON1_VOLT
-    {ADC_BUTTON_GROUP2_BUTTON1_VOLT, NULL}
+    {ADC_BUTTON_GROUP2_BUTTON1_VOLT, ADC_BUTTON_GROUP2_BUTTON1_RANGE, NULL}
 #endif /* ADC_BUTTON_GROUP1_BUTTON1_VOLT */
 
 #ifdef ADC_BUTTON_GROUP2_BUTTON2_VOLT
-    {ADC_BUTTON_GROUP2_BUTTON2_VOLT, NULL}
+    {ADC_BUTTON_GROUP2_BUTTON2_VOLT, ADC_BUTTON_GROUP2_BUTTON2_RANGE, NULL}
 #endif /* ADC_BUTTON_GROUP1_BUTTON2_VOLT */
 
 #ifdef ADC_BUTTON_GROUP2_BUTTON3_VOLT
-    {ADC_BUTTON_GROUP2_BUTTON3_VOLT, NULL}
+    {ADC_BUTTON_GROUP2_BUTTON3_VOLT, ADC_BUTTON_GROUP2_BUTTON3_RANGE, NULL}
 #endif /* ADC_BUTTON_GROUP1_BUTTON3_VOLT */
 };
 #endif /* ADC_BUTTON_GROUP2_MAX_NUM */
@@ -274,8 +233,8 @@ static int8_t button_find_adc_button_id(const adc_button_group_cfg_t *adc_btn_gr
     read_arg.value /= 10;
     for (i = 0; i < adc_btn_group_cfg->num; i++)
     {
-        if ((read_arg.value >= (adc_btn_cfg[i].voltage - BUTTON_VOLT_VALID_RANGE))
-                && (read_arg.value <= (adc_btn_cfg[i].voltage + BUTTON_VOLT_VALID_RANGE)))
+        if ((read_arg.value >= (adc_btn_cfg[i].voltage - adc_btn_cfg[i].volt_range))
+                && (read_arg.value <= (adc_btn_cfg[i].voltage + adc_btn_cfg[i].volt_range)))
         {
             break;
         }

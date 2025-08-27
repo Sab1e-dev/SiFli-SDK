@@ -37,7 +37,6 @@ static int16_t *g_pcm;
 static int g_fd;
 static int g_bg_playing_fd;
 
-
 #define TEST_E_1K       (1 << 0)
 #define TEST_E_0        (1 << 1)
 #define TEST_E_FILE     (1 << 2)
@@ -46,8 +45,6 @@ static int g_bg_playing_fd;
 #define TEST_E_STOP     (1 << 5)
 
 #define TEST_EVENT_ALL  (TEST_E_1K | TEST_E_0 | TEST_E_FILE | TEST_E_R_P | TEST_E_R | TEST_E_STOP)
-
-
 
 static void record_play(void);
 static void record_stop(void);
@@ -243,7 +240,6 @@ static void playing_0(void)
     g_client = audio_open(AUDIO_TYPE_BT_MUSIC, AUDIO_TX, &pa, NULL, NULL);
 }
 
-
 static void write_1k()
 {
     rt_uint32_t evt = 0;
@@ -304,7 +300,6 @@ static void playing_1k(void)
     write_1k();
 }
 
-
 static void audio_thread_test(void *p)
 {
     uint32_t last_event = 0xFFFFFFFF;
@@ -364,7 +359,6 @@ static void audio_thread_test(void *p)
 
 }
 
-
 static int audio_test_api_init(void)
 {
     g_test_3a_enable = 1;
@@ -381,8 +375,6 @@ static int audio_test_api_init(void)
 }
 
 INIT_ENV_EXPORT(audio_test_api_init);
-
-
 
 static int audio_test_callback_record(audio_server_callback_cmt_t cmd, void *callback_userdata, uint32_t reserved)
 {
@@ -435,7 +427,6 @@ static void record_play(void)
     close(fd);
     g_fd = -1;
 
-
     //play now
     pa.write_cache_size = 4096;
     fd = open(FILE_RECORD, O_RDONLY | O_BINARY);
@@ -456,8 +447,6 @@ static void record_play(void)
     close(fd);
     unlink(FILE_RECORD);
 }
-
-
 
 static int audio_callback_record_start(audio_server_callback_cmt_t cmd, void *callback_userdata, uint32_t reserved)
 {
@@ -538,4 +527,3 @@ static void record_stop(void)
     }
 }
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   lv_ext_resource_manager.h
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef LV_EXT_RESOURCE_MANAGER_H_
@@ -62,8 +23,6 @@ typedef enum
     LV_EXT_RES_IMG,
     LV_EXT_RES_STRING,
 } lv_ext_resource_type;
-
-
 
 typedef enum
 {
@@ -102,11 +61,9 @@ typedef struct
     const void *translation;
 } lv_i18n_lang_t;
 
-
 typedef const lv_i18n_lang_t *lv_i18n_lang_pack_t;
 
 typedef struct lv_ext_res_mng_tag *lv_ext_res_mng_t;
-
 
 typedef struct
 {
@@ -114,8 +71,6 @@ typedef struct
     const int8_t size;
     lv_font_t *font;
 } lv_ex_font_config_t;
-
-
 
 typedef struct
 {
@@ -138,7 +93,6 @@ struct lv_ext_res_mng_tag
     const lv_ex_font_config_t *(*get_font_config)(lv_ext_res_mng_t res_mng);
 };
 
-
 /* register resource manager */
 lv_res_t lv_ext_register_res_manager(lv_ext_res_mng_t res_manager);
 /* get resource manager */
@@ -147,7 +101,6 @@ lv_ext_res_mng_t lv_ext_get_res_manager(void);
 lv_res_t lv_ext_res_mng_init(void *user_data);
 
 lv_res_t lv_ext_rm_add_resource(lv_ext_resource_type type, void *resource);
-
 
 /***********************************************************
  * string
@@ -215,7 +168,6 @@ lv_res_t lv_ext_enable_lang_pack(lv_ext_res_mng_t res_mng,
                                  lv_lang_pack_node_t *node);
 lv_res_t lv_ext_clear_lang_pack(lv_ext_res_mng_t res_mng);
 
-
 #define LV_EXT_LANG_PACK_LIST_ITER_DEF(iter)    lv_lang_pack_node_t *iter
 
 #define LV_EXT_LANG_PACK_LIST_ITER(res_mng,iter)  \
@@ -225,8 +177,6 @@ lv_res_t lv_ext_clear_lang_pack(lv_ext_res_mng_t res_mng);
         for (const lv_i18n_lang_pack_t *lang_pack_iter = iter->lang_pack; (NULL != lang_pack_iter) && (NULL != *lang_pack_iter); lang_pack_iter++)
 
 #define LV_EXT_LANG_PACK_ITER_GET_NAME(lang_pack_iter)  (*lang_pack_iter)->locale
-
-
 
 lv_res_t resource_init(void);
 lv_res_t resource_deinit(void);
@@ -252,7 +202,6 @@ lv_res_t resource_deinit(void);
 #define LV_EXT_STR_GET_BY_KEY(key, desc) desc
 #define LV_EXT_STR_GET_BY_ID(id)  LV_EXT_STR_GET(id)
 
-
 #define LV_EXT_LANG_PACK_LIST_ITER_DEF(iter)
 
 #define LV_EXT_LANG_PACK_LIST_ITER(res_mng,iter)  for (; false; )
@@ -261,13 +210,11 @@ lv_res_t resource_deinit(void);
 
 #define LV_EXT_LANG_PACK_ITER_GET_NAME(iter)  NULL
 
-
 typedef const char *lv_ext_str_id_t;
 
 #define resource_init()
 
 #endif  /* LV_USING_EXT_RESOURCE_MANAGER */
-
 
 #include "sf_type.h"
 
@@ -285,8 +232,6 @@ typedef const char *lv_ext_str_id_t;
 #endif
 
 #define LINE_HEIGHT_DEFAULT 0XFFFF
-
-
 
 //lv_ext_set_local_font(lv_obj_t * obj, uint8_t type, lv_style_property_t prop, lv_color_t color)
 #define lv_ext_set_local_text_color lv_obj_set_style_text_color
@@ -352,9 +297,5 @@ static inline  void lv_ext_set_local_bg(lv_obj_t *obj, lv_color_t bgcolor, lv_op
     lv_ext_set_local_bg_color(obj, bgcolor, LV_PART_MAIN | LV_STATE_DEFAULT);
 }
 
-
-
 #endif /* LV_EXT_RESOURCE_MANAGER_H_ */
 
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

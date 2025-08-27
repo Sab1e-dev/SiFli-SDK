@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   sf_type.h
-  * @author Sifli software development team
-  * @brief Sifli middle common interface
-  * @{
-  ******************************************************************************
-*/
 /*
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef SF_TYPE_H
@@ -107,7 +66,6 @@ typedef int sf_err_t;
  */
 #define STRINGIFY(val)       STRINGIFY_(val)
 
-
 /**
  * @brief Extracting data from the brackets
  *
@@ -134,7 +92,6 @@ typedef int sf_err_t;
 #define BRACKET_EXTRACT_(a) BRACKET_EXTRACT__ a
 #define BRACKET_EXTRACT__(...) __VA_ARGS__
 
-
 /**
  * @brief Get the first argument
  *
@@ -155,7 +112,6 @@ typedef int sf_err_t;
 #define GET_ARGS_AFTER_1(...) GET_ARGS_AFTER_1_(__VA_ARGS__, ) // Make sure that also for 1 argument it works
 #define GET_ARGS_AFTER_1_(a1, ...) __VA_ARGS__
 
-
 /**
  * @brief Mapping macro with current index
  *
@@ -166,9 +122,6 @@ typedef int sf_err_t;
  */
 #define MACRO_MAP_FOR_N_LIST 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, \
                             19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32
-
-
-
 
 /**
  * @brief Repeating macro.
@@ -215,7 +168,6 @@ typedef int sf_err_t;
 #define MACRO_REPEAT_30(macro, ...) macro(__VA_ARGS__) MACRO_REPEAT_29(macro, __VA_ARGS__)
 #define MACRO_REPEAT_31(macro, ...) macro(__VA_ARGS__) MACRO_REPEAT_30(macro, __VA_ARGS__)
 #define MACRO_REPEAT_32(macro, ...) macro(__VA_ARGS__) MACRO_REPEAT_31(macro, __VA_ARGS__)
-
 
 /**
  * @brief Repeating macro with current index.
@@ -266,12 +218,8 @@ typedef int sf_err_t;
 #define MACRO_REPEAT_FOR_31(n_list, macro, ...) macro(GET_VA_ARG_1(BRACKET_EXTRACT(n_list)), __VA_ARGS__) MACRO_REPEAT_FOR_30((GET_ARGS_AFTER_1(BRACKET_EXTRACT(n_list))), macro, __VA_ARGS__)
 #define MACRO_REPEAT_FOR_32(n_list, macro, ...) macro(GET_VA_ARG_1(BRACKET_EXTRACT(n_list)), __VA_ARGS__) MACRO_REPEAT_FOR_31((GET_ARGS_AFTER_1(BRACKET_EXTRACT(n_list))), macro, __VA_ARGS__)
 
-
-
-
 /// @} common
 /// @} file
 
-
 #endif
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

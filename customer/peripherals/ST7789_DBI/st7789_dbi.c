@@ -6,13 +6,6 @@
 
 #include "log.h"
 
-
-
-
-
-
-
-
 #ifdef ROW_OFFSET_PLUS
     #define ROW_OFFSET  (ROW_OFFSET_PLUS)
 #else
@@ -67,12 +60,6 @@
 
 #define REG_WBRIGHT            0x51 /* Write brightness*/
 
-
-
-
-
-
-
 static bool te_enabled = true;
 
 void lcd_sync_control(bool en)
@@ -91,11 +78,6 @@ void lcd_sync_control(bool en)
 static void LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *Parameters, uint32_t NbParameters);
 static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8_t ReadSize);
 
-
-
-
-
-
 static LCDC_InitTypeDef lcdc_int_cfg =
 {
     .lcd_itf = LCDC_INTF_DBI_8BIT_B,
@@ -113,13 +95,6 @@ static LCDC_InitTypeDef lcdc_int_cfg =
 
 };
 
-
-
-
-
-
-
-
 #define CS_PA_x_PIN  31
 #define LCD_BL_EN_PIN (96 + 3)       // GPIO_B03
 
@@ -136,7 +111,6 @@ void st7789_dbi_CS_HOLD_LOW(void)
 
     // set sensor pin to high == power on sensor board
     HAL_GPIO_WritePin(gpio, CS_PA_x_PIN, (GPIO_PinState)0);
-
 
     HAL_PIN_Set(PAD_PA00 + CS_PA_x_PIN, GPIO_A0 + CS_PA_x_PIN, PIN_PULLDOWN, 1);
 }
@@ -161,7 +135,6 @@ void BSP_GPIO_Set_BL(int pin, int val)
     // set sensor pin to high == power on sensor board
     HAL_GPIO_WritePin(gpio, pin, (GPIO_PinState)val);
 }
-
 
 void st7789_dbi_CS_RELEASE(void)
 {
@@ -390,14 +363,11 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
     v =  LCD_ReadData(hlcdc, 0x04, 2);
     //LOG_I("0x04=%x", v);
 
-
     st7789_dbi_CS_HOLD_LOW();
     HAL_LCDC_LayerSetData(hlcdc, HAL_LCDC_LAYER_DEFAULT, (uint8_t *)RGBCode, Xpos0, Ypos0, Xpos1, Ypos1);
     HAL_LCDC_SendLayerData2Reg_IT(hlcdc, REG_WRITE_RAM, 1);
 
 }
-
-
 
 /**
   * @brief  Writes  to the selected LCD register.
@@ -410,7 +380,6 @@ static void LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *P
     HAL_LCDC_WriteU8Reg(hlcdc, LCD_Reg, Parameters, NbParameters);
     st7789_dbi_CS_RELEASE();
 }
-
 
 /**
   * @brief  Reads the selected LCD Register.
@@ -431,8 +400,6 @@ static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8
 
     return rd_data;
 }
-
-
 
 static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Ypos)
 {
@@ -481,12 +448,10 @@ static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t
 
     //rt_kprintf("st7789_dbi_ReadPixel %x -> %x\n",c, ret_v);
 
-
     LCD_WriteReg(hlcdc, REG_COLOR_MODE, parameter, 1);
 
     return ret_v;
 }
-
 
 static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
 {
@@ -523,10 +488,6 @@ static void LCD_SetBrightness(LCDC_HandleTypeDef *hlcdc, uint8_t br)
 
 /*****************************************************************************/
 
-
-
-
-
 static const LCD_DrvOpsDef st7789_dbi_drv =
 {
     LCD_Init,
@@ -550,9 +511,3 @@ static const LCD_DrvOpsDef st7789_dbi_drv =
 LCD_DRIVER_EXPORT2(st7789_dbi, THE_LCD_ID, &lcdc_int_cfg,
                    &st7789_dbi_drv, 1);
 
-
-
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

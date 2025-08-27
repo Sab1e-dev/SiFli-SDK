@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_dbg.c
-  * @author Sifli software development team
-  * @brief Debug functions for BSP driver
-  * @{
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -86,8 +45,6 @@ void dbg_busmon_reg_callback(void(*callback)(void))
 {
     busmon_callback = callback;
 }
-
-
 
 void dbg_busmon(HAL_BUSMON_FuncTypeDef func, uint32_t address, uint32_t address_end, uint8_t ishcpu, uint32_t count, uint8_t access)
 {
@@ -173,7 +130,6 @@ void dbg_busmon_psram(uint32_t address, uint32_t count, uint8_t access)
 
 #endif
 
-
 #ifdef RT_USING_FINSH
 
 #define REG_LOCK_WORD "0000"
@@ -188,14 +144,12 @@ __WEAK int regop_lock_check(char *passwd, uint32_t len)
     return ret;
 }
 
-
 static void usage(void)
 {
     LOG_E("Usage: regop read <address> <len in word(32-bit)>\n");
     LOG_E("Usage: regop write <address> <data in big-endian>\n");
     LOG_E("Usage: regop write4l <address> <data in little-endian, max 4 bytes>\n");
 }
-
 
 #ifdef BSP_USING_BUSMON
 void busmon_cbk()
@@ -382,13 +336,11 @@ static void bt_power_command(int argc, char **argv)
             hwp_ble_rfc->TRF_REG1 &= ~BLE_RF_DIG_TRF_REG1_BRF_PA_PM_LV_Msk;
             hwp_ble_rfc->TRF_REG1 &= ~BLE_RF_DIG_TRF_REG1_BRF_PA_CAS_BP_LV_Msk;
 
-
             hwp_ble_rfc->TRF_REG2 &= ~BLE_RF_DIG_TRF_REG2_BRF_PA_UNIT_SEL_LV_Msk;
             hwp_ble_rfc->TRF_REG2 &= ~BLE_RF_DIG_TRF_REG2_BRF_PA_MCAP_LV_Msk;
 
             hwp_ble_rfc->TRF_REG1 |= 0x02 << BLE_RF_DIG_TRF_REG1_BRF_PA_PM_LV_Pos;
             hwp_ble_rfc->TRF_REG1 |= 0x00 << BLE_RF_DIG_TRF_REG1_BRF_PA_CAS_BP_LV_Pos;
-
 
             hwp_ble_rfc->TRF_REG2 |= 0x1F << BLE_RF_DIG_TRF_REG2_BRF_PA_UNIT_SEL_LV_Pos;
             hwp_ble_rfc->TRF_REG2 |= 0x01 << BLE_RF_DIG_TRF_REG2_BRF_PA_MCAP_LV_Pos;
@@ -454,16 +406,12 @@ static void bt_power_command(int argc, char **argv)
 MSH_CMD_EXPORT_ALIAS(bt_power_command, pwr_ctrl, BT TX power adjust)
 #endif // SOC_BF0_HCPU
 
-
 static void assert_command(int argc, char **argv)
 {
     RT_ASSERT(0);
 }
 
-
 MSH_CMD_EXPORT_ALIAS(assert_command, assert, Force assert);
-
-
 
 #if defined(SOC_SF32LB58X) || defined(SOC_SF32LB56X)
 static void switch_jlink_to_lcpu(int argc, char **argv)
@@ -520,12 +468,44 @@ static void dbguart_to_jlink(int argc, char **argv)
 MSH_CMD_EXPORT_ALIAS(dbguart_to_jlink, dbguart2jlink, Switch debug uart to jlink);
 #endif /* SF32LB52X */
 
+
+#if defined(PKG_USING_SYSTEMVIEW)
+
+extern rt_err_t sysview_via_uart(const char *name);
+static void uart_to_systemview(int argc, char **argv)
+{
+    uint8_t is_console_device = 0;
+    if (argc < 1)
+    {
+        rt_kprintf("uart_to_systemview <uart_name>\r\n");
+        return;
+    }
+
+    rt_device_t uart_device = rt_device_find(argv[1]);
+
+    if (uart_device == rt_console_get_device())
+    {
+        rt_kprintf("Change console to segger rt_device \r\n");
+        rt_thread_mdelay(1000);
+        rt_console_set_device("segger");
+        is_console_device = 1;
+    }
+
+
+    if (RT_EOK != sysview_via_uart(argv[1]))
+    {
+        if (is_console_device) rt_console_set_device(argv[1]); // restore console device
+
+        rt_kprintf("Failed to switch uart console to systemview\r\n");
+    }
+
+}
+MSH_CMD_EXPORT_ALIAS(uart_to_systemview, uart2systemview, Switch uart console to systemview);
+#endif /* PKG_USING_SYSTEMVIEW */
+
 #endif // RT_USING_FINSH
-
-
 
 /// @} drv_dbg
 /// @} bsp_driver
 /// @} file
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

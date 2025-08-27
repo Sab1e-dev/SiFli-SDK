@@ -1,7 +1,13 @@
 
 #ifndef _CHS5816_H_
 #define _CHS5816_H_
+
 //chsc5816 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MAX_IO_BUFFER_LEN 32
 
 /*ctp work staus*/
@@ -139,5 +145,8 @@ int32_t semi_check_and_update(sm_touch_dev *st_dev);
 void semi_touch_setup_check(void);
 void CHSC5816TP_INIT(void);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
 

@@ -37,8 +37,8 @@ DWORD RamDiskSize;	/* Size of RAM disk in unit of sector */
 static FATFS FatFs;
 static FIL DstFile;
 static HANDLE SrcFile;
-static WIN32_FIND_DATA Fd;
-static char SrcPath[512], DstPath[512];
+static WIN32_FIND_DATAW Fd;
+static char SrcPathA[512], DstPath[512];
 static BYTE Buff[8192];
 static UINT Dirs, Files;
 
@@ -50,20 +50,45 @@ int maketree (void)
 	int slen, dlen, rv = 0;
 	DWORD br;
 	UINT bw;
+	int unicodeLen;
+	int len;
 
 
-	slen = strlen(SrcPath);
+	slen = strlen(SrcPathA);
 	dlen = strlen(DstPath);
-	sprintf(&SrcPath[slen], "/*");
-	hdir = FindFirstFile(SrcPath, &Fd);		/* Open directory */
+	sprintf(&SrcPathA[slen], "/*");
+
+	unicodeLen = MultiByteToWideChar(CP_ACP, 0, SrcPathA, -1, NULL, 0);
+	wchar_t *SrcPath = (wchar_t*)malloc((unicodeLen + 1) * sizeof(wchar_t));
+	memset(SrcPath, 0, (unicodeLen + 1) * sizeof(wchar_t));
+	MultiByteToWideChar(CP_ACP, 0, SrcPathA, -1, (LPWSTR)SrcPath, unicodeLen);
+
+	hdir = FindFirstFileW(SrcPath, &Fd);		/* Open directory */
 	if (hdir == INVALID_HANDLE_VALUE) {
 		printf("Failed to open the source directory.\n");
 	} else {
 		for (;;) {
-			sprintf(&SrcPath[slen], "/%s", Fd.cFileName);
-			sprintf(&DstPath[dlen], "/%s", Fd.cFileName);
+
+			len = WideCharToMultiByte(CP_UTF8, 0, Fd.cFileName, -1, NULL, 0, NULL, NULL);
+			char *szUtf8 = (char*)malloc(len + 1);
+		
+			memset(szUtf8, 0, len + 1);
+			WideCharToMultiByte(CP_UTF8, 0, Fd.cFileName, -1, szUtf8, len, NULL, NULL);
+			memcpy(SrcPathA + slen, "/", 1);
+			memcpy(SrcPathA + slen+1, szUtf8, len);
+			memcpy(DstPath + dlen, "/", 1);
+			memcpy(DstPath + dlen+1, szUtf8, len);
+
+			//sprintf(&SrcPathA[slen], "/%s", Fd.cFileName);
+			//sprintf(&DstPath[dlen], "/%s", Fd.cFileName);
+			unicodeLen = MultiByteToWideChar(CP_UTF8, 0, SrcPathA, -1, NULL, 0);
+			wchar_t *SrcFilePath = (wchar_t*)malloc((unicodeLen + 1) * sizeof(wchar_t));
+			memset(SrcFilePath, 0, (unicodeLen + 1) * sizeof(wchar_t));
+			MultiByteToWideChar(CP_UTF8, 0, SrcPathA, -1, (LPWSTR)SrcFilePath, unicodeLen);
+
 			if (Fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {	/* The item is a directory */
-				if (strcmp(Fd.cFileName, ".") && strcmp(Fd.cFileName, "..")) {
+				if (wcscmp(Fd.cFileName, L".") && wcscmp(Fd.cFileName, L"..")) 
+				{
 					if (f_mkdir(DstPath)) {	/* Create destination directory */
 						printf("Failed to create directory.\n"); break;
 					}
@@ -71,8 +96,10 @@ int maketree (void)
 					Dirs++;
 				}
 			} else {	/* The item is a file */
-				printf("%s\n", SrcPath);
-				if ((SrcFile = CreateFile(SrcPath, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0)) == INVALID_HANDLE_VALUE) {	/* Open source file */
+				wprintf(L"%s\n", SrcPath);
+
+				if ((SrcFile = CreateFileW(SrcFilePath, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0)) == INVALID_HANDLE_VALUE) 
+				{	/* Open source file */
 					printf("Failed to open source file.\n"); break;
 				}
 
@@ -92,13 +119,17 @@ int maketree (void)
 				}
 				Files++;
 			}
-			if (!FindNextFile(hdir, &Fd)) {
+			free(SrcFilePath);
+			free(szUtf8);
+			if (!FindNextFileW(hdir, &Fd)) 
+			{
 				rv = 1; break;
 			}
 		}
 		FindClose(hdir);
 	}
-	SrcPath[slen] = 0;
+	free(SrcPath);
+	SrcPathA[slen] = 0;
 	DstPath[dlen] = 0;
 	return rv;
 }
@@ -109,25 +140,47 @@ int calc_dir_size(void)
 	HANDLE hdir;
 	int slen = 0;
 	int total_size = 0;
+	int unicodeLen;
+	int len;
 
-	slen = strlen(SrcPath);
-	sprintf(&SrcPath[slen], "/*");
-	hdir = FindFirstFile(SrcPath, &Fd);		/* Open directory */
+	slen = strlen(SrcPathA);
+	sprintf(&SrcPathA[slen], "/*");
+
+	unicodeLen = MultiByteToWideChar(CP_ACP, 0, SrcPathA, -1, NULL, 0);
+	wchar_t *SrcPath = (wchar_t*)malloc((unicodeLen + 1) * sizeof(wchar_t));
+	memset(SrcPath, 0, (unicodeLen + 1) * sizeof(wchar_t));
+	MultiByteToWideChar(CP_ACP, 0, SrcPathA, -1, (LPWSTR)SrcPath, unicodeLen);
+
+	hdir = FindFirstFileW(SrcPath, &Fd);		/* Open directory */
 	if (hdir == INVALID_HANDLE_VALUE) {
 		printf("Failed to open the source directory.\n");
 	}
 	else {
 		for (;;) {
-			sprintf(&SrcPath[slen], "/%s", Fd.cFileName);
+			//sprintf(&SrcPathA[slen], "/%s", Fd.cFileName);
+			len = WideCharToMultiByte(CP_UTF8, 0, Fd.cFileName, -1, NULL, 0, NULL, NULL);
+			char *szUtf8 = (char*)malloc(len + 1);
+			memset(szUtf8, 0, len + 1);
+			WideCharToMultiByte(CP_UTF8, 0, Fd.cFileName, -1, szUtf8, len, NULL, NULL);
+			memcpy(SrcPathA + slen, "/", 1);
+			memcpy(SrcPathA + slen + 1, szUtf8, len);
+
+			unicodeLen = MultiByteToWideChar(CP_UTF8, 0, SrcPathA, -1, NULL, 0);
+			wchar_t *SrcFilePath = (wchar_t*)malloc((unicodeLen + 1) * sizeof(wchar_t));
+			memset(SrcFilePath, 0, (unicodeLen + 1) * sizeof(wchar_t));
+			MultiByteToWideChar(CP_UTF8, 0, SrcPathA, -1, (LPWSTR)SrcFilePath, unicodeLen);
+
 			if (Fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {	/* The item is a directory */
-				if (strcmp(Fd.cFileName, ".") && strcmp(Fd.cFileName, "..")) {
+				if (wcscmp(Fd.cFileName, L".") && wcscmp(Fd.cFileName, L"..")) 
+				{
 					total_size += calc_dir_size();
 					Dirs++;
 				}
 			}
 			else {	/* The item is a file */
-				//printf("%s\n", SrcPath);
-				if ((SrcFile = CreateFile(SrcPath, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0)) == INVALID_HANDLE_VALUE) {	/* Open source file */
+				//printf("%s\n", SrcPathA);
+				if ((SrcFile = CreateFileW(SrcFilePath, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0)) == INVALID_HANDLE_VALUE) 
+				{	/* Open source file */
 					printf("Failed to open source file.\n"); break;
 				}
 
@@ -137,13 +190,17 @@ int calc_dir_size(void)
 				f_close(&DstFile);
 				Files++;
 			}
-			if (!FindNextFile(hdir, &Fd)) {
+			free(SrcFilePath);
+			free(szUtf8);
+			if (!FindNextFileW(hdir, &Fd)) 
+			{
 				break;
 			}
 		}
 		FindClose(hdir);
 	}
-	SrcPath[slen] = 0;
+	free(SrcPath);
+	SrcPathA[slen] = 0;
 	return total_size;
 }
 
@@ -180,7 +237,7 @@ int main (int argc, char* argv[])
 			);
 		return 1;
 	}
-	strcpy(SrcPath, argv[ai++]);
+	strcpy(SrcPathA, argv[ai++]);
 	outfile = argv[ai++];
 	total_size = calc_dir_size();
 	RamDiskSize = atoi(argv[ai++]);
@@ -201,7 +258,7 @@ int main (int argc, char* argv[])
 	FRESULT r;
 
 	/* Create an FAT volume (Supports only FAT/FAT32) */
-	if (r = f_mkfs("", FM_FAT | FM_FAT32 | FM_SFD, csz, Buff, sizeof Buff)) {
+	if (r = f_mkfs("", FM_FAT | FM_FAT32 | FM_SFD, 0, Buff, sizeof Buff)) {
 		printf("Failed to create FAT volume. Adjust volume size or cluster size:%d.\n", r);
 		return 2;
 	}

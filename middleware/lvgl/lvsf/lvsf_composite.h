@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   lvsf_composite.h
-  * @author Sifli software development team
-  ******************************************************************************
-*/
 /*
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef LVSF_COMPOSITE_H
@@ -49,7 +10,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /** @addtogroup lvsf_composite Sifli LVGL watch composite
   * @ingroup middleware
@@ -76,7 +36,6 @@ extern "C" {
 
 #define UTILITY_SIZE                LV_HOR_RES_MAX/8
 #define UTILITY_LINE_WIDTH          LV_HOR_RES_MAX/80
-
 
 #define GRA_CORNER_SIZE             LV_HOR_RES_MAX/3
 
@@ -111,13 +70,11 @@ typedef enum
     LVSF_COMP_MAX
 } lvsf_comp_type;
 
-
 /**
  * Make the lvsfcomp's class publicly available.
  */
 extern const lv_obj_class_t lv_lvsfcomp_class;
 extern const lv_obj_class_t lv_lvsfcorner_class;
-
 
 /**
  * Create UI composite
@@ -142,7 +99,6 @@ void lv_lvsfcomp_set_type(lv_obj_t *comp, int type);
  * @retval return the label object created.
 */
 lv_obj_t *lv_lvsfcomp_text(lv_obj_t *comp, const char *text);
-
 
 /**
  * Create Ring in UI composite
@@ -171,14 +127,12 @@ lv_obj_t *lv_lvsfcomp_arc(lv_obj_t *comp, int scale, lv_color_t color, lv_color_
 */
 void lv_lvsfcomp_set_ring(lv_obj_t *comp, int index, int scale);
 
-
 /**
  * Update ARC scale in UI composite
  * @param comp the composite object
  * @param scale the arc in percentage,
 */
 void lv_lvsfcomp_set_arc(lv_obj_t *comp, int scale);
-
 
 /**
  * Create image in UI composite
@@ -187,7 +141,6 @@ void lv_lvsfcomp_set_arc(lv_obj_t *comp, int scale);
  * @retval return the image object created.
 */
 lv_obj_t *lv_lvsfcomp_img(lv_obj_t *comp, const char *img_src);
-
 
 /** @addtogroup lvsf_corner  Watch corner composite
   * @ingroup lvsf_composite
@@ -211,7 +164,6 @@ lv_obj_t *lv_lvsfcorner_create(lv_obj_t *parent);
  * @retval corner object.
 */
 void lv_lvsfcorner_zone(lv_obj_t *corner, uint16_t zone, uint16_t r, uint16_t x, uint16_t y);
-
 
 /**
  * Set curve text for the corner.
@@ -255,8 +207,6 @@ lv_obj_t *lv_lvsfcorner_arc(lv_obj_t *corner, int start, int end, lv_color_t col
 */
 void lv_lvsfcorner_arc_scale(lv_obj_t *corner, int percent);
 
-
-
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
@@ -265,4 +215,4 @@ void lv_lvsfcorner_arc_scale(lv_obj_t *corner, int percent);
 /// @}  lvsf_composite
 
 #endif /*LVSF_COMPOSITE_H*/
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

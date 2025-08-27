@@ -7,10 +7,19 @@
 
 
 
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int HeartRate_Init(void);
 uint8_t HeartRat_ReadData(void);
 
 
 
+#ifdef __cplusplus
+}
+#endif
 #endif
 

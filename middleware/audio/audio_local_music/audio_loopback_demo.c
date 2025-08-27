@@ -1,49 +1,10 @@
-/**
-  ******************************************************************************
-  * @file   audio_loopback_demo.c
-  * @author Sifli software development team
-  * @brief SIFLI audio loopback demo.
+/*
+ * SPDX-FileCopyrightText: 2022-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2022 - 2022,  Sifli Technology
- *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
+
+#if 0
 
 #include <rtthread.h>
 #include <string.h>
@@ -59,15 +20,13 @@
 #define DBG_LVL           LOG_LVL_INFO
 #include "log.h"
 
-#define MIC_RECORD_FILE "/mic16k.pcm"
+#define MIC_RECORD_FILE "/music/mic16k.wav"
 //#define MIC_RECORD_FILE "/ramfs/mic16k.pcm"  //using ramfs if mounted ramfs
-#define RECORD_USING_WEBRTC 1
+#define RECORD_USING_WEBRTC 0
 
 #ifndef PKG_USING_WEBRTC
     #undef RECORD_USING_WEBRTC
 #endif
-
-#if !defined(SOLUTION_WATCH) && !defined(SOLUTION) && defined(RT_USING_DFS)
 
 
 #if RECORD_USING_WEBRTC
@@ -189,7 +148,7 @@ static void mic2speaker(uint8_t argc, char **argv)
     pa.read_channnel_num = 1;
     pa.read_samplerate = 16000;
     pa.read_cache_size = 0;
-    pa.write_cache_size = 2048;
+    pa.write_cache_size = 4096;
 #if RECORD_USING_WEBRTC
     webrtc_open();
 #endif
@@ -202,7 +161,7 @@ static void mic2speaker(uint8_t argc, char **argv)
      */
 
     audio_client_t client = NULL;
-
+    audio_server_set_private_volume(AUDIO_TYPE_LOCAL_MUSIC, 15);
     client = audio_open(AUDIO_TYPE_LOCAL_MUSIC, AUDIO_TXRX, &pa, mic2speaker_callback, &client);
     RT_ASSERT(client);
 
@@ -223,14 +182,19 @@ MSH_CMD_EXPORT(mic2speaker, mic2speaker test);
 static uint16_t *pcm;
 static audio_client_t g_client;
 static int cache_full;
+static uint32_t record_len;
 static int audio_callback_record(audio_server_callback_cmt_t cmd, void *callback_userdata, uint32_t reserved)
 {
     int fd = (int)callback_userdata;
     if (cmd == as_callback_cmd_data_coming)
     {
         audio_server_coming_data_t *p = (audio_server_coming_data_t *)reserved;
-#if RECORD_USING_WEBRTC
+        //LOG_I("recording data");
         RT_ASSERT(p->data_len == 320);
+        record_len += p->data_len;
+        //audio_write(g_client, (uint8_t *)p->data, p->data_len);
+
+#if RECORD_USING_WEBRTC
         webrtc_process_frame(p->data, p->data_len);
         write(fd, frame1, 320);
 #else
@@ -245,18 +209,80 @@ static int audio_callback_play(audio_server_callback_cmt_t cmd, void *callback_u
     int fd = (int)callback_userdata;
     if (cmd == as_callback_cmd_cache_half_empty || cmd == as_callback_cmd_cache_empty)
     {
+        //LOG_I("playing...%d %p %p", fd, pcm, g_client);
         if (fd >= 0 && pcm && g_client)
         {
-            read(fd, (void *)pcm, 2048);
-            int writted = audio_write(g_client, (uint8_t *)pcm, 2048);
+            int len = read(fd, (void *)pcm, 2048);
+            int writted = audio_write(g_client, (uint8_t *)pcm, len);
             if (writted == 0)
             {
                 cache_full = 1;
             }
+            //LOG_I("writed=%d", writted);
         }
     }
     return 0;
 }
+
+typedef struct
+{
+    uint8_t riff[4];
+    uint32_t lenth;
+    uint8_t wave[4];
+    uint8_t fmt[4];
+    uint32_t size1;
+    uint16_t fmt_tag;
+    uint16_t channel;
+    uint32_t sampleRate;
+    uint32_t bytePerSec;
+    uint16_t blockAlign;
+    uint16_t bitPerSample;
+    uint8_t data[4];
+    uint32_t size2;
+} AUD_WAV_HDR_T;
+
+static void fill_wav_header(int fd, uint32_t pcm_len)
+{
+    AUD_WAV_HDR_T hdr;
+    hdr.riff[0] = 'R';
+    hdr.riff[1] = 'I';
+    hdr.riff[2] = 'F';
+    hdr.riff[3] = 'F';
+    hdr.lenth = pcm_len + 36;
+    hdr.wave[0] = 'W';
+    hdr.wave[1] = 'A';
+    hdr.wave[2] = 'V';
+    hdr.wave[3] = 'E';
+    hdr.fmt[0] = 'f';
+    hdr.fmt[1] = 'm';
+    hdr.fmt[2] = 't';
+    hdr.fmt[3] = ' ';
+    hdr.size1 = 16;
+    hdr.fmt_tag = 1;
+    hdr.channel = 1;
+    hdr.sampleRate = 16000;
+    hdr.blockAlign = 2;
+    hdr.bitPerSample = 16;
+    hdr.bytePerSec = hdr.sampleRate * hdr.channel * hdr.bitPerSample / 8;
+    hdr.data[0] = 'd';
+    hdr.data[1] = 'a';
+    hdr.data[2] = 't';
+    hdr.data[3] = 'a';
+    hdr.size2 = pcm_len;
+    lseek(fd, 0, SEEK_SET);
+    write(fd, &hdr, sizeof(hdr));
+    lseek(fd, 0, SEEK_END);
+}
+
+/*
+    mic2file <1>
+example:
+1. record to file and playing, then delete it
+    mic2file
+1. record to file and playing, then reserved it for debug
+    can using mp3 command to play it again, mp3 command is in audio_mp3ctrl.c
+    mic2file 1
+*/
 static void mic2file(uint8_t argc, char **argv)
 {
     int fd;
@@ -270,24 +296,27 @@ static void mic2file(uint8_t argc, char **argv)
     pa.read_samplerate = 16000;
     pa.read_cache_size = 0;
     pa.write_cache_size = 2048;
+    record_len = 0;
     pcm = NULL;
     cache_full = 0;
     pcm = malloc(4096);
     RT_ASSERT(pcm);
     fd = open(MIC_RECORD_FILE, O_RDWR | O_CREAT | O_TRUNC | O_BINARY);
     RT_ASSERT(fd >= 0);
+    fill_wav_header(fd, 0);
 #if RECORD_USING_WEBRTC
     webrtc_open();
 #endif
-    audio_client_t client = audio_open(AUDIO_TYPE_LOCAL_RECORD, AUDIO_RX, &pa, audio_callback_record, (void *)fd);
-    RT_ASSERT(client);
+    g_client = audio_open(AUDIO_TYPE_LOCAL_RECORD, AUDIO_TXRX, &pa, audio_callback_record, (void *)fd);
+    RT_ASSERT(g_client);
 
     while (record_seconds < 5)
     {
         rt_thread_mdelay(1000);
         record_seconds++;
     }
-    audio_close(client);
+    audio_close(g_client);
+    fill_wav_header(fd, record_len);
     close(fd);
 #if RECORD_USING_WEBRTC
     webrtc_close();
@@ -295,10 +324,13 @@ static void mic2file(uint8_t argc, char **argv)
 
 
     //play now
+    LOG_I("mic2file play now.");
     pa.write_cache_size = 4096;
     fd = open(MIC_RECORD_FILE, O_RDONLY | O_BINARY);
     RT_ASSERT(fd >= 0);
+    lseek(fd, sizeof(AUD_WAV_HDR_T), SEEK_SET);
 
+    audio_server_set_private_volume(AUDIO_TYPE_LOCAL_MUSIC, 15);
     g_client = audio_open(AUDIO_TYPE_LOCAL_MUSIC, AUDIO_TX, &pa, audio_callback_play, (void *)fd);
     RT_ASSERT(g_client >= 0);
     record_seconds = 0;
@@ -310,12 +342,15 @@ static void mic2file(uint8_t argc, char **argv)
 
     audio_close(g_client);
     close(fd);
-    unlink(MIC_RECORD_FILE);
+    if (argc == 1)
+    {
+        unlink(MIC_RECORD_FILE);
+    }
     free(pcm);
+    LOG_I("mic2file play end.");
 }
 
 MSH_CMD_EXPORT(mic2file, mic2file test);
 
 #endif
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

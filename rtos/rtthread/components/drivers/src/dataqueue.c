@@ -325,3 +325,19 @@ __ROM_USED void rt_data_queue_reset(struct rt_data_queue *queue)
     rt_schedule();
 }
 RTM_EXPORT(rt_data_queue_reset);
+
+rt_err_t rt_data_queue_deinit(struct rt_data_queue *queue)
+{
+    rt_ubase_t level;
+
+    RT_ASSERT(queue != RT_NULL);
+
+    /* wakeup all suspend threads */
+    rt_data_queue_reset(queue);
+
+    rt_free(queue->queue);
+
+    return RT_EOK;
+}
+RTM_EXPORT(rt_data_queue_deinit);
+

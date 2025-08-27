@@ -1332,5 +1332,6 @@ char *get_avitive_app_id(void)
 RTM_EXPORT(gui_app_run);
 RTM_EXPORT(gui_app_self_exit);
 RTM_EXPORT(gui_app_regist_msg_handler_ext);
+RTM_EXPORT(gui_app_create_page_ext);
 
 

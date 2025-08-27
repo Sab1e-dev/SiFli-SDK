@@ -1,8 +1,14 @@
 #ifndef _VC32S_H_
 #define _VC32S_H_
 
+
 #include <rtthread.h>
 #include <stdbool.h>
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 rt_err_t hr_hw_init(void);
 void hr_hw_deinit(void);
@@ -12,4 +18,7 @@ uint32_t vc32s_get_i2c_handle(void);
 uint8_t vc32s_get_dev_addr(void);
 uint8_t vc32s_get_dev_id(void);
 
+#ifdef __cplusplus
+}
+#endif
 #endif // _VC32S_H_

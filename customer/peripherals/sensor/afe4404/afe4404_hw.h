@@ -1,52 +1,12 @@
-/**
-  ******************************************************************************
-  * @file   afe4404_hw.h
-  * @author Sifli software development team
-  * @brief   Control and operation functions for AFE 4404
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
- *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef AFE4404_HW_INCLUDED
 #define AFE4404_HW_INCLUDED
+
 
 #include "hqerror.h"   // LifeQ error definitions file
 #include "phys_calc.h"
@@ -61,8 +21,13 @@
 
 /* Weight definitions for variable sampling */
 
-
 //old
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Weight definitions for variable sampling */
 #define LED2STC         0
 #define LED2ENDC        1
 #define LED1LEDSTC      2
@@ -92,7 +57,6 @@
 #define LED3LEDENDC     2
 #define PDNCYCLESTC     5
 #define PDNCYCLEENDC    40
-
 
 //new
 
@@ -169,7 +133,6 @@ typedef struct
 
 } specific_force_t;
 
-
 typedef struct
 {
     int8_t tempIsubtimesTen1;
@@ -203,7 +166,6 @@ typedef struct
 
 } tx_data_t;
 
-
 /* TI AFE4404 Silicon Revision Identifier codes  */
 
 typedef enum
@@ -213,7 +175,6 @@ typedef enum
     AFE4404_REV_UNKNOWN = 0x00
 } afe_silicon_rev_t;
 
-
 /**
  * @brief Retrieve the AFE4404 chips silicon revision.
  *      Important due to tolerance differences between chips
@@ -222,7 +183,6 @@ typedef enum
  */
 afe_silicon_rev_t AFE4404_getSiliconRivision(void);
 
-
 /**
  * @brief Deprecated function used to initialise the AFE4404
  * Please use AFE4404_initFs()
@@ -230,7 +190,6 @@ afe_silicon_rev_t AFE4404_getSiliconRivision(void);
  * @return RET_OK
  */
 hqret_t AFE4404_init_Q(void);
-
 
 /**
  * @brief Deprecated function which Initialises the AFE4404 with specific settings using the internal clock
@@ -247,7 +206,6 @@ hqret_t AFE4404_initFs(uint16_t freqTimesTen,
                        uint16_t samplePeriod,
                        uint8_t numAve,
                        uint8_t allowDPD);
-
 
 /**
  * @brief Initialises the AFE 4404 with the option of using an external clock for timing
@@ -271,7 +229,6 @@ hqret_t AFE4404_initFsWithExternalClk(uint16_t freqTimesTen,
                                       uint8_t allowDPD,
                                       uint8_t useExternalClock);
 
-
 /**
  * @brief Enable the AFE's internal timing engine which generates all the clock
  *  phases for synchronised transmit drive, receive sampling and data
@@ -280,13 +237,11 @@ hqret_t AFE4404_initFsWithExternalClk(uint16_t freqTimesTen,
  */
 void AFE4404_enableInternalTimer(void);
 
-
 /**
  * @brief Disable the AFE's internal timing engine; effectively disabling the
  *      capability of emitting and sampling of LEDs
  */
 void AFE4404_disableAFE(void);
-
 
 /**
  * @brief Resets the AFE according to the datasheet timing specifications
@@ -296,7 +251,6 @@ void AFE4404_disableAFE(void);
  * @return RET_OK if successful or RET_FAIL otherwise
  */
 hqret_t AFE4404_hwReset(void);
-
 
 /**
  * @brief Power down the AFE according to the pin input settings and timing
@@ -308,7 +262,6 @@ hqret_t AFE4404_hwReset(void);
  */
 hqret_t AFE4404_hwShutDown(void);
 
-
 /**
  * @brief Power on the AFE according to the pin input settings and timing
  *      specifications as provided on the datasheet
@@ -319,14 +272,12 @@ hqret_t AFE4404_hwShutDown(void);
  */
 hqret_t AFE4404_hwPowerOn(void);
 
-
 /**
  * @brief Test communication with the AFE by writing a specific value to a specific register and ready that register.
  *
  * @return True if the value is the same; False otherwise
  */
 hqret_t AFE4404_testComs(void);
-
 
 /**
  * @brief Trim / Tune the AFE internal timing register for accurate clock
@@ -338,13 +289,11 @@ hqret_t AFE4404_testComs(void);
  */
 hqret_t AFE4404_adjustOscTuningRegister(uint8_t trimValue);
 
-
 /**
  * @brief Configure the OSC with default values as stated in
  *  afe4404_init_registers
  */
 void AFE4404_setOsc(void);
-
 
 /**
  * @brief Retrieve AFE values and populate raw 32bit, 32bit and 16bit data structures
@@ -357,7 +306,6 @@ void AFE4404_setOsc(void);
  */
 void AFE4404_retrieveRawAFEValues(afe_32_RAW_bit_data_struct_t *afe_RAW_32bitstruct, afe_32_bit_data_struct_t *afe_32bitstruct, afe_data_struct_t *afe_struct);
 
-
 /**
  * @brief Retrieve the LED measurement values form the AFE4404 and store them
  *      in both 32 and 16 bit data representations
@@ -367,7 +315,6 @@ void AFE4404_retrieveRawAFEValues(afe_32_RAW_bit_data_struct_t *afe_RAW_32bitstr
  */
 void AFE4404_retrieve32BitAFEValues(afe_32_bit_data_struct_t *afe_32bitstruct, afe_data_struct_t *afe_struct);
 
-
 /**
  * @brief Retrieve the LED measurement values form the AFE4404 and store them
  *      in a 16 bit data representation
@@ -376,7 +323,6 @@ void AFE4404_retrieve32BitAFEValues(afe_32_bit_data_struct_t *afe_32bitstruct, a
  */
 void AFE4404_retrieve16BitAFEValues(afe_data_struct_t *afe_struct);
 
-
 /**
  * @brief Converts a 32bit afe value in two's complement to a normal 32bit value
  *
@@ -384,7 +330,6 @@ void AFE4404_retrieve16BitAFEValues(afe_data_struct_t *afe_struct);
  * @return Converted value
  */
 int32_t afeConvP32(int32_t val);
-
 
 /**
  * @brief Converts a 32bit afe value (two's complement) while checking if it is a valid ADC
@@ -395,12 +340,10 @@ int32_t afeConvP32(int32_t val);
  */
 uint16_t afeConvP16(int32_t val);
 
-
 /**
  * @brief Enables reading from the AFE
  */
 void AFE4404_enableRead(void);
-
 
 /**
  * @brief Enables reading from the AFE before sending a read request
@@ -411,7 +354,6 @@ void AFE4404_enableRead(void);
  */
 uint32_t AFE4404_readRegWithReadEnable(uint8_t reg);
 
-
 /**
  * @brief Force a read command from the register specified
  *
@@ -420,12 +362,10 @@ uint32_t AFE4404_readRegWithReadEnable(uint8_t reg);
  */
 uint32_t AFE4404_readRegWithoutReadEnable(uint8_t reg);
 
-
 /**
  * @brief Enables writing to the AFE
  */
 void AFE4404_enableWrite(void);
-
 
 /**
  * @brief Enables writing to the AFE before sending data
@@ -435,7 +375,6 @@ void AFE4404_enableWrite(void);
  */
 void AFE4404_writeRegWithWriteEnable(uint8_t reg, uint32_t registerValue);
 
-
 /**
  * @brief Force a write command to the register specified
  *
@@ -443,7 +382,6 @@ void AFE4404_writeRegWithWriteEnable(uint8_t reg, uint32_t registerValue);
  * @param registerValue - The value to write
  */
 void AFE4404_writeRegWithoutWriteEnable(uint8_t reg, uint32_t registerValue);
-
 
 /**
  * @brief Set the rf value of the TIA at rfNum in the AFEWriteQueue
@@ -454,7 +392,6 @@ void AFE4404_writeRegWithoutWriteEnable(uint8_t reg, uint32_t registerValue);
  * @return RET_OK if successful or RET_FAIL otherwise
  */
 hqret_t AFE4404_setRf(uint8_t rfNum, uint16_t rfValueInKiloOhms);
-
 
 /**
  * @brief Set the RF gain settings bypassing the command queue
@@ -467,7 +404,6 @@ hqret_t AFE4404_setRf(uint8_t rfNum, uint16_t rfValueInKiloOhms);
  */
 hqret_t AFE4404_directSetRf(uint8_t rfNum, uint16_t rfValueInKiloOhms);
 
-
 /**
  * @brief Get the value stored at rfNum from the liveAFERegister
  *
@@ -477,7 +413,6 @@ hqret_t AFE4404_directSetRf(uint8_t rfNum, uint16_t rfValueInKiloOhms);
  */
 uint16_t AFE4404_getRf(uint8_t rfNum);
 
-
 /**
  * @brief Increment the rf setting of the channel in question
  *
@@ -486,7 +421,6 @@ uint16_t AFE4404_getRf(uint8_t rfNum);
  */
 hqret_t AFE4404_incrementRf(uint8_t channel);
 
-
 /**
  * @brief Decrement the rf setting of the channel in question
  *
@@ -494,7 +428,6 @@ hqret_t AFE4404_incrementRf(uint8_t channel);
  * @return RET_OK if successful or RET_FAIL otherwise
  */
 hqret_t AFE4404_decrementRf(uint8_t channel);
-
 
 /**
  * @brief Set the cf value of the TIA for cfNum in the AFEWriteQueue
@@ -507,7 +440,6 @@ hqret_t AFE4404_decrementRf(uint8_t channel);
  */
 hqret_t AFE4404_setCf(uint8_t cfNum, uint8_t cfValueInPicoFarhadsTimes10);
 
-
 /**
  * @brief Get the value stored at cf(x) from the liveAFERegister
  *
@@ -518,7 +450,6 @@ hqret_t AFE4404_setCf(uint8_t cfNum, uint8_t cfValueInPicoFarhadsTimes10);
  */
 uint8_t AFE4404_getCf(uint8_t cfNum);
 
-
 /**
  * @brief Set the ambient current (Isub) to subtract for a specific channel in the AFEWriteQueue
  *
@@ -527,7 +458,6 @@ uint8_t AFE4404_getCf(uint8_t cfNum);
  * @return RET_OK if successful or RET_FAIL otherwise
  */
 hqret_t AFE4404_setAmbientCurrent(uint8_t channel, int8_t currentInMicroAmpsTimes10);
-
 
 /**
  * @brief Set the ambient current (Isub) value directly, bypassing the command queue
@@ -539,7 +469,6 @@ hqret_t AFE4404_setAmbientCurrent(uint8_t channel, int8_t currentInMicroAmpsTime
  */
 hqret_t AFE4404_directSetAmbientCurrent(uint8_t channel, int8_t currentInMicroAmpsTimes10);
 
-
 /**
  * @brief Get the ambient current for a specified channel from the liveAFERegister
  *
@@ -547,7 +476,6 @@ hqret_t AFE4404_directSetAmbientCurrent(uint8_t channel, int8_t currentInMicroAm
  * @return
  */
 int8_t AFE4404_getAmbientCurrent(uint8_t channel);
-
 
 /**
  * @brief Increment the ambient subtraction current (Isub) of the channel in question
@@ -557,7 +485,6 @@ int8_t AFE4404_getAmbientCurrent(uint8_t channel);
  */
 hqret_t AFE4404_incrementAmbientSubCurrent(uint8_t channel);
 
-
 /**
  * @brief Decrement the ambient subtraction current (isub) of the channel in question
  *
@@ -565,7 +492,6 @@ hqret_t AFE4404_incrementAmbientSubCurrent(uint8_t channel);
  * @return RET_OK if successful or RET_FAIL otherwise
  */
 hqret_t AFE4404_decrementAmbientSubCurrent(uint8_t channel);
-
 
 /**
  * @brief Evaluates the value specified against the discrete steps available for Isub
@@ -576,7 +502,6 @@ hqret_t AFE4404_decrementAmbientSubCurrent(uint8_t channel);
  */
 uint8_t AFE4404_isIsubValid(int8_t currentInMicroAmpsTimes10);
 
-
 /**
  * @brief Set the current provided to a specific LED channel in the AFEWriteQueue
  *
@@ -586,7 +511,6 @@ uint8_t AFE4404_isIsubValid(int8_t currentInMicroAmpsTimes10);
  * @return RET_OK if successful or RET_FAIL otherwise
  */
 hqret_t AFE4404_setLedCurrent(uint8_t ledNumber, uint8_t currentTapSetting);
-
 
 /**
  * @brief Set the led current tap setting of the channel specified and ensure
@@ -600,7 +524,6 @@ hqret_t AFE4404_setLedCurrent(uint8_t ledNumber, uint8_t currentTapSetting);
  */
 hqret_t AFE4404_setLedCurrentWithDutyCycleLimitation(uint8_t ledNumber, uint8_t currentTapSetting);
 
-
 /**
  * @brief Set the LED current directly, bypassing the command queue
  *
@@ -612,7 +535,6 @@ hqret_t AFE4404_setLedCurrentWithDutyCycleLimitation(uint8_t ledNumber, uint8_t 
  */
 hqret_t AFE4404_directSetLedCurrent(uint8_t ledNumber, uint8_t currentTapSetting);
 
-
 /**
  * @brief Get the current tap value of a specific LED channel from the liveAFERegister
  *
@@ -620,7 +542,6 @@ hqret_t AFE4404_directSetLedCurrent(uint8_t ledNumber, uint8_t currentTapSetting
  * @return The current tap setting which can be converted to current by table as specified by TI
  */
 uint8_t AFE4404_getLedCurrent(uint8_t ledNumber);
-
 
 /**
  * @brief Increment the led current of the channel in question
@@ -630,7 +551,6 @@ uint8_t AFE4404_getLedCurrent(uint8_t ledNumber);
  */
 hqret_t AFE4404_incrementLedCurrent(uint8_t ledNumber);
 
-
 /**
  * @brief Decrement the led current of the channel in question
  *
@@ -639,14 +559,12 @@ hqret_t AFE4404_incrementLedCurrent(uint8_t ledNumber);
  */
 hqret_t AFE4404_decrementLedCurrent(uint8_t ledNumber);
 
-
 /**
  * @brief Allow the AFE4404 to go into high power mode, allowing 100mA LED current
  *
  * @param highPowerEnable - True to enable, False to disable
  */
 void AFE4404_setMaxCurrentMode(uint8_t highPowerEnable);
-
 
 /**
  * @brief Adds a command to the AFE command queue for transmission when deemed ready
@@ -656,12 +574,10 @@ void AFE4404_setMaxCurrentMode(uint8_t highPowerEnable);
  */
 void AFE4404_addWriteCommandToQueue(uint8_t reg, uint32_t registerValue);
 
-
 /**
  * @brief Check if there are any commands in the AFEWriteQueue and transmit them to the AFE
  */
 void AFE4404_serviceAFEWriteQueue(void);
-
 
 /**
  * @brief Get a value from a local array which resembles the value as stored on the AFE
@@ -670,7 +586,6 @@ void AFE4404_serviceAFEWriteQueue(void);
  * @return The value currently stored in the live array
  */
 uint32_t AFE4404_getRegisterFromLiveArray(uint8_t reg);
-
 
 /**
  * @brief Get the current AFE settings array from the live array
@@ -685,7 +600,6 @@ uint32_t AFE4404_getRegisterFromLiveArray(uint8_t reg);
  */
 void AFE4404_getAFESettingsArr(uint8_t *dataArr);
 
-
 /**
  * @brief Get the current AFE settings from the live array in a uint64 type
  *      [0 - 5]   - LED 1 current
@@ -699,7 +613,6 @@ void AFE4404_getAFESettingsArr(uint8_t *dataArr);
  */
 uint64_t AFE4404_getAFESettingsUint(void);
 
-
 /**
  * @brief Extracts the rf setting for the applicable channel specified from a
  *      64bit AFE settings array
@@ -710,7 +623,6 @@ uint64_t AFE4404_getAFESettingsUint(void);
  * @return RF value for channel specified
  */
 uint16_t AFE4404_settingsUintGetRf(uint8_t channel, uint64_t inputArr);
-
 
 /**
  * @brief Extracts the Isub setting for the applicable channel specified from a
@@ -723,7 +635,6 @@ uint16_t AFE4404_settingsUintGetRf(uint8_t channel, uint64_t inputArr);
  */
 int8_t AFE4404_settingsUintGetIsub(uint8_t channel, uint64_t inputArr);
 
-
 /**
  * @brief Extracts the LED setting for the applicable channel specified from a
  *      64bit AFE settings array
@@ -734,14 +645,12 @@ int8_t AFE4404_settingsUintGetIsub(uint8_t channel, uint64_t inputArr);
  */
 uint8_t AFE4404_settingsUintGetLedCurrent(uint8_t ledNumber, uint64_t inputArr);
 
-
 /**
  * @brief Check if the AFE settings have changed
  *
  * @return True if changes occurred; False if not
  */
 uint8_t AFE4404_settingsChanged(void);
-
 
 /**
  * @brief Set the number of ADC conversion to average over
@@ -751,14 +660,12 @@ uint8_t AFE4404_settingsChanged(void);
  */
 hqret_t AFE4404_setNumberOfAverages(uint8_t numAvgs);
 
-
 /**
  * @brief Retrieve the averaging number of ADC
  *
  * @return uint8 representing the (averaging number - 1)
  */
 uint8_t AFE4404_getNumberOfAverages(void);
-
 
 /**
  * @brief Decrement the ADC's number of averages
@@ -767,14 +674,12 @@ uint8_t AFE4404_getNumberOfAverages(void);
  */
 hqret_t AFE4404_decrementNumberOfAverages(void);
 
-
 /**
  * @brief Increment the ADC's number of averages
  *
  * @return RET_OK if successful or RET_FAIL otherwise
  */
 hqret_t AFE4404_incrementNumberOfAverages(void);
-
 
 /**
  * @brief Adjust the pulse repetition period. Caution should be used with this
@@ -785,7 +690,6 @@ hqret_t AFE4404_incrementNumberOfAverages(void);
  * @return RET_OK if the function terminated successfully and RET_FAIL otherwise
  */
 hqret_t AFE4404_adjustPRPAndPowerDownCycles(uint16_t updatedPrpValue);
-
 
 /**
  * @brief Retrieve the current pulse repetition period used by the AFE
@@ -821,4 +725,7 @@ uint32_t PPS960_readReg(uint8_t regaddr);
 //ACC use FIFO,its raw data will be read by timer, timer period about 1s.
 //#define PPS_ACC_USE_FIFO (1)
 
-#endif  // AFE4404_HW_INCLUDED/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+#ifdef __cplusplus
+}
+#endif
+#endif  // AFE4404_HW_INCLUDED

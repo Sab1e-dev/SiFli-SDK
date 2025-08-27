@@ -183,10 +183,10 @@ typedef volatile struct
     } dma[0x10];
 
 
-    struct musb_reserved_1
+    struct musb_rqpktcount
     {
-        REG32  reserved_1;                  //0x0304
-    } rsvd_1[0xf];
+        REG32  count;                       //0x0304
+    } rqpktcount[0xf];
 
     REG8 dpbrxdisl;                         //0x0340
     REG8 dpbrxdish;                         //0x0341

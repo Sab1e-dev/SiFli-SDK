@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   sec_flash.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "board.h"
@@ -241,7 +202,6 @@ void sec_flash_erase_target(int flashid, uint32_t offset, uint32_t size)
 }
 #endif
 
-
 int sec_flash_read(int flashid, uint32_t offset, uint8_t *data, uint32_t size)
 {
     if (g_flash_read == NULL || g_flash_read((rt_uint32_t)offset, (const int8_t *)data, size) < 0)
@@ -291,7 +251,6 @@ void sec_flash_init()
     g_sec_config = (struct sec_configuration *)start_addr;
     sec_flash_read(DFU_FLASH_SEC_CONFIG, 0, (uint8_t *)FLASH_SEC_CACHE, sizeof(struct sec_configuration));
 }
-
 
 extern uint8_t dfu_data[];
 void sec_flash_update(int flashid, uint32_t offset, uint8_t *data, uint32_t size)
@@ -354,4 +313,3 @@ void sec_flash_key_update(void)
 #endif
 }
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

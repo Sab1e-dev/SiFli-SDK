@@ -2,6 +2,7 @@
 #ifndef LIB_vcHr02_HCI_vcHr02HCI_H_
 #define LIB_vcHr02_HCI_vcHr02HCI_H_
 
+
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -10,6 +11,10 @@
     如果用的芯片是VC31B/VC51B，请注释掉下面两句包含头文件的代码。
 */
 #include "sensor.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 //#include "algo.h"
 
@@ -304,4 +309,8 @@ typedef uint32_t (* vc_gettime_cb)(void);
 
 
 #endif /* LIB_vcHr02_HCI_vcHr02HCI_H_ */
+
+#ifdef __cplusplus
+}
+#endif
 #endif

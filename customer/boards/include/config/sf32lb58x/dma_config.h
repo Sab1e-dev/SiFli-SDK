@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   dma_config.h
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef __DMA_CONFIG_H__
@@ -88,7 +49,6 @@ extern "C" {
 #define SPI2_TX_DMA_REQUEST                    DMA_REQUEST_30
 #define SPI2_RX_DMA_REQUEST                    DMA_REQUEST_31
 
-
 /* DMA1 channel1 */
 #define FLASH1_IRQHandler              DMAC1_CH1_IRQHandler
 #define FLASH1_DMA_IRQ_PRIO            0
@@ -130,7 +90,6 @@ extern "C" {
 #define FLASH4_DMA_INSTANCE            DMA1_Channel4
 #define FLASH4_DMA_IRQ                 DMAC1_CH4_IRQn
 
-
 /* DMA1 channel3 */
 //TODO: need to be removed, not used by A0
 #define USBD_RX_IRQHandler              DMAC1_CH3_IRQHandler
@@ -142,7 +101,6 @@ extern "C" {
 #define SPI1_RX_DMA_IRQ_PRIO           0
 #define SPI1_RX_DMA_INSTANCE           DMA1_Channel3
 #define SPI1_RX_DMA_IRQ                DMAC1_CH3_IRQn
-
 
 /* DMA1 channel4 */
 //TODO: need to be removed, not used by A0
@@ -156,7 +114,6 @@ extern "C" {
 #define SPI1_TX_DMA_INSTANCE           DMA1_Channel4
 #define SPI1_TX_DMA_IRQ                DMAC1_CH4_IRQn
 
-
 /* DMA1 channel5 */
 #define UART1_DMA_TX_IRQHandler          DMAC1_CH5_IRQHandler
 #define UART1_TX_DMA_IRQ_PRIO            0
@@ -168,7 +125,6 @@ extern "C" {
 #define UART2_RX_DMA_IRQ_PRIO            0
 #define UART2_RX_DMA_INSTANCE            DMA1_Channel5
 #define UART2_RX_DMA_IRQ                 DMAC1_CH5_IRQn
-
 
 /* DMA1 channel6 */
 #define UART1_DMA_RX_IRQHandler          DMAC1_CH6_IRQHandler
@@ -182,12 +138,10 @@ extern "C" {
 #define UART3_TX_DMA_INSTANCE           DMA1_Channel7
 #define UART3_TX_DMA_IRQ                DMAC1_CH7_IRQn
 
-
 #define SPI2_DMA_RX_IRQHandler         DMAC1_CH7_IRQHandler
 #define SPI2_RX_DMA_IRQ_PRIO           0
 #define SPI2_RX_DMA_INSTANCE           DMA1_Channel7
 #define SPI2_RX_DMA_IRQ                DMAC1_CH7_IRQn
-
 
 /* DMA1 channel8  */
 #define UART3_DMA_RX_IRQHandler         DMAC1_CH8_IRQHandler
@@ -199,8 +153,6 @@ extern "C" {
 #define SPI2_TX_DMA_IRQ_PRIO           0
 #define SPI2_TX_DMA_INSTANCE           DMA1_Channel8
 #define SPI2_TX_DMA_IRQ                DMAC1_CH8_IRQn
-
-
 
 /*************************************DMA2 ***************************************/
 #define I2S1_TX_DMA_REQUEST                 DMA_REQUEST_0
@@ -234,8 +186,6 @@ extern "C" {
 #define PWMA2_CC3_DMA_REQUEST               DMA_REQUEST_29//atime2_cc3
 #define PWMA2_CC4_DMA_REQUEST               DMA_REQUEST_30//atime2_cc4
 #define ATIM2_COM_DMA_REQUEST               DMA_REQUEST_31
-
-
 
 /* DMA2 channel1  */
 
@@ -272,7 +222,6 @@ extern "C" {
 #define AUDCODEC_DAC0_DMA_IRQ                     DMAC2_CH1_IRQn
 #endif
 
-
 /* DMA2 channel2  */
 
 //I2S1 RX
@@ -298,7 +247,6 @@ extern "C" {
 #define AUDCODEC_DAC1_DMA_INSTANCE                DMA2_Channel2
 #define AUDCODEC_DAC1_DMA_IRQ                     DMAC2_CH2_IRQn
 #endif
-
 
 /* DMA2 channel3  */
 //I2S2 TX
@@ -380,7 +328,6 @@ extern "C" {
 #define AUDPRC_TX_OUT0_DMA_IRQ                     DMAC2_CH6_IRQn
 #endif
 
-
 /* DMA2 channel7  */
 //PDM2 L
 #if !defined(PDM2_L_DMA_INSTANCE)
@@ -398,8 +345,6 @@ extern "C" {
 #define AUDPRC_TX2_DMA_IRQ                     DMAC2_CH7_IRQn
 #endif
 
-
-
 /* DMA2 channel8  */
 //PDM2 R
 #if !defined(PDM2_R_DMA_INSTANCE)
@@ -416,8 +361,6 @@ extern "C" {
 #define AUDPRC_TX3_DMA_INSTANCE                DMA2_Channel8
 #define AUDPRC_TX3_DMA_IRQ                     DMAC2_CH8_IRQn
 #endif
-
-
 
 /*************************************DMA3 ***************************************/
 #define UART4_TX_DMA_REQUEST                   DMA_REQUEST_0
@@ -458,7 +401,6 @@ extern "C" {
 #define GPADC_DMA_REQUEST                      DMA_REQUEST_30
 #define SDADC_DMA_REQUEST                      DMA_REQUEST_31
 
-
 /* DMA3 channel1  */
 #if defined(BSP_UART4_TX_USING_DMA) && !defined(UART4_TX_DMA_INSTANCE)
 #define UART4_DMA_TX_IRQHandler         DMAC3_CH1_IRQHandler
@@ -474,7 +416,6 @@ extern "C" {
 #define UART4_RX_DMA_INSTANCE           DMA3_Channel2
 #define UART4_RX_DMA_IRQ                DMAC3_CH2_IRQn
 #endif
-
 
 /* DMA3 channel3  */
 #if defined(BSP_SPI3_RX_USING_DMA) && !defined(SPI3_RX_DMA_INSTANCE)
@@ -546,7 +487,6 @@ extern "C" {
 #define AUDCODEC_ADC1_DMA_IRQ_PRIO                0
 #define AUDCODEC_ADC1_DMA_INSTANCE                DMA3_Channel5
 #endif
-
 
 /* DMA3 channel5 */
 #if defined(BSP_UART5_TX_USING_DMA) && !defined(UART5_TX_DMA_INSTANCE)
@@ -620,7 +560,6 @@ extern "C" {
 #define UART6_TX_DMA_IRQ                 DMAC3_CH7_IRQn
 #endif
 
-
 /* DMA3 channel8 */
 #if defined(BSP_UART6_RX_USING_DMA) && !defined(UART6_RX_DMA_INSTANCE)
 #define UART6_DMA_RX_IRQHandler          DMAC3_CH8_IRQHandler
@@ -642,4 +581,4 @@ extern "C" {
 #endif
 
 #endif /* __DMA_CONFIG_H__ */
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

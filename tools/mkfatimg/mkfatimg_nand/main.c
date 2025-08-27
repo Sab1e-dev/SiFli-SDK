@@ -41,8 +41,8 @@ int reserved_size;
 static FATFS FatFs;
 static FIL DstFile;
 static HANDLE SrcFile;
-static WIN32_FIND_DATA Fd;
-static char SrcPath[512], DstPath[512];
+static WIN32_FIND_DATAW Fd;
+static char SrcPathA[512], DstPath[512];
 static BYTE Buff[8192];
 static UINT Dirs, Files;
 static int remaining_size;
@@ -50,112 +50,184 @@ static int remaining_size;
 
 int maketree (void)
 {
-	HANDLE hdir;
-	int slen, dlen, rv = 0;
-	DWORD br;
-	UINT bw;
-	DWORD file_size;
+    HANDLE hdir;
+    int slen, dlen, rv = 0;
+    DWORD br;
+    UINT bw;
+    DWORD file_size;
+	int unicodeLen;
+	int len;
 
 
-	slen = strlen(SrcPath);
+	slen = strlen(SrcPathA);
 	dlen = strlen(DstPath);
-	sprintf(&SrcPath[slen], "/*");
-	hdir = FindFirstFile(SrcPath, &Fd);		/* Open directory */
-	if (hdir == INVALID_HANDLE_VALUE) {
-		printf("Failed to open the source directory.\n");
-	} else {
-		for (;;) {
-			sprintf(&SrcPath[slen], "/%s", Fd.cFileName);
-			sprintf(&DstPath[dlen], "/%s", Fd.cFileName);
-			if (Fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {	/* The item is a directory */
-				if (strcmp(Fd.cFileName, ".") && strcmp(Fd.cFileName, "..")) {
-					if (f_mkdir(DstPath)) {	/* Create destination directory */
-						printf("Failed to create directory.\n"); break;
-					}
-					if (!maketree()) break;	/* Enter the directory */
-					Dirs++;
-				}
-			} else {	/* The item is a file */
+	sprintf(&SrcPathA[slen], "/*");
+	unicodeLen = MultiByteToWideChar(CP_ACP, 0, SrcPathA, -1, NULL, 0);
+	wchar_t *SrcPath = (wchar_t*)malloc((unicodeLen + 1) * sizeof(wchar_t));
+	memset(SrcPath, 0, (unicodeLen + 1) * sizeof(wchar_t));
+	MultiByteToWideChar(CP_ACP, 0, SrcPathA, -1, (LPWSTR)SrcPath, unicodeLen);
+	hdir = FindFirstFileW(SrcPath, &Fd);		/* Open directory */
+    if (hdir == INVALID_HANDLE_VALUE)
+    {
+        printf("Failed to open the source directory.\n");
+    }
+    else
+    {
+        for (;;)
+        {
+			len = WideCharToMultiByte(CP_UTF8, 0, Fd.cFileName, -1, NULL, 0, NULL, NULL);
+			char *szUtf8 = (char*)malloc(len + 1);
+		
+			memset(szUtf8, 0, len + 1);
+			WideCharToMultiByte(CP_UTF8, 0, Fd.cFileName, -1, szUtf8, len, NULL, NULL);
+			memcpy(SrcPathA + slen, "/", 1);
+			memcpy(SrcPathA + slen+1, szUtf8, len);
+			memcpy(DstPath + dlen, "/", 1);
+			memcpy(DstPath + dlen+1, szUtf8, len);
+			//sprintf(&SrcPathA[slen], "/%s", Fd.cFileName);
+			//sprintf(&DstPath[dlen], "/%s", Fd.cFileName);
+			unicodeLen = MultiByteToWideChar(CP_UTF8, 0, SrcPathA, -1, NULL, 0);
+			wchar_t *SrcFilePath = (wchar_t*)malloc((unicodeLen + 1) * sizeof(wchar_t));
+			memset(SrcFilePath, 0, (unicodeLen + 1) * sizeof(wchar_t));
+			MultiByteToWideChar(CP_UTF8, 0, SrcPathA, -1, (LPWSTR)SrcFilePath, unicodeLen);
+            if (Fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)     /* The item is a directory */
+            {
+				if (wcscmp(Fd.cFileName, L".") && wcscmp(Fd.cFileName, L"..")) 
+                {
+                    if (f_mkdir(DstPath))   /* Create destination directory */
+                    {
+                        printf("Failed to create directory.\n");
+                        break;
+                    }
+                    if (!maketree()) break; /* Enter the directory */
+                    Dirs++;
+                }
+            }
+            else        /* The item is a file */
+            {
                 //printf("%s\n", SrcPath);
-				if ((SrcFile = CreateFile(SrcPath, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0)) == INVALID_HANDLE_VALUE) {	/* Open source file */
-					printf("Failed to open source file.\n"); break;
-				}
+				if ((SrcFile = CreateFileW(SrcFilePath, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0)) == INVALID_HANDLE_VALUE) 
+                {
+                    printf("Failed to open source file.\n");
+                    break;
+                }
 
-				FRESULT r = f_open(&DstFile, DstPath, FA_CREATE_ALWAYS | FA_WRITE);
-				if (r) {	/* Create destination file */
-					printf("Failed to create destination file: %d.\n", r); break;
-				}
-				do {	/* Copy source file to destination file */
-					ReadFile(SrcFile, Buff, sizeof Buff, &br, 0);
-					if (br == 0) break;
-					f_write(&DstFile, Buff, (UINT)br, &bw);
-				} while (br == bw);
-				file_size = GetFileSize(SrcFile, NULL);
-				CloseHandle(SrcFile);
-				f_close(&DstFile);
-				if (br && br != bw) {
-					printf("Failed to write file:%s.\n", DstPath); break;
-				}
-				if (remaining_size >= file_size)
-				{
-					//printf("remaining:%d,%d\n", remaining_size, file_size);
-					remaining_size -= file_size;
-				}
-				Files++;
-			}
-			if (!FindNextFile(hdir, &Fd)) {
-				rv = 1; break;
-			}
-		}
-		FindClose(hdir);
-	}
-	SrcPath[slen] = 0;
-	DstPath[dlen] = 0;
-	return rv;
+                FRESULT r = f_open(&DstFile, DstPath, FA_CREATE_ALWAYS | FA_WRITE);
+                if (r)      /* Create destination file */
+                {
+                    printf("Failed to create destination file: %d.\n", r);
+                    break;
+                }
+                do      /* Copy source file to destination file */
+                {
+                    ReadFile(SrcFile, Buff, sizeof Buff, &br, 0);
+                    if (br == 0) break;
+                    f_write(&DstFile, Buff, (UINT)br, &bw);
+                }
+                while (br == bw);
+                file_size = GetFileSize(SrcFile, NULL);
+                CloseHandle(SrcFile);
+                f_close(&DstFile);
+                if (br && br != bw)
+                {
+                    printf("Failed to write file:%s.\n", DstPath);
+                    break;
+                }
+                if (remaining_size >= file_size)
+                {
+                    //printf("remaining:%d,%d\n", remaining_size, file_size);
+                    remaining_size -= file_size;
+                }
+                Files++;
+            }
+			free(SrcFilePath);
+			free(szUtf8);
+			if (!FindNextFileW(hdir, &Fd)) 
+            {
+                rv = 1;
+                break;
+            }
+        }
+        FindClose(hdir);
+    }
+	free(SrcPath);
+	SrcPathA[slen] = 0;
+    DstPath[dlen] = 0;
+    return rv;
 }
 
 
 int calc_dir_size(void)
 {
-	HANDLE hdir;
-	int slen = 0;
-	int total_size = 0;
+    HANDLE hdir;
+    int slen = 0;
+    int total_size = 0;
+	int unicodeLen;
+	int len;
 
-	slen = strlen(SrcPath);
-	sprintf(&SrcPath[slen], "/*");
-	hdir = FindFirstFile(SrcPath, &Fd);		/* Open directory */
-	if (hdir == INVALID_HANDLE_VALUE) {
-		printf("Failed to open the source directory.\n");
-	}
-	else {
-		for (;;) {
-			sprintf(&SrcPath[slen], "/%s", Fd.cFileName);
-			if (Fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {	/* The item is a directory */
-				if (strcmp(Fd.cFileName, ".") && strcmp(Fd.cFileName, "..")) {
-					total_size += calc_dir_size();
-					Dirs++;
-				}
-			}
-			else {	/* The item is a file */
-				//printf("%s\n", SrcPath);
-				if ((SrcFile = CreateFile(SrcPath, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0)) == INVALID_HANDLE_VALUE) {	/* Open source file */
-					printf("Failed to open source file.\n"); break;
-				}
+	slen = strlen(SrcPathA);
+	sprintf(&SrcPathA[slen], "/*");
+
+	unicodeLen = MultiByteToWideChar(CP_ACP, 0, SrcPathA, -1, NULL, 0);
+	wchar_t *SrcPath = (wchar_t*)malloc((unicodeLen + 1) * sizeof(wchar_t));
+	memset(SrcPath, 0, (unicodeLen + 1) * sizeof(wchar_t));
+	MultiByteToWideChar(CP_ACP, 0, SrcPathA, -1, (LPWSTR)SrcPath, unicodeLen);
+	hdir = FindFirstFileW(SrcPath, &Fd);		/* Open directory */
+    if (hdir == INVALID_HANDLE_VALUE)
+    {
+        printf("Failed to open the source directory.\n");
+    }
+    else
+    {
+        for (;;) 
+		{
+			//sprintf(&SrcPathA[slen], "/%s", Fd.cFileName);
+			len = WideCharToMultiByte(CP_UTF8, 0, Fd.cFileName, -1, NULL, 0, NULL, NULL);
+			char *szUtf8 = (char*)malloc(len + 1);
+			memset(szUtf8, 0, len + 1);
+			WideCharToMultiByte(CP_UTF8, 0, Fd.cFileName, -1, szUtf8, len, NULL, NULL);
+			memcpy(SrcPathA + slen, "/", 1);
+			memcpy(SrcPathA + slen + 1, szUtf8, len);
+
+			unicodeLen = MultiByteToWideChar(CP_UTF8, 0, SrcPathA, -1, NULL, 0);
+			wchar_t *SrcFilePath = (wchar_t*)malloc((unicodeLen + 1) * sizeof(wchar_t));
+			memset(SrcFilePath, 0, (unicodeLen + 1) * sizeof(wchar_t));
+			MultiByteToWideChar(CP_UTF8, 0, SrcPathA, -1, (LPWSTR)SrcFilePath, unicodeLen);
+            if (Fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)     /* The item is a directory */
+            {
+				if (wcscmp(Fd.cFileName, L".") && wcscmp(Fd.cFileName, L"..")) 
+                {
+                    total_size += calc_dir_size();
+                    Dirs++;
+                }
+            }
+            else    /* The item is a file */
+            {
+                //printf("%s\n", SrcPath);
+				if ((SrcFile = CreateFileW(SrcFilePath, GENERIC_READ, 0, 0, OPEN_EXISTING, 0, 0)) == INVALID_HANDLE_VALUE) 
+                {
+                    printf("Failed to open source file.\n");
+                    break;
+                }
 
 				total_size += GetFileSize(SrcFile, NULL);
 
-				CloseHandle(SrcFile);
-				f_close(&DstFile);
-				Files++;
-			}
-			if (!FindNextFile(hdir, &Fd)) {
-				break;
-			}
-		}
-		FindClose(hdir);
-	}
-	SrcPath[slen] = 0;
-	return total_size;
+                CloseHandle(SrcFile);
+                f_close(&DstFile);
+                Files++;
+            }
+			free(SrcFilePath);
+			free(szUtf8);
+			if (!FindNextFileW(hdir, &Fd)) 
+            {
+                break;
+            }
+        }
+        FindClose(hdir);
+    }
+	free(SrcPath);
+	SrcPathA[slen] = 0;
+    return total_size;
 }
 
 
@@ -242,7 +314,7 @@ int main (int argc, char* argv[])
 			);
 		return 1;
 	}
-	strcpy(SrcPath, argv[ai++]);
+	strcpy(SrcPathA, argv[ai++]);
 	outfile = argv[ai++];
 	total_size = calc_dir_size();
 	RamDiskSize = atoi(argv[ai++]);

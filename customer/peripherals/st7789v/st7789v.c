@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   st7789v.c
-  * @author Sifli software development team
-  * @brief   This file includes the LCD driver for st7789v LCD.
-  * @attention
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -53,21 +12,11 @@
 
 #include "log.h"
 
-
-
-
-
-
-
-
-
 #ifdef ROW_OFFSET_PLUS
     #define ROW_OFFSET  (ROW_OFFSET_PLUS)
 #else
     #define ROW_OFFSET  (0)
 #endif
-
-
 
 /**
   * @brief ST7789V chip IDs
@@ -79,11 +28,6 @@
   */
 #define  THE_LCD_PIXEL_WIDTH    ((uint16_t)240)
 #define  THE_LCD_PIXEL_HEIGHT   ((uint16_t)240)
-
-
-
-
-
 
 /**
   * @brief  ST7789V Registers
@@ -99,7 +43,6 @@
 #define REG_READ_RAM           0x2E
 #define REG_CASET              0x2A
 #define REG_RASET              0x2B
-
 
 #define REG_TEARING_EFFECT     0x35
 #define REG_NORMAL_DISPLAY     0x36
@@ -122,14 +65,6 @@
 #define REG_NV_GAMMA_CTRL      0xE1
 #define REG_SPI2EN             0xE7
 
-
-
-
-
-
-
-
-
 //#define DEBUG
 
 #ifdef DEBUG
@@ -140,10 +75,6 @@
 
 static void LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *Parameters, uint32_t NbParameters);
 static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8_t ReadSize);
-
-
-
-
 
 #ifdef LCDC_SUPPORT_TE_WINDOW
     #define LCDC_WRITE_CROSSED_TE
@@ -176,13 +107,6 @@ static LCDC_InitTypeDef lcdc_int_cfg =
     },
 
 };
-
-
-
-
-
-
-
 
 /**
   * @brief  spi read/write mode
@@ -323,7 +247,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
 
 #endif
 
-
     //TODO: configuration can be different though the LCD chip is same
 #ifdef LCD_USING_ROUND_TYPE1
 
@@ -416,7 +339,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     LCD_WriteReg(hlcdc, REG_RASET, parameter, 4);
 
     LCD_WriteReg(hlcdc, REG_WRITE_RAM, (uint8_t *)NULL, 0);
-
 
     hwp_lcdc->CANVAS_BG = (0xFF << LCD_IF_CANVAS_BG_RED_Pos) | (0 << LCD_IF_CANVAS_BG_GREEN_Pos) | (0 << LCD_IF_CANVAS_BG_BLUE_Pos);
     hwp_lcdc->CANVAS_TL_POS = (0    << LCD_IF_CANVAS_TL_POS_X0_Pos) | (0  << LCD_IF_CANVAS_TL_POS_Y0_Pos);
@@ -620,8 +542,6 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
     HAL_LCDC_SendLayerData2Reg_IT(hlcdc, REG_WRITE_RAM, 1);
 }
 
-
-
 /**
   * @brief  Writes  to the selected LCD register.
   * @param  LCD_Reg: address of the selected register.
@@ -631,7 +551,6 @@ static void LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *P
 {
     HAL_LCDC_WriteU8Reg(hlcdc, LCD_Reg, Parameters, NbParameters);
 }
-
 
 /**
   * @brief  Reads the selected LCD Register.
@@ -651,8 +570,6 @@ static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8
 
     return rd_data;
 }
-
-
 
 static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Ypos)
 {
@@ -711,12 +628,10 @@ static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t
 
     //rt_kprintf("ST7789V_ReadPixel %x -> %x\n",c, ret_v);
 
-
     LCD_WriteReg(hlcdc, REG_COLOR_MODE, parameter, 1);
 
     return ret_v;
 }
-
 
 static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
 {
@@ -736,7 +651,6 @@ static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
         lcdc_int_cfg.color_mode = LCDC_PIXEL_FORMAT_RGB565;
         break;
 
-
     default:
         RT_ASSERT(0);
         return; //unsupport
@@ -753,10 +667,6 @@ static void LCD_SetBrightness(LCDC_HandleTypeDef *hlcdc, uint8_t br)
     uint8_t bright = (uint8_t)((uint16_t)UINT8_MAX * br / 100);
     LCD_WriteReg(hlcdc, REG_WBRIGHT, &br, 1);
 }
-
-
-
-
 
 static const LCD_DrvOpsDef ST7789V_drv =
 {
@@ -781,10 +691,3 @@ static const LCD_DrvOpsDef ST7789V_drv =
 LCD_DRIVER_EXPORT2(st7789v, 0x858552, &lcdc_int_cfg,
                    &ST7789V_drv, 1);
 
-
-
-
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

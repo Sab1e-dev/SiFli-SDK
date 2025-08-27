@@ -1,8 +1,14 @@
 #ifndef __AW_PROFILE_PROCESS_H__
 #define __AW_PROFILE_PROCESS_H__
 
+
 #include "aw_device.h"
 
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*******************awinic audio parse acf***********************/
 enum profile_data_type
@@ -44,4 +50,7 @@ int aw_dev_set_profile_name(struct aw_device *aw_dev, const char *prof_name);
 char *aw_dev_get_profile_name(struct aw_device *aw_dev);
 int aw_dev_prof_init(struct aw_device *aw_dev, struct aw_fill_info *fill_info);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -38,7 +38,6 @@ uint8_t TEST_DATA[] =
     0x44
 };
 
-
 /**
  * @brief Initialization work before power on EEPROM and
  * @author RDA Ri'an Zeng
@@ -110,9 +109,6 @@ void EEPROM_write_data(uint8_t addr, uint8_t data)
     LOG_D("i2c write reg:0x%x,data:0x%x,ret:%d\n", addr, data, ret);
 }
 
-
-
-
 void EEPROM_read_data(uint8_t addr, uint8_t *pdata)
 {
     HAL_StatusTypeDef ret;
@@ -126,7 +122,6 @@ void delayms(unsigned short int ms)
 {
     HAL_Delay(ms);
 }
-
 
 /// @brief read and write eeprom to test
 /// @param
@@ -145,9 +140,6 @@ void EEPROM_test(void)
         EEPROM_read_data(TEST_ADDR[i], &RECEIVED);
     }
 }
-
-
-
 
 void  EEPROM_example(void)
 {
@@ -176,7 +168,4 @@ int main(void)
 
     return RT_EOK;
 }
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

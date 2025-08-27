@@ -1,48 +1,8 @@
-/**
-  ******************************************************************************
-  * @file   bf0_hal_pcd.c
-  * @author Sifli software development team
-  * @brief   PCD HAL module driver.
-  *          This file provides firmware functions to manage the following
-  ******************************************************************************
-*/
-/**
+/*
+ * SPDX-FileCopyrightText: 2016 STMicroelectronics
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
  *
- * Copyright (c) 2019 - 2022,  Sifli Technology
- *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: BSD-3-Clause AND Apache-2.0
  */
 
 #include "bf0_hal.h"
@@ -225,12 +185,20 @@ HAL_StatusTypeDef HAL_PCD_DeInit(PCD_HandleTypeDef *hpcd)
   */
 __weak void HAL_PCD_MspInit(PCD_HandleTypeDef *hpcd)
 {
-    /* Prevent unused argument(s) compilation warning */
-    UNUSED(hpcd);
+    HAL_RCC_EnableModule(RCC_MOD_USBC);
 
-    /* NOTE : This function Should not be modified, when the callback is needed,
-              the HAL_PCD_MspInit could be implemented in the user file
-     */
+#ifdef SF32LB58X
+    //hwp_usbc->utmicfg12 = hwp_usbc->utmicfg12 | 0x3; //set xo_clk_sel
+    hwp_usbc->utmicfg23 = 0xd8;
+    hwp_usbc->ldo25 = hwp_usbc->ldo25 | 0xa; //set psw_en and ldo25_en
+    HAL_Delay(1);
+    hwp_usbc->swcntl3 = 0x1; //set utmi_en for USB2.0
+    hwp_usbc->usbcfg = hwp_usbc->usbcfg | 0x40; //enable usb PLL.
+#elif defined(SF32LB56X)||defined(SF32LB52X)
+    hwp_hpsys_cfg->USBCR |= HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_DP_EN | HPSYS_CFG_USBCR_USB_EN;
+#elif defined(SF32LB55X)
+    hwp_hpsys_cfg->USBCR |= HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_USB_EN;
+#endif
 }
 
 /**
@@ -240,12 +208,20 @@ __weak void HAL_PCD_MspInit(PCD_HandleTypeDef *hpcd)
   */
 __weak void HAL_PCD_MspDeInit(PCD_HandleTypeDef *hpcd)
 {
-    /* Prevent unused argument(s) compilation warning */
-    UNUSED(hpcd);
-
-    /* NOTE : This function Should not be modified, when the callback is needed,
-              the HAL_PCD_MspDeInit could be implemented in the user file
-     */
+#ifdef SF32LB58X
+    hwp_usbc->usbcfg &= ~0x40;  // Disable usb PLL.
+    hwp_usbc->swcntl3 = 0x0;
+    hwp_usbc->ldo25 &= ~0xa;    // Disable psw_en and ldo25_en
+#elif defined(SF32LB56X)||defined(SF32LB52X)
+    hwp_hpsys_cfg->USBCR &= ~(HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_DP_EN | HPSYS_CFG_USBCR_USB_EN);
+#elif defined(SF32LB55X)
+    hwp_hpsys_cfg->USBCR &= ~(HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_USB_EN);
+#endif
+    /* reset USB to make DP change to PULLDOWN state */
+    hwp_hpsys_rcc->RSTR2 |= HPSYS_RCC_RSTR2_USBC;
+    HAL_Delay_us(100);
+    hwp_hpsys_rcc->RSTR2 &= ~HPSYS_RCC_RSTR2_USBC;
+    HAL_RCC_DisableModule(RCC_MOD_USBC);
 }
 
 /**
@@ -774,7 +750,7 @@ HAL_StatusTypeDef HAL_PCD_EP_Prepare_Receive(PCD_HandleTypeDef *hpcd, uint8_t ep
         }
     }
     else
-        ep0_state_change(hpcd, HAL_PCD_EP0_TX);
+        ep0_state_change(hpcd, HAL_PCD_EP0_RX);
 
     return HAL_OK;
 }
@@ -1627,5 +1603,3 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
 /**
   * @}
   */
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

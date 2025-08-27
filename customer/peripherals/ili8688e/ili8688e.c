@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   ili8688e.c
-  * @author Sifli software development team
-  * @brief   This file includes the LCD driver for ILI8688E LCD.
-  * @attention
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -53,31 +12,13 @@
 
 #include "log.h"
 
-
-
-
-
-
-
-
-
 #define ROW_OFFSET  (0x00)
 #define COL_OFFSET  (0x00)
-
-
-
-
-
 
 /**
   * @brief ILI8688E chip IDs
   */
 #define THE_LCD_ID                  0x1190a7
-
-
-
-
-
 
 /**
   * @brief  ILI8688E Registers
@@ -97,9 +38,6 @@
 #define REG_CASET              0x2A
 #define REG_RASET              0x2B
 
-
-
-
 #define REG_TEARING_EFFECT     0x35
 
 #define REG_IDLE_MODE_OFF      0x38
@@ -107,40 +45,6 @@
 #define REG_COLOR_MODE         0x3A
 
 #define REG_WBRIGHT            0x51 /* Write brightness*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #define DEBUG
 
@@ -154,15 +58,6 @@
 #define LCD_ALIGN2(x) ((x) = (x) & (~1))
 #define LCD_ALIGN1(x) ((x) = (0 == ((x) & 1)) ? (x - 1) : x)
 
-
-
-
-
-
-
-
-
-
 #ifdef BSP_LCDC_USING_DSI
 
 #if 0//def APP_BSP_TEST  //Keep two data lanes for bsp test
@@ -172,8 +67,6 @@
     #define  ILI8688E_DSI_FREQ       DSI_FREQ_480Mbps
     #define  ILI8688E_DSI_DATALANES  DSI_ONE_DATA_LANE
 #endif /* APP_BSP_TEST */
-
-
 
 static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
 {
@@ -223,7 +116,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
                 .BTATimeout = 0,
             },
 
-
             .LPCmd = {
                 .LPGenShortWriteNoP    = DSI_LP_GSW0P_ENABLE,
                 .LPGenShortWriteOneP   = DSI_LP_GSW1P_ENABLE,
@@ -240,7 +132,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
                 .AcknowledgeRequest    = DSI_ACKNOWLEDGE_DISABLE, //disable LCD error reports
             },
 
-
             .vsyn_delay_us = 0,
         },
     },
@@ -248,7 +139,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
 #endif /* BSP_LCDC_USING_DSI */
 
 #define QAD_SPI_ITF LCDC_INTF_SPI_DCX_4DATA
-
 
 static const LCDC_InitTypeDef lcdc_int_cfg_qadspi =
 {
@@ -273,7 +163,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_qadspi =
     },
 
 };
-
 
 #define MAX_CMD_LEN 6
 
@@ -302,16 +191,13 @@ static void     LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_
 static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8_t ReadSize);
 static void LCD_ReadMode(LCDC_HandleTypeDef *hlcdc, bool enable);
 
-
 #if 0//def DSI_TEST
 MSH_CMD_EXPORT(ILI8688E_Init, ILI8688E_Init);
-
 
 static rt_err_t lcd_rreg(int argc, char **argv)
 {
 
     uint16_t reg, len;
-
 
     reg = strtoul(argv[1], 0, 16);
     len = strtoul(argv[2], 0, 16);
@@ -338,7 +224,6 @@ static rt_err_t lcd_rreg(int argc, char **argv)
 }
 MSH_CMD_EXPORT(lcd_rreg, lcd_rreg);
 
-
 static rt_err_t lcd_wreg(int argc, char **argv)
 {
     uint8_t   parameter[4];
@@ -353,7 +238,6 @@ static rt_err_t lcd_wreg(int argc, char **argv)
         parameter[i - 2] = strtoul(argv[i], 0, 16);
     }
 
-
     LCD_WriteReg(hlcdc, reg, parameter, argc - 2);
     DEBUG_PRINTF("\nILI8688E_Write reg[%x] %d(byte) done.\n", reg, argc - 2);
 
@@ -361,7 +245,6 @@ static rt_err_t lcd_wreg(int argc, char **argv)
 
 }
 MSH_CMD_EXPORT(lcd_wreg, lcd_wreg);
-
 
 uint32_t my_debug_pwl, my_debug_pwh;
 uint8_t  dual_spi_cfg;
@@ -396,10 +279,7 @@ static rt_err_t spi_cfg(int argc, char **argv)
         break;
     }
 
-
     dual_spi_cfg = strtoul(argv[2], 0, 16);
-
-
 
     return 0;
 
@@ -407,16 +287,6 @@ static rt_err_t spi_cfg(int argc, char **argv)
 MSH_CMD_EXPORT(spi_cfg, spi_cfg);
 
 #endif /* DSI_TEST */
-
-
-
-
-
-
-
-
-
-
 
 /**
   * @brief  spi read/write mode
@@ -454,7 +324,6 @@ void LCD_WriteRegMode(LCDC_HandleTypeDef *hlcdc, bool enable)
     }
 }
 
-
 /**
   * @brief  Power on the LCD.
   * @param  None
@@ -479,7 +348,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     LCD_DRIVER_DELAY_MS(3);
     BSP_LCD_Reset(1);
 
-
     /* Wait for 120ms */
     LCD_DRIVER_DELAY_MS(120);
 
@@ -496,7 +364,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     LCD_WriteReg(hlcdc, 0x29, NULL, 0);
     LCD_DRIVER_DELAY_MS(20);
 }
-
 
 /**
   * @brief  Disables the Display.
@@ -517,12 +384,10 @@ static uint32_t LCD_ReadID(LCDC_HandleTypeDef *hlcdc)
     data = LCD_ReadData(hlcdc, 0X0A, 4);
     DEBUG_PRINTF("\nILI8688E_Read0A 0x%x \n", data);
 
-
     data = ((data << 24) & 0xFF000000)
            | ((data <<  8) & 0x00FF0000)
            | ((data >>  8) & 0x0000FF00)
            | ((data >> 24) & 0x000000FF);
-
 
     if (QAD_SPI_ITF == lcdc_int_cfg.lcd_itf)
     {
@@ -607,9 +472,7 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
 {
     uint32_t size;
 
-
     HAL_LCDC_LayerSetData(hlcdc, HAL_LCDC_LAYER_DEFAULT, (uint8_t *)RGBCode, Xpos0, Ypos0, Xpos1, Ypos1);
-
 
     if (0)
     {
@@ -623,7 +486,6 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
         HAL_LCDC_SendLayerData2Reg_IT(hlcdc, REG_WRITE_RAM, 1);
     }
 }
-
 
 /**
   * @brief  Writes  to the selected LCD register.
@@ -667,8 +529,6 @@ static void LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *P
 
 }
 
-
-
 /**
   * @brief  Reads the selected LCD Register.
   * @param  RegValue: Address of the register to read
@@ -701,8 +561,6 @@ static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8
 
     return rd_data;
 }
-
-
 
 static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Ypos)
 {
@@ -744,7 +602,6 @@ static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t
         break;
     }
 
-
     //LCD_WriteReg(hlcdc,REG_COLOR_MODE, parameter, 1);
 
     return ret_v;
@@ -753,7 +610,6 @@ static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t
 #endif
 
 }
-
 
 static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
 {
@@ -795,7 +651,6 @@ static void LCD_SetBrightness(LCDC_HandleTypeDef *hlcdc, uint8_t br)
     LCD_WriteReg(hlcdc, REG_WBRIGHT, &bright, 1);
 }
 
-
 /**
   * @brief  Enable the Display idle mode.
   * @param  None
@@ -817,9 +672,6 @@ static void LCD_IdleModeOff(LCDC_HandleTypeDef *hlcdc)
     /* Idle mode Off */
     LCD_WriteReg(hlcdc, REG_IDLE_MODE_OFF, (uint8_t *)NULL, 0);
 }
-
-
-
 
 static const LCD_DrvOpsDef ILI8688E_drv =
 {
@@ -843,11 +695,3 @@ static const LCD_DrvOpsDef ILI8688E_drv =
 LCD_DRIVER_EXPORT2(ili8688e, THE_LCD_ID, &lcdc_int_cfg,
                    &ILI8688E_drv, 2);
 
-
-
-
-
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

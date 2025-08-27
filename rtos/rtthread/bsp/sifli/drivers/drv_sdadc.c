@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_sdadc.c
-  * @author Sifli software development team
-  * @brief SDADC BSP driver
-  * @{
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <board.h>
@@ -62,7 +21,6 @@
 //#define DRV_DEBUG
 #define LOG_TAG             "drv.sdadc"
 #include <drv_log.h>
-
 
 struct sifli_sdadc
 {
@@ -126,7 +84,6 @@ static const struct rt_adc_ops sifli_sdadc_ops =
     .enabled = sifli_sdadc_enabled,
     .convert = sifli_get_sdadc_value,
 };
-
 
 static int sifli_sdadc_init(void)
 {
@@ -225,7 +182,6 @@ int sdadc_get_vol(uint32_t value)
 
     return vol;
 }
-
 
 //#define DRV_SDADC_TEST
 #ifdef DRV_SDADC_TEST
@@ -437,7 +393,6 @@ uint32_t test_sdadc_diff(uint32_t pre_delay, uint32_t delay, uint32_t interv, ui
 
         sifli_sdadc_obj.SDADC_Handler.Instance->TRIG |= SDADC_TRIG_ADC_START;
 
-
         while ((sifli_sdadc_obj.SDADC_Handler.Instance->CFG0 & SDADC_CFG0_SDADC_DATA_RDY) == 0);
 
         hwp_pmuc->HXT_CR2 &= ~PMUC_HXT_CR2_SDADC_CLKIN_EN;
@@ -461,7 +416,6 @@ uint32_t test_sdadc_diff(uint32_t pre_delay, uint32_t delay, uint32_t interv, ui
 
     return 0;
 }
-
 
 int cmd_sdadc(int argc, char *argv[])
 {
@@ -633,4 +587,4 @@ FINSH_FUNCTION_EXPORT_ALIAS(cmd_sdadc, __cmd_sdadc, Test sdadc driver);
 /// @} bsp_driver
 
 /// @} file
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

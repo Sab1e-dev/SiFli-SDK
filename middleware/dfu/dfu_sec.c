@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   dfu_sec.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2021 - 2021,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2021-2021 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <stdio.h>
@@ -73,7 +34,6 @@ static uint8_t dfu_hash[DFU_SIG_HASH_SIZE];
 /** encoded key */
 ALIGN(4)
 static uint8_t dfu_key[DFU_KEY_SIZE];
-
 
 ALIGN(4)
 static uint8_t g_aes_ctr_iv[DFU_IV_LEN];
@@ -119,12 +79,45 @@ static int dfu_get_efuse_hook(uint8_t id, uint8_t *data, int size)
 
 }
 
+static uint8_t g_fake_sig_pub[DFU_SIG_KEY_SIZE] =
+{
+    0x30, 0x82, 0x01, 0x22, 0x30, 0x0D, 0x06, 0x09, 0x2A, 0x86, 0x48, 0x86,
+    0xF7, 0x0D, 0x01, 0x01, 0x01, 0x05, 0x00, 0x03, 0x82, 0x01, 0x0F, 0x00,
+    0x30, 0x82, 0x01, 0x0A, 0x02, 0x82, 0x01, 0x01, 0x00, 0x8B, 0x5B, 0x29,
+    0x5A, 0x57, 0x3A, 0x7E, 0x98, 0x0A, 0xC5, 0x4E, 0x50, 0x4C, 0x64, 0xFA,
+    0xF2, 0x5B, 0x7B, 0x42, 0x4B, 0x70, 0xD7, 0x75, 0x0F, 0xE5, 0x46, 0x45,
+    0x83, 0x73, 0xB8, 0xE3, 0x53, 0x57, 0x5F, 0xCD, 0xB3, 0xA0, 0x88, 0x8A,
+    0x7E, 0x55, 0xCD, 0xDE, 0x11, 0x51, 0x21, 0x81, 0xE9, 0xB2, 0xAC, 0x28,
+    0x00, 0x90, 0x2D, 0x88, 0x76, 0xD1, 0x0C, 0x8C, 0x62, 0xB6, 0xF6, 0x6F,
+    0xB8, 0x05, 0x07, 0xAE, 0x86, 0x2A, 0x1D, 0x78, 0x5B, 0xA4, 0x7D, 0x32,
+    0xE4, 0x18, 0x03, 0x58, 0xB6, 0xED, 0x54, 0xDC, 0xFB, 0x50, 0xD1, 0x5E,
+    0x4C, 0xF5, 0x9C, 0xC3, 0xBC, 0x27, 0x49, 0xBC, 0x9A, 0x2A, 0x5A, 0x5E,
+    0x9F, 0xB3, 0xF7, 0x47, 0x54, 0x8F, 0xED, 0xDB, 0xCE, 0x58, 0x23, 0xFC,
+    0x27, 0x3D, 0x17, 0xC1, 0x67, 0x80, 0x9A, 0x7D, 0xC2, 0x42, 0xC7, 0x93,
+    0x07, 0x59, 0xDE, 0x8C, 0xDD, 0x4F, 0xD3, 0x7E, 0xAA, 0x0B, 0x91, 0xE9,
+    0x41, 0x4C, 0xF9, 0x03, 0xB9, 0x19, 0x62, 0x12, 0x6F, 0x92, 0xCB, 0x7E,
+    0x45, 0x1E, 0x72, 0xEF, 0xA0, 0x8A, 0x05, 0x14, 0x6B, 0xA0, 0xB9, 0xF8,
+    0x47, 0xAD, 0xA8, 0x90, 0xD6, 0xE6, 0xD4, 0x18, 0x0B, 0xFE, 0x2A, 0x50,
+    0xD8, 0x74, 0x05, 0x98, 0xAF, 0xC5, 0x29, 0x11, 0x80, 0x29, 0x85, 0xC2,
+    0x36, 0xB6, 0xEB, 0x89, 0x3B, 0xDE, 0x37, 0x23, 0xF8, 0xB8, 0xBD, 0xB0,
+    0x94, 0x59, 0x86, 0x5E, 0xD0, 0xC7, 0xEF, 0x86, 0x71, 0x22, 0x31, 0x7D,
+    0x24, 0x47, 0xF6, 0x0D, 0x61, 0xFE, 0x22, 0x86, 0x8E, 0x37, 0x93, 0x6B,
+    0x03, 0xC4, 0x5E, 0xDA, 0x0B, 0xE3, 0x20, 0xFB, 0xD6, 0x0B, 0x90, 0x31,
+    0x8D, 0xEA, 0x1A, 0x9C, 0xB7, 0x4C, 0x54, 0x45, 0x4E, 0x27, 0x65, 0xCA,
+    0xAF, 0xB1, 0xD4, 0xE0, 0xE9, 0xB8, 0xC5, 0x44, 0x7F, 0xAF, 0xC3, 0x34,
+    0xCF, 0x02, 0x03, 0x01, 0x00, 0x01
+};
+
+__WEAK uint8_t *dfu_get_public_key_hook()
+{
+    return &g_fake_sig_pub[0];
+}
 
 static uint8_t *dfu_get_public_key(void)
 {
-    return &g_sec_config->sig_pub_key[0];
+    return dfu_get_public_key_hook();
+    // return &g_sec_config->sig_pub_key[0];
 }
-
 
 static uint8_t dfu_secure_boot_check()
 {
@@ -185,7 +178,6 @@ void dfu_sec_init(void)
         LOG_I("dfu_secure_boot_check");
         g_dfu_efuse_read_hook = dfu_get_efuse_hook;
     }
-
 
 }
 
@@ -264,7 +256,6 @@ void dump_config()
 }
 MSH_CMD_EXPORT(dump_config, Dump system configuration.);
 
-
 uint8_t *dfu_get_counter(uint32_t offset)
 {
     int i;
@@ -334,7 +325,6 @@ int8_t dfu_integrate_verify(uint8_t *in_data, int size, uint8_t *hash)
     return 0;
 #endif
 }
-
 
 uint8_t dfu_img_verification(dfu_ctrl_env_t *env)
 {
@@ -490,7 +480,6 @@ uint8_t dfu_img_verification_ext(dfu_ctrl_ext_env_t *env)
 #endif
 }
 
-
 int dfu_encrypt_packet(dfu_image_header_int_t *header, uint32_t offset, uint8_t *data, uint32_t size, uint8_t *dfu_key)
 {
 #ifdef OTA_55X
@@ -501,7 +490,6 @@ int dfu_encrypt_packet(dfu_image_header_int_t *header, uint32_t offset, uint8_t 
     return DFU_SUCCESS;
 #endif
 }
-
 
 int8_t dfu_ctrl_ctrl_header_sig_verify(dfu_ctrl_env_t *env, uint8_t *packet, uint16_t total_len, uint8_t *sig)
 {
@@ -641,7 +629,6 @@ void dfu_update_img_header_ext(dfu_ctrl_ext_env_t *env)
     free((uint8_t *)cache);
 }
 
-
 void dfu_bootjump_sec_config(dfu_ctrl_env_t *env, uint8_t *dest)
 {
 #if OTA_55X
@@ -746,4 +733,3 @@ uint32_t crc32_update(uint32_t crc, const uint8_t *data, size_t len)
     return crc;
 }
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

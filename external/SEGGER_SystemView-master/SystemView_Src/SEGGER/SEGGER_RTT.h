@@ -167,6 +167,12 @@ unsigned     SEGGER_RTT_PutCharSkipNoLock       (unsigned BufferIndex, char c);
 //
 #define      SEGGER_RTT_HASDATA(n)       (_SEGGER_RTT.aDown[n].WrOff - _SEGGER_RTT.aDown[n].RdOff)
 
+/*
+    For sending data via UART device
+*/
+const void* SEGGER_RTT_GetUpBufferLock      (unsigned BufferIndex, unsigned *BufferSize);
+void  SEGGER_RTT_DropUpBufferLock      (unsigned BufferIndex, unsigned BufferSize);
+unsigned SEGGER_RTT_WriteDownBuffer(unsigned BufferIndex, const void* pBuffer, unsigned NumBytes);
 /*********************************************************************
 *
 *       RTT "Terminal" API functions

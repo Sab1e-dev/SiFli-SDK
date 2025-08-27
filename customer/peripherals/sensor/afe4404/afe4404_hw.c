@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   afe4404_hw.c
-  * @author Sifli software development team
-  * @brief   Control and operation functions for TI AFE 4404
-*
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "afe4404_hw.h"
@@ -83,7 +42,6 @@ volatile int hrvalue, hrskin;
 #define LOG_TAG              "drv.afe"
 #include <drv_log.h>
 
-
 __weak void pps964a_t1_cb(uint32_t x)
 {
 
@@ -94,7 +52,6 @@ __weak int Partron_ALG(double LED1, double AccX, double AccY, double AccZ)
     return 0;
 }
 #endif
-
 
 ////#include "boards.h"
 ////#include "app_util_platform.h"
@@ -111,7 +68,6 @@ __weak int Partron_ALG(double LED1, double AccX, double AccY, double AccZ)
 
 #define PPS_DEBUG(format, ...) // printf (format, ##__VA_ARGS__)
 
-
 #define TRUE 1
 #define FALSE 0
 
@@ -127,12 +83,10 @@ afe_32_bit_data_struct_t afe_32bit_struct1;
 afe_32_RAW_bit_data_struct_t afe_32bit_RAW_struct1;
 afe_data_etc_t etcdata;
 
-
 uint16_t LEDbuffHead = 0 ;
 uint16_t LEDbuffTail = 0 ;
 
 uint8_t afeSettingsExecuted = FALSE;
-
 
 uint32_t liveAFERegister[80] ;
 #define AFE_BUFF_LEN 60 //For LIFEQ
@@ -407,11 +361,7 @@ void PPS960_init(void)
     cnt_y = 0;
     cnt_n = 0;
 
-
-
-
 }
-
 
 uint16_t pps_getHR(void)
 {
@@ -442,9 +392,6 @@ int Min(uint32_t a, uint32_t b)
     else
         return b;
 }
-
-
-
 
 /*************************/
 uint32_t LED2STC_M;
@@ -570,8 +517,6 @@ void Partron_UpdateSamplingRate(uint16_t freq, double duty)
 
     AFE4404_enableWrite();
 
-
-
     for (uint8_t i = 0; i < 60; i++)
     {
         if (tarr[i] != 0)
@@ -639,8 +584,6 @@ void AFE4404_UpdateSamplingRate(uint16_t freq, uint16_t duty, uint16_t clkdiv)
 
     tarr[41] = (tarr[41] & 0xFFFFFFE1) | (2 << 1);     // clkdiv for internal timing - clkdiv of 4 requires the value '2' in 41[1:4]
 
-
-
     for (uint8_t i = 0; i < 60; i++)
     {
         if (tarr[i] != 0)
@@ -652,8 +595,6 @@ void AFE4404_UpdateSamplingRate(uint16_t freq, uint16_t duty, uint16_t clkdiv)
     }
     AFE4404_enableInternalTimer();
 }
-
-
 
 /*
    some points to note
@@ -826,21 +767,17 @@ void AFE4404_UpdateSamplingRate(uint16_t freq, uint16_t duty, uint16_t clkdiv)
 }
 */
 
-
-
 void AFE4404_enableInternalTimer(void)
 {
     uint32_t reg0x1E = AFE4404_getRegisterFromLiveArray(0x1E) | 0x000100;
     AFE4404_writeRegWithWriteEnable(0x1E, reg0x1E);   // Timer Enable <8>
 }
 
-
 //Disable the internal state machine timer
 void AFE4404_disableAFE(void)
 {
     AFE4404_writeRegWithoutWriteEnable(30, 0x000000);   //Timer Enable<8> , ADC averages <3:0>
 }
-
 
 void AFE4404_retrieveRawAFEValues(afe_32_RAW_bit_data_struct_t *afe_RAW_32bitstruct, afe_32_bit_data_struct_t *afe_32bitstruct, afe_data_struct_t *afe_struct)
 {
@@ -868,8 +805,6 @@ void AFE4404_retrieveRawAFEValues(afe_32_RAW_bit_data_struct_t *afe_RAW_32bitstr
     afe_32bitstruct->afeMeasALED2 = afeConvP32(tempVal);
     afe_struct->afeMeasALED2 = afeConvP16(tempVal);
 
-
-
 }
 
 #if 0
@@ -892,7 +827,6 @@ void AFE4404_retrieve32BitAFEValues(afe_32_bit_data_struct_t *afe_32bitstruct, a
     afe_32bitstruct->afeMeasALED2 = afeConvP32(tempVal);
     afe_struct->afeMeasALED2 = afeConvP16(tempVal);
 }
-
 
 void AFE4404_retrieve16BitAFEValues(afe_data_struct_t *afe_struct)
 {
@@ -939,7 +873,6 @@ int32_t afeConvP32(int32_t val)
     return (int32_t)ConvertTemp;
 }
 
-
 uint16_t afeConvP16(int32_t val)
 {
     int32_t ConvertTemp = 0;
@@ -968,7 +901,6 @@ uint16_t afeConvP16(int32_t val)
     return (uint16_t)ConvertTemp;
 }
 
-
 void AFE4404_enableRead(void)
 {
 
@@ -976,26 +908,22 @@ void AFE4404_enableRead(void)
     PPS960_writeReg(0, 1);
 }
 
-
 uint32_t AFE4404_readRegWithReadEnable(uint8_t reg)
 {
     AFE4404_enableRead();
     return (LIFEQTWI_readReg(reg));
 }
 
-
 uint32_t AFE4404_readRegWithoutReadEnable(uint8_t reg)
 {
     return (LIFEQTWI_readReg(reg));
 }
-
 
 void AFE4404_enableWrite(void)
 {
     //set_target_address(0x58);
     PPS960_writeReg(0, 0);
 }
-
 
 void AFE4404_writeRegWithWriteEnable(uint8_t reg, uint32_t registerValue)
 {
@@ -1004,13 +932,11 @@ void AFE4404_writeRegWithWriteEnable(uint8_t reg, uint32_t registerValue)
     liveAFERegister[reg] = registerValue;
 }
 
-
 void AFE4404_writeRegWithoutWriteEnable(uint8_t reg, uint32_t registerValue)
 {
     LIFEQTWI_writeReg(reg, registerValue);
     liveAFERegister[reg] = registerValue;
 }
-
 
 hqret_t AFE4404_setRf(uint8_t rfNum, uint16_t rfValueInKiloOhms)
 {
@@ -1080,7 +1006,6 @@ hqret_t AFE4404_setRf(uint8_t rfNum, uint16_t rfValueInKiloOhms)
     return RET_OK;
 }
 
-
 hqret_t AFE4404_directSetRf(uint8_t rfNum, uint16_t rfValueInKiloOhms)
 {
     uint32_t readValue = 0;
@@ -1149,7 +1074,6 @@ hqret_t AFE4404_directSetRf(uint8_t rfNum, uint16_t rfValueInKiloOhms)
     return RET_OK;
 }
 
-
 uint16_t AFE4404_getRf(uint8_t rfNum)
 {
     uint16_t possibleRf[9] = {500, 250, 100, 50, 25, 10, 1000, 2000};
@@ -1171,7 +1095,6 @@ uint16_t AFE4404_getRf(uint8_t rfNum)
         return 0; //ERROR STATE
     }
 }
-
 
 hqret_t AFE4404_incrementRf(uint8_t channel)
 {
@@ -1199,7 +1122,6 @@ hqret_t AFE4404_incrementRf(uint8_t channel)
     }
     return RET_OK;
 }
-
 
 hqret_t AFE4404_decrementRf(uint8_t channel)
 {
@@ -1365,7 +1287,6 @@ hqret_t AFE4404_setCf(uint8_t cfNum, uint8_t cfValueInPicoFarhadsTimes10)
     return RET_OK;
 }
 
-
 uint8_t AFE4404_getCf(uint8_t cfNum)
 {
     uint8_t possibleCf[9] = {50, 25, 100, 75, 200, 175, 250, 225};
@@ -1389,7 +1310,6 @@ uint8_t AFE4404_getCf(uint8_t cfNum)
         return 0; // ERROR STATE
     }
 }
-
 
 // Channels are : LED1 , LED1 A,LED2 ,  LED2 A
 hqret_t AFE4404_setAmbientCurrent(uint8_t channel, int8_t currentInMicroAmpsTimes10)
@@ -1452,7 +1372,6 @@ hqret_t AFE4404_setAmbientCurrent(uint8_t channel, int8_t currentInMicroAmpsTime
     return RET_OK;
 }
 
-
 // Channels are : LED1 , LED1 A,LED2 ,  LED2 A
 hqret_t AFE4404_directSetAmbientCurrent(uint8_t channel, int8_t currentInMicroAmpsTimes10)
 {
@@ -1514,7 +1433,6 @@ hqret_t AFE4404_directSetAmbientCurrent(uint8_t channel, int8_t currentInMicroAm
     return RET_OK;
 }
 
-
 // Channels are : LED1 , LED1 A ,LED2 , LED2 A
 int8_t AFE4404_getAmbientCurrent(uint8_t channel)
 {
@@ -1570,7 +1488,6 @@ int8_t AFE4404_getAmbientCurrent(uint8_t channel)
     }
 }
 
-
 hqret_t AFE4404_incrementAmbientSubCurrent(uint8_t channel)
 {
     if ((channel == 0) || (channel > 4))
@@ -1588,7 +1505,6 @@ hqret_t AFE4404_incrementAmbientSubCurrent(uint8_t channel)
     }
     return RET_OK;
 }
-
 
 hqret_t AFE4404_decrementAmbientSubCurrent(uint8_t channel)
 {
@@ -1608,7 +1524,6 @@ hqret_t AFE4404_decrementAmbientSubCurrent(uint8_t channel)
     return RET_OK;
 }
 
-
 uint8_t AFE4404_isIsubValid(int8_t currentInMicroAmpsTimes10)
 {
     if (currentInMicroAmpsTimes10 < 0)
@@ -1626,7 +1541,6 @@ uint8_t AFE4404_isIsubValid(int8_t currentInMicroAmpsTimes10)
     }
     return RET_FAIL;
 }
-
 
 hqret_t AFE4404_setLedCurrent(uint8_t ledNumber, uint8_t currentTapSetting)
 {
@@ -1656,7 +1570,6 @@ hqret_t AFE4404_setLedCurrent(uint8_t ledNumber, uint8_t currentTapSetting)
     AFE4404_addWriteCommandToQueue(34, readValue);
     return RET_OK;
 }
-
 
 hqret_t AFE4404_setLedCurrentWithDutyCycleLimitation(uint8_t ledNumber, uint8_t currentTapSetting)
 {
@@ -1740,7 +1653,6 @@ hqret_t AFE4404_setLedCurrentWithDutyCycleLimitation(uint8_t ledNumber, uint8_t 
     return RET_FAIL;
 }
 
-
 hqret_t AFE4404_directSetLedCurrent(uint8_t ledNumber, uint8_t currentTapSetting)
 {
     if (currentTapSetting > 63)
@@ -1770,7 +1682,6 @@ hqret_t AFE4404_directSetLedCurrent(uint8_t ledNumber, uint8_t currentTapSetting
     return RET_OK;
 }
 
-
 uint8_t AFE4404_getLedCurrent(uint8_t ledNumber)
 {
     uint32_t readValue = AFE4404_getRegisterFromLiveArray(34);
@@ -1792,7 +1703,6 @@ uint8_t AFE4404_getLedCurrent(uint8_t ledNumber)
     return (uint8_t)readValue;
 }
 
-
 hqret_t AFE4404_incrementLedCurrent(uint8_t ledNumber)
 {
     if ((ledNumber == 0) || (ledNumber > 3))
@@ -1810,7 +1720,6 @@ hqret_t AFE4404_incrementLedCurrent(uint8_t ledNumber)
     }
     return RET_OK;
 }
-
 
 hqret_t AFE4404_decrementLedCurrent(uint8_t ledNumber)
 {
@@ -1890,7 +1799,6 @@ hqret_t AFE4404_setMaxLedCurrent(uint8_t maxCurrent)
     return RET_OK;
 }
 
-
 void AFE4404_setMaxCurrentMode(uint8_t highPowerEnable)
 {
     uint32_t readRegister = AFE4404_getRegisterFromLiveArray(35);
@@ -1904,7 +1812,6 @@ void AFE4404_setMaxCurrentMode(uint8_t highPowerEnable)
     }
 }
 
-
 void AFE4404_addWriteCommandToQueue(uint8_t reg, uint32_t registerValue)
 {
     LocationsOfRegistersToWrite[AmountOfRegistersToWrite] = reg;
@@ -1912,7 +1819,6 @@ void AFE4404_addWriteCommandToQueue(uint8_t reg, uint32_t registerValue)
     liveAFERegister[reg] = registerValue;
     AmountOfRegistersToWrite++;
 }
-
 
 void AFE4404_serviceAFEWriteQueue(void)
 {
@@ -1933,12 +1839,10 @@ void AFE4404_serviceAFEWriteQueue(void)
     }
 }
 
-
 uint32_t AFE4404_getRegisterFromLiveArray(uint8_t reg)
 {
     return liveAFERegister[reg];
 }
-
 
 void AFE4404_getAFESettingsArr(uint8_t *dataArr)
 {
@@ -1962,7 +1866,6 @@ void AFE4404_getAFESettingsArr(uint8_t *dataArr)
     memcpy(&dataArr[0], &tempArr[0], 6);
 }
 
-
 uint64_t AFE4404_getAFESettingsUint(void)
 {
     // Build a single 44 bit register that represents the following afe settings currently in use:
@@ -1978,7 +1881,6 @@ uint64_t AFE4404_getAFESettingsUint(void)
     settingsRegister |= ((uint64_t)(AFE4404_getRegisterFromLiveArray(32) & 0x07) << 41);         // 3 bits //RF2
     return settingsRegister;
 }
-
 
 // Input uinit64 settings array, returns the Rf value
 uint16_t AFE4404_settingsUintGetRf(uint8_t channel, uint64_t inputArr)
@@ -1997,7 +1899,6 @@ uint16_t AFE4404_settingsUintGetRf(uint8_t channel, uint64_t inputArr)
     }
     return 0;
 }
-
 
 int8_t AFE4404_settingsUintGetIsub(uint8_t channel, uint64_t inputArr)
 {
@@ -2050,7 +1951,6 @@ int8_t AFE4404_settingsUintGetIsub(uint8_t channel, uint64_t inputArr)
     }
 }
 
-
 uint8_t AFE4404_settingsUintGetLedCurrent(uint8_t ledNumber, uint64_t inputArr)
 {
     uint32_t readValue = inputArr & 0x03FFFF;
@@ -2072,7 +1972,6 @@ uint8_t AFE4404_settingsUintGetLedCurrent(uint8_t ledNumber, uint64_t inputArr)
     return (uint8_t)readValue;
 }
 
-
 uint8_t AFE4404_settingsChanged(void)
 {
     if (afeSettingsExecuted)
@@ -2082,7 +1981,6 @@ uint8_t AFE4404_settingsChanged(void)
     }
     return FALSE;
 }
-
 
 hqret_t AFE4404_setNumberOfAverages(uint8_t numAvgs)
 {
@@ -2097,13 +1995,11 @@ hqret_t AFE4404_setNumberOfAverages(uint8_t numAvgs)
     return RET_OK;
 }
 
-
 uint8_t AFE4404_getNumberOfAverages(void)
 {
     uint32_t readRegister = AFE4404_getRegisterFromLiveArray(30);
     return (uint8_t)(readRegister & 0x0f);
 }
-
 
 hqret_t AFE4404_decrementNumberOfAverages(void)
 {
@@ -2113,7 +2009,6 @@ hqret_t AFE4404_decrementNumberOfAverages(void)
     return ret;
 }
 
-
 hqret_t AFE4404_incrementNumberOfAverages(void)
 {
     uint8_t retrievedAvg = AFE4404_getNumberOfAverages();
@@ -2122,14 +2017,12 @@ hqret_t AFE4404_incrementNumberOfAverages(void)
     return ret;
 }
 
-
 hqret_t AFE4404_adjustPRPAndPowerDownCycles(uint16_t updatedPrpValue)
 {
     AFE4404_addWriteCommandToQueue(29, updatedPrpValue);
     AFE4404_addWriteCommandToQueue(51, updatedPrpValue - DPDWAKE);
     return RET_OK;
 }
-
 
 uint32_t AFE4404_getPrpInUse(void)
 {
@@ -2145,8 +2038,6 @@ uint32_t LIFEQTWI_readReg(uint8_t regaddr)
 {
     return PPS960_readReg(regaddr);
 }
-
-
 
 void ClrAccBuffer(void)
 {
@@ -2186,12 +2077,9 @@ uint16_t GetLEDBuffLenth(void)
     return LEDBuffHeadLenth;
 }
 
-
-
 void ALGSH_retrieveSamplesAndPushToQueue(void)
 {
     static uint64_t retrievedAfeSettings = 0;
-
 
     AFE4404_retrieveRawAFEValues(&afe_32bit_RAW_struct1, &afe_32bit_struct1, &afe_struct1);   //Retrieve PPG samples from the AFE
     retrievedAfeSettings = AFE4404_getAFESettingsUint(); // Retrive AFE settings for the current sample set
@@ -2220,7 +2108,6 @@ void ALGSH_retrieveSamplesAndPushToQueue(void)
         tmphead = 0;
     }
 
-
     LED1buffer[tmphead] = afe_struct1.afeMeasLED1;
     LEDA1buffer[tmphead] = afe_struct1.afeMeasALED1;
     LED2buffer[tmphead] = afe_struct1.afeMeasLED2;
@@ -2237,9 +2124,7 @@ void ALGSH_retrieveSamplesAndPushToQueue(void)
     AFE_SettingsBuff[tmphead] = retrievedAfeSettings;
     LEDbuffHead = tmphead;
 
-
 }
-
 
 void ALGSH_dataToAlg()
 {
@@ -2248,7 +2133,6 @@ void ALGSH_dataToAlg()
     if (LEDbuffHead != LEDbuffTail)
     {
         tmptail = (LEDbuffTail + 1);
-
 
         //printf("tmptail");
         if (tmptail >= AFE_BUFF_LEN)
@@ -2274,15 +2158,12 @@ void ALGSH_dataToAlg()
         etcdata.tempRf1 = AFE4404_settingsUintGetRf(1, lastAFEset);
         etcdata.tempRf2 = AFE4404_settingsUintGetRf(2, lastAFEset);
 
-
         etcdata.tempcf1 = AFE4404_getCf(1);
         etcdata.tempcf2 = AFE4404_getCf(2);
 
         etcdata.ledCurrent1 = AFE4404_settingsUintGetLedCurrent(1, lastAFEset);
         etcdata.ledCurrent2 = AFE4404_settingsUintGetLedCurrent(2, lastAFEset);
         etcdata.ledCurrent3 = AFE4404_settingsUintGetLedCurrent(3, lastAFEset);
-
-
 
         alg_input_selection_t stateSelector = PP_HEART_RATE;
 #if 0
@@ -2305,9 +2186,6 @@ void ALGSH_dataToAlg()
                                               LEDA1buffer[LEDbuffTail], LED2buffer[LEDbuffTail], LEDA2buffer[LEDbuffTail],
                                               detectChangeInAfeSettings(AFE_SettingsBuff[LEDbuffTail]));
 
-
-
-
         if ((agcState == AGC_STATE_CALIBRATION) || (agcState == AGC_STATE_CALIBRATION_WAITINGFORADJUSTMENT) || (agcState == AGC_STATE_CALIBRATION_ERRORSTATE))
         {
             stateSelector = PP_CALIBRATION;
@@ -2322,7 +2200,6 @@ void ALGSH_dataToAlg()
             HRM_sample_counts++;
 
         }
-
 
         /*Populate LED samples structs */
 
@@ -2363,7 +2240,6 @@ void ALGSH_dataToAlg()
 //             irLed.led_curr_mAx10 = AFE4404_settingsUintGetLedCurrent(2,AFE_SettingsBuff[LEDbuffTail]) * 16;
 //             irLed.rf_kohm = AFE4404_settingsUintGetRf(2,AFE_SettingsBuff[LEDbuffTail]);
 
-
         //int32_t tmpIrDC = ((0-irLed.isub)*65536/10+irLed.sample-32768)/100;
         //printf("rd,i,rf,cur:%d %d %d %d %d\r\n",irLed.sample,irLed.isub,irLed.rf_kohm,irLed.led_curr_mAx10,tmpIrDC);
         PPS_skin_detect(irLed);   //skin detect rawdata
@@ -2371,7 +2247,7 @@ void ALGSH_dataToAlg()
         PPS_Gled_on_by_skin_etect((uint8_t)hrskin);
         PPS_Gled_auto_ctrl(greenLed);
 //===========================================================================================
-//Ìí¼ÓËã·¨½Ó¿Ú
+//ã·¨Ó¿
 //=============================================================================================
 #ifdef LIFEQ
         //MY_DEBUG_INFO(terminal_0,"skin:%d---green_led_on_flag:%d\r\n",skin,green_led_on_flag);
@@ -2395,7 +2271,6 @@ void ALGSH_dataToAlg()
         lastAFEset = AFE_SettingsBuff[LEDbuffTail];
 
         LEDbuffTail = tmptail;// increase tail index
-
 
     }
 
@@ -2433,7 +2308,6 @@ void PPS_skin_detect(led_sample_t irLed)
     //1uA:400 0000 for ADC Raw data //1uA:56636 for ADC conver uint16
     //IrDc=irLed1.isub*65536/1uA+irLed1.sample-32768
     static int irLed_tmp = 0, old_isub;
-
 
     int32_t tempIrDC = ((0 - irLed.isub) * 65536 / 10 + irLed.sample - 32768) / 100;
     if (tempIrDC > threshold_high)    // threshold high value
@@ -2475,11 +2349,9 @@ void PPS_skin_detect(led_sample_t irLed)
         }
     }
 
-
     int tmp_0x3a = AFE4404_readRegWithReadEnable(0x3a);
     //liveAFERegister[0x3a]
     LOG_D("rd,i,rf,cur:%d %d %d %d %d %d %x %x\r\n", irLed.sample, irLed.isub, irLed.rf_kohm, irLed.led_curr_mAx10, tempIrDC, is_skin, liveAFERegister[0x3a], tmp_0x3a);
-
 
 }
 
@@ -2521,8 +2393,6 @@ void PPS_Gled_on_by_skin_etect(uint8_t onSkin)
     }
 }
 
-
-
 #define GRN_LED_CTRL_CNT 5
 void PPS_Gled_auto_ctrl(led_sample_t grnLed)
 {
@@ -2547,7 +2417,6 @@ void PPS_Gled_auto_ctrl(led_sample_t grnLed)
         GrnLedCnt = 0;
     }
 }
-
 
 static uint8_t detectChangeInAfeSettings(uint64_t settings)
 {
@@ -2622,7 +2491,6 @@ uint16_t AFE4404_getRf_Partron(uint8_t rfNum)
     }
 }
 
-
 int8_t AFE4404_getAmbientCur_Partron(uint8_t channel)
 {
     if ((channel > 4) || (channel == 0))
@@ -2678,14 +2546,11 @@ int8_t AFE4404_getAmbientCur_Partron(uint8_t channel)
     }
 }
 
-
 uint8_t afe4404_getLedCur_Partron(uint8_t channel)
 {
 
     AFE4404_enableRead();
     uint32_t curvalue = AFE4404_readRegWithoutReadEnable(34);
-
-
 
     switch (channel)
     {
@@ -2707,4 +2572,4 @@ uint8_t afe4404_getLedCur_Partron(uint8_t channel)
     return (uint8_t)curvalue;
 }
 #endif
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

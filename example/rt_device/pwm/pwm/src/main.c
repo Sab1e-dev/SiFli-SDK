@@ -64,5 +64,3 @@ int main(void)
     return RT_EOK;
 }
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
-

@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   lvsf_comp.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "stdio.h"
@@ -198,7 +159,6 @@ char *next_char(char *text, char *ch, lv_color_t *color)
     return text;
 }
 
-
 void lvsf_curve_draw_text(lv_obj_t *parent, char *text, int corner_startx, int corner_starty, int angle, int r, lv_color_t color, int size)
 {
     int delta_angle = TEXT_ANGLE;       // Quad 3,4 , show text anti clock-wise
@@ -222,7 +182,6 @@ void lvsf_curve_draw_text(lv_obj_t *parent, char *text, int corner_startx, int c
 #endif
         dsc.font = LV_EXT_FONT_GET(size);
         dsc.color = color;
-
 
         font_width = lv_font_get_glyph_width(dsc.font, '#', '#');
         font_height = lv_font_get_line_height(dsc.font);
@@ -250,7 +209,6 @@ void lvsf_curve_draw_text(lv_obj_t *parent, char *text, int corner_startx, int c
                 dsc.color = color;
                 font_width = lv_font_get_glyph_width(dsc.font, mytext[0], mytext[1]);
                 lv_canvas_set_buffer(canvas, cbuf, font_width, font_height, LV_IMG_CF_TRUE_COLOR);
-
 
                 memset(cbuf, 0, LV_CANVAS_BUF_SIZE_TRUE_COLOR(font_width, font_height));
 #ifdef DISABLE_LVGL_V9
@@ -335,7 +293,6 @@ lv_obj_t *lvsf_curve_text(lv_obj_t *parent, char *text, int pivot_x, int pivot_y
     return parent;
 }
 
-
 void lvsf_canvas_rotate(lv_obj_t *canvas, lv_img_dsc_t *img, int16_t angle, int32_t scale, lv_coord_t offset_x, lv_coord_t offset_y,
                         int32_t pivot_x, int32_t pivot_y)
 {
@@ -357,4 +314,3 @@ void lvsf_canvas_rotate(lv_obj_t *canvas, lv_img_dsc_t *img, int16_t angle, int3
     return;
 }
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

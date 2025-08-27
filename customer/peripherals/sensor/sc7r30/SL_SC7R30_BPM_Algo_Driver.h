@@ -3,6 +3,12 @@
 #define SL_SC7R30_BPM_DRV__H__
 
 
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /************由原厂修改后编译*************/
 /***使用驱动前请根据实际IIC情况进行配置***/
 /**SC7R30的IIC 接口地址类型 7bits：  0****/
@@ -287,4 +293,7 @@ extern unsigned char SL_SC7R30_I2c_Spi_Read(unsigned char reg, unsigned char len
 #endif
 
 
+#ifdef __cplusplus
+}
+#endif
 #endif

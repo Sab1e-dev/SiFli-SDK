@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #ifndef _BF0_PIN_CONST_H
 #define _BF0_PIN_CONST_H
 /** @addtogroup PINMUX

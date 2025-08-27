@@ -3,6 +3,7 @@
  *********************/
 #ifndef _APP_BT_H
 #define _APP_BT_H
+
 #include <rtdevice.h>
 
 /**
@@ -12,6 +13,11 @@
 * @return function execution result @see bt_err_t
 */
 
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 bt_err_t app_bt_search_device_start(void);
 
@@ -87,6 +93,9 @@ bt_err_t app_close_bt(void);
 
 
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* _APP_BT_H */
 
 

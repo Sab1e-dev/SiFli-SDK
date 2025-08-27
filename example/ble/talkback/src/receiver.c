@@ -1,54 +1,14 @@
-/**
-  ******************************************************************************
-  * @file   receiver.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2024 - 2024,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2024-2024 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
-*/
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include <rtthread.h>
 #include <rtdevice.h>
 #include <board.h>
 #include <string.h>
 #include <stdlib.h>
-
 
 #include "bf0_ble_gap.h"
 #include "bf0_sibles.h"
@@ -64,7 +24,6 @@
 #define DEFAULT_SCAN_SLOW_INTERVAL 100 // miniseconds
 #define DEFAULT_SCAN_FAST_INTERVAL 60 // miniseconds
 
-
 typedef enum
 {
     APP_RECV_DEV_STATE_IDLE,
@@ -78,7 +37,6 @@ typedef enum
     APP_RECV_STATE_IDLE,
     APP_RECV_STATE_SYNCING,
 } app_recv_state_t;
-
 
 uint8_t ble_app_scan_enable(void)
 {
@@ -171,7 +129,6 @@ static sync_info_t *ble_app_find_available_sync_dev(app_recv_env_t *r_env, ble_g
     return is_dup ? NULL : dev;
 }
 
-
 static sync_info_t *ble_app_find_sync_dev_by_idx(app_recv_env_t *r_env, uint8_t idx)
 {
     sync_info_t *dev = NULL;
@@ -187,7 +144,6 @@ static sync_info_t *ble_app_find_sync_dev_by_idx(app_recv_env_t *r_env, uint8_t 
 
     return dev;
 }
-
 
 static uint8_t ble_app_sync_dev_created(app_recv_env_t *r_env, uint8_t actv_idx)
 {
@@ -205,7 +161,6 @@ static uint8_t ble_app_sync_dev_created(app_recv_env_t *r_env, uint8_t actv_idx)
     return ret;
 }
 
-
 static uint8_t ble_app_sync_dev_synced(app_recv_env_t *r_env, uint8_t actv_idx)
 {
     sync_info_t *dev = NULL;
@@ -221,7 +176,6 @@ static uint8_t ble_app_sync_dev_synced(app_recv_env_t *r_env, uint8_t actv_idx)
 
     return ret;
 }
-
 
 static uint8_t ble_app_sync_dev_stopped(app_recv_env_t *r_env, uint8_t actv_idx)
 {
@@ -242,7 +196,6 @@ static uint8_t ble_app_sync_dev_stopped(app_recv_env_t *r_env, uint8_t actv_idx)
     return ret;
 }
 
-
 static uint8_t ble_app_sync_dev_deleted(app_recv_env_t *r_env, uint8_t actv_idx)
 {
     sync_info_t *dev = NULL;
@@ -259,7 +212,6 @@ static uint8_t ble_app_sync_dev_deleted(app_recv_env_t *r_env, uint8_t actv_idx)
 
     return ret;
 }
-
 
 static uint8_t ble_app_start_per_adv_sync(uint8_t sync_idx, ble_gap_addr_t *addr, uint8_t adv_sid, uint16_t sync_to)
 {
@@ -301,8 +253,6 @@ static void ble_app_receiver_data_parser(ble_gap_ext_adv_report_ind_t *ind)
     ble_talk_downlink(ind->actv_idx, ind->data, ind->length);
 }
 
-
-
 uint8_t *ble_app_adv_data_found(uint8_t *p_data, uint8_t type, uint16_t *length)
 {
     if (!p_data || !length)
@@ -331,7 +281,6 @@ uint8_t *ble_app_adv_data_found(uint8_t *p_data, uint8_t type, uint16_t *length)
 
     return (p_cursor >= p_end_cursor) ? NULL : (p_cursor + 2);
 }
-
 
 static void ble_app_network_parser(ble_gap_ext_adv_report_ind_t *ind)
 {
@@ -367,7 +316,6 @@ static void ble_app_network_parser(ble_gap_ext_adv_report_ind_t *ind)
         }
     }
 }
-
 
 int ble_app_receiver_event_handler(uint16_t event_id, uint8_t *data, uint16_t len, uint32_t context)
 {
@@ -505,7 +453,6 @@ int ble_app_receiver_event_handler(uint16_t event_id, uint8_t *data, uint16_t le
     return 0;
 }
 
-
 uint8_t ble_app_scan_init()
 {
     uint8_t ret = ble_app_scan_enable();
@@ -522,8 +469,6 @@ static void ble_app_per_sync_check(struct rt_work *work, void *work_data)
         ble_app_stop_per_adv_sync(env->r_env.syncing_idx);
     }
 }
-
-
 
 void ble_app_receviver_init(void)
 {
@@ -611,5 +556,3 @@ int recv(int argc, char *argv[])
     MSH_CMD_EXPORT(recv, receiver commander);
 #endif
 
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

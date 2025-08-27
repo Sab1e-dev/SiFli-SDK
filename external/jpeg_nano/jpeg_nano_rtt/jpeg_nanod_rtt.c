@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   jpeg_nanod_rtt.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -89,22 +50,16 @@
     clock_t dec_start_time = 0;\
     clock_t dec_end_time = 0; \
     clock_t dec_g_start = rt_tick_get();
-    
-
 
 #define START_SW_PERFORMANCE\
         dec_start_time = rt_tick_get();
-
 
 #define END_SW_PERFORMANCE\
         dec_end_time = rt_tick_get();\
         dec_cpu_time += dec_end_time - dec_start_time;
 
-
 #define FINALIZE_SW_PERFORMANCE\
             LOG_I("SW_PERFORMANCE %d, total=%d, CLOCKS_PER_SEC=%d\n", dec_cpu_time, rt_tick_get()- dec_g_start, RT_TICK_PER_SECOND);
-
-
 
 typedef enum
 {
@@ -113,7 +68,6 @@ typedef enum
     ARGI_MAX,
 
 } ARG_IDX;
-
 
 #else
 #define INIT_SW_PERFORMANCE
@@ -127,7 +81,6 @@ static JpegDecInst jpeg;
 static JpegDecImageInfo imageInfo;
 static JpegDecInput jpegIn;
 static JpegDecOutput jpegOut;
-
 
 /* user allocated output */
 static DWLLinearMem_t userAllocLuma;
@@ -170,7 +123,6 @@ static u32 GetLumaSize(JpegDecImageInfo *imageInfo, u32 picMode)
     return sizeLuma;
 }
 
-
 static u32 GetChromaSize(JpegDecImageInfo *imageInfo, u32 picMode)
 {
     u32 sizeChroma, format;
@@ -178,7 +130,6 @@ static u32 GetChromaSize(JpegDecImageInfo *imageInfo, u32 picMode)
 
     format = picMode == 0 ?
              imageInfo->outputFormat : imageInfo->outputFormatThumb;
-
 
     if (format != JPEGDEC_YCbCr400)
     {
@@ -458,12 +409,10 @@ static u32 FindImageInfoEnd(u8 *pStream, u32 streamLength, u32 *pOffset)
     return -1;
 }
 
-
 #ifdef PP_PIPELINE_ENABLED
 
 static PPInst ppInst = NULL;
 static PPConfig ppConf;
-
 
 /*------------------------------------------------------------------------------
     Function name   : pp_set_input_interlaced
@@ -621,14 +570,12 @@ static void pp_api_release2(void *decoder)
         PPRelease(ppInst);
 }
 
-
 static void pp_api_wait()
 {
     PPResult res;
 
     res = PPGetResult(ppInst);
     TC_JPEG_PP_LOG_I("pp_api_wait %s", pp_result2str(res));
-
 
 }
 
@@ -648,7 +595,6 @@ static u32 pp_startup(const void *decInst, u32 decType, const JpegDecImageInfo *
         return 1;
     }
 
-
     if (decInst != NULL && decType != PP_PIPELINE_DISABLED)
     {
         res = PPDecCombinedModeEnable(ppInst, decInst, decType);
@@ -664,8 +610,6 @@ static u32 pp_startup(const void *decInst, u32 decType, const JpegDecImageInfo *
 
     }
 
-
-
     // AllocFrame(&pp.currPp->output);
 
     TC_JPEG_PP_LOG_I("---config PP---\n");
@@ -673,7 +617,6 @@ static u32 pp_startup(const void *decInst, u32 decType, const JpegDecImageInfo *
     {
         int ret = 0;
         PPResult res;
-
 
         PPOutImage *ppOutImg = &ppConf.ppOutImg;
         PPInImage *ppInImg = &ppConf.ppInImg;
@@ -684,13 +627,8 @@ static u32 pp_startup(const void *decInst, u32 decType, const JpegDecImageInfo *
 
         res = PPGetConfig(ppInst, &ppConf);
 
-
         ppInImg->width = ImgInfo->outputWidth;
         ppInImg->height = ImgInfo->outputHeight;
-
-
-
-
 
 #if 0  //In crop
         ppInCrop->enable  = 1;
@@ -699,7 +637,6 @@ static u32 pp_startup(const void *decInst, u32 decType, const JpegDecImageInfo *
 
         ppInCrop->originY = 16   *         2  ;
         ppInCrop->height  = 8 * (2 +         3);
-
 
         ppOutImg->width = ppInCrop->width;
         ppOutImg->height = ppInCrop->height;
@@ -756,7 +693,6 @@ static u32 pp_startup(const void *decInst, u32 decType, const JpegDecImageInfo *
         ppOutRgb->ditheringEnable = 0;
 #endif /* 0 */
 
-
         res = PPSetConfig(ppInst, &ppConf);
 
         /* Restore the PP setup */
@@ -801,7 +737,6 @@ static u32 pp_startup2(const void *decInst, u32 decType, const JpegDecImageInfo 
         return 1;
     }
 
-
     if (decInst != NULL && decType != PP_PIPELINE_DISABLED)
     {
         res = PPDecCombinedModeEnable(ppInst, decInst, decType);
@@ -817,8 +752,6 @@ static u32 pp_startup2(const void *decInst, u32 decType, const JpegDecImageInfo 
 
     }
 
-
-
     // AllocFrame(&pp.currPp->output);
 
     TC_JPEG_PP_LOG_I("---config PP---\n");
@@ -826,7 +759,6 @@ static u32 pp_startup2(const void *decInst, u32 decType, const JpegDecImageInfo 
     {
         int ret = 0;
         PPResult res;
-
 
         PPOutImage *ppOutImg = &ppConf.ppOutImg;
         PPInImage *ppInImg = &ppConf.ppInImg;
@@ -837,13 +769,8 @@ static u32 pp_startup2(const void *decInst, u32 decType, const JpegDecImageInfo 
 
         res = PPGetConfig(ppInst, &ppConf);
 
-
         ppInImg->width = ImgInfo->outputWidth;
         ppInImg->height = ImgInfo->outputHeight;
-
-
-
-
 
 #if 0  //In crop
         ppInCrop->enable  = 1;
@@ -852,7 +779,6 @@ static u32 pp_startup2(const void *decInst, u32 decType, const JpegDecImageInfo 
 
         ppInCrop->originY = 16   *         2  ;
         ppInCrop->height  = 8 * (2 +         3);
-
 
         ppOutImg->width = ppInCrop->width;
         ppOutImg->height = ppInCrop->height;
@@ -924,7 +850,6 @@ static u32 pp_startup2(const void *decInst, u32 decType, const JpegDecImageInfo 
         ppOutRgb->ditheringEnable = 0;
 #endif /* 0 */
 
-
         res = PPSetConfig(ppInst, &ppConf);
 
         /* Restore the PP setup */
@@ -953,10 +878,6 @@ static u32 pp_startup2(const void *decInst, u32 decType, const JpegDecImageInfo 
 
 #endif /* PP_PIPELINE_ENABLED */
 
-
-
-
-
 static uint32_t str2Jpegcf(const char *str)
 {
     if (rt_strncmp(str, "RGB565", 20) == 0)
@@ -970,8 +891,6 @@ static uint32_t str2Jpegcf(const char *str)
         return  UINT32_MAX;
     }
 }
-
-
 
 #if 1
 
@@ -1064,8 +983,6 @@ int jpeg_nanod_decode2(uint8_t *byteStrmStart,
 
 #ifdef PP_PIPELINE_ENABLED
 
-
-
     /* Print API and build version numbers */
     decVer = JpegDecGetAPIVersion();
     decBuild = JpegDecGetBuild();
@@ -1088,7 +1005,6 @@ int jpeg_nanod_decode2(uint8_t *byteStrmStart,
 
     /* check if 8170 HW */
     is8170HW = (decBuild.hwBuild >> 16) == 0x8170U ? 1 : 0;
-
 
     /* after thumnails done ==> decode full images */
 startFullDecode:
@@ -1139,7 +1055,6 @@ startFullDecode:
     TC_JPEG_NANOD_LOG_I("\t-File: MbRows/slice: %d\n", jpegIn.sliceMbSet);
     TC_JPEG_NANOD_LOG_I("\t-File: Buffer size: %d\n", jpegIn.bufferSize);
     TC_JPEG_NANOD_LOG_I("\t-File: Stream size: %d\n", jpegIn.streamLength);
-
 
     /* jump here is frames still left */
 decode:
@@ -1337,7 +1252,6 @@ decode:
         else
             mcuSizeDivider = 1;
 
-        
         if (0 == jpegIn.sliceMbSet)
         {
             JpegDecUpdateSliceMbSet(jpeg, &jpegIn, &imageInfo, amountOfMCUs,
@@ -1364,14 +1278,12 @@ decode:
     }
 #endif
 
-
     START_SW_PERFORMANCE;
     /* decode */
     do
     {
 
         jpegRet = JpegDecDecode(jpeg, &jpegIn, &jpegOut);
-
 
         if (jpegRet == JPEGDEC_FRAME_READY)
         {
@@ -1459,8 +1371,6 @@ error:
     }
 #endif /* 0 */
 
-
-
     /* Thumbnail || full resolution */
     if (!mode)
         TC_JPEG_NANOD_LOG_I("\n\t-JPEG: ++++++++++ FULL RESOLUTION ++++++++++\n");
@@ -1477,24 +1387,10 @@ error:
     TC_JPEG_NANOD_LOG_I("\t-JPEG: Chroma output bus: 0x%16x\n",
                         (u8 *) jpegOut.outputPictureCbCr.busAddress);
 
-
     TC_JPEG_NANOD_LOG_I("PHASE 4: DECODE FRAME successful\n");
-
-
-
-
-
-
-
-
-
-
 
     /******** PHASE 5 ********/
     TC_JPEG_NANOD_LOG_I("\nPHASE 5: OUTPUT\n");
-
-
-
 
 #ifdef PP_PIPELINE_ENABLED
     /* PP test bench will do the operations only if enabled */
@@ -1509,11 +1405,7 @@ error:
 #if 0//def OUTPUT_TO_LCD
     {
 
-
-
         uint16_t x, y;
-
-
 
         uint16_t cf;
 
@@ -1568,30 +1460,16 @@ error:
             x + ppConf.ppOutImg.width - 1,
             y + ppConf.ppOutImg.height - 1);
 
-
         //rt_thread_mdelay(3000);
     }
 #endif /* OUTPUT_TO_LCD */
 
-
-
-
-
-
-
-
-
-
-
     return_status = streamTotalLen;
-
-
 
 end:
 
     /******** PHASE 6 ********/
     TC_JPEG_NANOD_LOG_I("\nPHASE 6: RELEASE JPEG DECODER\n");
-
 
     /* release decoder instance */
     START_SW_PERFORMANCE;
@@ -1613,10 +1491,8 @@ end:
         DWLFreeRefFrm(((JpegDecContainer *) jpeg)->dwl, &userAllocCr);
 #endif /* 0 */
 
-
     JpegDecRelease(jpeg);
     END_SW_PERFORMANCE;
-
 
     TC_JPEG_NANOD_LOG_I("PHASE 6: RELEASE JPEG DECODER successful\n\n");
 #if 0
@@ -1629,12 +1505,9 @@ end:
     }
 #endif /* 0 */
 
-
-
     mpu_dcache_invalidate((void *) out_buf, (int32_t) out_buf_len);
 
     //DWLFreeLinear(((JpegDecContainer *) jpeg)->dwl, &streamMem);
-
 
     FINALIZE_SW_PERFORMANCE;
 
@@ -1646,13 +1519,11 @@ return_:
 
 }
 
-
 int jpeg_nanod_decode_init(void)
 {
     return 0;
 
 }
-
 
 int jpeg_nanod_decode_get_dimension(uint8_t *byteStrmStart, uint32_t streamTotalLen, uint32_t *width, uint32_t *height)
 {
@@ -1677,7 +1548,6 @@ int jpeg_nanod_decode_get_dimension(uint8_t *byteStrmStart, uint32_t streamTotal
     u32 streamBitSwap = 0;
     u32 streamTruncate = 0;
 
-
     JpegDecRet jpegRet;
 
     u32 imageInfoLength = 0;
@@ -1689,8 +1559,7 @@ int jpeg_nanod_decode_get_dimension(uint8_t *byteStrmStart, uint32_t streamTotal
     u32 amountOfMCUs = 0;
     u32 mcuInRow = 0;
     int r;
-   
-    
+
     INIT_SW_PERFORMANCE;
     
     /* reset input,output,imageInfo */
@@ -1727,7 +1596,6 @@ int jpeg_nanod_decode_get_dimension(uint8_t *byteStrmStart, uint32_t streamTotal
     /* check if 8170 HW */
     is8170HW = (decBuild.hwBuild >> 16) == 0x8170U ? 1 : 0;
 
-
     /* after thumnails done ==> decode full images */
 startFullDecode:
 
@@ -1762,11 +1630,8 @@ startFullDecode:
                 
 __init_end:                
 
-
     jpegIn.bufferSize = 0;
-    
-    
-    
+
     /* initialize JpegDecDecode input structure */
     jpegIn.streamBuffer.pVirtualAddress = (u32 *) byteStrmStart;
     jpegIn.streamBuffer.busAddress = (g1_addr_t) byteStrmStart;
@@ -1779,7 +1644,6 @@ __init_end:
     TC_JPEG_NANOD_LOG_I("\t-File: MbRows/slice: %d\n", jpegIn.sliceMbSet);
     TC_JPEG_NANOD_LOG_I("\t-File: Buffer size: %d\n", jpegIn.bufferSize);
     TC_JPEG_NANOD_LOG_I("\t-File: Stream size: %d\n", jpegIn.streamLength);
-    
 
     /* jump here is frames still left */
 __decode:
@@ -1975,7 +1839,6 @@ __decode:
         else
             mcuSizeDivider = 1;
 
-
         if (0 == jpegIn.sliceMbSet)
         {
             JpegDecUpdateSliceMbSet(jpeg, &jpegIn, &imageInfo, amountOfMCUs,
@@ -2000,7 +1863,6 @@ __get_dim_end:
     *height = 0;
     r= 1;
 
-
 __deinit_start:
     TC_JPEG_NANOD_LOG_I("\nPHASE 6: RELEASE JPEG DECODER\n");
 
@@ -2008,7 +1870,6 @@ __deinit_start:
     START_SW_PERFORMANCE;
     JpegDecRelease(jpeg);
     END_SW_PERFORMANCE;
-
 
     TC_JPEG_NANOD_LOG_I("PHASE 6: RELEASE JPEG DECODER successful\n\n");
 
@@ -2049,7 +1910,6 @@ int jpeg_nanod_decode(uint8_t *byteStrmStart,
 
         jpegRet = JpegDecDecode(jpeg, &jpegIn, &jpegOut);
         END_SW_PERFORMANCE;
-
 
         if (jpegRet == JPEGDEC_FRAME_READY)
         {
@@ -2117,8 +1977,6 @@ int jpeg_nanod_decode(uint8_t *byteStrmStart,
     }
     while (jpegRet != JPEGDEC_FRAME_READY);
 
-
-
 #if 0
 
 error:
@@ -2138,8 +1996,6 @@ error:
     }
 #endif /* 0 */
 
-
-
     /* Thumbnail || full resolution */
     if (!mode)
         TC_JPEG_NANOD_LOG_I("\n\t-JPEG: ++++++++++ FULL RESOLUTION ++++++++++\n");
@@ -2156,24 +2012,10 @@ error:
     TC_JPEG_NANOD_LOG_I("\t-JPEG: Chroma output bus: 0x%16x\n",
                         (u8 *) jpegOut.outputPictureCbCr.busAddress);
 
-
     TC_JPEG_NANOD_LOG_I("PHASE 4: DECODE FRAME successful\n");
-
-
-
-
-
-
-
-
-
-
 
     /******** PHASE 5 ********/
     TC_JPEG_NANOD_LOG_I("\nPHASE 5: OUTPUT\n");
-
-
-
 
 #ifdef PP_PIPELINE_ENABLED
     /* PP test bench will do the operations only if enabled */
@@ -2187,11 +2029,7 @@ error:
 #if 0//def OUTPUT_TO_LCD
     {
 
-
-
         uint16_t x, y;
-
-
 
         uint16_t cf;
 
@@ -2246,21 +2084,9 @@ error:
             x + ppConf.ppOutImg.width - 1,
             y + ppConf.ppOutImg.height - 1);
 
-
         //rt_thread_mdelay(3000);
     }
 #endif /* OUTPUT_TO_LCD */
-
-
-
-
-
-
-
-
-
-
-
 
 #ifdef PP_PIPELINE_ENABLED
     pp_api_release2(jpeg);
@@ -2270,20 +2096,14 @@ TC_JPEG_NANOD_LOG_I("\t-JPEG: DECODE DONE\n");
 
 end:
 
-
-
     return_status = 0;
-
 
 return_:
 
     UNUSED(return_status);
     return (int)streamTotalLen;
 
-
 }
-
-
 
 int jpeg_nanod_decode_deinit(void)
 {
@@ -2292,4 +2112,3 @@ int jpeg_nanod_decode_deinit(void)
 
 #endif
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

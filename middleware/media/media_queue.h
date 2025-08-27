@@ -1,9 +1,15 @@
 #ifndef _MEDIA_QUEUE_H_
 #define _MEDIA_QUEUE_H_
 
+
 #include <rtthread.h>
 #include <stdlib.h>
 #include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct
 {
     rt_list_t node;
@@ -56,4 +62,7 @@ static inline void _unlock(media_queue_t *q)
 #define media_queue_add_readed(q, used)   q->bytes_used += used
 
 
+#ifdef __cplusplus
+}
+#endif
 #endif

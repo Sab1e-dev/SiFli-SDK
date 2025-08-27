@@ -11,12 +11,18 @@
 #define _GH3011_EXAMPLE_H_
 
 
+
 #include "gh3011_example_common.h"
 
 
 /**
  * @brief start run mode enum
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum
 {
     GH30X_RUN_MODE_HB = RUN_MODE_ADT_HB_DET,
@@ -54,6 +60,9 @@ void gh30x_module_system_test_otp_check(void);
 /// gh30x module system test os check
 void gh30x_module_system_test_os_start(void);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* _GH3011_EXAMPLE_H_ */
 
 /********END OF FILE********* Copyright (c) 2003 - 2020, Goodix Co., Ltd. ********/

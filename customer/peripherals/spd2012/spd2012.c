@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   rm69090.c
-  * @author Sifli software development team
-  * @brief   This file includes the LCD driver for RM69090 LCD.
-  * @attention
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -53,61 +12,17 @@
 #include "drv_io.h"
 #include "drv_lcd.h"
 
-
 #define  DBG_LEVEL            DBG_INFO //DBG_LOG  //
 #define LOG_TAG              "drv.spd2012"
 #include <drv_log.h>
 #define DEBUG_PRINTF(...)   LOG_I(__VA_ARGS__)
 
-
-
-
-
-
-
-
-
 #define ROW_OFFSET  (0x00)
 #define COL_OFFSET  (0x00)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /*spd2012 start colume & row must can be divided by 4, and roi width&height too.*/
 #define SPD2012_CHECK_START_XY(xy)  RT_ASSERT(0 == ((xy) & 0x3))
 #define SPD2012_CHECK_END_XY(xy)    RT_ASSERT((xy) == ((xy) | 0x3))
-
-
-
-
-
-
-
-
-
-
-
 
 #define QAD_SPI_ITF LCDC_INTF_SPI_DCX_4DATA
 
@@ -141,21 +56,10 @@ static void     LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_
 static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8_t ReadSize);
 static void LCD_ReadMode(LCDC_HandleTypeDef *hlcdc, bool enable);
 
-
-
-
-
-
-
-
-
-
 #ifdef QAD_SPI_USE_GPIO_CS
     void gpio_cs_enable(void);
     void gpio_cs_disable(void);
 #endif /* QAD_SPI_USE_GPIO_CS */
-
-
 
 /**
   * @brief  spi read/write mode
@@ -312,7 +216,6 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     {0x2D, 1, 0x28},//VGHO 28:13V
     {0x2E, 1, 0x1E},//VGLO 1E:-11V
 
-
     lcd_set_page(0xA0), //pageA0
     {0x08, 1, 0xDC},//GVDDP
 
@@ -420,7 +323,6 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     {0x38, 1, 0x03},//L0
     {0x39, 1, 0xf0},
 
-
     lcd_set_page(0x32),//Gamma page32
     {0x00, 1, 0x00},//L255
     {0x01, 1, 0x00},
@@ -504,8 +406,6 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     lcd_set_page(0x43), //page43
     {0x03, 1, 0x04},
 
-
-
     //====20210218 from Elmer for Touch setting
     lcd_set_page(0x50), //page50
     {0x05, 1, 0x00},//(00) 0x08 for touch auto run
@@ -519,24 +419,20 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
 
     //========================
 
-
     lcd_set_page(0x00), //page00
 
     {0x36, 1, 0x00},
     {0x3A, 1, 0x05},
-
 
     {0x35, 1, 0x00},
 
     {0x2A, 4, 0x00, 0x00, 0x01, 0x63},
     {0x2B, 4, 0x00, 0x00, 0x01, 0x8F},
 
-
     {0x11, 1, 0x00}
 };
 
 #else
-
 
 static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
 {
@@ -745,7 +641,6 @@ void HAL_DBG_printf(const char *fmt, ...)
 }
 #endif
 
-
 static void SPD2012_Init_SPI_Mode(LCDC_HandleTypeDef *hlcdc)
 {
     uint8_t   parameter[14];
@@ -758,7 +653,6 @@ static void SPD2012_Init_SPI_Mode(LCDC_HandleTypeDef *hlcdc)
     BSP_LCD_Reset(0);//Reset LCD
     LCD_DRIVER_DELAY_MS(1);
     BSP_LCD_Reset(1);
-
 
     /* Wait for 20ms */
     LCD_DRIVER_DELAY_MS(20);
@@ -781,7 +675,6 @@ static void SPD2012_Init_SPI_Mode(LCDC_HandleTypeDef *hlcdc)
     HAL_LCDC_SetBgColor(hlcdc, 0, 0, 0);
     HAL_LCDC_SendLayerData2Reg(hlcdc, ((0x32 << 24) | (REG_WRITE_RAM << 8)), 4);
     HAL_LCDC_LayerEnable(hlcdc, HAL_LCDC_LAYER_DEFAULT);
-
 
     LCD_WriteReg(hlcdc, 0x29, NULL, 0);
 
@@ -838,7 +731,6 @@ static uint32_t LCD_ReadID(LCDC_HandleTypeDef *hlcdc)
            | ((data <<  8) & 0x00FF0000)
            | ((data >>  8) & 0x0000FF00)
            | ((data >> 24) & 0x000000FF);
-
 
     if (QAD_SPI_ITF == lcdc_int_cfg.lcd_itf)
     {
@@ -929,7 +821,6 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
 
     HAL_LCDC_LayerSetData(hlcdc, HAL_LCDC_LAYER_DEFAULT, (uint8_t *)RGBCode, Xpos0, Ypos0, Xpos1, Ypos1);
 
-
     if (0)
     {
     }
@@ -942,7 +833,6 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
         HAL_LCDC_SendLayerData2Reg_IT(hlcdc, REG_WRITE_RAM, 1);
     }
 }
-
 
 /**
   * @brief  Writes  to the selected LCD register.
@@ -968,8 +858,6 @@ static void LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *P
 #endif /* QAD_SPI_USE_GPIO_CS */
 
 }
-
-
 
 /**
   * @brief  Reads the selected LCD Register.
@@ -1003,8 +891,6 @@ static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8
 
     return rd_data;
 }
-
-
 
 static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Ypos)
 {
@@ -1048,18 +934,15 @@ static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t
         break;
     }
 
-
     //LCD_WriteReg(hlcdc,REG_COLOR_MODE, parameter, 1);
 
     return ret_v;
 #endif /* 0 */
 }
 
-
 static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
 {
     uint8_t   parameter[2];
-
 
     return;
 
@@ -1095,8 +978,6 @@ static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
     HAL_LCDC_SetOutFormat(hlcdc, lcdc_int_cfg.color_mode);
 }
 
-
-
 static void LCD_SetBrightness(LCDC_HandleTypeDef *hlcdc, uint8_t br)
 {
     //uint8_t bright = (uint8_t)((int)SPD2012_BRIGHTNESS_MAX * br / 100);
@@ -1115,9 +996,7 @@ static void LCD_SetBrightness(LCDC_HandleTypeDef *hlcdc, uint8_t br)
         LOG_E("Can't find device lcdlight!");
     }
 
-
 }
-
 
 static const LCD_DrvOpsDef SPD2012_drv =
 {
@@ -1139,7 +1018,6 @@ static const LCD_DrvOpsDef SPD2012_drv =
 };
 LCD_DRIVER_EXPORT2(SPD2012, THE_LCD_ID, &lcdc_int_cfg,
                    &SPD2012_drv, 4);
-
 
 /****************************************************************************************************/
 
@@ -1172,7 +1050,6 @@ static rt_err_t spd2012tp_i2c_write(uint8_t *buf, uint16_t len)
     }
     return res;
 }
-
 
 static rt_err_t spd2012tp_i2c_read(uint8_t *buf, uint16_t len)
 {
@@ -1215,7 +1092,6 @@ static rt_size_t spd2012tp_i2c_xfer(uint8_t *reg, uint16_t wlen, uint8_t *rbuf, 
     return res;
 }
 
-
 void spd2012tp_reset(void)
 {
     struct rt_device_pin_mode m;
@@ -1257,8 +1133,6 @@ void spd2012tp_reset(void)
 
 }
 
-
-
 static void spd2012tp_get_pos(touch_msg_t p_msg, uint8_t *reg, uint8_t reg_len, uint8_t *rdbuf, uint8_t rd_len)
 {
     reg[0] = 0x00;
@@ -1294,9 +1168,7 @@ static void spd2012tp_get_pos(touch_msg_t p_msg, uint8_t *reg, uint8_t reg_len, 
 
     LOG_D("spd2012tp_get_pos  state %d,   x %d y %d", p_msg->event, p_msg->x, p_msg->y);
 
-
 }
-
 
 void spd2012tp_irq_handler(void *arg)
 {
@@ -1309,7 +1181,6 @@ void spd2012tp_irq_handler(void *arg)
     ret = rt_sem_release(spd2012tp_driver.isr_sem);
     RT_ASSERT(RT_EOK == ret);
 }
-
 
 static rt_err_t read_point(touch_msg_t p_msg)
 {
@@ -1368,7 +1239,6 @@ static rt_err_t read_point(touch_msg_t p_msg)
         for (retry = 10; retry > 0; retry--, rt_thread_mdelay(20))
         {
             spd2012tp_i2c_xfer(&reg[0], sizeof(reg), &rbuf[0], sizeof(rbuf));
-
 
             if (rbuf[1] == 0x30)
             {
@@ -1472,11 +1342,9 @@ static rt_err_t init(void)
 
     ret = rt_device_open(device, RT_DEVICE_OFLAG_RDWR);
 
-
     /* Setup touch irq pin */
     rt_touch_irq_pin_attach(PIN_IRQ_MODE_FALLING, spd2012tp_irq_handler, NULL);
     rt_touch_irq_pin_enable(1); //Must enable before read I2C
-
 
     /* Send reset pulse */
     m.pin = SPD2012_TP_RST;
@@ -1521,7 +1389,6 @@ static rt_bool_t probe(void)
 {
     rt_err_t err;
 
-
     spd2012tp_i2c_bus = (struct rt_i2c_bus_device *)rt_device_find(TOUCH_DEVICE_NAME);
     if (RT_Device_Class_I2CBUS != spd2012tp_i2c_bus->parent.type)
     {
@@ -1549,12 +1416,10 @@ static rt_bool_t probe(void)
         rt_i2c_configure(spd2012tp_i2c_bus, &configuration);
     }
 
-
     LOG_I("spd2012tp probe OK");
 
     return RT_TRUE;
 }
-
 
 static struct touch_ops ops =
 {
@@ -1562,7 +1427,6 @@ static struct touch_ops ops =
     init,
     deinit
 };
-
 
 static int rt_spd2012tp_init(void)
 {
@@ -1579,12 +1443,3 @@ static int rt_spd2012tp_init(void)
 INIT_COMPONENT_EXPORT(rt_spd2012tp_init);
 #endif /* BSP_USING_TOUCHD */
 
-
-
-
-
-
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

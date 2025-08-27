@@ -17,14 +17,18 @@
     #define GPIO_IRQn GPIO2_IRQn
     #define hwp_gpio hwp_gpio2
     #define RCC_MOD_GPIO RCC_MOD_GPIO2
+#elif defined(SF32LB56X)
+    #define Pin_Out 20
+    #define Pin_In 12
+    #define GPIO_IRQn GPIO1_IRQn
+    #define hwp_gpio hwp_gpio1
+    #define RCC_MOD_GPIO RCC_MOD_GPIO1
 #endif
-
 
 void delayms(unsigned short int ms)
 {
     HAL_Delay(ms);
 }
-
 
 /// @brief Initialization work before power on EEPROM
 /// @param
@@ -37,6 +41,9 @@ void gpio_init(void)
 #elif defined(SF32LB58X)
     HAL_PIN_Set(PAD_PB00 + Pin_Out, GPIO_B0 + Pin_Out, PIN_PULLUP, 0);
     HAL_PIN_Set(PAD_PB00 + Pin_In, GPIO_B0 + Pin_In, PIN_PULLDOWN, 0);
+#elif defined(SF32LB56X)
+    HAL_PIN_Set(PAD_PA00 + Pin_Out, GPIO_A0 + Pin_Out, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA00 + Pin_In, GPIO_A0 + Pin_In, PIN_PULLDOWN, 1);
 #endif
 
     // 2. gpio init
@@ -79,9 +86,6 @@ void gpio_test(void)
     rt_thread_mdelay(1000);
 }
 
-
-
-
 void HAL_GPIO_EXTI_Callback(GPIO_TypeDef *hgpio, uint16_t GPIO_Pin) // override the weak Callback to add user defined action, it's called by HAL_GPIO_EXTI_IRQHandler
 {
     if (GPIO_Pin == Pin_In)
@@ -93,7 +97,6 @@ void HAL_GPIO_EXTI_Callback(GPIO_TypeDef *hgpio, uint16_t GPIO_Pin) // override 
         rt_kprintf(" \n");
     }
 }
-
 
 /**
   * @brief  Main program
@@ -111,6 +114,4 @@ int main(void)
     }
     return 0;
 }
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

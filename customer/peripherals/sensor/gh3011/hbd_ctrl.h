@@ -13,9 +13,15 @@
 #ifndef __HBD_CTRL_H__
 #define __HBD_CTRL_H__
 
+
 #ifndef __HBD_HB_ENABLE__
     #define __HBD_HB_ENABLE__ (1)
 #endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef __HBD_HRV_ENABLE__
     #define __HBD_HRV_ENABLE__ (1)
 #endif
@@ -1167,6 +1173,10 @@ GU8 HBD_AdtConfirmCalculateByFifoIntDbgOutputData(ST_GS_DATA_TYPE stGsAxisValue[
 // void HBD_HbCalculateByFifoIntTestInit();
 
 // GU8 HBD_HbCalculateByFifoIntTest();
+
+#ifdef __cplusplus
+}
+#endif
 #endif /* __HBD_CTRL_H__ */
 
 /********END OF FILE********* (C) COPYRIGHT 2018 .********/

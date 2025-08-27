@@ -20,13 +20,27 @@
 + 手机设备。
 
 ### menuconfig配置
-1. 使能蓝牙(`BLUETOOTH`)：\
-![BLUETOOTH](./assets/bluetooth.png)
-2. 使能GAP, GATT Client, BLE connection manager：\
-![BLE MIX](./assets/gap_gatt_ble_cm.png)
-3. 使能NVDS：\
-![NVDS](./assets/bt_nvds.png)
-
+1. 使能蓝牙(`BLUETOOTH`)：
+    - 路径：Sifli middleware → Bluetooth
+    - 开启：Enable bluetooth
+        - 宏开关：`CONFIG_BLUETOOTH`
+        - 作用：使能蓝牙功能
+2. 使能GAP, GATT Client, BLE connection manager：
+    - 路径：Sifli middleware → Bluetooth → Bluetooth service → BLE service
+    - 开启：Enable BLE GAP central role
+        - 宏开关：`CONFIG_BLE_GAP_CENTRAL`
+        - 作用：作为BLE CENTRAL（中心设备）的开关，打开后，提供扫描和主动发起与外设（Peripheral）的连接功能。
+    - 开启：Enable BLE GATT client
+        - 宏开关：`CONFIG_BLE_GATT_CLIENT`
+        - 作用：GATT CLIENT的开关，打开后，可以主动搜索发现服务，读/写数据，接收通知。
+    - 开启：Enable BLE connection manager
+        - 宏开关：`CONFIG_BSP_BLE_CONNECTION_MANAGER`
+        - 作用：提供BLE连接控制管理，包括多连接管理，BLE配对，链路连接参数更新等内容。
+3. 使能NVDS：
+    - 路径：Sifli middleware → Bluetooth → Bluetooth service → Common service
+    - 开启：Enable NVDS synchronous
+        - 宏开关：`CONFIG_BSP_BLE_NVDS_SYNC`
+        - 作用：蓝牙NVDS同步。当蓝牙被配置到HCPU时，BLE NVDS可以同步访问，打开该选项；蓝牙被配置到LCPU时，需要关闭该选项。
 
 ### 编译和烧录
 切换到例程project/common目录，运行scons命令执行编译：
@@ -56,8 +70,8 @@ please input the serial port num:5
 <!-- 对于rt_device的示例，rt-thread官网文档提供的较详细说明，可以在这里添加网页链接，例如，参考RT-Thread的[RTC文档](https://www.rt-thread.org/document/site/#/rt-thread-version/rt-thread-standard/programming-manual/device/rtc/rtc) -->
 
 ## 更新记录
-|版本 |日期   |发布说明 |
-|:---|:---|:---|
-|0.0.1 |02/2025 |初始版本 |
-| | | |
-| | | |
+| 版本  | 日期    | 发布说明 |
+| :---- | :------ | :------- |
+| 0.0.1 | 02/2025 | 初始版本 |
+|       |         |          |
+|       |         |          |

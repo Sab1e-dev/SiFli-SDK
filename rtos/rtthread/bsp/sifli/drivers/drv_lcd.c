@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_lcd.c
-  * @author Sifli software development team
-  * @brief  Enables the Display.
-  *
-* *****************************************************************************
-**/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -65,13 +24,10 @@
     #include "drv_lcd_fb.h"
 #endif /* BSP_USING_LCD_FRAMEBUFFER */
 
-
 #define  DBG_LEVEL            DBG_INFO  //DBG_LOG //
 
 #define LOG_TAG                "drv.lcd"
 #include "log.h"
-
-
 
 #if defined(SOC_BF0_HCPU)&&!defined(BSP_USE_LCDC2_ON_HPSYS)
     #define DRV_LCD_USE_LCDC1
@@ -97,7 +53,6 @@
         #define COMPRESSED_FRAME_BUF_FMT  EXTDMA_CMPRCR_SRCFMT_ARGB8888
     #endif
 
-
     #define SRC_FRAME_BUF_BPP LV_COLOR_DEPTH
     #define MAX_SRC_FRAMEBUFFER_BYTES (FB_ALIGNED_HOR_RES * LV_VER_RES_MAX * LV_COLOR_DEPTH / 8)
     #define MAX_LINEBUFFER_BYTES (FB_ALIGNED_HOR_RES * LV_COLOR_DEPTH / 8)
@@ -116,12 +71,7 @@
     #define MAX_LINEBUFFER_BYTES        (454*SRC_FRAME_BUF_BPP/8)
     #define MAX_LINE_NUM                (454)
 
-
-
 #endif /*PKG_USING_LITTLEVGL2RTT && LV_FRAME_BUF_SCHEME_0*/
-
-
-
 
 #ifdef COPY2COMPRESS_FB_AND_SEND
 
@@ -149,16 +99,12 @@
     #error "wrong compression rate"
 #endif
 
-
-
 typedef enum
 {
     FRAME_BUF_EMPTY,
     FRAME_BUF_HALF_FULL,
     FRAME_BUF_FULL
 } frame_buf_status_t;
-
-
 
 typedef struct
 {
@@ -183,10 +129,8 @@ typedef struct
     const char *dma_copy_src_buf;  //Current DMA copy buf source
 } frame_buf_ctx_t;
 
-
 static frame_buf_ctx_t compress_fb_ctx;
 static uint8_t cmpr_rate = FRAME_BUF_CMPR_RATE;
-
 
 L2_NON_RET_BSS_SECT_BEGIN(comp_frambuf)
 L2_NON_RET_BSS_SECT(comp_frambuf, ALIGN(4) static uint32_t compress_buf1[COMPRESS_BUF_SIZE_IN_WORDS + 1 /*Overflow flag*/]);
@@ -197,7 +141,6 @@ L2_NON_RET_BSS_SECT_END
 
 #define EventStartA(v) //rt_kprintf("EventStartA <<<<<<<<<<<<<  %d \r\n", v)
 #define EventStopA(v)  //rt_kprintf("EventStopA >>>>>>>>>>>   %d \r\n", v)
-
 
 static void copy2compress_fb_init(void);
 static void copy2compress_fb_deinit(void);
@@ -214,12 +157,10 @@ static rt_err_t try_flush_pending_buf(void);
 
 #endif /* COPY2COMPRESS_FB_AND_SEND */
 
-
 L1_NON_RET_BSS_SECT_BEGIN(drv_lcd_stack)
 ALIGN(RT_ALIGN_SIZE)
 L1_NON_RET_BSS_SECT(drv_lcd_stack, static uint8_t drv_lcd_stack[2048]);
 L1_NON_RET_BSS_SECT_END
-
 
 static LCD_DrvTypeDef drv_lcd;
 
@@ -237,7 +178,6 @@ static LCD_DrvTypeDef drv_lcd;
         #define SRAM_BUF_MAGIC_NUM (0xabcdefaa)
         #define SRAM_BUF_TOTAL_WORDS  SRAM_BUF_1LINE_WORDS + 1 /*overwrite examination*/
 
-
         static uint32_t *sram_data0 = NULL;
         static uint32_t *sram_data1 = NULL;
     #endif /* BSP_LCDC_USING_DPI */
@@ -249,15 +189,11 @@ static LCD_DrvTypeDef drv_lcd;
     #endif
     #define IS_DMA_FRIENDLY_SRAM_RANGE(p, len)        (IS_DMA_FRIENDLY_SRAM((uint32_t)p) && IS_DMA_FRIENDLY_SRAM(((uint32_t)p) + (len)))
 
-
 #endif /* BSP_USING_RAMLESS_LCD */
-
 
 RETM_BSS_SECT_BEGIN(lcd_idle_status)
 static uint8_t lcd_idle_status;
 RETM_BSS_SECT_END
-
-
 
 static void lcd_display_on(void);
 static void lcd_display_off(void);
@@ -271,13 +207,11 @@ static void lcd_idlemode_off(void);
 static void lcd_rotate(uint16_t degree);
 static void lcd_task(void *param);
 
-
 #ifdef BSP_USING_BOARD_MPW_EVB
 
     #define  LCD_BACKLIGHT_POWER_PIN    1
 
 #endif
-
 
 #define WAIT_SEMA_TIMEOUT()  do{\
     lcd_driver_print_error_info(); \
@@ -309,6 +243,8 @@ static const char *lcd_s_name(uint32_t s)
         return "INITIALIZED";
     case LCD_STATUS_DISPLAY_ON:
         return "ON";
+    case LCD_STATUS_DISPLAY_OFF_PENDING:
+        return "OFF_PENDING";
     case LCD_STATUS_DISPLAY_OFF:
         return "OFF";
     case LCD_STATUS_DISPLAY_TIMEOUT:
@@ -338,7 +274,6 @@ static void set_drv_lcd_state(uint32_t new_state)
     }
     rt_hw_interrupt_enable(mask);
 
-
     if (old_state != new_state)
     {
         LOG_I("[%s] -> [%s]", lcd_s_name(old_state), lcd_s_name(new_state));
@@ -366,7 +301,6 @@ static char *lcd_msg_to_name(LCD_MsgIdDef msg)
         EVENT_TO_NAME_CASE(LCD_MSG_SET_PIXEL);
         EVENT_TO_NAME_CASE(LCD_MSG_GET_PIXEL);
 
-
     default:
         return "UNKNOW";
     }
@@ -374,15 +308,11 @@ static char *lcd_msg_to_name(LCD_MsgIdDef msg)
 
 #ifdef QAD_SPI_USE_GPIO_CS
 
-
 void gpio_cs_init(void)
 {
     rt_pin_mode(QAD_SPI_USE_GPIO_CS, PIN_MODE_OUTPUT);
     rt_pin_write(QAD_SPI_USE_GPIO_CS, 1);
 }
-
-
-
 
 void gpio_cs_enable(void)
 {
@@ -395,7 +325,6 @@ void gpio_cs_disable(void)
 }
 #endif /* QAD_SPI_USE_GPIO_CS */
 
-
 LCDC_HandleTypeDef *get_drv_lcd_handler(void)
 {
     return &drv_lcd.hlcdc;
@@ -406,7 +335,6 @@ static rt_err_t api_lock(LCD_DrvTypeDef *p_drvlcd)
     rt_err_t err;
 #define MAX_LCD_API_TIME  (10*1000)  /*10 seconds should be enough for LCD initialization.*/
     err = rt_sem_take(&(p_drvlcd->sem), rt_tick_from_millisecond(MAX_LCD_API_TIME));
-
 
     return err;
 }
@@ -480,10 +408,8 @@ static rt_err_t send_msg_to_lcd_task(LCD_MsgTypeDef *msg)
         }
     }
 
-
     return err;
 }
-
 
 static void enable_low_power(LCD_DrvTypeDef *p_drvlcd)
 {
@@ -502,7 +428,6 @@ static void enable_low_power(LCD_DrvTypeDef *p_drvlcd)
     LOG_D("LCDC Enter lowpower mode done.");
 }
 
-
 static void disable_low_power(LCD_DrvTypeDef *p_drvlcd)
 {
     HAL_StatusTypeDef err;
@@ -515,9 +440,6 @@ static void disable_low_power(LCD_DrvTypeDef *p_drvlcd)
     }
 }
 
-
-
-
 #ifdef BSP_USING_LCDC
 static void SendLayerDataCpltCbk(LCDC_HandleTypeDef *lcdc)
 {
@@ -529,7 +451,6 @@ static void SendLayerDataCpltCbk(LCDC_HandleTypeDef *lcdc)
     {
         rt_err_t err;
         lcdc->XferCpltCallback = NULL;
-
 
         err = rt_sem_release(&p_drvlcd->draw_sem);
         RT_ASSERT(RT_EOK == err);
@@ -558,18 +479,13 @@ static void SendLineDoneCpltCbk(LCDC_HandleTypeDef *lcdc, uint32_t lines)
 }
 #endif /* LCDC_SUPPORT_LINE_DONE_IRQ */
 
-
-
 static void SendLayerDataErrCbk(LCDC_HandleTypeDef *lcdc)
 {
     LOG_E("SendLayerData Error");
     lcd_driver_print_error_info();
 }
 
-
-
 #endif
-
 
 static lcd_drv_desc_t *find_right_driver(void)
 {
@@ -646,7 +562,6 @@ static rt_err_t api_lcd_init(rt_device_t dev)
 {
     drv_lcd.brightness = MAX_BRIGHTNESS_LEVEL / 2;
     rt_sem_init(&drv_lcd.sem, "drv_lcd", 1, RT_IPC_FLAG_FIFO);
-
 
     drv_lcd.mq = rt_mq_create("drv_lcd", sizeof(LCD_MsgTypeDef), 4, RT_IPC_FLAG_FIFO);
     RT_ASSERT(drv_lcd.mq);
@@ -791,7 +706,6 @@ static rt_err_t lcd_hw_open(void)
     LOG_I("HW open");
     BSP_LCD_PowerUp();
 
-
 #ifdef QAD_SPI_USE_GPIO_CS
     gpio_cs_init();
 #endif /* QAD_SPI_USE_GPIO_CS */
@@ -812,9 +726,6 @@ static rt_err_t lcd_hw_open(void)
         if (drv_lcd.p_drv_ops->p_ops->Init != NULL)
             drv_lcd.p_drv_ops->p_ops->Init(&drv_lcd.hlcdc);
     }
-
-
-
 
     if (drv_lcd.p_drv_ops)
     {
@@ -838,8 +749,6 @@ static rt_err_t lcd_hw_open(void)
 #endif /* BSP_LCDC1_USE_LCDC2_TE */
 
     }
-
-
 
 #ifdef HAL_DSI_MODULE_ENABLED
     if (drv_lcd.p_drv_ops && HAL_LCDC_IS_DSI_IF(drv_lcd.hlcdc.Init.lcd_itf))
@@ -890,12 +799,9 @@ static rt_err_t lcd_hw_close(void)
 {
     LOG_I("HW close");
 
-
 #ifdef LCD_USE_GPIO_TE
     rt_pin_irq_enable(LCD_USE_GPIO_TE, 0);
 #endif /* LCD_USE_GPIO_TE */
-
-
 
     HAL_LCDC_DeInit(&drv_lcd.hlcdc);
 
@@ -908,7 +814,6 @@ static rt_err_t lcd_hw_close(void)
 
     return RT_EOK;
 }
-
 
 static rt_err_t api_lcd_open(rt_device_t dev, rt_uint16_t oflag)
 {
@@ -1041,7 +946,6 @@ static void lcd_driver_print_error_info(void)
 
             LOG_E(" PTC_MEM4=%x, DMA_TC8=%x", hwp_ptc1->MEM4, hwp_dmac1->CM0AR8);
 
-
             LOG_E("BTIM1 CR=%x, PSC=%x,ARR=%x, EGR=%x", hwp_btim1->CR1, hwp_btim1->PSC, hwp_btim1->ARR, hwp_btim1->EGR);
             LOG_E("BTIM2 CR=%x, PSC=%x,ARR=%x, EGR=%x", hwp_btim2->CR1, hwp_btim2->PSC, hwp_btim2->ARR, hwp_btim2->EGR);
 
@@ -1141,8 +1045,6 @@ typedef struct _lcd_mode_desc_s
     uint32_t lcd_dev_color_format;
 } lcd_mode_desc_t;
 
-
-
 /**
  * @brief
  * @param bright - [0~100]  0-close backlight， 100-all backlight on
@@ -1164,10 +1066,8 @@ static rt_err_t lcd_set_brightness(uint8_t bright)
     }
     drv_lcd.brightness = bright;
 
-
     return RT_EOK;
 }
-
 
 static rt_err_t api_lcd_control(rt_device_t dev, int cmd, void *args)
 {
@@ -1175,7 +1075,6 @@ static rt_err_t api_lcd_control(rt_device_t dev, int cmd, void *args)
     {
         return RT_EOK;
     }
-
 
     if (RTGRAPHIC_CTRL_GET_BUSY == cmd)
     {
@@ -1221,15 +1120,12 @@ static rt_err_t api_lcd_control(rt_device_t dev, int cmd, void *args)
                 }
 #endif /* BSP_USING_LCD_FRAMEBUFFER */
 
-
-
                 *(bool *)args = (drv_lcd.mq->entry != 0) ? true : false;
             }
             else
             {
                 RT_ASSERT(0);
             }
-
 
         }
         return RT_EOK;
@@ -1249,7 +1145,6 @@ static rt_err_t api_lcd_control(rt_device_t dev, int cmd, void *args)
 
         return RT_EOK;
     }
-
 
     if (RT_DEVICE_CTRL_RESUME == cmd)
     {
@@ -1277,8 +1172,6 @@ static rt_err_t api_lcd_control(rt_device_t dev, int cmd, void *args)
 
         return RT_EOK;
     }
-
-
 
     LCD_MsgTypeDef msg;
     switch (cmd)
@@ -1335,12 +1228,10 @@ static rt_err_t api_lcd_control(rt_device_t dev, int cmd, void *args)
         break;
     }
 
-
     msg.driver = &drv_lcd;
     send_msg_to_lcd_task(&msg);
     return RT_EOK;
 }
-
 
 static rt_err_t exe_lcd_control_cmds(rt_device_t dev, int cmd, void *args)
 {
@@ -1478,16 +1369,12 @@ static rt_err_t exe_lcd_control_cmds(rt_device_t dev, int cmd, void *args)
         /* nothong to be done */
         break;
 
-
-
-
     case RTGRAPHIC_CTRL_GET_STATE:
     {
         RT_ASSERT(args != NULL);
         *((LCD_DrvStatusTypeDef *)args) = drv_lcd.status;
         break;
     }
-
 
     case RTGRAPHIC_CTRL_ROTATE_180:
     {
@@ -1515,7 +1402,6 @@ static rt_err_t exe_lcd_control_cmds(rt_device_t dev, int cmd, void *args)
         }
     }
     break;
-
 
         /**********************************************/
         /******************Test only  START**********/
@@ -1545,7 +1431,6 @@ static rt_err_t exe_lcd_control_cmds(rt_device_t dev, int cmd, void *args)
         }
         break;
 #endif /* COPY2COMPRESS_FB_AND_SEND */
-
 
     case SF_GRAPHIC_CTRL_LCDC_OUT_FORMAT:
         if (args)
@@ -1613,7 +1498,6 @@ static void api_lcd_get_pixel(char *pixel, int x, int y)
     }
 }
 
-
 static rt_err_t draw_core(LCD_DrvTypeDef *p_drvlcd, const uint8_t *pixels, int x0, int y0, int x1, int y1)
 {
     rt_err_t err = RT_ERROR;
@@ -1653,14 +1537,11 @@ static rt_err_t draw_core(LCD_DrvTypeDef *p_drvlcd, const uint8_t *pixels, int x
 
         LOG_D("draw_core %x, [%d,%d,%d,%d]", pixels, x0, y0, x1, y1);
 
-
 #ifdef RT_USING_PM
         rt_pm_request(PM_SLEEP_MODE_IDLE);
         rt_pm_hw_device_start();
 #endif  /* RT_USING_PM */
         disable_low_power(p_drvlcd);
-
-
 
         int new_x0, new_x1, new_y0, new_y1;//Layer coordinates
         new_x0 = x0;
@@ -1734,7 +1615,6 @@ static rt_err_t draw_core(LCD_DrvTypeDef *p_drvlcd, const uint8_t *pixels, int x
 #endif
 #endif
 
-
         //Start async send
         if (RT_EOK == err)
         {
@@ -1754,11 +1634,8 @@ static rt_err_t draw_core(LCD_DrvTypeDef *p_drvlcd, const uint8_t *pixels, int x
             p_drvlcd->p_drv_ops->p_ops->WriteMultiplePixels(&p_drvlcd->hlcdc, pixels, new_x0, new_y0, new_x1, new_y1);
             //rt_exit_critical();
 
-
             /* --------- Wait send compelete -----------------*/
             err = rt_sem_take(&p_drvlcd->draw_sem, MAX_LCD_DRAW_TIME);
-
-
 
 #ifdef QAD_SPI_USE_GPIO_CS
             gpio_cs_disable();
@@ -1772,7 +1649,6 @@ static rt_err_t draw_core(LCD_DrvTypeDef *p_drvlcd, const uint8_t *pixels, int x
 #endif /* LCDC_SUPPORT_LINE_DONE_IRQ */
 
         }
-
 
         p_drvlcd->statistics.draw_core_cnt++;
         if (RT_EOK == err)
@@ -1843,7 +1719,6 @@ static rt_err_t draw_core(LCD_DrvTypeDef *p_drvlcd, const uint8_t *pixels, int x
 
                 LOG_E("draw_core timeout reset LCD START(%d)", p_drvlcd->timeout_retry_cnt);
 
-
                 p_drvlcd->p_drv_ops->p_ops->TimeoutReset(&p_drvlcd->hlcdc);
 
                 set_drv_lcd_state(LCD_STATUS_INITIALIZED);
@@ -1888,12 +1763,10 @@ static rt_err_t draw_core(LCD_DrvTypeDef *p_drvlcd, const uint8_t *pixels, int x
 
     }
 
-
     p_drvlcd->draw_lock = 0;
 
     return err;
 }
-
 
 static void api_lcd_draw_rect(const char *pixels, int x0, int y0, int x1, int y1)
 {
@@ -1935,7 +1808,6 @@ static void set_window(int x0, int y0, int x1, int y1)
         {
             int new_x0, new_x1, new_y0, new_y1;
 
-
             disable_low_power(&drv_lcd);
 
             if (drv_lcd.send_time_log)
@@ -1973,8 +1845,6 @@ static void set_window(int x0, int y0, int x1, int y1)
     }
 }
 
-
-
 static void api_lcd_set_window(int x0, int y0, int x1, int y1)
 {
     LCD_MsgTypeDef msg;
@@ -1988,7 +1858,6 @@ static void api_lcd_set_window(int x0, int y0, int x1, int y1)
 
     send_msg_to_lcd_task(&msg);
 }
-
 
 static void lcd_display_on(void)
 {
@@ -2039,7 +1908,6 @@ L1_RET_CODE_SECT(lcd_get_idle_status, uint8_t lcd_get_idle_status(void))
     return lcd_idle_status;
 }
 
-
 static void lcd_idlemode_on(void)
 {
     if (!IS_DRV_LCD_ERROR())
@@ -2055,7 +1923,6 @@ static void lcd_idlemode_on(void)
         set_drv_lcd_state(LCD_STATUS_IDLE_MODE);
     }
 }
-
 
 static void lcd_idlemode_off(void)
 {
@@ -2083,7 +1950,6 @@ static void lcd_idlemode_off(void)
     epic = NULL;
 #endif
 
-
     rt_timer_detach(&drv_lcd.async_time);
 
     rt_sem_detach(&drv_lcd.sem);
@@ -2097,7 +1963,6 @@ static void lcd_idlemode_off(void)
 
 #endif /* 0 */
 }
-
 
 #if  0//def RT_USING_PM
 static const uint8_t lcd_brightness[PM_SLEEP_MODE_MAX] =
@@ -2133,14 +1998,12 @@ void lcd_resume(const struct rt_device *device, uint8_t mode)
     return ;
 }
 
-
 static const struct rt_device_pm_ops lcd_pm_op =
 {
     .suspend = lcd_suspend,
     .resume = lcd_resume,
 };
 #endif
-
 
 static void lcd_rotate(uint16_t degree)
 {
@@ -2155,7 +2018,6 @@ static void lcd_rotate(uint16_t degree)
         enable_low_power(&drv_lcd);
     }
 }
-
 
 static void lcd_task(void *param)
 {
@@ -2195,7 +2057,6 @@ static void lcd_task(void *param)
 #endif /* BSP_USING_EPIC */
                 lcd_hw_open();
 
-
                 /*Set LCDC background*/
                 HAL_LCDC_SetBgColor(&drv_lcd.hlcdc, 0, 0, 0);
 
@@ -2212,7 +2073,6 @@ static void lcd_task(void *param)
                     lcd_hw_close();
                     set_drv_lcd_state(LCD_STATUS_NOT_FIND_LCD);
                 }
-
 
                 LOG_I("open done.");
             }
@@ -2253,7 +2113,6 @@ static void lcd_task(void *param)
             }
             break;
 
-
             case LCD_MSG_POWER_OFF:
             {
                 LOG_I("Power off");
@@ -2280,8 +2139,6 @@ static void lcd_task(void *param)
                 }
             }
             break;
-
-
 
             case LCD_MSG_CTRL_SET_LCD_PRESENT:
             {
@@ -2339,7 +2196,6 @@ static void lcd_task(void *param)
             {
                 RT_ASSERT(!IS_LCDC_OFF());
                 frame_buf_t *compressed_buffer = (frame_buf_t *)msg.content.compress_buf;
-
 
                 err = rt_sem_take(&(compressed_buffer->sema), rt_tick_from_millisecond(MAX_LCD_DRAW_TIME));
 
@@ -2415,7 +2271,6 @@ static void lcd_task(void *param)
                     }
                 }
 
-
                 LOG_D("set_window [%d,%d,%d,%d]",
                       flush_info->window.x0, flush_info->window.y0,
                       flush_info->window.x1, flush_info->window.y1);
@@ -2426,7 +2281,6 @@ static void lcd_task(void *param)
                 p_drvlcd->buf_format = flush_info->color_format;
                 HAL_LCDC_LayerSetFormat(&p_drvlcd->hlcdc, p_drvlcd->select_layer,
                                         rt_lcd_format_to_hal_lcd_format(flush_info->color_format));
-
 
                 LOG_D("draw %x, [%d,%d,%d,%d]", flush_info->pixel,
                       flush_info->pixel_area.x0, flush_info->pixel_area.y0,
@@ -2441,11 +2295,9 @@ static void lcd_task(void *param)
                 */
                 HAL_LCDC_LayerSetCmpr(&p_drvlcd->hlcdc, p_drvlcd->select_layer, 0);
 
-
                 aysnc_send_cmplt_cbk(p_drvlcd, flush_info->pixel);
             }
             break;
-
 
             case LCD_MSG_SET_WINDOW:
             {
@@ -2492,7 +2344,6 @@ static void lcd_task(void *param)
             }
             break;
 
-
             case LCD_MSG_SET_NEXT_TE:
             {
                 uint8_t TE_on = msg.content.TE_on;
@@ -2500,7 +2351,6 @@ static void lcd_task(void *param)
                 HAL_LCDC_Next_Frame_TE(&drv_lcd.hlcdc, (0 == TE_on) ? false : true);
             }
             break;
-
 
             case LCD_MSG_GET_PIXEL:
             {
@@ -2528,12 +2378,10 @@ static void lcd_task(void *param)
             }
             break;
 
-
             default:
                 RT_ASSERT(0);
                 break;
             }
-
 
             api_unlock(p_drvlcd);
         }
@@ -2561,7 +2409,6 @@ static void lcd_task(void *param)
     }
 
 }
-
 
 static int rt_hw_lcd_init(void)
 {
@@ -2617,7 +2464,6 @@ static int rt_hw_lcd_init(void)
 #endif
     }
 
-
     drv_lcd.status = LCD_STATUS_NONE;
     drv_lcd.auto_lowpower = 1;
     drv_lcd.draw_lock = 0;
@@ -2625,12 +2471,9 @@ static int rt_hw_lcd_init(void)
     drv_lcd.assert_timeout = 1;
     drv_lcd.timeout_retry_cnt = MAX_TIMEOUT_RETRY;
 
-
-
     return 0;
 }
 INIT_BOARD_EXPORT(rt_hw_lcd_init);
-
 
 #ifdef COPY2COMPRESS_FB_AND_SEND
 
@@ -2648,7 +2491,6 @@ static void copy2compress_fb_init(void)
 
     rt_sem_init(&compress_fb_ctx.dma_sema, "cfbdma", 1, RT_IPC_FLAG_FIFO);
 
-
 }
 
 static void copy2compress_fb_deinit(void)
@@ -2660,8 +2502,6 @@ static void copy2compress_fb_deinit(void)
     rt_sem_detach(&compress_fb_ctx.frame_buf[1].sema);
 #endif
 }
-
-
 
 static void copy2compress_fb_dma_done_cb(void)
 {
@@ -2682,15 +2522,11 @@ static void copy2compress_fb_dma_done_cb(void)
 #endif  /* RT_USING_PM */
 #endif /* BSP_USE_LCDC2_ON_HPSYS */
 
-
     //4. Check compressed buffer
     RT_ASSERT(COMPRESS_BUFF_MAGIC_FLAG == compressed_buffer->addr[COMPRESS_BUF_SIZE_IN_WORDS]); //Check overflow
 
-
     err = rt_sem_release(&(compressed_buffer->sema));
     RT_ASSERT(RT_EOK == err);
-
-
 
     if (1 == compressed_buffer->writetimes) //Send msg only first time, ignore overwrite msg. And prevent lcd_task mq overflow
     {
@@ -2704,7 +2540,6 @@ static void copy2compress_fb_dma_done_cb(void)
         LOG_D("send msg%x LCD_MSG_DRAW_COMP_RECT_ASYNC %x.", msg.tick, compressed_buffer->addr);
     }
 
-
     //Pixels were copy to comressed buf, release it.
     aysnc_send_cmplt_cbk(&drv_lcd, (uint8_t *)compress_fb_ctx.dma_copy_src_buf);
 
@@ -2716,8 +2551,6 @@ static void dma_err_cb(void)
 
     //RT_ASSERT(0);
 }
-
-
 
 /* Allocate available frame buffer for write  */
 static frame_buf_t *alloc_frame_buf(void)
@@ -2759,11 +2592,8 @@ static frame_buf_t *alloc_frame_buf(void)
 static void free_frame_buf(frame_buf_t *buf)
 {
 
-
     buf->writetimes = 0;
     buf->end_tick = rt_tick_get();
-
-
 
 }
 
@@ -2789,12 +2619,9 @@ static frame_buf_t *copy2compress_fb_async(const char *pixels, int32_t x0, int32
 {
     rt_err_t err;
 
-
-
     EXT_DMA_CmprTypeDef cmpr;
     uint32_t bytes_per_pixel;
     frame_buf_t *free_buffer;
-
 
     RT_ASSERT((x0 < x1) && (y0 < y1));
 
@@ -2808,7 +2635,6 @@ static frame_buf_t *copy2compress_fb_async(const char *pixels, int32_t x0, int32
     RT_ASSERT(RT_EOK == err);
 #endif /* BSP_USE_LCDC2_ON_HPSYS */
 
-
     //1.Allocate compressed buffer
     EventStartA(1);
     free_buffer = alloc_frame_buf();
@@ -2817,10 +2643,8 @@ static frame_buf_t *copy2compress_fb_async(const char *pixels, int32_t x0, int32
     LOG_D("Allocated compress_fb %x", free_buffer->addr);
     EventStopA(1);
 
-
     free_buffer->start_tick = rt_tick_get();
     free_buffer->writetimes++;
-
 
     //2. Initial compressed buffer
     if (free_buffer->writetimes > 1)
@@ -2842,9 +2666,6 @@ static frame_buf_t *copy2compress_fb_async(const char *pixels, int32_t x0, int32
     free_buffer->fb_rect.y1 = y1;
     free_buffer->cmpr_rate = cmpr.cmpr_rate;
     free_buffer->addr[COMPRESS_BUF_SIZE_IN_WORDS] = COMPRESS_BUFF_MAGIC_FLAG;
-
-
-
 
     //3. Copy the pixels to compressed buffer
     LOG_D("copy2compress_fb_async window [%d,%d,%d,%d]",
@@ -2906,10 +2727,8 @@ static frame_buf_t *copy2compress_fb_async(const char *pixels, int32_t x0, int32
 
 #endif /* BSP_USE_LCDC2_ON_HPSYS */
 
-
     return free_buffer;
 }
-
 
 static void api_copy2compress_fb_and_send_sync(const char *pixels, int32_t x0, int32_t y0, int32_t x1, int32_t y1)
 {
@@ -2919,10 +2738,8 @@ static void api_copy2compress_fb_and_send_sync(const char *pixels, int32_t x0, i
                        compress_fb_ctx.tmp_window.x1,
                        compress_fb_ctx.tmp_window.y1);
 
-
     api_lcd_draw_rect(pixels, x0, y0, x1, y1);
 }
-
 
 static void api_copy2compress_fb_and_send_async(const char *pixels, int32_t x0, int32_t y0, int32_t x1, int32_t y1)
 {
@@ -2941,7 +2758,6 @@ static void api_copy2compress_fb_and_send_async(const char *pixels, int32_t x0, 
 
 }
 
-
 static void api_compress_fb_set_window(int x0, int y0, int x1, int y1)
 {
     if (IS_DRV_LCD_ERROR()) return;
@@ -2956,15 +2772,12 @@ static void api_compress_fb_set_window(int x0, int y0, int x1, int y1)
     compress_fb_ctx.tmp_window.y1 = y1;
 }
 
-
 #endif /* COPY2COMPRESS_FB_AND_SEND */
-
 
 LCDC_HandleTypeDef *debug_get_drv_lcd_handler(void)
 {
     return &drv_lcd.hlcdc;
 }
-
 
 #ifdef LCD_USING_PWM_AS_BACKLIGHT
 static struct rt_device lcd_backlight_device;
@@ -2986,7 +2799,6 @@ static rt_size_t backligt_get(rt_device_t dev, rt_off_t pos, void *buffer, rt_si
         }
         else
         {
-
 
             struct rt_pwm_configuration configuration = {0};
             configuration.channel = LCD_PWM_BACKLIGHT_CHANEL_NUM;
@@ -3014,7 +2826,6 @@ static rt_size_t backligt_set(rt_device_t dev, rt_off_t pos, const void *buffer,
         uint8_t percent = *((uint8_t *) buffer);
 
         if (percent > 100) percent = 100;
-
 
         struct rt_device_pwm *backlight_device = (struct rt_device_pwm *)rt_device_find(LCD_PWM_BACKLIGHT_INTERFACE_NAME);
         if (!backlight_device)
@@ -3050,7 +2861,6 @@ static int rt_hw_lcd_backlight_init(void)
     lcd_backlight_device.read = backligt_get;
     lcd_backlight_device.write = backligt_set;
 
-
     /* register graphic device driver */
     return rt_device_register(&lcd_backlight_device, "lcdlight",
                               RT_DEVICE_FLAG_RDWR | RT_DEVICE_FLAG_STANDALONE);
@@ -3072,7 +2882,6 @@ MSH_CMD_EXPORT(get_lcd_pwm_bglit, get_lcd_pwm_bglit);
 #endif
 
 #endif /* LCD_USING_PWM_AS_BACKLIGHT */
-
 
 #ifdef RT_USING_FINSH
 
@@ -3125,7 +2934,6 @@ static rt_err_t lcd_rreg(int argc, char **argv)
         return 0;
     }
 
-
     DEBUG_PRINTF("lcd_rreg%d [%x] %d(byte)", reg_len, reg, data_len);
     rt_err = api_lock(&drv_lcd);
     RT_ASSERT(RT_EOK == rt_err);
@@ -3140,7 +2948,6 @@ static rt_err_t lcd_rreg(int argc, char **argv)
         HAL_LCDC_RAMLESS_Stop(&drv_lcd.hlcdc);
     }
 #endif /* BSP_USING_RAMLESS_LCD */
-
 
     if (HAL_LCDC_IS_SPI_IF(drv_lcd.hlcdc.Init.lcd_itf) || HAL_LCDC_IS_DBI_IF(drv_lcd.hlcdc.Init.lcd_itf))
     {
@@ -3176,7 +2983,6 @@ static rt_err_t lcd_rreg(int argc, char **argv)
 }
 MSH_CMD_EXPORT(lcd_rreg, lcd_rreg);
 
-
 static rt_err_t lcd_wreg(int argc, char **argv)
 {
     uint32_t reg, reg_len, data_len;
@@ -3203,7 +3009,6 @@ static rt_err_t lcd_wreg(int argc, char **argv)
         DEBUG_PRINTF("reg_addr[0x%x] overflow? Maximum reg_addr_len is %d byte(s).", reg, reg_len);
         return 0;
     }
-
 
     for (uint32_t i = 3; i < argc; i++)
     {
@@ -3237,7 +3042,6 @@ static rt_err_t lcd_wreg(int argc, char **argv)
     enable_low_power(&drv_lcd);
     api_unlock(&drv_lcd);
 
-
     if (HAL_OK == hal_err)
         DEBUG_PRINTF("Done.\n");
     else
@@ -3247,7 +3051,6 @@ static rt_err_t lcd_wreg(int argc, char **argv)
 
 }
 MSH_CMD_EXPORT(lcd_wreg, lcd_wreg);
-
 
 static rt_err_t lcd_ctrl(int argc, char **argv)
 {
@@ -3262,7 +3065,6 @@ static rt_err_t lcd_ctrl(int argc, char **argv)
     {
         DEBUG_PRINTF("lcd device not found\n");
     }
-
 
     if (strcmp(argv[1], "open") == 0)
     {
@@ -3392,9 +3194,6 @@ static rt_err_t lcd_ctrl(int argc, char **argv)
         }
     }
 
-
-
-
 #if 0
     else if (strcmp(argv[1], "swrd") == 0)
     {
@@ -3452,16 +3251,12 @@ static rt_err_t lcd_ctrl(int argc, char **argv)
             DEBUG_PRINTF("draw_layer 0x%x [x0x1:%d,%d,y0y1:%d,%d]", p_layer->data, x0, x1, y0, y1);
             api_lcd_draw_rect_async((const char *) p_layer->data, x0, y0, x1, y1);
 
-
         }
     }
 #endif /* 0 */
-
-
 
     return 0;
 }
 MSH_CMD_EXPORT(lcd_ctrl, lcd control);
 #endif /* RT_USING_FINSH */
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

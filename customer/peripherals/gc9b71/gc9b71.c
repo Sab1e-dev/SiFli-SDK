@@ -7,7 +7,6 @@
   ******************************************************************************
 */
 
-
 #include <rtthread.h>
 #include "string.h"
 #include "board.h"
@@ -18,19 +17,8 @@
 #define DBG_LVL               DBG_INFO
 #include <rtdbg.h>
 
-
-
-
-
-
-
-
-
-
 #define ROW_OFFSET  (0x00)
 #define COL_OFFSET  (0x00)
-
-
 
 /**
   * @brief GC9B71 chip IDs
@@ -42,11 +30,6 @@
   */
 #define  THE_LCD_PIXEL_WIDTH    (320)
 #define  THE_LCD_PIXEL_HEIGHT   (390)
-
-
-
-
-
 
 /**
   * @brief  GC9B71 Registers
@@ -66,9 +49,6 @@
 #define REG_CASET              0x2A
 #define REG_RASET              0x2B
 
-
-
-
 #define REG_TEARING_EFFECT     0x35
 #define REG_MACTL     0x36
 //#define REG_IDLE_MODE_OFF      0x38
@@ -77,37 +57,12 @@
 
 #define REG_WBRIGHT            0x51 /* Write brightness*/
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //#define LCD_3V3_POWER_PIN               55
 //#define LCD_1V8_POWER_PIN               47
 //#ifdef BSP_USING_BOARD_EC_SS6700XXX
 //    #define LCD_BACKLIGHT_POWER_PIN         31
 //#endif
 //#define LCD_RESET_PIN                   78     // GPIO_A44  gc9b71
-
 
 #define DEBUG
 
@@ -121,15 +76,7 @@
 #define LCD_ALIGN2(x) ((x) = (x) & (~1))
 #define LCD_ALIGN1(x) ((x) = (0 == ((x) & 1)) ? (x - 1) : x)
 
-
-
-
-
-
-
-
 #define QAD_SPI_ITF LCDC_INTF_SPI_DCX_4DATA
-
 
 static const LCDC_InitTypeDef lcdc_int_cfg_qadspi =
 {
@@ -155,7 +102,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_qadspi =
 
 };
 
-
 static LCDC_InitTypeDef lcdc_int_cfg;
 
 static void     LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *Parameters, uint32_t NbParameters);
@@ -163,20 +109,10 @@ static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8
 static void LCD_ReadMode(LCDC_HandleTypeDef *hlcdc, bool enable);
 static void LCD_SetRegion(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos0, uint16_t Ypos0, uint16_t Xpos1, uint16_t Ypos1);
 
-
-
-
-
-
-
-
-
 #ifdef QAD_SPI_USE_GPIO_CS
     void gpio_cs_enable(void);
     void gpio_cs_disable(void);
 #endif /* QAD_SPI_USE_GPIO_CS */
-
-
 
 /**
   * @brief  spi read/write mode
@@ -211,7 +147,6 @@ void GC9B71_Clear(LCDC_HandleTypeDef *hlcdc)
     HAL_LCDC_LayerEnable(hlcdc, HAL_LCDC_LAYER_DEFAULT);
 
 }
-
 
 static void GC9B71_Drv_Init(LCDC_HandleTypeDef *hlcdc)
 {
@@ -520,15 +455,11 @@ static void GC9B71_Drv_Init(LCDC_HandleTypeDef *hlcdc)
     data[1] = 0x00;
     LCD_WriteReg(hlcdc, 0x44, data, 2);
 
-
-
     LCD_DRIVER_DELAY_MS(10);
 
     LCD_WriteReg(hlcdc, REG_SLEEP_OUT, (uint8_t *)NULL, 0);
 
     LCD_DRIVER_DELAY_MS(120); //Delay 5 ms after sleep out
-
-
 
     HAL_LCDC_Next_Frame_TE(hlcdc, 0);
     LCD_SetRegion(hlcdc, 0, 0, 319, 385);
@@ -549,50 +480,38 @@ static void GC9B71_Drv_Init(LCDC_HandleTypeDef *hlcdc)
     LCD_WriteReg(hlcdc, 0xfe, parameter, 0); // internal reg enable
     LCD_WriteReg(hlcdc, 0xef, parameter, 0); // internal reg enable
 
-
     parameter[0] = 0x11;
     LCD_WriteReg(hlcdc, 0x80, parameter, 1);
-
 
     parameter[0] = 0x70;
     LCD_WriteReg(hlcdc, 0x81, parameter, 1);
 
-
     parameter[0] = 0x09;
     LCD_WriteReg(hlcdc, 0x82, parameter, 1);
-
 
     parameter[0] = 0x03;
     LCD_WriteReg(hlcdc, 0x83, parameter, 1);
 
-
     parameter[0] = 0x22;
     LCD_WriteReg(hlcdc, 0x84, parameter, 1);
-
 
     parameter[0] = 0x18;
     LCD_WriteReg(hlcdc, 0x89, parameter, 1);
 
-
     parameter[0] = 0x40;
     LCD_WriteReg(hlcdc, 0x8A, parameter, 1);
-
 
     parameter[0] = 0x0A;
     LCD_WriteReg(hlcdc, 0x8B, parameter, 1);
 
-
     parameter[0] = 0x05;
     LCD_WriteReg(hlcdc, 0x3a, parameter, 1);
-
 
     parameter[0] = 0x40;
     LCD_WriteReg(hlcdc, 0x36, parameter, 1);
 
-
     parameter[0] = 0x07;
     LCD_WriteReg(hlcdc, 0xEC, parameter, 1);
-
 
     parameter[0] = 0x01;
     parameter[1] = 0x80;
@@ -602,52 +521,40 @@ static void GC9B71_Drv_Init(LCDC_HandleTypeDef *hlcdc)
     parameter[5] = 0x00;
     LCD_WriteReg(hlcdc, 0x74, parameter, 6);
 
-
     parameter[0] = 0x3E;
     LCD_WriteReg(hlcdc, 0x98, parameter, 1);
 
-
     parameter[0] = 0x3E;
     LCD_WriteReg(hlcdc, 0x99, parameter, 1);
-
-
 
     parameter[0] = 0x01;
     parameter[1] = 0x04;
     LCD_WriteReg(hlcdc, 0xA1, parameter, 2);
 
-
     parameter[0] = 0x01;
     parameter[1] = 0x04;
     LCD_WriteReg(hlcdc, 0xA2, parameter, 2);
 
-
     parameter[0] = 0x02;
     LCD_WriteReg(hlcdc, 0xCB, parameter, 1);
 
-
     parameter[0] = 0x44;
     LCD_WriteReg(hlcdc, 0xAC, parameter, 1);
-
 
     parameter[0] = 0xB6;
     parameter[1] = 0x25;
     LCD_WriteReg(hlcdc, 0x7C, parameter, 2);
 
-
     parameter[0] = 0x80;
     LCD_WriteReg(hlcdc, 0xF6, parameter, 1);
-
 
     parameter[0] = 0x09;
     parameter[1] = 0x09;
     LCD_WriteReg(hlcdc, 0xB5, parameter, 2);
 
-
     parameter[0] = 0x01;
     parameter[1] = 0x7B;
     LCD_WriteReg(hlcdc, 0xEB, parameter, 2);
-
 
     parameter[0] = 0x58;
     parameter[1] = 0x09;
@@ -655,13 +562,11 @@ static void GC9B71_Drv_Init(LCDC_HandleTypeDef *hlcdc)
     parameter[3] = 0x56;
     LCD_WriteReg(hlcdc, 0x60, parameter, 4);
 
-
     parameter[0] = 0x5B;
     parameter[1] = 0x05;
     parameter[2] = 0x5B;
     parameter[3] = 0x56;
     LCD_WriteReg(hlcdc, 0x63, parameter, 4);
-
 
     parameter[0] = 0x38;
     parameter[1] = 0x0F;
@@ -671,7 +576,6 @@ static void GC9B71_Drv_Init(LCDC_HandleTypeDef *hlcdc)
     parameter[5] = 0x56;
     LCD_WriteReg(hlcdc, 0x64, parameter, 6);
 
-
     parameter[0] = 0x38;
     parameter[1] = 0x0F;
     parameter[2] = 0x73;
@@ -680,7 +584,6 @@ static void GC9B71_Drv_Init(LCDC_HandleTypeDef *hlcdc)
     parameter[5] = 0x56;
     LCD_WriteReg(hlcdc, 0x66, parameter, 6);
 
-
     parameter[0] = 0x38;
     parameter[1] = 0x0B;
     parameter[2] = 0x73;
@@ -688,7 +591,6 @@ static void GC9B71_Drv_Init(LCDC_HandleTypeDef *hlcdc)
     parameter[4] = 0x5B;
     parameter[5] = 0x56;
     LCD_WriteReg(hlcdc, 0x65, parameter, 6);
-
 
     parameter[0] = 0x00;
     parameter[1] = 0x00;
@@ -724,7 +626,6 @@ static void GC9B71_Drv_Init(LCDC_HandleTypeDef *hlcdc)
     parameter[31] = 0x00;
     LCD_WriteReg(hlcdc, 0x6E, parameter, 32);
 
-
     parameter[0] = 0xCC;
     parameter[1] = 0x0C;
     parameter[2] = 0xCC;
@@ -734,10 +635,8 @@ static void GC9B71_Drv_Init(LCDC_HandleTypeDef *hlcdc)
     parameter[6] = 0x50;
     LCD_WriteReg(hlcdc, 0x6C, parameter, 7);
 
-
     parameter[0] = 0x72;
     LCD_WriteReg(hlcdc, 0x7D, parameter, 1);
-
 
     parameter[0] = 0x02;
     parameter[1] = 0x03;
@@ -751,31 +650,25 @@ static void GC9B71_Drv_Init(LCDC_HandleTypeDef *hlcdc)
     parameter[9] = 0x06;
     LCD_WriteReg(hlcdc, 0x70, parameter, 10);
 
-
     parameter[0] = 0x06;
     parameter[1] = 0x06;
     parameter[2] = 0x05;
     parameter[3] = 0x06;
     LCD_WriteReg(hlcdc, 0x90, parameter, 4);
 
-
     parameter[0] = 0x45;
     parameter[1] = 0xFF;
     parameter[2] = 0x00;
     LCD_WriteReg(hlcdc, 0x93, parameter, 3);
 
-
     parameter[0] = 0x40;
     LCD_WriteReg(hlcdc, 0xC3, parameter, 1);
-
 
     parameter[0] = 0x60;
     LCD_WriteReg(hlcdc, 0xC4, parameter, 1);
 
-
     parameter[0] = 0x3d;
     LCD_WriteReg(hlcdc, 0xC9, parameter, 1);
-
 
     parameter[0] = 0x47;
     parameter[1] = 0x07;
@@ -785,7 +678,6 @@ static void GC9B71_Drv_Init(LCDC_HandleTypeDef *hlcdc)
     parameter[5] = 0x27;
     LCD_WriteReg(hlcdc, 0xF0, parameter, 6);
 
-
     parameter[0] = 0x47;
     parameter[1] = 0x08;
     parameter[2] = 0x07;
@@ -793,7 +685,6 @@ static void GC9B71_Drv_Init(LCDC_HandleTypeDef *hlcdc)
     parameter[4] = 0x00;
     parameter[5] = 0x27;
     LCD_WriteReg(hlcdc, 0xF2, parameter, 6);
-
 
     parameter[0] = 0x41;
     parameter[1] = 0xaA;
@@ -803,7 +694,6 @@ static void GC9B71_Drv_Init(LCDC_HandleTypeDef *hlcdc)
     parameter[5] = 0xeF;
     LCD_WriteReg(hlcdc, 0xF1, parameter, 6);
 
-
     parameter[0] = 0x41;
     parameter[1] = 0x9A;
     parameter[2] = 0x5a;
@@ -812,26 +702,19 @@ static void GC9B71_Drv_Init(LCDC_HandleTypeDef *hlcdc)
     parameter[5] = 0xeF;
     LCD_WriteReg(hlcdc, 0xF3, parameter, 6);
 
-
     parameter[0] = 0x30;
     LCD_WriteReg(hlcdc, 0xF9, parameter, 1);
 
-
     parameter[0] = 0x11;
     LCD_WriteReg(hlcdc, 0xBE, parameter, 1);
-
-
 
     parameter[0] = 0x00;
     parameter[1] = 0x02;
     LCD_WriteReg(hlcdc, 0xFB, parameter, 2);
 
-
     parameter[0] = 0xb0;
     parameter[1] = 0x00;
     LCD_WriteReg(hlcdc, 0xAA, parameter, 2);
-
-
 
     LCD_WriteReg(hlcdc, REG_SLEEP_OUT, (uint8_t *)NULL, 0);
 
@@ -887,7 +770,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     return;
 }
 
-
 /**
   * @brief  Disables the Display.
   * @param  None
@@ -907,7 +789,6 @@ static uint32_t LCD_ReadID(LCDC_HandleTypeDef *hlcdc)
            | ((data <<  8) & 0x00FF0000)
            | ((data >>  8) & 0x0000FF00)
            | ((data >> 24) & 0x000000FF);
-
 
     if (QAD_SPI_ITF == lcdc_int_cfg.lcd_itf)
     {
@@ -982,7 +863,6 @@ static void LCD_WritePixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Yp
 {
     uint8_t data = 0;
 
-
     if ((Xpos >= THE_LCD_PIXEL_WIDTH) || (Ypos >= THE_LCD_PIXEL_HEIGHT))
     {
         return;
@@ -997,9 +877,7 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
 {
     uint32_t size;
 
-
     HAL_LCDC_LayerSetData(hlcdc, HAL_LCDC_LAYER_DEFAULT, (uint8_t *)RGBCode, Xpos0, Ypos0, Xpos1, Ypos1);
-
 
     if (0)
     {
@@ -1013,7 +891,6 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
         HAL_LCDC_SendLayerData2Reg_IT(hlcdc, REG_WRITE_RAM, 1);
     }
 }
-
 
 /**
   * @brief  Writes  to the selected LCD register.
@@ -1058,8 +935,6 @@ static void LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *P
 
 }
 
-
-
 /**
   * @brief  Reads the selected LCD Register.
   * @param  RegValue: Address of the register to read
@@ -1092,8 +967,6 @@ static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8
 
     return rd_data;
 }
-
-
 
 static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Ypos)
 {
@@ -1134,12 +1007,10 @@ static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t
         break;
     }
 
-
     //LCD_WriteReg(hlcdc,REG_COLOR_MODE, parameter, 1);
 
     return ret_v;
 }
-
 
 static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
 {
@@ -1172,8 +1043,6 @@ static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
     LCD_WriteReg(hlcdc, REG_COLOR_MODE, parameter, 1);
     HAL_LCDC_SetOutFormat(hlcdc, lcdc_int_cfg.color_mode);
 }
-
-
 
 static void LCD_SetBrightness(LCDC_HandleTypeDef *hlcdc, uint8_t br)
 {
@@ -1212,9 +1081,6 @@ static void LCD_Rotate(LCDC_HandleTypeDef *hlcdc, LCD_DrvRotateTypeDef degree)
 #endif /* LCDC_SUPPORT_H_MIRROR */
 }
 
-
-
-
 static const LCD_DrvOpsDef GC9B71_drv =
 {
     LCD_Init,
@@ -1235,15 +1101,6 @@ static const LCD_DrvOpsDef GC9B71_drv =
     LCD_Rotate,
 };
 
-
 LCD_DRIVER_EXPORT2(gc9b71, THE_LCD_ID, &lcdc_int_cfg,
                    &GC9B71_drv, 2);
 
-
-
-
-
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   tma525b.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -58,14 +19,12 @@
 
 #define I2C_ADDR                    (0x24)
 
-
 #define PT_MAX_PIP_MSG_SIZE 264
 
 #define PIP_MSG_HEAD_SIZE    5   /*2B report len + 1B report id + 2B timestamp*/
 
 #define TMA_MAX_WIDTH                   (454)
 #define TMA_MAX_HEIGHT                  (454)
-
 
 typedef enum
 {
@@ -76,7 +35,6 @@ typedef enum
     PIP_COMMAND             = 0x05,
     PIP_DATA                = 0x06,
 } PIP_REG_T;
-
 
 typedef enum
 {
@@ -126,7 +84,6 @@ enum PIP1_CMD_ID
     PIP1_CMD_ID_USER_CMD,
 };
 
-
 #pragma pack(push, 1) //make sure no padding bytes between report_id and desc
 
 typedef struct _touch_record_t
@@ -162,7 +119,6 @@ typedef struct _touch_desc_t
 
 } touch_desc_t;
 
-
 typedef struct _rsp_desc_t
 {
     uint8_t reservd1;
@@ -170,7 +126,6 @@ typedef struct _rsp_desc_t
     uint8_t TGL  : 1;
     uint8_t ret_data[10];
 } rsp_desc_t;
-
 
 typedef struct _pip_in_report_t
 {
@@ -184,7 +139,6 @@ typedef struct _pip_in_report_t
     } desc;
 } pip_in_report_t;
 
-
 typedef struct _pip_out_report_t
 {
     PIP_REG_T reg_addr;
@@ -196,7 +150,6 @@ typedef struct _pip_out_report_t
 } pip_out_report_t;
 
 #pragma pack(pop)
-
 
 static pip_in_report_t *p_pip_in_report = NULL;
 
@@ -216,15 +169,11 @@ static void tma525b_parse_rsp_report(rsp_desc_t *rsp_desc, uint16_t ret_len)
 {
     uint8_t i;
 
-
     LOG_D("tma525b rsp cmd %xh,", rsp_desc->cmd);
     LOG_HEX("ret_data", 8, rsp_desc->ret_data, ret_len);
 }
 
-
 static struct touch_drivers tma525b_driver;
-
-
 
 static rt_err_t i2c_write(rt_uint8_t *buf, rt_uint16_t len)
 {
@@ -246,8 +195,6 @@ static rt_err_t i2c_write(rt_uint8_t *buf, rt_uint16_t len)
     }
     return res;
 }
-
-
 
 static rt_err_t i2c_read(rt_uint8_t *buf, rt_uint16_t len)
 {
@@ -375,7 +322,6 @@ static rt_err_t tma525b_parse_touch_report(touch_desc_t *pt_desc, touch_msg_t p_
                 touch_id = pt_desc->record[i].touch_id;
                 event_id = pt_desc->record[i].event_id;
 
-
 #ifdef LCD_USING_RM69090
                 y = pt_desc->record[i].x;
                 x = pt_desc->record[i].y;
@@ -423,7 +369,6 @@ static rt_err_t tma525b_parse_touch_report(touch_desc_t *pt_desc, touch_msg_t p_
 
     return ret;
 }
-
 
 void tma525b_irq_handler(void *arg)
 {
@@ -583,14 +528,12 @@ static rt_bool_t probe(void)
     return RT_TRUE;
 }
 
-
 static struct touch_ops ops =
 {
     read_point,
     init,
     deinit
 };
-
 
 static int rt_tma525b_init(void)
 {
@@ -605,4 +548,3 @@ static int rt_tma525b_init(void)
 }
 INIT_COMPONENT_EXPORT(rt_tma525b_init);
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

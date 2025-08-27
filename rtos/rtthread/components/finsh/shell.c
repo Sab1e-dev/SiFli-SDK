@@ -34,6 +34,28 @@
     #include <stdio.h> /* for putchar */
 #endif
 
+#if defined(_MSC_VER) || (defined(__GNUC__) && defined(__x86_64__))
+__ROM_USED struct finsh_syscall *finsh_syscall_next(struct finsh_syscall *call)
+{
+    unsigned int *ptr;
+    ptr = (unsigned int *)(call + 1);
+    while ((*ptr == 0) && ((unsigned int *)ptr < (unsigned int *) _syscall_table_end))
+        ptr ++;
+
+    return (struct finsh_syscall *)ptr;
+}
+
+__ROM_USED struct finsh_sysvar *finsh_sysvar_next(struct finsh_sysvar *call)
+{
+    unsigned int *ptr;
+    ptr = (unsigned int *)(call + 1);
+    while ((*ptr == 0) && ((unsigned int *)ptr < (unsigned int *) _sysvar_table_end))
+        ptr ++;
+
+    return (struct finsh_sysvar *)ptr;
+}
+#endif
+
 /* finsh thread */
 #if !defined(RT_USING_HEAP) || defined(RT_USING_STATIC_STACK)
     static struct rt_thread finsh_thread;

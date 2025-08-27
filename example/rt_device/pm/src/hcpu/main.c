@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   main.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2021 - 2021,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2021-2021 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -61,7 +22,6 @@
 
 #define LOG_TAG "pm"
 #include "log.h"
-
 
 static void gpio_wakeup_handler(void *args)
 {
@@ -210,7 +170,6 @@ enum ble_app_att_list
     BLE_APP_ATT_NB
 };
 
-
 #define app_svc_uuid { \
     0x73, 0x69, 0x66, 0x6c, \
     0x69, 0x5f, 0x61, 0x70, \
@@ -261,8 +220,6 @@ static rt_mailbox_t g_app_mb;
 
 static uint8_t g_app_svc[ATT_UUID_128_LEN] = app_svc_uuid;
 
-
-
 struct attm_desc_128 app_att_db[] =
 {
     [BLE_APP_SVC] = {SERIAL_UUID_16(ATT_DECL_PRIMARY_SERVICE), PERM(RD, ENABLE), 0, 0},
@@ -288,7 +245,6 @@ static app_env_t *ble_app_get_env(void)
     return &g_app_env;
 }
 
-
 #ifdef APP_ENABLE_BG_ADV
 SIBLES_ADVERTISING_CONTEXT_DECLAR(g_app_advertising_bg_context);
 
@@ -313,7 +269,6 @@ static uint8_t ble_app_background_advertising_event(uint8_t event, void *context
     }
     return 0;
 }
-
 
 /* Enable advertise via advertising service. */
 static void ble_app_bg_advertising_start(void)
@@ -360,10 +315,6 @@ static void ble_app_bg_advertising_start(void)
 }
 #endif // APP_ENABLE_BG_ADV
 
-
-
-
-
 SIBLES_ADVERTISING_CONTEXT_DECLAR(g_app_advertising_context);
 
 static uint8_t ble_app_advertising_event(uint8_t event, void *context, void *data)
@@ -396,7 +347,6 @@ static uint8_t ble_app_advertising_event(uint8_t event, void *context, void *dat
     }
     return 0;
 }
-
 
 #define DEFAULT_LOCAL_NAME "SIFLI_APP"
 /* Enable advertise via advertising service. */
@@ -454,8 +404,6 @@ static void ble_app_advertising_start(void)
     rt_free(para.rsp_data.completed_name);
     rt_free(para.adv_data.manufacturer_data);
 }
-
-
 
 uint8_t *ble_app_gatts_get_cbk(uint8_t conn_idx, uint8_t idx, uint16_t *len)
 {
@@ -655,7 +603,6 @@ BLE_EVENT_REGISTER(ble_app_event_handler, NULL);
 
 #endif /* BLUETOOTH */
 
-
 int main(void)
 {
     //*(volatile uint32_t *)0x4004f000 = 1;
@@ -701,8 +648,4 @@ int main(void)
     }
     return RT_EOK;
 }
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

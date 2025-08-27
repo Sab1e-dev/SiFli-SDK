@@ -7,7 +7,6 @@
   ******************************************************************************
 */
 
-
 #include <rtthread.h>
 #include "string.h"
 #include "board.h"
@@ -18,19 +17,8 @@
 #define DBG_LVL               DBG_INFO
 #include <rtdbg.h>
 
-
-
-
-
-
-
-
-
-
 #define ROW_OFFSET  (0x00)
 #define COL_OFFSET  (0x00)
-
-
 
 /**
   * @brief JD9851 chip IDs
@@ -42,11 +30,6 @@
   */
 #define  THE_LCD_PIXEL_WIDTH    (240)
 #define  THE_LCD_PIXEL_HEIGHT   (286)
-
-
-
-
-
 
 /**
   * @brief  JD9851 Registers
@@ -66,9 +49,6 @@
 #define REG_CASET              0x2A
 #define REG_RASET              0x2B
 
-
-
-
 #define REG_TEARING_EFFECT     0x35
 
 //#define REG_IDLE_MODE_OFF      0x38
@@ -77,47 +57,10 @@
 
 #define REG_WBRIGHT            0x51 /* Write brightness*/
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #define LCD_3V3_POWER_PIN               55
 //#define LCD_1V8_POWER_PIN               47
 #define LCD_BACKLIGHT_POWER_PIN         47
 #define LCD_RESET_PIN                   44     // GPIO_A44  jd9851
-
 
 #define DEBUG
 
@@ -131,15 +74,6 @@
 #define LCD_ALIGN2(x) ((x) = (x) & (~1))
 #define LCD_ALIGN1(x) ((x) = (0 == ((x) & 1)) ? (x - 1) : x)
 
-
-
-
-
-
-
-
-
-
 #ifdef BSP_LCDC_USING_DSI
 
 #if 0//def APP_BSP_TEST  //Keep two data lanes for bsp test
@@ -149,8 +83,6 @@
     #define  JD9851_DSI_FREQ       DSI_FREQ_480MHZ
     #define  JD9851_DSI_DATALANES  DSI_ONE_DATA_LANE
 #endif /* APP_BSP_TEST */
-
-
 
 static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
 {
@@ -199,7 +131,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
                 .BTATimeout = 0,
             },
 
-
             .LPCmd = {
                 .LPGenShortWriteNoP    = DSI_LP_GSW0P_ENABLE,
                 .LPGenShortWriteOneP   = DSI_LP_GSW1P_ENABLE,
@@ -216,7 +147,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
                 .AcknowledgeRequest    = DSI_ACKNOWLEDGE_DISABLE, //disable LCD error reports
             },
 
-
             .vsyn_delay_us = 0,
         },
     },
@@ -224,7 +154,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
 #endif /* BSP_LCDC_USING_DSI */
 
 #define QAD_SPI_ITF LCDC_INTF_SPI_DCX_4DATA
-
 
 static const LCDC_InitTypeDef lcdc_int_cfg_qadspi =
 {
@@ -250,7 +179,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_qadspi =
 
 };
 
-
 static const LCDC_InitTypeDef lcdc_int_cfg_3spi_1data =
 {
     .lcd_itf = LCDC_INTF_SPI_DCX_1DATA,
@@ -271,28 +199,16 @@ static const LCDC_InitTypeDef lcdc_int_cfg_3spi_1data =
 
 };
 
-
 static LCDC_InitTypeDef lcdc_int_cfg;
 
 static void     LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *Parameters, uint32_t NbParameters);
 static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8_t ReadSize);
 static void LCD_ReadMode(LCDC_HandleTypeDef *hlcdc, bool enable);
 
-
-
-
-
-
-
-
-
-
 #ifdef QAD_SPI_USE_GPIO_CS
     void gpio_cs_enable(void);
     void gpio_cs_disable(void);
 #endif /* QAD_SPI_USE_GPIO_CS */
-
-
 
 /**
   * @brief  spi read/write mode
@@ -314,7 +230,6 @@ static void LCD_ReadMode(LCDC_HandleTypeDef *hlcdc, bool enable)
     }
 
 }
-
 
 static void JD9851_Drv_Init(LCDC_HandleTypeDef *hlcdc)
 {
@@ -342,7 +257,6 @@ static void JD9851_Drv_Init(LCDC_HandleTypeDef *hlcdc)
 
     /* Wait for 200ms */
     LCD_DRIVER_DELAY_MS(100);
-
 
     parameter[0] = 0x98;
     parameter[1] = 0x51;
@@ -537,7 +451,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     JD9851_Drv_Init(hlcdc);
 }
 
-
 /**
   * @brief  Disables the Display.
   * @param  None
@@ -557,7 +470,6 @@ static uint32_t LCD_ReadID(LCDC_HandleTypeDef *hlcdc)
            | ((data <<  8) & 0x00FF0000)
            | ((data >>  8) & 0x0000FF00)
            | ((data >> 24) & 0x000000FF);
-
 
     if (QAD_SPI_ITF == lcdc_int_cfg.lcd_itf)
     {
@@ -654,7 +566,6 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
 
     HAL_LCDC_LayerSetData(hlcdc, HAL_LCDC_LAYER_DEFAULT, (uint8_t *)RGBCode, Xpos0, Ypos0, Xpos1, Ypos1);
 
-
     if (0)
     {
     }
@@ -667,7 +578,6 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
         HAL_LCDC_SendLayerData2Reg_IT(hlcdc, REG_WRITE_RAM, 1);
     }
 }
-
 
 /**
   * @brief  Writes  to the selected LCD register.
@@ -723,8 +633,6 @@ static void LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *P
 
 }
 
-
-
 /**
   * @brief  Reads the selected LCD Register.
   * @param  RegValue: Address of the register to read
@@ -757,8 +665,6 @@ static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8
 
     return rd_data;
 }
-
-
 
 static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Ypos)
 {
@@ -799,12 +705,10 @@ static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t
         break;
     }
 
-
     //LCD_WriteReg(hlcdc,REG_COLOR_MODE, parameter, 1);
 
     return ret_v;
 }
-
 
 static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
 {
@@ -879,10 +783,6 @@ static void LCD_SetBrightness(LCDC_HandleTypeDef *hlcdc, uint8_t br)
 #endif
 }
 
-
-
-
-
 static const LCD_DrvOpsDef JD9851_drv =
 {
     LCD_Init,
@@ -903,11 +803,3 @@ static const LCD_DrvOpsDef JD9851_drv =
 LCD_DRIVER_EXPORT2(jd9851, THE_LCD_ID, &lcdc_int_cfg,
                    &JD9851_drv, 2);
 
-
-
-
-
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

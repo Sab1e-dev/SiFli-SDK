@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   sc7a22.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "sc7a22.h"
@@ -55,7 +16,6 @@
 #define LOG_TAG              "drv.slw"
 #include <drv_log.h>
 
-
 // move it to menuconfig if needed
 //#define SC7A22_I2C_BUS         "i2c3"
 #define SC7A22_DEV_NAME        "slw_dev"
@@ -68,7 +28,6 @@
 //#define SC7A22_USE_INT
 #define SC7A22_UES_INT1  0
 #define SC7A22_UES_INT2  1
-
 
 struct SC7A22_CONT_T
 {
@@ -224,7 +183,6 @@ static int sc7a22_i2c_init()
         ret = rt_spi_configure(sc7a22_content.bus_handle, &cfg1);
 
         ret = rt_spi_take_bus(sc7a22_content.bus_handle);
-
 
     }
     else
@@ -461,7 +419,6 @@ static int sc7a22_gpio_int_disable(void)
     return 0;
 
 }
-
 
 void sc7a22_sensor_task(void *params)  //20ms
 {
@@ -718,7 +675,6 @@ int sc7a22_read_fifo(uint8_t *buf, int len)
     // if sc7a20_read_fifo can not be used to read sc7a22, this fun need to tunning.
     //sc7a22_fifo_raw_data_get(&sens_cont, buf + i * 2, 2);
 
-
     return len;
 }
 
@@ -741,7 +697,6 @@ int sc7a20_read_fifo(uint8_t *buf, int len)
     sens_cont.read_reg = slw_spi_multi_bytes_read;
     sc7a22_fifo_raw_data_get(&sens_cont, buf, len);
 
-
     //resume spi data width 16bits
     cfg1.data_width = 16;
     cfg1.max_hz = 8 * 1000 * 1000; // 8m
@@ -750,7 +705,6 @@ int sc7a20_read_fifo(uint8_t *buf, int len)
 
     ret = rt_spi_configure(sc7a22_content.bus_handle, &cfg1);
     //rt_kprintf("sc7a20_read_fifo ret2 %d\n",ret);
-
 
     sens_cont.read_reg = slw_i2c_read;
 
@@ -791,9 +745,6 @@ int sc7a22_get_fifo_empty_status(void)
     return (int)value;
 }
 
-
-
-
 // function for handle and address --------------------
 uint32_t sc7a22_get_bus_handle(void)
 {
@@ -827,7 +778,5 @@ void sc7a22_accel_set_range(uint8_t range)
     sc7a22_xl_full_scale_set(&sens_cont, range);
 }
 
-
-
 #endif /*ACC_USING_SC7A22*/
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

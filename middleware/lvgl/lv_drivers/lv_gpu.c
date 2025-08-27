@@ -1,47 +1,9 @@
-/**
-  ******************************************************************************
-  * @file   lvsf_gpu.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
+
 #include "rtconfig.h"
 #include "littlevgl2rtt.h"
 #include "lvgl.h"
@@ -834,12 +796,7 @@ static void draw_img(struct _lv_draw_ctx_t *draw_ctx,
     }
 
 #if LV_USE_GPU
-    if ((draw_dsc->recolor_opa == LV_OPA_TRANSP)
-            //&& (0 == other_mask_cnt)
-            //&& disp->driver.gpu_rotate_cb
-            //&& disp->driver.gpu_rotate_frac_cb
-            && EPIC_SUPPORTED_CF(cf)
-       )
+    if (EPIC_SUPPORTED_CF(cf))
     {
         lv_img_dsc_t src;
         lv_img_dsc_t dest;
@@ -870,6 +827,10 @@ static void draw_img(struct _lv_draw_ctx_t *draw_ctx,
             dest.data_size = dest.header.w * dest.header.h * sizeof(lv_color_t);
         }
 
+        lv_opa_t opa = (cf == LV_IMG_CF_ALPHA_1BIT || \
+                        cf == LV_IMG_CF_ALPHA_2BIT || \
+                        cf == LV_IMG_CF_ALPHA_4BIT || \
+                        cf == LV_IMG_CF_ALPHA_8BIT) ? draw_dsc->recolor_opa : draw_dsc->opa;
 
 
 #ifdef SOC_SF32LB55X
@@ -947,7 +908,7 @@ static void draw_img(struct _lv_draw_ctx_t *draw_ctx,
                     */
                     img_rotate_opa_frac(&dest, tmp_dst_img, draw_dsc->angle, (uint32_t)left_zoom,
                                         &tmp_src_area, draw_ctx->buf_area,
-                                        draw_ctx->clip_area, &tmp_pivot, draw_dsc->opa, LV_COLOR_CHROMA_KEY,
+                                        draw_ctx->clip_area, &tmp_pivot, opa, LV_COLOR_CHROMA_KEY,
                                         0, 0, mask_cf, mask_map, &mask_coords);
 
                     my_gpu_wait(draw_ctx);
@@ -973,7 +934,7 @@ static void draw_img(struct _lv_draw_ctx_t *draw_ctx,
         {
             img_rotate_opa_frac(&dest, &src, draw_dsc->angle, (uint32_t)draw_dsc->zoom,
                                 src_area, draw_ctx->buf_area,
-                                draw_ctx->clip_area, (lv_point_t *) & (draw_dsc->pivot), draw_dsc->opa, LV_COLOR_CHROMA_KEY,
+                                draw_ctx->clip_area, (lv_point_t *) & (draw_dsc->pivot), opa, draw_dsc->recolor,
                                 draw_dsc->coord_x_frac, draw_dsc->coord_y_frac,
                                 mask_cf, mask_map, &mask_coords);
 

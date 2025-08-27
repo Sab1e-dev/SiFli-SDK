@@ -13,7 +13,7 @@
 #ifndef _GH3011_EXAMPLE_COMMON_H_
 #define _GH3011_EXAMPLE_COMMON_H_
 
-/* includes */
+
 #include "stdio.h"
 #include "stdint.h"
 #include "stdbool.h"
@@ -30,6 +30,12 @@
 
 
 /// version string
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* includes */
 #define GH30X_EXAMPLE_VER_STRING            "example code v0.0.1.1 (For hbd_ctrl lib v0.4.8.2 and later)\r\n"
 
 ///Module enable limited by hbd_ctrl lib
@@ -445,6 +451,9 @@ extern GU16 HBD_I2cReadReg(GU16 usAddr);
 extern GU32 HBD_I2cReadRawdataReg(GU16 usAddr);
 extern GU16 g_usReadRawdataRegList[2];
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* _GH3011_EXAMPLE_COMMON_H_ */
 
 /********END OF FILE********* Copyright (c) 2003 - 2020, Goodix Co., Ltd. ********/

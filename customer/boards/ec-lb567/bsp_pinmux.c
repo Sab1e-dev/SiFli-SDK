@@ -1,47 +1,9 @@
-/**
-  ******************************************************************************
-  * @file   bsp_pinmux.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
+
 #include "bsp_board.h"
 
 void BSP_PIN_Init(void)
@@ -234,7 +196,6 @@ void BSP_PIN_Init(void)
     HAL_PIN_Set(PAD_PB16, USART4_RXD,  PIN_PULLUP, 0);
     HAL_PIN_Set(PAD_PB17, USART4_TXD,  PIN_PULLUP, 0);
 
-
     // SPI3, Acc sensor
     HAL_PIN_Set(PAD_PB02, GPIO_B2,  PIN_PULLDOWN, 0);   // SPI3_EN
     HAL_PIN_Set(PAD_PB33, GPIO_B33, PIN_PULLDOWN, 0);   // WKUP1_SPI3_INT
@@ -242,7 +203,6 @@ void BSP_PIN_Init(void)
     HAL_PIN_Set(PAD_PB19, SPI3_CLK, PIN_PULLUP, 0);
     HAL_PIN_Set(PAD_PB20, SPI3_DI,  PIN_PULLDOWN, 0);
     HAL_PIN_Set(PAD_PB21, SPI3_DO,  PIN_PULLDOWN, 0);
-
 
     // I2C5 Heartrate/Environment light/Magnatic sensor
     HAL_PIN_Set(PAD_PB23, I2C5_SDA, PIN_PULLUP, 0);
@@ -267,5 +227,3 @@ void BSP_PIN_Init(void)
 
 }
 
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

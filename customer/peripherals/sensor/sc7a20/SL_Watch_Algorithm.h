@@ -7,14 +7,20 @@ Copyright (c) 2017 Silan MEMS. All Rights Reserved.
 #define SL_Watch_ALGO_DRV__H__
 
 
+
+
+//#define SL_Watch_Algorithm_Debug_Mode_Open      1
+
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************Silan_MEMS******************/
 /*****************DATE:2016-11-29*************/
-
 /*****************是否打开调试模式*************/
-//#define SL_Watch_Algorithm_Debug_Mode_Open      1
 /*********非手环工程师请勿操作该宏定义*********/
-
-
 /********非手环工程师请勿操作该宏定义**********/
 /*************计步算法使能宏定义***************/
 #define SL_Pedo_Enable                         1
@@ -236,5 +242,8 @@ Copyright (c) 2017 Silan MEMS. All Rights Reserved.
 #endif/****SL_SC7A20_Driver_Enable****/
 
 
+#ifdef __cplusplus
+}
+#endif
 #endif/****SL_Watch_ALGO_DRV__H__****/
 

@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   audio_recorder.c
-  * @author Sifli software development team
-  * @brief SIFLI audio loopback demo.
+/*
+ * SPDX-FileCopyrightText: 2022-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2022 - 2022,  Sifli Technology
- *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -112,7 +71,6 @@ typedef struct aud_recorder *RECORDER_T;
 static struct aud_recorder recorder;
 static rt_event_t rec_event;
 static audio_client_t g_client;
-
 
 static int audio_record_pcm(RECORDER_T rec)
 {
@@ -186,7 +144,6 @@ static int audio_tinymp3_init(RECORDER_T rec)
 
     return 0;
 }
-
 
 int audio_record_mp3(RECORDER_T rec, rt_uint8_t last)
 {
@@ -386,7 +343,7 @@ static void audio_record_entry(void *parameter)
             if (evt & AUDIO_REC_CLOSE_EVENT)
             {
                 audio_record_close(&recorder);
-                continue;
+                break;
             }
 
             if (evt & AUDIO_REC_PCM_EVENT)
@@ -496,14 +453,16 @@ static void record(uint8_t argc, char **argv)
         record_seconds++;
         LOG_I("recording %ds.\n", record_seconds);
     }
+
+    /* stop record*/
     if (rec->state == REC_STATE_RUNNING)
         rt_event_send(rec_event, AUDIO_REC_CLOSE_EVENT);
 
-    while (rec->state == REC_STATE_RUNNING)
+    while (rt_thread_find("recorder"))
     {
-        rt_thread_mdelay(5);
+        LOG_I("wait thread %s exit", recorder);
+        rt_thread_mdelay(100);
     }
-    rt_thread_delete(tid);
     rt_event_delete(rec_event);
     LOG_I("recording end.\n");
 }
@@ -511,4 +470,3 @@ static void record(uint8_t argc, char **argv)
 MSH_CMD_EXPORT(record, audio recorder);
 #endif
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

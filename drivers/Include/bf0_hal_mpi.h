@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   bf0_hal_mpi.h
-  * @author Sifli software development team
-  * @brief   Header file of QSPI HAL module.
-  *
-  ******************************************************************************
-*/
 /*
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef BF0_HAL_MPI_H
@@ -74,6 +33,17 @@ extern "C" {
   */
 
 #define SPI_FLASH_OTP_BASE          (0X1000U)
+
+/* TODO: confirm whether 100MHz can be used by all chips.
+ *  Actually this value only affects the config when reading ID, after reading ID, MPI_MISCR_RXCLKINV will always be changed to 0.
+ *
+ * on 52x (e.g. 520 or 52B), if 3.3V sip flash using RXCLKINV=1, ID reading will fail
+ */
+#ifndef SF32LB52X
+#define FLASH_CLK_INVERT_THD            (60000000)
+#else
+#define FLASH_CLK_INVERT_THD            (100000000)
+#endif /* SF32LB52X */
 
 /**
   * @brief  SPI_FLASH configure tyep
@@ -303,7 +273,6 @@ typedef struct __FLASH_HandleTypeDef
     uint8_t                         wakeup;          /*!< wake up mode for psram, plane select flag for nand */
     uint32_t                        reserv1;         /*!< used as local clock divider for dual flash  */
     flash_cs_ctrl                   cs_ctrl;         /*!< cs control function pointer  */
-    flash_lock_ctrl                 lock;
 } FLASH_HandleTypeDef;
 /**
   * @}
@@ -1072,5 +1041,3 @@ HAL_StatusTypeDef HAL_MPI_EN_PREFETCH(FLASH_HandleTypeDef *hflash, uint8_t en);
 #endif
 
 #endif /* BF0_HAL_QSPI_H */
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

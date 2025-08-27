@@ -90,6 +90,7 @@ class bmp:
             return (v + rand) & mask
 #|          | bit31~bit25 | bit24~bit17 | bit16~bit8   | bit7~bit0   |
 #| ------   | ------      | ------      | ------       | ------      |
+#| RGB332   |    /        |    /        |      /       |R2~R0G2~G0B1~B0|
 #| RGB565   |    /        |    /        | R4~R0G5~G3   | G2~G0B4~B0  |
 #| ARGB8565 |    /        | A7 ~ A0     | R4~R0G5~G3   | G2~G0B4~B0  |
 #| RGB888   |    /        | R7 ~ R0     | G7 ~ G0      | B7 ~ B0     |
@@ -97,7 +98,7 @@ class bmp:
 
 
     def bin_format_depth(self, bin_format):
-        if bin_format == "a8":
+        if bin_format == "a8" or bin_format == "rgb332":
             return 8
         elif bin_format == "a4":
             return 4
@@ -179,7 +180,11 @@ class bmp:
                         bit_mask = bit_mask << 2
                         bit_pos  = bit_pos + 2
 
-
+                elif bin_format == "rgb332":
+                    r = ((bin_array[index]) & 0xE0) << 0
+                    g = ((bin_array[index]) & 0x1C) << 3 
+                    b = ((bin_array[index]) & 0x03) << 6
+                    index=index+1
                 elif bin_format == "rgb565":
                     r = (bin_array[index+1]) & 0xF8
                     g_h = ((bin_array[index+1]) & 0x7)<<5

@@ -7,7 +7,7 @@ cwd = GetCurrentDir()
 
 # init src and inc vars
 src = []
-inc = [cwd]
+inc = [cwd, os.path.join(cwd, '../include')]
 
 
 # add driver basic code

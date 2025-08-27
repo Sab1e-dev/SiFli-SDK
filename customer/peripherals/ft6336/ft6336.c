@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   ft6336.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -62,8 +23,6 @@
 #define FT_P1_YL                (0x06)
 #define FT_ID_G_MODE            (0xA4)
 
-
-
 #define FT_MAX_WIDTH                   (240)
 #define FT_MAX_HEIGHT                  (240)
 
@@ -73,7 +32,6 @@
 
 /* function and value-----------------------------------------------------------*/
 
-
 static void ft6336_correct_pos(touch_msg_t ppos);
 static rt_err_t write_reg(uint8_t reg, rt_uint8_t data);
 static rt_err_t read_regs(rt_uint8_t reg, rt_uint8_t len, rt_uint8_t *buf);
@@ -81,7 +39,6 @@ static rt_err_t read_regs(rt_uint8_t reg, rt_uint8_t len, rt_uint8_t *buf);
 static struct rt_i2c_bus_device *ft_bus = NULL;
 
 static struct touch_drivers ft6336_driver;
-
 
 static rt_err_t write_reg(uint8_t reg, rt_uint8_t data)
 {
@@ -131,8 +88,6 @@ static rt_err_t read_regs(rt_uint8_t reg, rt_uint8_t len, rt_uint8_t *buf)
     return res;
 }
 
-
-
 static void ft6336_correct_pos(touch_msg_t ppos)
 {
     ppos->x = FT_MAX_WIDTH - ppos->x;
@@ -147,12 +102,8 @@ static void ft6336_correct_pos(touch_msg_t ppos)
         ppos->y = 0;
     }
 
-
     return;
 }
-
-
-
 
 static rt_err_t read_point(touch_msg_t p_msg)
 {
@@ -205,7 +156,6 @@ static rt_err_t read_point(touch_msg_t p_msg)
             p_msg->event = TOUCH_EVENT_DOWN;
             ft6336_correct_pos(p_msg);
 
-
             LOG_D("Down event, x = %d, y = %d\n", p_msg->x, p_msg->y);
 
             return (tp_num > 1) ? RT_EOK : RT_EEMPTY;
@@ -235,7 +185,6 @@ ERROR_HANDLE:
     return RT_ERROR;
 }
 
-
 void ft6336_irq_handler(void *arg)
 {
     rt_err_t ret = RT_ERROR;
@@ -249,7 +198,6 @@ void ft6336_irq_handler(void *arg)
     RT_ASSERT(RT_EOK == ret);
 }
 
-
 static rt_err_t init(void)
 {
     rt_err_t err;
@@ -260,14 +208,12 @@ static rt_err_t init(void)
     rt_touch_irq_pin_attach(PIN_IRQ_MODE_FALLING, ft6336_irq_handler, NULL);
     rt_touch_irq_pin_enable(1); //Must enable before read I2C
 
-
     err = write_reg(FT_ID_G_MODE, 1);
     if (RT_EOK != err)
     {
         LOG_E("G_MODE set fail\n");
         //return RT_FALSE;
     }
-
 
     LOG_D("ft6336 init OK");
     return RT_EOK;
@@ -313,14 +259,10 @@ static rt_bool_t probe(void)
         rt_i2c_configure(ft_bus, &configuration);
     }
 
-
-
-
     LOG_I("ft6336 probe OK");
 
     return RT_TRUE;
 }
-
 
 static struct touch_ops ops =
 {
@@ -328,8 +270,6 @@ static struct touch_ops ops =
     init,
     deinit
 };
-
-
 
 static int rt_ft6336_init(void)
 {
@@ -384,4 +324,3 @@ int cmd_ft_test(int argc, char *argv[])
 FINSH_FUNCTION_EXPORT_ALIAS(cmd_ft_test, __cmd_ft_test, Test hw ft6336);
 #endif  /* ADS7846_FUNC_TEST */
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

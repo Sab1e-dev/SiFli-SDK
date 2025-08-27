@@ -1,5 +1,17 @@
+/*
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #ifndef BF0_HAL_USB_COMMON_H
 #define BF0_HAL_USB_COMMON_H
+
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define USB_CLASS_DEVICE                0x00
 #define USB_CLASS_AUDIO                 0x01
@@ -466,5 +478,7 @@ struct ustorage_csw
 typedef struct ustorage_csw *ustorage_csw_t;
 
 
+#ifdef __cplusplus
+}
 #endif
-
+#endif

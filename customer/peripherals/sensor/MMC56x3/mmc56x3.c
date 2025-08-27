@@ -41,8 +41,9 @@ uint8_t MMC56x3_ReadID(void)
 void MMC56x3_SetContinuousMode(uint8_t mode)
 {
     uint8_t temp[1];
-    temp[0] = 0x08;
+    temp[0] = 0x80;
     RT_ASSERT(rt_i2c_mem_write(MMC56x3_bus, MMC56X3_DEFAULT_ADDRESS, MMC56X3_CTRL0_REG, 8, temp, 1) > 0);
+    temp[0] = 0x08; // Writing 1 into this location will enable the function of periodical set
     RT_ASSERT(rt_i2c_mem_read(MMC56x3_bus, MMC56X3_DEFAULT_ADDRESS, MMC56X3_CTRL2_REG, 8, temp, 1) > 0);
     if (mode)
     {

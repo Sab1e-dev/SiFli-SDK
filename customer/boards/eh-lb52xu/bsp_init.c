@@ -1,47 +1,9 @@
-/**
-  ******************************************************************************
-  * @file   bsp_init.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
+
 #include "bsp_board.h"
 #include "bf0_hal_rtc.h"
 
@@ -59,7 +21,9 @@
 
 static uint16_t mpi1_div = 1;
 static uint16_t mpi2_div = 1;
-
+#ifdef BSP_QSPI2_DUAL_MODE
+    static uint16_t mpi2_ext_div = 1;
+#endif /* BSP_QSPI2_DUAL_MODE */
 
 static uint32_t otp_flash_addr = AUTO_FLASH_MAC_ADDRESS;
 
@@ -81,7 +45,6 @@ FUNC_BSP_FLASH_DIV_GET(2);
 FUNC_BSP_FLASH_DIV_SET(1)
 FUNC_BSP_FLASH_DIV_SET(2)
 
-
 int rt_psram_init(void);
 int rt_hw_flash1_init(uint8_t auto_detect);
 int rt_hw_flash2_init(uint8_t auto_detect);
@@ -93,6 +56,18 @@ uint32_t BSP_GetOtpBase(void)
     return otp_flash_addr;
 }
 #endif
+
+#ifdef BSP_QSPI2_DUAL_MODE
+uint16_t BSP_GetFlashExtDiv(void)
+{
+    return mpi2_ext_div;
+}
+
+void BSP_SetFlashExtDiv(uint16_t div)
+{
+    mpi2_ext_div = div;
+}
+#endif /* BSP_QSPI2_DUAL_MODE */
 
 #ifdef SOC_BF0_HCPU
 #define HXT_DELAY_EXP_VAL 1000
@@ -107,7 +82,6 @@ static void LRC_init(void)
     HAL_PMU_SET_HXT3_RDY_DELAY((HXT_DELAY_EXP_VAL / cycle_t + 1));
 }
 #endif
-
 
 #ifdef SOC_BF0_HCPU
     __USED
@@ -181,13 +155,16 @@ void HAL_PreInit(void)
     HAL_RCC_HCPU_EnableDLL2(288000000);
 #endif
 
-
     // Reset sysclk used by HAL_Delay_us
     HAL_Delay_us(0);
     //HAL_sw_breakpoint();
 
     mpi1_div = 2;   // for OPI Psram driver alway set 1, for QSPI PSRAM depend on this setting, for flash depend on flash request, 2 or 3
     mpi2_div = 5;
+
+#ifdef BSP_QSPI2_DUAL_MODE
+    mpi2_ext_div = 5;
+#endif /* BSP_QSPI2_DUAL_MODE */
 
     /* Init the low level hardware */
     HAL_MspInit();
@@ -248,12 +225,8 @@ void BSP_IO_Init(void)
     BSP_Power_Up(true);
 }
 
-
 __WEAK void SystemClock_Config(void)
 {
 
 }
 
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   it7257.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -59,7 +20,6 @@
 #define IT_REG_BUF_QUERY               (0x80)
 #define IT_REG_POINT_INFO              (0xE0)
 
-
 #define IT_MAX_WIDTH                   (240)
 #define IT_MAX_HEIGHT                  (240)
 #define IT_FINGER_NUM                  (3)
@@ -73,8 +33,6 @@
 #define IT_PT_INFO_BITS                 0xF8
 #define IT_PT_INFO_YES                  0x80
 
-
-
 #define IT_PD_FLAGS_DATA_TYPE_BITS      0xF0
 /* other types (like chip-detected gestures) exist but we do not care */
 #define IT_PD_FLAGS_DATA_TYPE_TOUCH 0x00
@@ -85,8 +43,6 @@
 #define IT_FD_PRESSURE_BITS     0x0F
 #define IT_FD_PRESSURE_NONE     0x00
 #define IT_FD_PRESSURE_LIGHT        0x02
-
-
 
 typedef struct ft_finger_data_
 {
@@ -105,8 +61,6 @@ typedef struct ft_point_data_
     /// TODO: for now only support 1 finger
     ft_finger_data_t fd;
 } ft_point_data_t;
-
-
 
 // rotate to left with 90, 180, 270
 // rotate to left with 360 for mirror
@@ -159,7 +113,6 @@ static rt_err_t read_point(touch_msg_t p_msg)
             p_msg->x = point_data.fd.x_lo | (((uint16_t)point_data.fd.hi & 0xF) << 8);
             p_msg->y = point_data.fd.y_lo | (((uint16_t)point_data.fd.hi & 0xF0) << 4);
 
-
             p_msg->x = IT_MAX_WIDTH - p_msg->x;
             if (p_msg->x < 0)
             {
@@ -171,8 +124,6 @@ static rt_err_t read_point(touch_msg_t p_msg)
             {
                 p_msg->y = 0;
             }
-
-
 
             LOG_D("Down event, x = %d, y = %d\n", p_msg->x, p_msg->y);
 
@@ -187,9 +138,6 @@ static rt_err_t read_point(touch_msg_t p_msg)
             LOG_D("Up event, x = %d, y = %d\n", p_msg->x, p_msg->y);
             return RT_EEMPTY;
         }
-
-
-
 
     }
     else
@@ -254,12 +202,9 @@ static rt_err_t read_regs(rt_uint8_t reg, rt_uint8_t len, rt_uint8_t *buf)
     return res;
 }
 
-
 static void it7257_init(void)
 {
 }
-
-
 
 static rt_err_t init(void)
 {
@@ -270,7 +215,6 @@ static rt_err_t init(void)
 
     rt_touch_irq_pin_attach(PIN_IRQ_MODE_FALLING, it7257_irq_handler, NULL);
     rt_touch_irq_pin_enable(1); //Must enable before read I2C
-
 
     LOG_D("it7257 init OK");
     return RT_EOK;
@@ -303,7 +247,6 @@ static rt_bool_t probe(void)
         LOG_I("bus not find\n");
         return RT_FALSE;
     }
-
 
     {
         struct rt_i2c_configuration configuration =
@@ -354,5 +297,3 @@ static int rt_it7257_init(void)
 }
 INIT_COMPONENT_EXPORT(rt_it7257_init);
 
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 //#include "cpu_tst_drv.h"
 #include "spi_tst_drv.h"
 #include "register.h"
@@ -109,4 +115,3 @@ void set_spi4_clkdiv(uint8_t div)
     hwp_spi4->CLK_CTRL &= (~SPI_CLK_CTRL_CLK_DIV_Msk);
     hwp_spi4->CLK_CTRL |= (div << SPI_CLK_CTRL_CLK_DIV_Pos);
 }
-

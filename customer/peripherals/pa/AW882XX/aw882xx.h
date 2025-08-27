@@ -1,11 +1,17 @@
 #ifndef _AW882XX_H_
 #define _AW882XX_H_
 
+
 #include "aw_device.h"
 #include "aw_fill_info.h"
 #include "aw_audio_common.h"
 #include "aw_base.h"
 
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define AW882XX_CHIP_ID_REG     (0x00)
 #define MAX_I2C_BUFFER_SIZE     (65536)
@@ -121,5 +127,8 @@ void aw882xx_monitor_work(aw_dev_index_t dev_index);
 void aw882xx_monitor_set_status(aw_dev_index_t dev_index);
 int aw882xx_set_fs(aw_dev_index_t dev_index,  uint32_t fs, uint8_t chn_sel);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
 

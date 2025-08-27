@@ -32,17 +32,26 @@
 #ifndef MAIN_SP_H
 #define MAIN_SP_H
 
-/* Include Files */
+
 #include <math.h>
 #include <stddef.h>
 #include <stdlib.h>
 
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Include Files */
 /* Function Declarations */
 extern float vcSportMotionCalculate(float x, float y, float z);
 void vcSportMotionAlgoInit(void);
 void vcSportMotionAlgoTerminate(void);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
 
 /*

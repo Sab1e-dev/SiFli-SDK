@@ -1,8 +1,12 @@
 /*
-*/
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #ifndef __SIF_NAND_BBM_H__
 #define __SIF_NAND_BBM_H__
+
 
 //#include "board.h"
 #include "bf0_hal_def.h"
@@ -11,6 +15,11 @@
 
 #ifdef BBM_UT
     #include <stdint.h>
+#endif
+
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 #define RET_ECC_WORK                (1)
@@ -112,5 +121,7 @@ typedef struct
 
 #endif  //BBM_TABLE_AUTO_TEST
 
+#ifdef __cplusplus
+}
+#endif
 #endif //__SIF_NAND_BBM_H__
-

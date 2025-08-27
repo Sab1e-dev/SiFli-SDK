@@ -14,7 +14,13 @@
 #ifndef __HBD_COMMUNICATE_H__
 #define __HBD_COMMUNICATE_H__
 
+
 #include "hbd_ctrl.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Hbd commhandler return value type. */
 typedef enum
@@ -63,6 +69,9 @@ GS8 HBD_SetSendDataFunc(void (*pSendDataFunc)(GU8 uchDataBuffArr[], GU8 uchLen))
 ******************************************************************/
 GU8 HBD_SendRawdataPackageByNewdataInt(ST_GS_DATA_TYPE *stGsAxisValue, EM_HBD_GSENSOR_SENSITIVITY emGsensorSensitivity);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* __HBD_COMMUNICATE_H__ */
 
 /********END OF FILE********* (C) COPYRIGHT 2018 .********/

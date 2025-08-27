@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_ram_lcd.c
-  * @author Sifli software development team
-  * @brief  Enables the Display.
-  *
-* *****************************************************************************
-**/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "drv_lcd.h"
@@ -63,14 +22,12 @@
     #define DEBUG_PRINTF(...)
 #endif
 
-
 #define RAM_LCD_WIDTH  120
 #define RAM_LCD_HEIGHT 120
 #define RAM_LCD_FROMAT LCDC_PIXEL_FORMAT_RGB565
 
 #define RAM_LCD_BUFFER_SIZE(bits_per_pixel) ((RAM_LCD_WIDTH * RAM_LCD_HEIGHT * (bits_per_pixel)) >> 3)
 //////////////////////////////////////////////////////////////////////////////////
-
 
 static LCD_DrvTypeDef drv_lcd;
 static void lcd_draw_rect(const char *pixels, int x0, int y0, int x1, int y1);
@@ -93,7 +50,6 @@ static LCDC_InitTypeDef lcdc_int_cfg =
     .color_mode = RAM_LCD_FROMAT,
 };
 
-
 static rt_err_t sram_lcd_init(rt_device_t dev)
 {
     return RT_EOK;
@@ -103,7 +59,6 @@ static rt_err_t sram_lcd_cfg_reinit(uint16_t cf)
 {
     if ((ram_lcd_cfg.pixel_format == cf)
             && (ram_lcd_cfg.framebuffer != NULL))return RT_EOK;
-
 
     switch (cf)
     {
@@ -134,7 +89,6 @@ static rt_err_t sram_lcd_cfg_reinit(uint16_t cf)
         memset(ram_lcd_cfg.framebuffer, 0, RAM_LCD_BUFFER_SIZE(ram_lcd_cfg.bits_per_pixel));
         DEBUG_PRINTF("ram_lcd framebuffer = %x\n", ram_lcd_cfg.framebuffer);
 
-
         lcdc_int_cfg.cfg.ahb.lcd_mem = (uint32_t) ram_lcd_cfg.framebuffer;
         lcdc_int_cfg.color_mode = rt_lcd_format_to_hal_lcd_format(ram_lcd_cfg.pixel_format);
         memcpy(&drv_lcd.hlcdc.Init, &lcdc_int_cfg, sizeof(LCDC_InitTypeDef));
@@ -161,9 +115,7 @@ static rt_err_t sram_lcd_open(rt_device_t dev, rt_uint16_t oflag)
 
         DEBUG_PRINTF("ram lcd_open \n");
 
-
         rt_sem_init(&drv_lcd.sem, "ram_lcd", 1, RT_IPC_FLAG_FIFO);
-
 
 #if SOC_BF0_HCPU
         HAL_NVIC_SetPriority(LCDC1_IRQn, 3, 0);
@@ -226,7 +178,6 @@ static rt_err_t sram_lcd_control(rt_device_t dev, int cmd, void *args)
     case RTGRAPHIC_CTRL_POWEROFF:
         break;
 
-
     case RT_DEVICE_CTRL_RESUME:
         break;
 
@@ -260,14 +211,12 @@ static rt_err_t sram_lcd_control(rt_device_t dev, int cmd, void *args)
     return RT_EOK;
 }
 
-
 static void lcd_set_window(int x0, int y0, int x1, int y1)
 {
     DEBUG_PRINTF("ram lcd_set_window [%d,%d,%d,%d] \n", x0, y0, x1, y1);
 
     lcdc_int_cfg.cfg.ahb.lcd_mem = (uint32_t) ram_lcd_cfg.framebuffer + ((x0 + y0 * ram_lcd_cfg.width) * (ram_lcd_cfg.bits_per_pixel >> 3));
     lcdc_int_cfg.cfg.ahb.lcd_o_width = (ram_lcd_cfg.width - (x1 - x0 + 1)) * (ram_lcd_cfg.bits_per_pixel >> 3);
-
 
     memcpy(&drv_lcd.hlcdc.Init, &lcdc_int_cfg, sizeof(LCDC_InitTypeDef));
     HAL_LCDC_Init(&drv_lcd.hlcdc);
@@ -291,9 +240,7 @@ static void lcd_get_pixel(char *pixel, int x, int y)
 
     p_buf = ram_lcd_cfg.framebuffer + ((x + y * ram_lcd_cfg.width) * (ram_lcd_cfg.bits_per_pixel >> 3));
 
-
     memcpy(pixel, p_buf, (ram_lcd_cfg.bits_per_pixel >> 3));
-
 
     DEBUG_PRINTF("ram lcd pixel[%d,%d]: addr %x = %x\n", x, y, p_buf,
                  (RTGRAPHIC_PIXEL_FORMAT_RGB565 ==  ram_lcd_cfg.pixel_format) ?  * ((uint16_t *) p_buf) : * ((uint32_t *) p_buf)
@@ -313,7 +260,6 @@ static void lcd_blit_line(const char *pixels, int x, int y, rt_size_t size)
 {
     lcd_draw_rect(pixels, x, y, x + size - 1, y);
 }
-
 
 LCDC_HandleTypeDef *get_ram_lcd_handler(void)
 {
@@ -336,14 +282,12 @@ static void SendLayerDataCpltCbk(LCDC_HandleTypeDef *lcdc)
         RT_ASSERT(RT_EOK == err);
     }
 
-
     if (p_lcd_device->tx_complete)
     {
         p_lcd_device->tx_complete(p_lcd_device, lcdc->Layer[p_lcd->select_layer].data);
     }
 
 }
-
 
 static void lcd_draw_rect(const char *pixels, int x0, int y0, int x1, int y1)
 {
@@ -374,7 +318,6 @@ static void lcd_draw_rect(const char *pixels, int x0, int y0, int x1, int y1)
     HAL_LCDC_LayerSetData(&drv_lcd.hlcdc, drv_lcd.select_layer, (uint8_t *)pixels, x0, y0, x1, y1);
     HAL_LCDC_SendLayerData_IT(&drv_lcd.hlcdc);
 
-
     err = rt_sem_take(&(drv_lcd.sem), rt_tick_from_millisecond(MAX_LCD_DRAW_TIME));
     RT_ASSERT(RT_EOK == err);
 
@@ -397,8 +340,6 @@ static void lcd_draw_rect_async(const char *pixels, int x0, int y0, int x1, int 
     HAL_LCDC_SendLayerData_IT(&drv_lcd.hlcdc);
 }
 
-
-
 static int rt_hw_ram_lcd_init(void)
 {
     static const struct rt_device_graphic_ops ops =
@@ -412,8 +353,6 @@ static int rt_hw_ram_lcd_init(void)
         lcd_draw_rect_async,
         lcd_set_window,
     };
-
-
 
 #if SOC_BF0_HCPU
     drv_lcd.hlcdc.Instance = LCDC1;
@@ -446,7 +385,4 @@ static int rt_hw_ram_lcd_init(void)
 }
 INIT_BOARD_EXPORT(rt_hw_ram_lcd_init);
 #endif /* APP_BSP_TEST */
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

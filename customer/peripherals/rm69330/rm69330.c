@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   rm69330.c
-  * @author Sifli software development team
-  * @brief   This file includes the LCD driver for RM69330 LCD.
-  * @attention
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -53,19 +12,8 @@
 
 #include "log.h"
 
-
-
-
-
-
-
-
-
 #define ROW_OFFSET  (0x00)
 #define COL_OFFSET  (0x0E)
-
-
-
 
 /**
   * @brief RM69330 chip IDs
@@ -77,11 +25,6 @@
   */
 #define  THE_LCD_PIXEL_WIDTH    (454)
 #define  THE_LCD_PIXEL_HEIGHT   (454)
-
-
-
-
-
 
 /**
   * @brief  RM69330 Registers
@@ -101,9 +44,6 @@
 #define REG_CASET              0x2A
 #define REG_RASET              0x2B
 
-
-
-
 #define REG_TEARING_EFFECT     0x35
 
 #define REG_IDLE_MODE_OFF      0x38
@@ -112,40 +52,7 @@
 
 #define REG_WBRIGHT            0x51 /* Write brightness*/
 
-
-
-
-
-
-
 #define RM69330_SET_DISP_MODE      0xC4
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #define DEBUG
 
@@ -158,14 +65,6 @@
 /*rm69330 start colume & row must can be divided by 2, and roi width&height too.*/
 #define LCD_ALIGN2(x) ((x) = (x) & (~1))
 #define LCD_ALIGN1(x) ((x) = (0 == ((x) & 1)) ? (x - 1) : x)
-
-
-
-
-
-
-
-
 
 #ifdef BSP_LCDC_USING_DSI
 
@@ -217,7 +116,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
                 .BTATimeout = 0,
             },
 
-
             .LPCmd = {
                 .LPGenShortWriteNoP    = DSI_LP_GSW0P_ENABLE,
                 .LPGenShortWriteOneP   = DSI_LP_GSW1P_ENABLE,
@@ -233,7 +131,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
                 .LPMaxReadPacket       = DSI_LP_MRDP_ENABLE,
                 .AcknowledgeRequest    = DSI_ACKNOWLEDGE_DISABLE, //disable LCD error reports
             },
-
 
             .vsyn_delay_us = 0,
         },
@@ -350,11 +247,7 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dbi =
 
 };
 
-
-
-
 static LCDC_InitTypeDef lcdc_int_cfg;
-
 
 static void     LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *Parameters, uint32_t NbParameters);
 static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8_t ReadSize);
@@ -373,14 +266,12 @@ void HAL_DBG_printf(const char *fmt, ...)
 }
 #endif /* RM69330_DEBUG */
 
-
 //#define RM69330_LCD_TEST
 #ifdef RM69330_LCD_TEST
 uint8_t rm69330_dsip_mode_value = 0;
 
 static rt_err_t lcd_cfg(int argc, char **argv)
 {
-
 
     if (strcmp(argv[1], "nodcx1d") == 0)
         lcdc_int_cfg_spi.lcd_itf = LCDC_INTF_SPI_NODCX_1DATA;
@@ -396,19 +287,12 @@ static rt_err_t lcd_cfg(int argc, char **argv)
     else if (strcmp(argv[1], "dcx4d") == 0)
         lcdc_int_cfg_spi.lcd_itf = LCDC_INTF_SPI_DCX_4DATA;
 
-
-
-
-
     if (strcmp(argv[2], "rgb565") == 0)
         lcdc_int_cfg_spi.color_mode = LCDC_PIXEL_FORMAT_RGB565;
     else if (strcmp(argv[2], "rgb888") == 0)
         lcdc_int_cfg_spi.color_mode = LCDC_PIXEL_FORMAT_RGB888;
 
-
-
     lcdc_int_cfg_spi.freq = 1000000 * strtoul(argv[3], 0, 10);
-
 
     /*
         bit 0:  DUAL SPI MODE enable
@@ -428,11 +312,7 @@ static rt_err_t lcd_cfg(int argc, char **argv)
     else if (strcmp(argv[4], "2p3t_2w") == 0)
         rm69330_dsip_mode_value = 0x81 | (3 << 4);
 
-
-
     lcdc_int_cfg_spi.cfg.spi.dummy_clock = strtoul(argv[5], 0, 10);
-
-
 
     DEBUG_PRINTF("\nlcd_cfg itf=%d, colormode=%d, freq=%d, disp_m=%x\n", lcdc_int_cfg_spi.lcd_itf,
                  lcdc_int_cfg_spi.color_mode,
@@ -446,14 +326,6 @@ static rt_err_t lcd_cfg(int argc, char **argv)
 
 MSH_CMD_EXPORT(lcd_cfg, lcd_cfg);
 #endif /* DSI_TEST */
-
-
-
-
-
-
-
-
 
 /**
   * @brief  spi read/write mode
@@ -474,9 +346,7 @@ static void LCD_ReadMode(LCDC_HandleTypeDef *hlcdc, bool enable)
         }
     }
 
-
 }
-
 
 /**
   * @brief  Power on the LCD.
@@ -487,9 +357,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
 {
     uint8_t   parameter[14];
 
-
-
-
 #ifdef BSP_LCDC_USING_DSI
     memcpy(&lcdc_int_cfg, &lcdc_int_cfg_dsi, sizeof(lcdc_int_cfg));
 #elif defined(BSP_LCDC_USING_DBI)
@@ -497,10 +364,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
 #else
     memcpy(&lcdc_int_cfg, &lcdc_int_cfg_3spi_1data, sizeof(lcdc_int_cfg));
 #endif /* BSP_LCDC_USING_DSI */
-
-
-
-
 
     /* Initialize RM69330 low level bus layer ----------------------------------*/
     memcpy(&hlcdc->Init, &lcdc_int_cfg, sizeof(LCDC_InitTypeDef));
@@ -541,10 +404,8 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
 
     }
 
-
     parameter[0] = 0x00;
     LCD_WriteReg(hlcdc, 0x35, parameter, 1); //enable TE
-
 
     if (LCDC_PIXEL_FORMAT_RGB888 == lcdc_int_cfg.color_mode)
         parameter[0] = 0x77; //24bit rgb
@@ -553,7 +414,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     else
         RT_ASSERT(0); //fix me
     LCD_WriteReg(hlcdc, REG_COLOR_MODE, parameter, 1);
-
 
     parameter[0] = 0xFF;
     LCD_WriteReg(hlcdc, REG_WBRIGHT, parameter, 1); //ser brightness
@@ -627,7 +487,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     LCD_DRIVER_DELAY_MS(1000);
 #endif /* 0 */
 
-
     {
         uint32_t data;
         /*
@@ -646,10 +505,7 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
         DEBUG_PRINTF("PowerMode 0x%x", data);
     }
 
-
 }
-
-
 
 /**
   * @brief  Disables the Display.
@@ -665,7 +521,6 @@ static uint32_t LCD_ReadID(LCDC_HandleTypeDef *hlcdc)
     /*
         data = LCD_ReadData(hlcdc,REG_CASET, 4);
         DEBUG_PRINTF("\REG_CASET 0x%x \n", data);
-
 
         data = LCD_ReadData(hlcdc,REG_RASET, 4);
         DEBUG_PRINTF("\REG_RASET 0x%x \n", data);
@@ -748,7 +603,6 @@ static void LCD_WritePixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Yp
     uint8_t data = 0;
     uint8_t   parameter[4];
 
-
     /* Set Cursor */
     LCD_SetRegion(hlcdc, Xpos, Ypos, Xpos, Ypos);
     LCD_WriteReg(hlcdc, REG_WRITE_RAM, (uint8_t *)RGBCode, 2);
@@ -757,7 +611,6 @@ static void LCD_WritePixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Yp
 static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RGBCode, uint16_t Xpos0, uint16_t Ypos0, uint16_t Xpos1, uint16_t Ypos1)
 {
     uint32_t size;
-
 
     HAL_LCDC_LayerSetData(hlcdc, HAL_LCDC_LAYER_DEFAULT, (uint8_t *)RGBCode, Xpos0, Ypos0, Xpos1, Ypos1);
 
@@ -777,7 +630,6 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
         HAL_LCDC_SendLayerData2Reg_IT(hlcdc, REG_WRITE_RAM, 1);
     }
 }
-
 
 /**
   * @brief  Writes  to the selected LCD register.
@@ -834,7 +686,6 @@ static void LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *P
     }
 }
 
-
 /**
   * @brief  Reads the selected LCD Register.
   * @param  RegValue: Address of the register to read
@@ -873,8 +724,6 @@ static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8
     LCD_ReadMode(hlcdc, false);
     return rd_data;
 }
-
-
 
 static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Ypos)
 {
@@ -920,13 +769,11 @@ static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t
         break;
     }
 
-
     //LCD_WriteReg(hlcdc,REG_COLOR_MODE, parameter, 1);
 
     return ret_v;
 #endif /* 0 */
 }
-
 
 static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
 {
@@ -959,7 +806,6 @@ static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
     }
 
     LCD_WriteReg(hlcdc, REG_COLOR_MODE, parameter, 1);
-
 
     HAL_LCDC_SetOutFormat(hlcdc, lcdc_int_cfg.color_mode);
 }
@@ -1008,7 +854,6 @@ static void LCD_TimeoutReset(LCDC_HandleTypeDef *hlcdc)
     LCD_Init(hlcdc);
 }
 
-
 static uint32_t LCD_ESDCehck(LCDC_HandleTypeDef *hlcdc)
 {
     uint32_t data;
@@ -1054,13 +899,6 @@ static const LCD_DrvOpsDef RM69330_drv =
     LCD_ESDCehck
 };
 
-
 LCD_DRIVER_EXPORT2(rm69330, THE_LCD_ID, &lcdc_int_cfg,
                    &RM69330_drv, 2);
 
-
-
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

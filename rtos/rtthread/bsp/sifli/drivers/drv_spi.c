@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_spi.c
-  * @author Sifli software development team
-  * @brief SPI BSP driver
-  * @{
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "board.h"
@@ -148,9 +107,7 @@ static struct rt_spi_configuration rt_spi_cfg_default[SPI_MAX] =
 #endif
 };
 
-
 struct sifli_spi spi_bus_obj[SPI_MAX];
-
 
 static uint32_t get_index_by_bus_handle(struct rt_spi_bus *bus)
 {
@@ -183,7 +140,6 @@ static rt_err_t sifli_spi_init(struct rt_spi_device *device, struct sifli_spi *s
     {
         spi_handle->Init.Mode = SPI_MODE_MASTER;
     }
-
 
     if (cfg->mode & RT_SPI_3WIRE)
     {
@@ -711,7 +667,6 @@ static rt_uint32_t spixfer(struct rt_spi_device *device, struct rt_spi_message *
                 state = HAL_OK;
                 break;
 
-
             case HAL_SPI_STATE_BUSY: //Interrupt or DMA mode, wait semaphore
             case HAL_SPI_STATE_BUSY_RX:
             case HAL_SPI_STATE_BUSY_TX:
@@ -763,7 +718,6 @@ xfer_end :
     rt_pm_hw_device_stop();
     rt_pm_release(PM_SLEEP_MODE_IDLE);
 #endif  /* RT_USING_PM */
-
 
     return (HAL_OK == state) ? message->length : 0;
 }
@@ -896,7 +850,6 @@ static rt_err_t spi_control(struct rt_spi_device *device, int cmd, void *arg)
     return RT_EOK;
 }
 
-
 static const struct rt_spi_ops spi_ops =
 {
     .configure = spi_configure,
@@ -995,8 +948,6 @@ __ROM_USED int rt_hw_spi_bus_init(struct sifli_spi *objs, struct sifli_spi_confi
 /**
   * Attach the spi device to SPI bus, this function must be used after initialization.
   */
-
-
 
 /**
 * @brief  attach spi device to spi buss.
@@ -1124,7 +1075,6 @@ static void SPIx_DMA_IRQHandler(uint32_t index, uint32_t trx)
 #endif /* DMA_SUPPORT_DYN_CHANNEL_ALLOC */
 
 #endif
-
 
 #if defined(BSP_USING_SPI1)
 /**
@@ -1303,7 +1253,6 @@ static void sifli_get_dma_info(void)
 * @brief  SPI hardware initial, include dma,buf configure.
 * @retval RT_EOK if success.
 */
-
 
 int rt_hw_spi_init(void)
 {
@@ -1607,7 +1556,6 @@ static void thread2_entry(void *parameter)
     LOG_I("thread spi2 exit");
 }
 
-
 int cmd_spitest(int argc, char *argv[])
 {
     struct rt_spi_configuration cfg1;
@@ -1762,7 +1710,6 @@ FINSH_FUNCTION_EXPORT_ALIAS(cmd_spitest, __cmd_spitest, Test hw spi);
 #endif
 #endif  //DRV_SPI_TEST
 
-
 //#endif /* BSP_USING_SPI1 || BSP_USING_SPI2 || BSP_USING_SPI3 || BSP_USING_SPI4 || BSP_USING_SPI5 */
 #endif /* RT_USING_SPI */
 
@@ -1770,4 +1717,3 @@ FINSH_FUNCTION_EXPORT_ALIAS(cmd_spitest, __cmd_spitest, Test hw spi);
 /// @} bsp_driver
 /// @} file
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

@@ -684,10 +684,17 @@ struct rt_dlmodule *dlmodule_load(const char *filename)
         if (length == 0) goto __exit;
 
         module_ptr = (uint8_t *) dlm_malloc(length);
-        if (!module_ptr) goto __exit;
+        if (!module_ptr)
+        {
+            rt_kprintf("%s length=%d malloc fail.\n", __func__, length);
+            goto __exit;
+        }
 
         if (read(fd, module_ptr, length) != length)
+        {
+            rt_kprintf("%s length=%d read fail.\n", __func__, length);
             goto __exit;
+        }
 
         /* close file and release fd */
         close(fd);

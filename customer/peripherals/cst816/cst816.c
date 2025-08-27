@@ -18,8 +18,6 @@
 #define LOG_TAG              "drv.cst816"
 #include <drv_log.h>
 
-
-
 #ifdef LCD_USING_ED_LB5XSPI18501
     #define CST816_UPDATA_ENABLE            /* 使锟斤拷锟斤拷锟斤拷 */
 #endif /* LCD_USING_ED_LB5XSPI18501 */
@@ -30,16 +28,11 @@
 #define TOUCH_CHIP_ID_CST816T           (0xB5)
 #define TOUCH_CHIP_ID_CST816D           (0xB6)
 
-
 /*register address*/
 #define FTS_REG_CHIP_ID                 0xA7       /* ID */
 #define FTS_REG_MODE_DEEP_SLEEP         0xD105     /* sleep模式 */
 #define FTS_REG_MODE_NORMOL             0xD109     /* 锟斤拷锟斤拷锟斤拷锟斤拷模式 */
 #define FTS_REG_GET_POSI                0xD000     /* 锟斤拷取锟斤拷锟斤拷锟轿伙拷锟?*/
-
-
-
-
 
 /* function and value-----------------------------------------------------------*/
 #define CST816_USE_DMA_RW //Enable I2C DMA read/write
@@ -69,7 +62,6 @@
 
 static struct rt_i2c_bus_device *ft_bus = NULL;
 static struct touch_drivers cst816_driver;
-
 
 rt_err_t i2c_base_write(rt_uint8_t *buf, rt_uint16_t len)
 {
@@ -145,9 +137,6 @@ rt_err_t cst816_i2c_read_reg8(uint8_t reg, uint8_t *p_data, uint8_t len)
 
 }
 
-
-
-
 #if  0
 
 rt_err_t cst816_i2c_write(uint16_t reg, uint8_t *data, uint16_t len)
@@ -208,7 +197,6 @@ rt_size_t cst816_i2c_write(uint8_t device_addr, uint16_t reg, uint8_t *p_data, u
     return res;
 }
 
-
 rt_size_t cst816_i2c_read(uint8_t device_addr, const uint16_t reg, uint8_t *p_data, uint16_t len)
 {
     rt_size_t res;
@@ -219,7 +207,6 @@ rt_size_t cst816_i2c_read(uint8_t device_addr, const uint16_t reg, uint8_t *p_da
 }
 
 #endif
-
 
 void cst816_irq_handler(void *arg)
 {
@@ -311,10 +298,8 @@ static rt_err_t init(void)
     */
     LOG_I("cst816 probe OK");
 
-
     rt_touch_irq_pin_attach(PIN_IRQ_MODE_FALLING, cst816_irq_handler, NULL);
     rt_touch_irq_pin_enable(1);     //Must enable before read I2C
-
 
     LOG_D("cst816 init OK");
     return RT_EOK;
@@ -393,14 +378,12 @@ static rt_bool_t probe(void)
     return RT_TRUE;
 }
 
-
 static struct touch_ops ops =
 {
     read_point,
     init,
     deinit
 };
-
 
 static int rt_cst816_init(void)
 {
@@ -414,6 +397,4 @@ static int rt_cst816_init(void)
     return 0;
 }
 INIT_COMPONENT_EXPORT(rt_cst816_init);
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

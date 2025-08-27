@@ -4,8 +4,14 @@ File: DRC_FUNC.h
 #ifndef DRC_FUNC_H
 #define DRC_FUNC_H
 
+
 #include <stdint.h>
 #include "fast_log10.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*audio DRC parameters */
 typedef struct
@@ -35,5 +41,8 @@ float expander_gain(void *drc_para_inst, float x_db);
 float compressor_gain(void *drc_para_inst, float x_db);
 float apply_gain(float x, float g);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
 /* DRC_FUNC_H */

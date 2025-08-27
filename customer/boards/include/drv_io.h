@@ -1,49 +1,12 @@
-/**
-  ******************************************************************************
-  * @file   lcd_io.h
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
+
 #ifndef __DRV_IO_H__
 #define __DRV_IO_H__
+
 
 #include "stdint.h"
 #include "stdbool.h"
@@ -55,6 +18,11 @@
  *
  * @retval None
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void HAL_MspInit(void);
 
 /**
@@ -73,7 +41,6 @@ uint16_t BSP_GetFlash5DIV(void);
 
 uint16_t BSP_GetFlashExtDiv(void);
 
-
 /**
  * @brief Set Flash divider
  */
@@ -85,18 +52,15 @@ void BSP_SetFlash5DIV(uint16_t div);
 
 void BSP_SetFlashExtDiv(uint16_t div);
 
-
 /**
  * @brief Power up/down board
  */
 void BSP_IO_Power_Down(int coreid, bool is_deep_sleep);
 void BSP_Power_Up(bool is_deep_sleep);
 
-
 void BSP_PowerDownCustom(int coreid, bool is_deep_sleep);
 
 void BSP_PowerUpCustom(bool is_deep_sleep);
-
 
 /**
  * @brief LCD power up/down/reset
@@ -125,7 +89,6 @@ int BSP_Nor_read(uint32_t addr, uint8_t *buf, int size);
 int BSP_Nor_erase(uint32_t addr, uint32_t size);
 int BSP_Nor_write(uint32_t addr, const uint8_t *buf, uint32_t size);
 
-
 void BSP_Flash_var_init(void);
 int BSP_Flash_hw1_init(void);
 int BSP_Flash_hw2_init(void);
@@ -141,7 +104,6 @@ int BSP_Flash_Init(void);
  * @brief SDIO
  */
 void BSP_SD_PowerUp(void);
-
 
 void BSP_GPIO_Set(int pin, int val, int is_porta);
 
@@ -236,10 +198,8 @@ void BSP_GPIO_Set(int pin, int val, int is_porta);
   * @}
   */
 
+#ifdef __cplusplus
+}
+#endif
 #endif
 
-
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

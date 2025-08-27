@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   jd9365da.c
-  * @author Sifli software development team
-  * @brief   This file includes the LCD driver for jd9365da LCD.
-  * @attention
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -55,10 +14,6 @@
 
 #include "log.h"
 
-
-
-
-
 #define LCD_ID                  0x8000
 
 /**
@@ -66,8 +21,6 @@
   */
 #define  LCD_IC_PIXEL_WIDTH    (800)
 #define  LCD_IC_PIXEL_HEIGHT   (2048)
-
-
 
 /**
   * @brief  LCD Registers
@@ -88,12 +41,8 @@
 #define REG_COLOR_MODE         0x3A
 #define REG_WBRIGHT            0x51
 
-
 #define ROW_OFFSET  (0x00)
 #define COL_OFFSET  (0x0E)
-
-
-
 
 #define DEBUG
 
@@ -106,12 +55,6 @@
 /*start colume & row must can be divided by 2, and roi width&height too.*/
 #define LCD_ALIGN2(x) ((x) = (x) & (~1))
 #define LCD_ALIGN1(x) ((x) = (0 == ((x) & 1)) ? (x - 1) : x)
-
-
-
-
-
-
 
 static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
 {
@@ -129,14 +72,12 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
                 .TXEscapeCkdiv = 0x4,
             },
 
-
             .CmdCfg = {
                 .VirtualChannelID      = 0,
                 .CommandSize           = 0xFFFF,
                 .TearingEffectSource   = DSI_TE_DSILINK,
                 .TEAcknowledgeRequest  = DSI_TE_ACKNOWLEDGE_DISABLE,     //Close TE
             },
-
 
             .PhyTimings = {
                 .ClockLaneHS2LPTime = 35,
@@ -158,7 +99,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
                 .LowPowerWriteTimeout = 0,
                 .BTATimeout = 0,
             },
-
 
             .LPCmd = {
                 .LPGenShortWriteNoP    = DSI_LP_GSW0P_ENABLE,
@@ -196,10 +136,7 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
     },
 };
 
-
-
 #define MAX_CMD_LEN 2
-
 
 static const uint8_t H080A11HDIFT4C30_V0_1__800x1280_init_cmds[][MAX_CMD_LEN] =
 {
@@ -221,12 +158,10 @@ static const uint8_t H080A11HDIFT4C30_V0_1__800x1280_init_cmds[][MAX_CMD_LEN] =
     {0x1B, 0x0F},
     {0x1C, 0x01},
 
-
     {0x24, 0xFE},
     {0x25, 0x20},
     {0x35, 0x23},
     {0x37, 0x09},
-
 
     {0x38, 0x04},
     {0x39, 0x08},
@@ -235,7 +170,6 @@ static const uint8_t H080A11HDIFT4C30_V0_1__800x1280_init_cmds[][MAX_CMD_LEN] =
     {0x3D, 0xFF},
     {0x3E, 0xFF},
     {0x3F, 0xFF},
-
 
     {0x40, 0x06},
     {0x41, 0xA0},
@@ -250,7 +184,6 @@ static const uint8_t H080A11HDIFT4C30_V0_1__800x1280_init_cmds[][MAX_CMD_LEN] =
     {0x59, 0x0A},
     {0x5A, 0x28},
     {0x5B, 0x0F},
-
 
     {0x5D, 0x7C},
     {0x5E, 0x64},
@@ -290,7 +223,6 @@ static const uint8_t H080A11HDIFT4C30_V0_1__800x1280_init_cmds[][MAX_CMD_LEN] =
     {0x80, 0x1F},
     {0x81, 0x13},
     {0x82, 0x0C},
-
 
     {0xE0, 0x02}, //Page 02
 
@@ -426,7 +358,6 @@ static const uint8_t H080A11HDIFT4C30_V0_1__800x1280_init_cmds[][MAX_CMD_LEN] =
     {0x7D, 0x03},
     {0x7E, 0x7B},
 
-
     {0xE0, 0x04}, //Page 04
     {0x02, 0x23},
     {0x09, 0x10},
@@ -438,12 +369,7 @@ static const uint8_t H080A11HDIFT4C30_V0_1__800x1280_init_cmds[][MAX_CMD_LEN] =
 }
 ;
 
-
-
 static LCDC_InitTypeDef lcdc_int_cfg;
-
-
-
 
 /**
   * @brief  Writes  to the selected LCD register.
@@ -463,9 +389,7 @@ static void LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *P
 static void LCD_ReadMode(LCDC_HandleTypeDef *hlcdc, bool enable)
 {
 
-
 }
-
 
 /**
   * @brief  Reads the selected LCD Register.
@@ -495,7 +419,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     uint8_t   parameter[14];
     uint32_t data = 0;
 
-
     /* Initialize LCD to cmd mode    ----------------------------------*/
     memcpy(&lcdc_int_cfg, &lcdc_int_cfg_dsi, sizeof(lcdc_int_cfg));
     memcpy(&hlcdc->Init, &lcdc_int_cfg, sizeof(LCDC_InitTypeDef));
@@ -515,7 +438,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
         LCD_WriteReg(hlcdc, H080A11HDIFT4C30_V0_1__800x1280_init_cmds[i][0], (uint8_t *)&H080A11HDIFT4C30_V0_1__800x1280_init_cmds[i][1], 1);
     }
 
-
     /* Display ON command */
     LCD_WriteReg(hlcdc, 0x11, (uint8_t *)NULL, 0);
 
@@ -525,7 +447,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     LCD_WriteReg(hlcdc, 0x29, (uint8_t *)NULL, 0);
 
     LCD_DRIVER_DELAY_MS(120); //Wait TE signal ready
-
 
 #if 0
 
@@ -547,7 +468,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
 
     data = LCD_ReadData(hlcdc, 0x52, 1);
     DEBUG_PRINTF("\nLCD_ReadBrightness 0x%x \n", data);
-
 
     {
         /*
@@ -575,11 +495,8 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     parameter[0] = 0x00;
     LCD_WriteReg(hlcdc, 0x36, parameter, 1);
 
-
     data = LCD_ReadData(hlcdc, 0x52, 1);
     DEBUG_PRINTF("\nLCD_ReadBrightness 0x%x \n", data);
-
-
 
     data = LCD_ReadData(hlcdc, 0x0b, 1);
     DEBUG_PRINTF("\nLCD_0bh= 0x%x \n", data);
@@ -587,16 +504,7 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     data = LCD_ReadData(hlcdc, 0x0c, 1);
     DEBUG_PRINTF("\nLCD_0ch= 0x%x \n", data);
 
-
-
-
-
-
-
-
 }
-
-
 
 /**
   * @brief  Disables the Display.
@@ -610,7 +518,6 @@ static uint32_t LCD_ReadID(LCDC_HandleTypeDef *hlcdc)
         data = LCD_ReadData(hlcdc,REG_CASET, 4);
         DEBUG_PRINTF("\REG_CASET 0x%x \n", data);
 
-
         data = LCD_ReadData(hlcdc,REG_RASET, 4);
         DEBUG_PRINTF("\REG_RASET 0x%x \n", data);
     */
@@ -622,10 +529,6 @@ static uint32_t LCD_ReadID(LCDC_HandleTypeDef *hlcdc)
         DEBUG_PRINTF("LCD module use LCD IC \n");
         data = LCD_ID;
     }
-
-
-
-
 
     data = LCD_ID;
 
@@ -671,7 +574,6 @@ static void LCD_WritePixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Yp
     uint8_t data = 0;
     uint8_t   parameter[4];
 
-
     /* Set Cursor */
     LCD_SetRegion(hlcdc, Xpos, Ypos, Xpos, Ypos);
     LCD_WriteReg(hlcdc, REG_WRITE_RAM, (uint8_t *)RGBCode, 2);
@@ -694,14 +596,9 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
     }
 #endif /* 0 */
 
-
     HAL_LCDC_LayerSetData(hlcdc, HAL_LCDC_LAYER_DEFAULT, (uint8_t *)RGBCode, Xpos0, Ypos0, Xpos1, Ypos1);
     HAL_LCDC_SendLayerData_IT(hlcdc);
 }
-
-
-
-
 
 static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Ypos)
 {
@@ -709,7 +606,6 @@ static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t
 
     return 0; //Not support read pixel
 }
-
 
 static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
 {
@@ -735,7 +631,6 @@ static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
     }
 
     //LCD_WriteReg(hlcdc, REG_COLOR_MODE, parameter, 1);
-
 
     HAL_LCDC_SetOutFormat(hlcdc, lcdc_int_cfg.color_mode);
 }
@@ -784,7 +679,6 @@ static void LCD_IdleModeOff(LCDC_HandleTypeDef *hlcdc)
     LCD_WriteReg(hlcdc, REG_IDLE_MODE_OFF, (uint8_t *)NULL, 0);
 }
 
-
 static void  TimeoutDbg(LCDC_HandleTypeDef *hlcdc)
 {
     uint32_t data;
@@ -814,7 +708,6 @@ static uint32_t  ESDCehck(LCDC_HandleTypeDef *hlcdc)
 
 }
 
-
 static const LCD_DrvOpsDef LCD_drv =
 {
     .Init = LCD_Init,
@@ -838,10 +731,6 @@ static const LCD_DrvOpsDef LCD_drv =
     .ESDDetect = ESDCehck,
 };
 
-
 LCD_DRIVER_EXPORT2(jd9365da, LCD_ID, &lcdc_int_cfg,
                    &LCD_drv, 2);
 
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

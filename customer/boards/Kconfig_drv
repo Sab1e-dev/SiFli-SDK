@@ -591,10 +591,33 @@ menu "On-chip Peripheral RTOS Drivers"
         default n
         select RT_USING_ENCODER
         if BSP_USING_ENCODER
-            config BSP_USING_ENCODER1
-                bool "Enable encoder1"
-                depends on BSP_USING_ENCODER
+            config BSP_USING_ENCODER_GPTIM1
+                bool "Enable encoder_gtim1"
                 default n
+            config BSP_USING_ENCODER_GPTIM2
+                bool "Enable encoder_gtim2"
+                default n
+            config BSP_USING_ENCODER_GPTIM3
+                bool "Enable encoder_gtim3"
+                depends on !SOC_SF32LB52X
+                default n
+            config BSP_USING_ENCODER_GPTIM4
+                bool "Enable encoder_gtim4"
+                depends on !SOC_SF32LB52X               
+                default n
+            config BSP_USING_ENCODER_GPTIM5
+                bool "Enable encoder_gtim5"
+                depends on !SOC_SF32LB52X
+                default n
+            config BSP_USING_ENCODER_ATIM1
+                bool "Enable encoder_atim1"
+                depends on !SOC_SF32LB55X 
+                default n
+            config BSP_USING_ENCODER_ATIM2
+                bool "Enable encoder_atim2"
+                depends on !SOC_SF32LB55X && !SOC_SF32LB52X && !SOC_SF32LB56X
+                default n
+                
     endif
 
     menuconfig BSP_USING_ADC
@@ -795,6 +818,21 @@ menu "On-chip Peripheral RTOS Drivers"
                         config BSP_MPI2_EN_DTR
                             bool "Enable DTR mode"
                             default n
+                        config BSP_QSPI2_DUAL_MODE
+                            bool "MPI2 Connected With Two NOR Flash Memory"
+                            depends on SOC_SF32LB52X
+                            default n
+                        if BSP_QSPI2_DUAL_MODE
+                            config FLASH_1ST_CS_PIN
+                                int "Flash 1st CS pin number which is used by controller"
+                                default 12
+                            config FLASH_2ND_CS_PIN
+                                int "Flash 2nd CS pin number"
+                                default 26
+                            config BSP_2ND_EN_DTR
+                                bool "Enable DTR Mode of the second Flash"
+                                default n
+                        endif
                     endif
                     if BSP_MPI2_MODE_1
                         config BSP_USING_NAND_FLASH2
@@ -1407,10 +1445,14 @@ menu "On-chip Peripheral RTOS Drivers"
         bool "Enable EPIC"
         select RT_USING_EPIC
         default n
-        if BSP_USING_EPIC
+        if BSP_USING_EPIC && !SOC_SF32LB55X
             config DRV_EPIC_NEW_API
-            bool "Using epic render list API"
+            bool "Using epic render list API(under development)"
             default n
+            help
+                1. Can not works on SFLB55X serials
+                2. Asynchronized rendering, must keep the buffers used by the render-list available until rendering is complete.
+
         endif
         config EZIP_PAL_SUPPORT
             bool

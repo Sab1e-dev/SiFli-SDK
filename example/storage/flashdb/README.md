@@ -9,9 +9,13 @@
 
 ## 概述
 <!-- 例程简介 -->
+`FlashDB` 是一款超轻量级的嵌入式数据库，专注于提供嵌入式产品的数据存储方案。`FlashDB` 提供两种数据库模式：
++ 键值数据库 (`KVDB`)：是一种非关系数据库，它将数据存储为键值（Key-Value）对集合，其中键作为唯一标识符；
++ 时序数据库 (`TSDB`)：时间序列数据库。  
+
 本例程演示FlashDB的配置使用，包含：
-+ project/nand：KVDB/TSDB在Nand flash上配置使用（`FDB_USING_FILE_MODE`）。
-+ project/nor：KVDB/TSDB在Nor flash上配置使用（`FDB_USING_FAL_MODE`）。
++ project/nand：KVDB/TSDB在Nand flash上配置使用。
++ project/nor：KVDB/TSDB在Nor flash上配置使用。
 
 
 ## 例程的使用
@@ -24,19 +28,25 @@
 
 ### menuconfig配置
 
-1. 使能FlashDB：
+1. 使能FlashDB：  
 ![FLASHDB](./assets/mc_flashdb.png)  
      ```{tip}
-     + Nand 使用`FILE MODE`, 通过文件系统操作，`FDB Mode` 配置为`PKG_FDB_USING_FILE_POSIX_MODE`。
-     + Nor 使用`FAL MODE`, 直接操作Flash， `FDB Mode` 配置为`PKG_FDB_USING_FAL_MODE`。
+     FDB Mode:
+     + `Use FAL Mode` : Using FAL storage mode
+     + `Use File LIBC Mode` : Using file storage mode by LIBC file API, like fopen/fread/fwrte/fclose
+     + `Use File POSIX Mode` : Using file storage mode by POSIX file API, like open/read/write/close  
+
+     本例程中:
+     + Nand 使用`FILE MODE`(`FDB Mode` 配置为`Use File POSIX Mode`), 通过文件系统存储。
+     + Nor 使用`FAL MODE`(`FDB Mode` 配置为`Use FAL Mode`), 直接操作Flash。
      ```
-2. 配置`FAT`文件系统（使用`FILE MODE`时，`FAL MODE`无需配置文件系统）   
+2. 配置`FAT`文件系统（当`FDB Mode`配置为`Use FAL Mode`时需要）   
 ![RT_USING_DFS_ELMFAT](./assets/mc_fat.png)
 
      ```{tip}
-     mnt_init 中mount root分区。
+     `mnt_init` 中mount 文件系统分区，FDB初始化时需指定存储路径（在文件系统中的目录）。
      ```
-3. FAL 分区配置（使用`FAL MODE`时，`FILE MODE`无需配置独立分区）   
+3. FAL 分区配置（当`FDB Mode`配置为`Use File LIBC Mode`或`Use File POSIX Mode`时需要）   
 + `project/nor/ptab.json`:
      ```c
             {
@@ -63,6 +73,10 @@
           ... ...
      }
      ``` 
+
+     ```{tip}
+     FDB初始化时需指定Flash分区名（比如本例程中是"kvdb_tst"/"tsdb_tst"）。
+     ```
 
 ### 编译和烧录
 切换到例程project/nand目录，运行scons命令执行编译：

@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   main.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2021 - 2021,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2021-2021 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -121,7 +82,6 @@ static void init_test_fs(uint32_t flash_base, uint32_t offset, uint32_t size, ch
 }
 #endif /* FDB_USING_FILE_MODE */
 
-
 int main(void)
 {
 #ifndef SF32LB55X
@@ -133,7 +93,6 @@ int main(void)
     app_wakeup();
     //*(volatile uint32_t *)0x4004f000 = 1;
     MODIFY_REG(hwp_pmuc->LXT_CR, PMUC_LXT_CR_BM_Msk, MAKE_REG_VAL(0xF, PMUC_LXT_CR_BM_Msk, PMUC_LXT_CR_BM_Pos));   // Increase current
-
 
 #ifdef FDB_USING_FILE_MODE
     init_test_fs(FS_REGION_START_ADDR, 0, FS_REGION_SIZE, "mtdfs");
@@ -187,7 +146,6 @@ typedef struct
 
 } app_ancs_env_t;
 
-
 const char app_cate_str[][20] =
 {
     "Others",
@@ -206,12 +164,10 @@ const char app_cate_str[][20] =
 
 static app_ancs_env_t g_app_ancs_env;
 
-
 static app_ancs_env_t *app_ancs_get_env(void)
 {
     return &g_app_ancs_env;
 }
-
 
 static int app_ancs_callback(data_callback_arg_t *arg)
 {
@@ -243,7 +199,6 @@ static int app_ancs_callback(data_callback_arg_t *arg)
                 APP_ALLOC_CHECK(app_name);
                 memcpy(app_name, att_value->data, att_value->len);
                 app_name[att_value->len] = 0;
-
 
                 LOG_HEX("raw_data", 16, app_name, att_value->len + 1);
                 LOG_I("App(%d): %s", att_value->len, app_name);
@@ -288,7 +243,6 @@ static int app_ancs_callback(data_callback_arg_t *arg)
     return 0;
 }
 
-
 int app_ancs_init(void)
 {
     app_ancs_env_t *env = app_ancs_get_env();
@@ -300,8 +254,4 @@ int app_ancs_init(void)
 
 INIT_APP_EXPORT(app_ancs_init);
 #endif /* SF32LB55X */
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

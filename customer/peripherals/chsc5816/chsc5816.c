@@ -10,7 +10,6 @@
 #include "drv_touch.h"
 #include "chsc5816.h"
 
-
 #define  CHSC5816_TP_RST    70
 #define CHSC5816_TP_INT 80
 
@@ -18,7 +17,6 @@
 #define LOG_TAG              "drv.chsc5816"
 #include <drv_log.h>
 #define DEBUG_PRINTF(...)   LOG_I(__VA_ARGS__)
-
 
 static struct touch_drivers chsc5816tp_driver;
 //static struct rt_i2c_bus_device *chsc5816tp_i2c_bus = NULL;
@@ -47,7 +45,6 @@ static rt_err_t chsc5816tp_i2c_write(uint8_t *buf, uint16_t len)
     }
     return res;
 }
-
 
 static rt_size_t chsc5816tp_i2c_xfer(uint8_t *reg, uint16_t wlen, uint8_t *rbuf, uint16_t rlen)
 {
@@ -112,7 +109,6 @@ int32_t semi_touch_read_bytes(uint32_t reg, uint8_t *buffer, uint16_t len)
     return ret;
 }
 
-
 /*
 reg       - register address, must 4B aligned
 buffer   - data buffer
@@ -163,7 +159,6 @@ void semi_touch_reset(void)
 
     rt_kprintf("semi_touch_reset-- \r\n");
 }
-
 
 int32_t semi_touch_dect(void)
 {
@@ -311,7 +306,6 @@ static rt_err_t semi_touch_init(void)
 
     rt_kprintf("semi_touch_init OK\n");
 
-
     return ret;
 }
 
@@ -321,14 +315,12 @@ static rt_err_t deinit(void)
 
     rt_touch_irq_pin_enable(0);
 
-
     return RT_EOK;
 }
 
 static rt_bool_t probe(void)
 {
     rt_err_t err;
-
 
     chsc5816tp_i2c_bus = rt_device_find(TOUCH_DEVICE_NAME);
     if (chsc5816tp_i2c_bus)
@@ -353,12 +345,10 @@ static rt_bool_t probe(void)
         rt_i2c_configure((struct rt_i2c_bus_device *)chsc5816tp_i2c_bus->user_data, &configuration);
     }
 
-
     rt_kprintf("chsc5816tp probe OK\n");
 
     return RT_TRUE;
 }
-
 
 static struct touch_ops ops =
 {
@@ -366,7 +356,6 @@ static struct touch_ops ops =
     semi_touch_init,
     deinit
 };
-
 
 static int rt_chsc5816tp_init(void)
 {
@@ -427,4 +416,3 @@ void touch_esd_handler(void)
   * @}
   */
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

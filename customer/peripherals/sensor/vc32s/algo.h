@@ -2,8 +2,14 @@
 #ifndef APP_ALGO_ALGO_H
 #define APP_ALGO_ALGO_H
 
+
 #include <stdbool.h>
 #include <stdint.h>
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum
 {
@@ -66,6 +72,9 @@ uint8_t vc32s_get_hr_value(void);
 uint8_t vc32s_get_spo2_value(void);
 uint8_t vc32s_get_wear_status(void);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* APP_ALGO_ALGO_H_ */
 
 

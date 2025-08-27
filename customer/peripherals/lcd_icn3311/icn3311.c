@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   icn3311.c
-  * @author Sifli software development team
-  * @brief   This file includes the LCD driver for ICN3311 LCD.
-  * @attention
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -55,20 +14,9 @@
 #include "log.h"
 #include "bf0_hal.h"
 
-
-
-
-
-
-
-
 #define ROW_OFFSET  (0x00)
 //#define COL_OFFSET  (0x00)
 #define COL_OFFSET  (0x0E)  //xulin modify
-
-
-
-
 
 /**
   * @brief ICN3311 chip IDs
@@ -80,11 +28,6 @@
   */
 #define  THE_LCD_PIXEL_WIDTH    (454)
 #define  THE_LCD_PIXEL_HEIGHT   (454)
-
-
-
-
-
 
 /**
   * @brief  ICN3311 Registers
@@ -104,9 +47,6 @@
 #define REG_CASET              0x2A
 #define REG_RASET              0x2B
 
-
-
-
 #define REG_TEARING_EFFECT     0x35
 
 #define REG_IDLE_MODE_OFF      0x38
@@ -114,42 +54,6 @@
 #define REG_COLOR_MODE         0x3A
 
 #define REG_WBRIGHT            0x51 /* Write brightness*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #define DEBUG
 
@@ -162,12 +66,6 @@
 /*icn3311 start colume & row must can be divided by 2, and roi width&height too.*/
 #define LCD_ALIGN2(x) //((x) = (x) & (~1))
 #define LCD_ALIGN1(x) //((x) = (0 == ((x) & 1)) ? (x - 1) : x)
-
-
-
-
-
-
 
 static const LCD_DrvOpsDef ICN3311_drv =
 {
@@ -185,10 +83,6 @@ static const LCD_DrvOpsDef ICN3311_drv =
     LCD_SetColorMode,
     LCD_SetBrightness
 };
-
-
-
-
 
 #ifdef BSP_LCDC_USING_DSI
 
@@ -239,7 +133,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
                 .BTATimeout = 0,
             },
 
-
             .LPCmd = {
                 .LPGenShortWriteNoP    = DSI_LP_GSW0P_ENABLE,
                 .LPGenShortWriteOneP   = DSI_LP_GSW1P_ENABLE,
@@ -255,7 +148,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
                 .LPMaxReadPacket       = DSI_LP_MRDP_ENABLE,
                 .AcknowledgeRequest    = DSI_ACKNOWLEDGE_DISABLE, //disable LCD error reports
             },
-
 
             .vsyn_delay_us = 1000,
         },
@@ -286,28 +178,14 @@ static const LCDC_InitTypeDef lcdc_int_cfg_spi =
 
 };
 
-
 static LCDC_InitTypeDef lcdc_int_cfg;
-
 
 static void     LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *Parameters, uint32_t NbParameters);
 static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8_t ReadSize);
 static void LCD_ReadMode(LCDC_HandleTypeDef *hlcdc, bool enable);
 
-
-
-
 LCD_DRIVER_EXPORT2(icn3311, THE_LCD_ID, &lcdc_int_cfg,
                    &ICN3311_drv, 1);
-
-
-
-
-
-
-
-
-
 
 /**
   * @brief  spi read/write mode
@@ -328,7 +206,6 @@ static void LCD_ReadMode(LCDC_HandleTypeDef *hlcdc, bool enable)
         }
     }
 }
-
 
 /**
   * @brief  Power on the LCD.
@@ -365,7 +242,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     LCD_WriteReg(hlcdc, 0x11, (uint8_t *)NULL, 0);
     LCD_DRIVER_DELAY_MS(80);
 
-
     parameter[0] = 0x00;
     parameter[1] = 0x00;
     parameter[2] = 0x01;
@@ -387,9 +263,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     //parameter[0] = 0x40;
     //LCD_WriteReg(hlcdc, 0x36, parameter, 1); //enable revert
 
-
-
-
     parameter[0] = 0x28;
     LCD_WriteReg(hlcdc, 0x53, parameter, 1);
 
@@ -399,12 +272,9 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     parameter[0] = 0x06;
     LCD_WriteReg(hlcdc, 0xb1, parameter, 1); //set back proch
 
-
     LCD_DRIVER_DELAY_MS(50);
     LCD_WriteReg(hlcdc, 0x29, (uint8_t *)NULL, 0);
     LCD_DRIVER_DELAY_MS(80);
-
-
 
 #if 0//Bist mode
     parameter[0] = 0x5a;
@@ -539,7 +409,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     LCD_WriteReg(hlcdc, 0x74, parameter, 1);
     parameter[0] = 0x33;
     LCD_WriteReg(hlcdc, 0x75, parameter, 1);
-
 
     parameter[0] = 0x40;
     LCD_WriteReg(hlcdc, 0xFE, parameter, 1);
@@ -1321,8 +1190,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     parameter[0] = 0x45;
     LCD_WriteReg(hlcdc, 0xD0, parameter, 1);
 
-
-
     parameter[0] = 0xE0;
     LCD_WriteReg(hlcdc, 0xFE, parameter, 1);
     parameter[0] = 0x43;
@@ -1341,7 +1208,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     LCD_WriteReg(hlcdc, 0x1D, parameter, 1);
     parameter[0] = 0x5F;
     LCD_WriteReg(hlcdc, 0x28, parameter, 1);
-
 
     parameter[0] = 0x40;
     LCD_WriteReg(hlcdc, 0xFE, parameter, 1);
@@ -1550,7 +1416,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     parameter[0] = 0x08;
     LCD_WriteReg(hlcdc, 0xA2, parameter, 1);
 
-
     parameter[0] = 0x00;
     LCD_WriteReg(hlcdc, 0xFE, parameter, 1);
     parameter[0] = 0x00;
@@ -1603,8 +1468,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
 
 }
 
-
-
 /**
   * @brief  Disables the Display.
   * @param  None
@@ -1616,7 +1479,6 @@ static uint32_t LCD_ReadID(LCDC_HandleTypeDef *hlcdc)
     /*
         data = LCD_ReadData(hlcdc,REG_CASET, 4);
         DEBUG_PRINTF("\REG_CASET 0x%x \n", data);
-
 
         data = LCD_ReadData(hlcdc,REG_RASET, 4);
         DEBUG_PRINTF("\REG_RASET 0x%x \n", data);
@@ -1754,7 +1616,6 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
     }
 }
 
-
 /**
   * @brief  Writes  to the selected LCD register.
   * @param  LCD_Reg: address of the selected register.
@@ -1786,7 +1647,6 @@ static void LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *P
     }
 }
 
-
 /**
   * @brief  Reads the selected LCD Register.
   * @param  RegValue: Address of the register to read
@@ -1809,8 +1669,6 @@ static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8
     LCD_ReadMode(hlcdc, false);
     return rd_data;
 }
-
-
 
 static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Ypos)
 {
@@ -1851,12 +1709,10 @@ static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t
         break;
     }
 
-
     //LCD_WriteReg(hlcdc,REG_COLOR_MODE, parameter, 1);
 
     return ret_v;
 }
-
 
 static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
 {
@@ -1882,7 +1738,6 @@ static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
 
     LCD_WriteReg(hlcdc, REG_COLOR_MODE, parameter, 1);
 
-
     HAL_LCDC_SetOutFormat(hlcdc, lcdc_int_cfg.color_mode);
 }
 
@@ -1894,14 +1749,3 @@ static void LCD_SetBrightness(LCDC_HandleTypeDef *hlcdc, uint8_t br)
     LCD_WriteReg(hlcdc, REG_WBRIGHT, &bright, 1);
 }
 
-
-
-
-
-
-
-
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

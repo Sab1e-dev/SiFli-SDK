@@ -18,8 +18,6 @@
 #define LOG_TAG              "drv.chsc6417"
 #include <drv_log.h>
 
-
-
 #ifdef LCD_USING_ED_LB5XSPI18501
     #define CHSC6417_UPDATA_ENABLE
 #endif /* LCD_USING_ED_LB5XSPI18501 */
@@ -28,16 +26,11 @@
 
 #define TOUCH_CHIP_ID_CHSC6417           (0xB5)
 
-
 /*register address*/
 #define FTS_REG_CHIP_ID                 0xA7
 #define FTS_REG_MODE_DEEP_SLEEP         0xD105
 #define FTS_REG_MODE_NORMOL             0xD109
 #define FTS_REG_GET_POSI                0xD000
-
-
-
-
 
 /* function and value-----------------------------------------------------------*/
 #define CHSC6417_USE_DMA_RW //Enable I2C DMA read/write
@@ -68,7 +61,6 @@
 static struct rt_i2c_bus_device *ft_bus = NULL;
 static struct touch_drivers chsc6417_driver;
 
-
 rt_err_t chsc6417_i2c_read_reg8(uint8_t reg, uint8_t *p_data, uint8_t len)
 {
     rt_int8_t res = 0;
@@ -98,7 +90,6 @@ rt_err_t chsc6417_i2c_read_reg8(uint8_t reg, uint8_t *p_data, uint8_t len)
     return res;
 
 }
-
 
 rt_size_t chsc6417_i2c_read(uint8_t device_addr, const uint16_t reg, uint8_t *p_data, uint16_t len)
 {
@@ -188,10 +179,8 @@ static rt_err_t init(void)
     */
     LOG_I("chsc6417 probe OK");
 
-
     rt_touch_irq_pin_attach(PIN_IRQ_MODE_FALLING, chsc6417_irq_handler, NULL);
     rt_touch_irq_pin_enable(1);     //Must enable before read I2C
-
 
     LOG_D("chsc6417 init OK");
     return RT_EOK;
@@ -247,14 +236,12 @@ static rt_bool_t probe(void)
     return RT_TRUE;
 }
 
-
 static struct touch_ops ops =
 {
     read_point,
     init,
     deinit
 };
-
 
 static int rt_chsc6417_init(void)
 {
@@ -268,6 +255,4 @@ static int rt_chsc6417_init(void)
     return 0;
 }
 INIT_COMPONENT_EXPORT(rt_chsc6417_init);
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   dfu_flash.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2021 - 2021,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2021-2021 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <stdio.h>
@@ -57,11 +18,8 @@
 
 #include "mem_map.h"
 
-
 #define LOG_TAG "DFUFLASH"
 #include "log.h"
-
-
 
 #if defined(OTA_55X)
 
@@ -270,7 +228,6 @@ uint32_t dfu_get_download_addr_by_imgid(uint8_t img_id, uint8_t flag)
     return flash_addr;
 }
 
-
 int8_t dfu_get_flashid_by_imgid(uint8_t img_id)
 {
     int8_t flash_id = -1;;
@@ -293,7 +250,6 @@ int8_t dfu_get_flashid_by_imgid(uint8_t img_id)
 
     return flash_id;
 }
-
 
 int dfu_packet_erase_flash(dfu_image_header_int_t *header, uint32_t offset, uint32_t size)
 {
@@ -333,7 +289,6 @@ int dfu_packet_erase_flash(dfu_image_header_int_t *header, uint32_t offset, uint
     ret = dfu_flash_erase(dest, size);
     return ret;
 }
-
 
 int dfu_packet_write_flash(dfu_image_header_int_t *header, uint32_t offset, uint8_t *data, uint32_t size)
 {
@@ -540,8 +495,6 @@ int dfu_flash_erase(uint32_t dest, uint32_t size)
 
 #endif /* OTA_55X */
 
-
-
 #ifdef OTA_56X_NAND
 
 //#include "flash_map.h"
@@ -623,7 +576,7 @@ __WEAK uint32_t dfu_ring_addr_get()
     return addr;
 }
 
-static uint32_t dfu_get_download_addr_by_imgid(uint8_t img_id, uint8_t flag)
+uint32_t dfu_get_download_addr_by_imgid(uint8_t img_id, uint8_t flag)
 {
     uint32_t flash_addr = 0xFFFFFFFF;
 
@@ -791,7 +744,6 @@ int dfu_packet_erase_flash(dfu_image_header_int_t *header, uint32_t offset, uint
 
     // dfu_erase_download_buffer_size_check(header->img_id, header->flag, size);
 
-
     if (flash_type == DFU_FLASH_TYPE_NOR)
     {
         // 55x is 8k, other is 4k
@@ -809,7 +761,6 @@ int dfu_packet_erase_flash(dfu_image_header_int_t *header, uint32_t offset, uint
 
     LOG_I("dfu_packet_erase_flash dest 0x%x, size %d, align 0x%x, %d", dest, size, align_size, flash_type);
     int ret1;
-
 
     if (dest != 0xFFFFFFFF)
     {
@@ -834,7 +785,6 @@ int dfu_packet_erase_flash(dfu_image_header_int_t *header, uint32_t offset, uint
     }
     return ret;
 }
-
 
 int dfu_packet_write_flash(dfu_image_header_int_t *header, uint32_t offset, uint8_t *data, uint32_t size)
 {
@@ -863,7 +813,6 @@ int dfu_packet_write_flash(dfu_image_header_int_t *header, uint32_t offset, uint
             flash_type = DFU_FLASH_TYPE_NOR;
         }
     }
-
 
     int ret = -1;
     uint32_t wr_size;
@@ -941,4 +890,4 @@ int dfu_packet_read_flash(dfu_image_header_int_t *header, uint32_t offset, uint8
     return ret;
 }
 #endif
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

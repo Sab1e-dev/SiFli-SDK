@@ -1,55 +1,14 @@
-/**
-  ******************************************************************************
-  * @file   drv_sys_cfg.c
-  * @author Sifli software development team
-  * @brief System configure setting in BSP driver
-  This driver is validated by using MSH command 'date'.
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
+
 #include "board.h"
 
 /** @addtogroup bsp_driver Driver IO
   * @{
   */
-
 
 #if defined (BSP_USING_SPI_FLASH) && defined(BF0_HCPU)
 #include "drv_flash.h"
@@ -189,7 +148,6 @@ rt_err_t rt_cust_config_init(void)
 #endif
     return RT_ERROR;
 }
-
 
 /**
   * @brief Initialize flash configuration area.
@@ -772,7 +730,6 @@ uint8_t rt_flash_config_write(uint8_t id, uint8_t *data, uint8_t len)
     return len;
 }
 
-
 /**
   * @brief Read factory user configuraiton.
   * @param id  Factory config ID.
@@ -1009,7 +966,6 @@ uint8_t rt_user_config_write(uint8_t id, uint8_t *data, uint8_t len)
     return rt_flash_config_write(id, data, len);
 #endif
 }
-
 
 /**
   * @brief Read customer configuraiton.
@@ -1545,7 +1501,6 @@ exit:
     return len;
 }
 
-
 #endif
 
 int rt_sys_config_init(void)
@@ -1573,7 +1528,6 @@ int rt_sys_config_init(void)
     return 0;
 }
 INIT_DEVICE_EXPORT(rt_sys_config_init);
-
 
 /********************************** SPI FLASH TEST CODE *************************************/
 
@@ -1621,7 +1575,6 @@ int is_ate_param_valid(void)
         return 0;
     }
     rt_kprintf("Get SDMADC res %d, vol %d\n", res, cfg2.value);
-
 
     res = rt_flash_config_read(FACTORY_CFG_ID_VBUCK, (uint8_t *)&cfg3, sizeof(FACTORY_CFG_VBK_LDO_T));
     if (res != sizeof(FACTORY_CFG_VBK_LDO_T))
@@ -1828,12 +1781,10 @@ void overwrite_ate_cfg(void)
     res = rt_flash_config_write(FACTORY_CFG_ID_ADC, (uint8_t *)&cfg, sizeof(FACTORY_CFG_ADC_T));
     rt_kprintf("Cfg ADC res %d, vol 300 %d, vol 800 %d\n", res, cfg.vol10 & 0x7fff, cfg.vol25 & 0x7fff);
 
-
     cfg2.value = 1537561;
     cfg2.vol_mv = 1200;
     res = rt_flash_config_write(FACTORY_CFG_ID_SDMADC, (uint8_t *)&cfg2, sizeof(FACTORY_CFG_SDMADC_T));
     rt_kprintf("Cfg SDMADC res %d, vol %d\n", res, cfg2.value);
-
 
     cfg3.vbuck1 = (uint8_t)13;
     cfg3.vbuck2 = (uint8_t)6;
@@ -2099,11 +2050,7 @@ uint8_t rt_cust_config_write(uint8_t id, uint8_t *data, uint8_t len)
     return 0;
 }
 
-
 #endif /* BSP_USING_SPI_FLASH */
-
 
 /// @} bsp_driver
 
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

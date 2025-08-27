@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_epic.h
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef __DRV_EPIC_H__
@@ -51,6 +12,7 @@
 
 #define DRV_EPIC_TIMEOUT_MS 500
 
+#define DRV_EPIC_POLYGON_POINT_MAX 16
 #ifndef DRV_EPIC_NEW_API
 
 typedef enum
@@ -65,9 +27,7 @@ typedef enum
     DRV_EPIC_INVALID = 0xFFFF,      //Invalid
 } drv_epic_op_type_t;
 
-
 typedef void (*drv_epic_cplt_cbk)(EPIC_HandleTypeDef *);
-
 
 rt_err_t drv_epic_fill_ext(EPIC_LayerConfigTypeDef *input_layers,
                            uint8_t input_layer_cnt,
@@ -77,7 +37,7 @@ rt_err_t drv_epic_fill_ext(EPIC_LayerConfigTypeDef *input_layers,
 rt_err_t drv_epic_fill(uint32_t dst_cf, uint8_t *dst,
                        const EPIC_AreaTypeDef *dst_area,
                        const EPIC_AreaTypeDef *fill_area,
-                       uint32_t fill_color,
+                       uint32_t argb8888,
                        uint32_t mask_cf, const uint8_t *mask,
                        const EPIC_AreaTypeDef *mask_area,
                        drv_epic_cplt_cbk cbk);
@@ -97,12 +57,10 @@ rt_err_t drv_epic_blend(EPIC_LayerConfigTypeDef *input_layers,
                         EPIC_LayerConfigTypeDef *output_canvas,
                         drv_epic_cplt_cbk cbk);
 
-
 rt_err_t drv_epic_transform(EPIC_LayerConfigTypeDef *input_layers,
                             uint8_t input_layer_cnt,
                             EPIC_LayerConfigTypeDef *output_canvas,
                             drv_epic_cplt_cbk cbk);
-
 
 rt_err_t drv_epic_cont_blend(EPIC_LayerConfigTypeDef *input_layers,
                              uint8_t input_layer_cnt,
@@ -111,7 +69,6 @@ rt_err_t drv_epic_cont_blend(EPIC_LayerConfigTypeDef *input_layers,
 void drv_epic_cont_blend_reset(void);
 
 #else /*DRV_EPIC_NEW_API*/
-
 
 typedef enum
 {
@@ -123,10 +80,10 @@ typedef enum
     DRV_EPIC_DRAW_RECT,
     DRV_EPIC_DRAW_LINE,
     DRV_EPIC_DRAW_BORDER,
+    DRV_EPIC_DRAW_POLYGON,
     DRV_EPIC_DRAW_MAX,
     DRV_EPIC_INVALID = 0xFFFF,      //Invalid
 } drv_epic_op_type_t;
-
 
 typedef struct
 {
@@ -134,6 +91,12 @@ typedef struct
     EPIC_AreaTypeDef area;
 } drv_epic_letter_type_t;
 
+typedef enum
+{
+    EPIC_BLEND_MODE_FIXED_BG = 0,       //Fixed background color, no blending with destination buffer
+    EPIC_BLEND_MODE_NORMAL  = 1,        //Normal mode, blending with destination buffer
+    EPIC_BLEND_MODE_OVERWRITE  = 2,       //Overwrite mode, no background
+} drv_epic_blend_mode_type_t;
 
 typedef struct
 {
@@ -146,7 +109,7 @@ typedef struct
         struct
         {
             EPIC_LayerConfigTypeDef layer;
-            uint8_t use_dest_as_bg;
+            uint8_t use_dest_as_bg; // See drv_epic_blend_mode_type_t
             uint8_t r;
             uint8_t g;
             uint8_t b;
@@ -181,7 +144,6 @@ typedef struct
             uint16_t radius;
             uint8_t round_start;
             uint8_t round_end;
-
 
             uint32_t argb8888;
         } arc;
@@ -223,14 +185,19 @@ typedef struct
 
             uint32_t argb8888;
         } border;
-
+        struct
+        {
+            EPIC_PointTypeDef points[DRV_EPIC_POLYGON_POINT_MAX];
+            uint16_t point_cnt;
+            uint32_t argb8888;
+        } polygon;
     } desc;
 
     //Offset to specified dst buf, internal use only
     int16_t offset_x;
     int16_t offset_y;
+    rt_list_t list; /**< list link */
 } drv_epic_operation;
-
 
 typedef struct
 {
@@ -250,6 +217,7 @@ typedef enum
 
 typedef void *drv_epic_render_list_t;
 typedef void (*drv_epic_render_cb)(drv_epic_render_list_t rl, EPIC_LayerConfigTypeDef *p_dst, void *usr_data, uint32_t last);
+typedef void (*drv_epic_render_trav_cb)(drv_epic_operation *op, void *usr_data);
 
 typedef struct
 {
@@ -259,7 +227,6 @@ typedef struct
     drv_epic_render_cb partial_done_cb;
     void *usr_data;
 } drv_epic_render_draw_cfg;
-
 
 typedef struct
 {
@@ -272,7 +239,6 @@ typedef struct
     drv_epic_render_cb done_cb;
     void *usr_data;
 } drv_epic_render_to_buf_cfg;
-
 
 typedef struct
 {
@@ -296,13 +262,10 @@ drv_epic_operation *drv_epic_alloc_op(drv_epic_render_buf *p_buf);
 drv_epic_letter_type_t *drv_epic_op_alloc_letter(drv_epic_operation *op);
 rt_err_t drv_epic_commit_op(drv_epic_operation *op);
 
-
 rt_err_t drv_epic_render_msg_commit(EPIC_MsgTypeDef *p_msg);
 
-
+rt_err_t drv_epic_render_trav(drv_epic_render_list_t list, drv_epic_render_trav_cb cb, void *usr_data);
 #endif /* DRV_EPIC_NEW_API */
-
-
 
 EPIC_HandleTypeDef *drv_get_epic_handle(void);
 
@@ -332,11 +295,6 @@ rt_err_t drv_gpu_check_done(rt_int32_t ms);
  * @return        0 - if not cached  1 - cached
  */
 uint8_t drv_gpu_is_cached_ram(uint32_t start, uint32_t len);
-
+bool drv_epic_is_busy(void);
 #endif /* __DRV_EPIC_H__ */
 
-
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

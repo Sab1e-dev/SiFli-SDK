@@ -1,49 +1,9 @@
-/**
-  ******************************************************************************
-  * @file   circular_buf.c
-  * @author Sifli software development team
-  * @brief Sibles circular buf library source.
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
- *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
+
 #ifdef BSP_USING_RTTHREAD
     #include "rtthread.h"
 #endif
@@ -398,7 +358,7 @@ __ROM_USED size_t circular_buf_putchar(struct circular_buf *cb, const uint8_t ch
     cb->wr_buffer_ptr[wr_idx] = ch;
 
     /* flip mirror */
-    if (wr_idx == cb->buffer_size - 1)
+    if ((int16_t)wr_idx == cb->buffer_size - 1)
     {
         wr_mirror = ~wr_mirror;
         wr_idx = 0;
@@ -433,7 +393,7 @@ __ROM_USED size_t circular_buf_putchar_force(struct circular_buf *cb, const uint
     cb->wr_buffer_ptr[wr_idx] = ch;
 
     /* flip mirror */
-    if (wr_idx == cb->buffer_size - 1)
+    if ((int16_t)wr_idx == cb->buffer_size - 1)
     {
         wr_mirror = ~wr_mirror;
         wr_idx = 0;
@@ -477,7 +437,7 @@ __ROM_USED size_t circular_buf_getchar(struct circular_buf *cb, uint8_t *ch)
     /* put character */
     *ch = cb->rd_buffer_ptr[rd_idx];
 
-    if (rd_idx == cb->buffer_size - 1)
+    if ((int16_t)rd_idx == cb->buffer_size - 1)
     {
         rd_mirror = ~rd_mirror;
         rd_idx = 0;

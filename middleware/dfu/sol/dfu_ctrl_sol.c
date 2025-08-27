@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   dfu_ctrl_sol.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2021 - 2025,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2021-2025 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <stdio.h>
@@ -55,7 +16,6 @@
 #include "bf0_hal_rtc.h"
 #include "bf0_hal.h"
 
-
 #ifdef OTA_55X
 #include "dfu.h"
 #include "os_adaptor.h"
@@ -64,12 +24,10 @@
 #include "dfu_service.h"
 #include "dfu_internal.h"
 
-
 #include "flashdb.h"
 #ifdef FDB_USING_FILE_MODE
     #include "dfs_posix.h"
 #endif /* FDB_USING_FILE_MODE */
-
 
 #define LOG_TAG "DFUCTRL"
 #include "log.h"
@@ -113,16 +71,12 @@ dfu_control_packet_t *temp_ctrl_packet = NULL;
 dfu_dl_image_header_t *temp_header = NULL;
 uint8_t *ota_manager_download_buffer = NULL;
 
-
-
 static void dfu_ctrl_install_completed(dfu_ctrl_env_t *env, uint16_t status);
 static uint8_t dfu_ctrl_error_handle(dfu_ctrl_env_t *env);
 static void dfu_link_sync_end();
 static void dfu_link_lose_check_req(uint32_t current_index, uint16_t new_num_of_rsp);
 static rt_thread_t ble_dfu_flash_write_thread_start();
 static void dfu_flash_exit_msg_send();
-
-
 
 // TODO: find a better way to set this mode
 uint8_t g_dfu_progress_mode = DFU_PROGRESS_TOTAL;
@@ -147,7 +101,6 @@ void dfu_ctrl_set_mode(uint8_t mode)
     env->mode = mode;
 }
 
-
 static void clear_interrupt_setting(void)
 {
     uint32_t i;
@@ -158,7 +111,6 @@ static void clear_interrupt_setting(void)
         __ISB();
     }
 }
-
 
 void dfu_bootjump(void)
 {
@@ -202,7 +154,6 @@ void dfu_bootjump(void)
 #endif
 
 }
-
 
 void dfu_ctrl_boot_to_user_fw(void)
 {
@@ -358,7 +309,6 @@ void dfu_set_backup_mode()
 #endif
 }
 
-
 static void dfu_image_state_init(dfu_ctrl_env_t *env)
 {
     for (int i = 0; i < DFU_IMG_ID_MAX; i++)
@@ -463,9 +413,6 @@ static void dfu_image_set_download_end_fail(dfu_ctrl_env_t *env, uint8_t image_i
         env->prog.image_state[image_id] = DFU_IMAGE_STATE_DOWNLOADING_OVERWRITE;
     }
 }
-
-
-
 
 void dfu_read_storage_data(dfu_image_header_int_t *header, uint32_t offset, uint8_t *data, uint32_t size)
 {
@@ -693,7 +640,6 @@ int dfu_clear_storage_data(dfu_image_header_int_t *header, uint32_t offset, uint
     return ret;
 }
 
-
 void dfu_ota_bootloader_ram_run_flash_init()
 {
     dfu_ram_info info;
@@ -850,9 +796,6 @@ void SVC_Handler(void)
 
 }
 
-
-
-
 /* Convert to the structure dfu_code_image_header_t. */
 static uint16_t dfu_ctrl_get_img_header_len(uint8_t *data)
 {
@@ -921,8 +864,6 @@ static void dfu_ctrl_ctrl_header_free(uint8_t *data)
     free(data);
 }
 
-
-
 /* Signature following packet. */
 static uint8_t dfu_ctrl_packet_check(dfu_ctrl_env_t *env, dfu_control_packet_t *packet, uint16_t total_len)
 {
@@ -986,7 +927,6 @@ static uint8_t dfu_ctrl_packet_check(dfu_ctrl_env_t *env, dfu_control_packet_t *
     return ret;
 
 }
-
 
 static void dfu_ctrl_packet_postpone_handler(dfu_ctrl_env_t *env, uint16_t status)
 {
@@ -1097,7 +1037,6 @@ static uint16_t dfu_ctrl_packet_code_fw_handler(dfu_ctrl_env_t *env, dfu_control
         rt_memcpy(env->prog.FW_key, aes_out, DFU_KEY_SIZE);
         rt_free(aes_out);
 
-
         env->prog.FW_version = ctrl_packet->FW_version;
         env->prog.SDK_version = ctrl_packet->SDK_version;
         env->prog.HW_version = ctrl_packet->HW_version;
@@ -1117,7 +1056,6 @@ static uint16_t dfu_ctrl_packet_code_fw_handler(dfu_ctrl_env_t *env, dfu_control
 
     return status;
 }
-
 
 static uint16_t dfu_ctrl_packet_check_compare(dfu_ctrl_env_t *env, dfu_control_packet_t *packet, uint16_t total_len)
 {
@@ -1280,7 +1218,6 @@ static uint16_t dfu_ctrl_packet_code_fw_compare(dfu_ctrl_env_t *env, dfu_control
     return status;
 }
 
-
 static void dfu_ctrl_request_init_handler(dfu_ctrl_env_t *env, uint8_t *data, uint16_t len, uint8_t is_force)
 {
     LOG_I("dfu_ctrl_request_init_handler");
@@ -1352,7 +1289,6 @@ static void dfu_ctrl_request_init_handler(dfu_ctrl_env_t *env, uint8_t *data, ui
                     is_update_ota = 1;
                 }
 
-
                 /*
                                 dfu_init_response_t *ota_rsp = DFU_PROTOCOL_PKT_BUFF_ALLOC(DFU_INIT_RESPONSE, dfu_init_response_t);
                                 if (env->mode == DFU_CTRL_NORMAL_MODE)
@@ -1385,7 +1321,6 @@ static void dfu_ctrl_request_init_handler(dfu_ctrl_env_t *env, uint8_t *data, ui
             break;
         }
         }
-
 
     }
     while (0);
@@ -1607,7 +1542,6 @@ static void dfu_ctrl_request_init_handler_ext(dfu_ctrl_env_t *env, uint8_t *data
         }
         }
 
-
     }
     while (0);
 
@@ -1737,7 +1671,6 @@ static void dfu_ctrl_request_init_handler_ext(dfu_ctrl_env_t *env, uint8_t *data
 
 }
 
-
 static void dfu_init_completed_handler(dfu_ctrl_env_t *env, uint8_t *data, uint16_t len)
 {
     LOG_I("dfu_init_completed_handler");
@@ -1746,7 +1679,6 @@ static void dfu_init_completed_handler(dfu_ctrl_env_t *env, uint8_t *data, uint1
     dfu_init_completed_ind_t *ind = (dfu_init_completed_ind_t *)data;
     /* Not handle not start case. */
     OS_ASSERT(ind->is_start);
-
 
     if (env->mode == DFU_CTRL_NORMAL_MODE)
     {
@@ -2005,7 +1937,6 @@ static void dfu_resume_request_handler(dfu_ctrl_env_t *env, uint8_t *data, uint1
         }
         }
 
-
     }
     while (0);
 
@@ -2069,7 +2000,6 @@ static void dfu_resume_request_handler(dfu_ctrl_env_t *env, uint8_t *data, uint1
         dfu_protocol_packet_send((uint8_t *)rsp);
     }
 }
-
 
 static void dfu_resume_completed_handler(dfu_ctrl_env_t *env, uint8_t *data, uint16_t len)
 {
@@ -2788,7 +2718,6 @@ static int dfu_packet_download_ota_manager(dfu_ctrl_env_t *env, uint8_t img_id, 
     return r;
 }
 
-
 uint8_t dfu_get_progress_mode()
 {
     return g_dfu_progress_mode;
@@ -2929,7 +2858,6 @@ static void dfu_img_send_packet_handler(dfu_ctrl_env_t *env, uint8_t *data, uint
 
             env->callback(DFU_APP_IMAGE_DL_ROPGRESS_IND, &ind);
 
-
         }
         break;
         default:
@@ -2954,7 +2882,6 @@ static void dfu_img_send_packet_handler(dfu_ctrl_env_t *env, uint8_t *data, uint
     rsp->result = status;
     dfu_protocol_packet_send((uint8_t *)rsp);
 
-
     if (status != DFU_ERR_NO_ERR)
     {
         LOG_I("dfu img packet status %d", status);
@@ -2965,7 +2892,6 @@ static void dfu_img_send_packet_handler(dfu_ctrl_env_t *env, uint8_t *data, uint
         dfu_ctrl_error_handle(env);
     }
 }
-
 
 static void dfu_img_send_end_handler(dfu_ctrl_env_t *env, uint8_t *data, uint16_t len)
 {
@@ -3005,7 +2931,6 @@ static void dfu_img_send_end_handler(dfu_ctrl_env_t *env, uint8_t *data, uint16_
             {
                 curr_info->img_state = DFU_CTRL_IMG_STATE_DOWNLOADED_FAIL;
             }
-
 
             dfu_image_send_end_response_t *rsp = DFU_PROTOCOL_PKT_BUFF_ALLOC(DFU_IMAGE_SEND_END_RESPONSE, dfu_image_send_end_response_t);
             rsp->result = status;
@@ -3438,7 +3363,6 @@ static uint8_t dfu_image_download_complete_check(dfu_ctrl_env_t *env)
         }
     }
 
-
 #ifdef OTA_NOR_OTA_MANAGER_LITE
     if (ota_manager_download == 0)
     {
@@ -3781,7 +3705,6 @@ static void dfu_ctrl_install_completed(dfu_ctrl_env_t *env, uint16_t status)
     }
 }
 
-
 void dfu_protocol_close_handler(void)
 {
     dfu_ctrl_env_t *env = dfu_ctrl_get_env();
@@ -3927,7 +3850,6 @@ void dfu_protocol_packet_handler(dfu_tran_protocol_t *msg, uint16_t length)
         break;
     }
 
-
 }
 
 void dfu_serial_transport_error_handle(uint8_t error)
@@ -3958,8 +3880,6 @@ void dfu_serial_transport_error_handle(uint8_t error)
 
 }
 
-
-
 void dfu_ctrl_update_prog_info(dfu_ctrl_env_t *env)
 {
 #ifdef PKG_USING_FLASHDB
@@ -3971,10 +3891,6 @@ void dfu_ctrl_update_prog_info(dfu_ctrl_env_t *env)
 #error "FlashDB shall be enabled"
 #endif
 }
-
-
-
-
 
 static void dfu_ctrl_enter_force_update_state_of_OTA_mode(dfu_ctrl_env_t *env)
 {
@@ -4002,7 +3918,6 @@ static void dfu_ctrl_timer_2_normal_mode_handler(void *para)
     HAL_Set_backup(RTC_BAKCUP_OTA_FORCE_MODE, DFU_FORCE_MODE_REBOOT_TO_USER);
     drv_reboot();
 }
-
 
 static void dfu_ctrl_enter_idle_state_of_normal_mode(dfu_ctrl_env_t *env)
 {
@@ -4042,7 +3957,6 @@ static uint8_t dfu_ctrl_error_handle(dfu_ctrl_env_t *env)
         dfu_ctrl_enter_idle_state_of_normal_mode(env);
     return 0;
 }
-
 
 static void dfu_ctrl_timer_handler(void *para)
 {
@@ -4122,7 +4036,6 @@ static void dfu_rsp_sync_handler(void *para)
     dfu_ctrl_error_handle(env);
 }
 
-
 static bool dfu_link_sync_check()
 {
     dfu_ctrl_env_t *env = dfu_ctrl_get_env();
@@ -4180,7 +4093,6 @@ static void dfu_sync_erase_timer_handler(void *para)
     }
 }
 
-
 void dfu_link_sync_start(uint8_t sync_type)
 {
     dfu_ctrl_env_t *env = dfu_ctrl_get_env();
@@ -4209,7 +4121,6 @@ void dfu_link_sync_start(uint8_t sync_type)
     }
 }
 
-
 static void dfu_link_sync_end()
 {
     dfu_ctrl_env_t *env = dfu_ctrl_get_env();
@@ -4222,7 +4133,6 @@ static void dfu_link_sync_end()
     os_timer_stop(g_dfu_sync_timer);
     os_timer_delete(g_dfu_sync_timer);
 }
-
 
 void dfu_register(dfu_callback callback)
 {
@@ -4371,7 +4281,6 @@ void dfu_respond_start_request_ext(dfu_event_ack_t result)
     }
     dfu_protocol_packet_send((uint8_t *)rsp);
 }
-
 
 void dfu_respond_start_request(dfu_event_ack_t result)
 {
@@ -4641,15 +4550,12 @@ void SVC_Handler_Main(unsigned int *svc_args)
 
 }
 
-
-
 static const uint8_t g_dfu_p_default[] = {0x0};
 
 static struct fdb_default_kv_node default_dfu_kv_set[] =
 {
     {DFU_DOWNLOAD_ENV, (void *)g_dfu_p_default, sizeof(g_dfu_p_default)},
 };
-
 
 #ifdef FDB_USING_KVDB
 static fdb_err_t dfu_db_init(void)
@@ -4794,13 +4700,11 @@ void dfu_pm_resume(const struct rt_device *device, uint8_t mode)
     return;
 }
 
-
 const struct rt_device_pm_ops dfu_pm_op =
 {
     .suspend = dfu_pm_suspend,
     .resume = dfu_pm_resume,
 };
-
 
 int dfu_pm_init(void)
 {
@@ -4810,7 +4714,6 @@ int dfu_pm_init(void)
 }
 INIT_APP_EXPORT(dfu_pm_init);
 #endif /* BSP_USING_PM */
-
 
 static void dfu_cmd(uint8_t argc, char **argv)
 {
@@ -4848,4 +4751,3 @@ MSH_CMD_EXPORT(dfu_cmd, DFU command);
 
 #endif /* OTA_55X */
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

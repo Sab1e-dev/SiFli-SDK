@@ -1,49 +1,8 @@
-/**
-  ******************************************************************************
-  * @file   os_adaptor.h
-  * @author Sifli software development team
-  * @brief Header file - OS adatpor interface.
- *
-  ******************************************************************************
-*/
 /*
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
-*/
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #ifndef __OS_ADAPTOR_H
 #define __OS_ADAPTOR_H
@@ -55,7 +14,6 @@
  * @brief Provided wrapped kernel interface to adapot different RTOS.
  * @{
  */
-
 
 /*
  * INCLUDE FILES
@@ -88,8 +46,6 @@
     #define __ROM_USED
 #endif
 
-
-
 // Thread handle identifies the thread.
 typedef void *os_thread_t;
 
@@ -120,10 +76,8 @@ typedef void *os_mailbox_t;
 // Event handle identifies the event.
 typedef void *os_event_t;
 
-
 // OS status definition
 typedef uint32_t os_status_t;
-
 
 /******************* Thread management ***************/
 
@@ -143,7 +97,6 @@ typedef uint32_t os_status_t;
  */
 os_thread_t os_thread_create(char     *name, os_thread_func_t entry, void *parameter, void *stack_memory,
                              uint32_t stack_size, os_priority_t priority, uint32_t tick);
-
 
 /**@brief Thread enter critical.
 */
@@ -165,20 +118,17 @@ void os_interrupt_enter(void);
 
 void os_interrupt_exit(void);
 
-
 /**@brief Thread delay for some milliseconds and yieled processor.
  * @param[in] ms Delay in milliseconds.
  * @retval The status of delay.
 */
 os_status_t os_delay(uint32_t ms);
 
-
 /******************* Timer management ***************/
 
 // Timer handle initalized
 #define OS_TIMER_DECLAR(timer_id) \
     ot_timer_id_t timer_id
-
 
 /**@brief Create a system timer.
  * @param[in][out] timer_id Timer handle as reference for other timer functions and NULL if created failed.
@@ -207,13 +157,11 @@ os_status_t os_timer_stop(ot_timer_id_t timer_id);
  */
 os_status_t os_timer_delete(ot_timer_id_t        timer_id);
 
-
 /******************* Semaphore management ***************/
 
 // Semaphore handle initalized
 #define OS_SEM_DECLAR(sema) \
     os_semaphore_t sema
-
 
 /**@brief Create and initalize a semaphore.
  * @param[in] name Semaphore name.
@@ -235,21 +183,17 @@ os_status_t os_sem_take(os_semaphore_t sema, int32_t timeout);
  */
 os_status_t os_sem_release(os_semaphore_t        sem);
 
-
 /**@brief Delete a semaphore.
  * @param[in] smea Semaphore handle as created \ref os_sem_create.
  * @retval The status of semaphore delete.
  */
 os_status_t os_sem_delete(os_semaphore_t sem);
 
-
-
 /******************* Mutex management ***************/
 
 // Mutex handle initalized
 #define OS_MUTEX_DECLAR(mutex) \
     os_mutex_t mutex
-
 
 /**@brief Create and initalize a mutex.
  * @param[in] name Mutex name.
@@ -275,8 +219,6 @@ os_status_t os_mutex_release(os_mutex_t mutex);
  * @retval The status of mutex delete.
  */
 os_status_t os_mutex_delete(os_mutex_t mutex);
-
-
 
 /******************* Message queue management ***************/
 
@@ -316,8 +258,6 @@ os_status_t os_message_get(os_message_queue_t queue, void *data, uint32_t data_s
  * @retval The status of message delete.
  */
 os_status_t os_message_delete(os_message_queue_t queue);
-
-
 
 /******************* Mailbox management ***************/
 
@@ -359,7 +299,6 @@ os_status_t os_mailbox_delete(os_mailbox_t mailbox);
 #define OS_EVENT_DECLAR(event) \
     os_event_t event
 
-
 /**@brief Create and initalize a event.
  * @param[in][out] event Event handle as reference for other event functions and NULL if created failed.
  */
@@ -387,12 +326,9 @@ os_status_t os_event_flags_wait(os_event_t event, uint32_t flags, uint32_t optio
  */
 os_status_t os_event_delete(os_event_t event);
 
-
-
 /******************* Mailbox management ***************/
 // Assert macro
 #define OS_ASSERT(EX)
-
 
 #if defined(BSP_USING_RTTHREAD)
 #include "os_adaptor_rtthread.h"
@@ -402,7 +338,5 @@ os_status_t os_event_delete(os_event_t event);
 
 #endif // __OS_ADAPTOR_H
 
-
 /// @} os_wrapper
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

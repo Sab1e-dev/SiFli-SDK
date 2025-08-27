@@ -87,22 +87,43 @@
 开发板可以通过命令spp disc_all来断开所有的spp连接。
 
 ### menuconfig配置
-
 1. 本例程需要读写文件，所以需要用到文件系统，配置`FAT`文件系统：
-![RT_USING_DFS_ELMFAT](./assets/mc_fat.png)
-
+    - 路径：RTOS → RT-Thread Components → Device virtual file system
+    - 开启：Enable elm-chan fatfs
+        - 宏开关：`CONFIG_RT_USING_DFS_ELMFAT`
+        - 作用：开启fatfs文件系统
      ```{tip}
      mnt_init 中mount root分区。
      ```
 2. 使能蓝牙(`BLUETOOTH`)：
-![BLUETOOTH](./assets/mc_bluetooth.png)
+    - 路径：Sifli middleware → Bluetooth
+    - 开启：Enable bluetooth
+        - 宏开关：`CONFIG_BLUETOOTH`
+        - 作用：使能蓝牙功能
 3. 使能spp server和spp client：
-![spp profile](./assets/mc_bt_spp.png)
+    - 路径：Sifli middleware → Bluetooth → Bluetooth service → Classic BT service
+    - 开启：Enable BT finsh（可选）
+        - 宏开关：`CONFIG_BT_FINSH`
+        - 作用：使能finsh命令行，用于控制蓝牙
+    - 开启：Manually select profiles
+        - 宏开关：`CONFIG_BT_PROFILE_CUSTOMIZE`
+        - 作用：手动选择使能的配置文件
+    - 开启：Enable SPP client
+        - 宏开关：`CONFIG_CFG_SPP_CLT`
+        - 作用：使能SPP client功能，用于主动发起SPP连接等
+    - 开启：Enable SPP server
+        - 宏开关：`CONFIG_CFG_SPP_SRV`
+        - 作用：使能SPP server功能，对端设备才能进行SPP服务的搜索连接
 4. 使能BT connection manager：
-![BT CM](./assets/mc_bt_cm.png)
-5. 使能NVDS
-![NVDS](./assets/mc_bt_nvds.png)
-
+    - 路径：Sifli middleware → Bluetooth → Bluetooth service → Classic BT service
+    - 开启：Enable BT connection manager
+        - 宏开关：`CONFIG_BSP_BT_CONNECTION_MANAGER`
+        - 作用：使用connection manager模块管理bt的连接
+5. 使能NVDS：
+    - 路径：Sifli middleware → Bluetooth → Bluetooth service → Common service
+    - 开启：Enable NVDS synchronous
+        - 宏开关：`CONFIG_BSP_BLE_NVDS_SYNC`
+        - 作用：蓝牙NVDS同步。当蓝牙被配置到HCPU时，BLE NVDS可以同步访问，打开该选项；蓝牙被配置到LCPU时，需要关闭该选项
 
 ### 编译和烧录
 切换到例程project目录，运行scons命令执行编译：

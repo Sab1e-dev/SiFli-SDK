@@ -31,3 +31,4 @@ typedef struct {
 
 rt_err_t MMC56x3_Init(struct rt_sensor_config *cfg);
 mmc56x3_data_t MMC56x3_ReadData(void);
+void MMC56x3_SetDataRate(uint16_t rate);

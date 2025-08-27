@@ -1,7 +1,13 @@
 #ifndef AUDIOPROC_H
 #define AUDIOPROC_H
+
 #include <stdint.h>
 #include "ipc/ringbuffer.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define AUDIO_DBG_LVL           LOG_LVL_INFO
 
@@ -65,7 +71,7 @@ void audio_3a_downlink(uint8_t *fifo, uint8_t size);
 void audio_3a_save_pdm(uint8_t *fifo, uint16_t size);
 void audio_3a_uplink2(uint8_t *audprc, uint8_t is_mute);
 void audio_3a_uplink(uint8_t *fifo, uint16_t fifo_size, uint8_t is_mute, uint8_t is_bt_voice);
-void audio_3a_open(uint32_t samplerate, uint8_t is_bt_voice);
+void audio_3a_open(uint32_t samplerate, uint8_t is_bt_voice, uint8_t disable_uplink_agc);
 void audio_3a_close();
 void audio_3a_far_put(uint8_t *fifo, uint16_t fifo_size);
 void audio_3a_put_pdm(uint8_t *fifo, uint16_t fifo_size);
@@ -74,6 +80,10 @@ void audio_hardware_pa_start(uint32_t samplerate, uint32_t reserved);
 void audio_hardware_pa_stop(void);
 int is_audio_dump_enable();
 int is_audio_dump_enable_type(audio_dump_type_t type);
+
+#ifdef __cplusplus
+}
+#endif
 #endif
 
 

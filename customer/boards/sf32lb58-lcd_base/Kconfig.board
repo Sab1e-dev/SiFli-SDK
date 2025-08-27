@@ -21,7 +21,6 @@ config BSP_SUPPORT_DPI
     default y
     depends on BF0_HCPU
 
-select BSP_LCDC1_USE_LCDC2_TE if BF0_HCPU
 
 config LCD_USE_GPIO_TE
     int

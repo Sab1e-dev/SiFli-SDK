@@ -3,8 +3,7 @@ from building import *
 cwd = GetCurrentDir()
 inc = [cwd]
 src = Glob('*.c')
-lib = [GroupLibName("wfm")]
 CPPPATH = [cwd + '/../common', cwd]
-group = DefineGroup('Drivers', src, depend = ['LCD_USING_OPM060E9_V10'], CPPPATH = CPPPATH, LIBS=lib, LIBPATH=inc)
+group = DefineGroup('Drivers', src, depend = ['LCD_USING_OPM060E9_V10'], CPPPATH = CPPPATH)
 
 Return('group')

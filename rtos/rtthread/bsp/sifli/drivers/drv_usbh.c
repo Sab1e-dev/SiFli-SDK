@@ -15,6 +15,9 @@
 static HCD_HandleTypeDef sifli_hhcd_fs;
 static struct rt_completion urb_completion;
 static volatile rt_bool_t connect_status = RT_FALSE;
+static rt_timer_t usb_timer_handler = NULL;
+static void usb_timerout(void *param);
+static rt_err_t sifli_hcd_init(rt_device_t device);
 
 #if (RT_DEBUG_USB==1)
 void HAL_DBG_printf(const char *fmt, ...)
@@ -45,6 +48,7 @@ void HAL_HCD_Connect_Callback(HCD_HandleTypeDef *hhcd)
         connect_status = RT_TRUE;
         RT_DEBUG_LOG(RT_DEBUG_USB, ("usb connected\n"));
         rt_usbh_root_hub_connect_handler(hcd, OTG_FS_PORT, RT_FALSE);
+        if (usb_timer_handler) rt_timer_start(usb_timer_handler);
     }
 }
 
@@ -58,6 +62,9 @@ void HAL_HCD_Disconnect_Callback(HCD_HandleTypeDef *hhcd)
         rt_usbh_root_hub_disconnect_handler(hcd, OTG_FS_PORT);
         HAL_RCC_ResetModule(RCC_MOD_USBC);
         HAL_HCD_Start(hhcd);
+        HAL_HCD_DeInit(hhcd);
+        if (usb_timer_handler) rt_timer_stop(usb_timer_handler);
+        sifli_hcd_init(rt_device_find("usbh"));
     }
 }
 
@@ -72,7 +79,16 @@ static rt_err_t drv_reset_port(rt_uint8_t port)
     HAL_HCD_ResetPort(&sifli_hhcd_fs);
     return RT_EOK;
 }
-
+//extern uint8_t usb_test_0;
+static uint8_t usb_idle = 0;
+static void usb_set_state_idle(uint8_t state)
+{
+    usb_idle = state;
+}
+static uint8_t usb_get_state_idle(void)
+{
+    return usb_idle;
+}
 static int drv_pipe_xfer(upipe_t pipe, rt_uint8_t token, void *buffer, int nbytes, int timeouts)
 {
     int timeout = timeouts;
@@ -81,6 +97,7 @@ static int drv_pipe_xfer(upipe_t pipe, rt_uint8_t token, void *buffer, int nbyte
     {
         if (!connect_status)
         {
+            RT_DEBUG_LOG(RT_DEBUG_USB, ("%d err\n", __LINE__));
             return -1;
         }
         rt_completion_init(&urb_completion);
@@ -92,7 +109,8 @@ static int drv_pipe_xfer(upipe_t pipe, rt_uint8_t token, void *buffer, int nbyte
             RT_DEBUG_LOG(RT_DEBUG_USB, ("Address changed:%d->%d\n", sifli_hhcd_fs.hc[pipe->pipe_index].dev_addr, pipe->inst->address));
             sifli_hhcd_fs.hc[pipe->pipe_index].dev_addr = pipe->inst->address;
         }
-
+        rt_base_t lvl = rt_hw_interrupt_disable();
+        usb_set_state_idle(1);
         HAL_HCD_HC_SubmitRequest(&sifli_hhcd_fs,
                                  pipe->pipe_index,
                                  (pipe->ep.bEndpointAddress & 0x80) >> 7,
@@ -101,8 +119,9 @@ static int drv_pipe_xfer(upipe_t pipe, rt_uint8_t token, void *buffer, int nbyte
                                  buffer,
                                  nbytes,
                                  0);
-        rt_completion_wait(&urb_completion, timeout);
-        rt_thread_mdelay(10);
+        rt_hw_interrupt_enable(lvl);
+        rt_err_t res = rt_completion_wait(&urb_completion, timeout);
+        if (res == -RT_ETIMEOUT) RT_ASSERT(0);
         if (HAL_HCD_HC_GetState(&sifli_hhcd_fs, pipe->pipe_index) == HC_NAK)
         {
             RT_DEBUG_LOG(RT_DEBUG_USB, ("nak\n"));
@@ -126,8 +145,10 @@ static int drv_pipe_xfer(upipe_t pipe, rt_uint8_t token, void *buffer, int nbyte
             pipe->status = UPIPE_STATUS_STALL;
             if (pipe->callback != RT_NULL)
             {
+                RT_DEBUG_LOG(RT_DEBUG_USB, ("pipe->callback\n"));
                 pipe->callback(pipe);
             }
+            usb_set_state_idle(0);
             return -1;
         }
         else if (HAL_HCD_HC_GetState(&sifli_hhcd_fs, pipe->pipe_index) == URB_ERROR)
@@ -138,6 +159,7 @@ static int drv_pipe_xfer(upipe_t pipe, rt_uint8_t token, void *buffer, int nbyte
             {
                 pipe->callback(pipe);
             }
+            usb_set_state_idle(0);
             return -1;
         }
         else if (URB_DONE == HAL_HCD_HC_GetURBState(&sifli_hhcd_fs, pipe->pipe_index))
@@ -151,12 +173,15 @@ static int drv_pipe_xfer(upipe_t pipe, rt_uint8_t token, void *buffer, int nbyte
             size_t size = HAL_HCD_HC_GetXferCount(&sifli_hhcd_fs, pipe->pipe_index);
             if (pipe->ep.bEndpointAddress & 0x80)
             {
+                usb_set_state_idle(0);
                 return size;
             }
             else if (pipe->ep.bEndpointAddress & 0x00)
             {
+                usb_set_state_idle(0);
                 return size;
             }
+            usb_set_state_idle(0);
             return nbytes;
         }
 
@@ -169,7 +194,13 @@ static rt_uint16_t pipe_index = 0;
 static rt_uint8_t  drv_get_free_pipe_index(uint8_t ep_addr)
 {
     rt_uint8_t idx = 0;
-    RT_DEBUG_LOG(RT_DEBUG_USB, ("%s %d pipe_index=%d, ep_addr=0x%x\n", __func__, __LINE__, pipe_index, ep_addr));
+    RT_DEBUG_LOG(1, ("%s %d pipe_index=%d, ep_addr=0x%x\n", __func__, __LINE__, pipe_index, ep_addr));
+    if ((0 == ep_addr) || (0x80 == ep_addr)) //control pipe
+    {
+        //pipe_index = 0x0;
+        RT_DEBUG_LOG(RT_DEBUG_USB, ("%s %d pipe_index=%d,idx=%d\n", __func__, __LINE__, pipe_index, idx));
+        return idx;
+    }
     if (ep_addr & 0x80)//rx
     {
         for (idx = 1; idx < 4; idx++)
@@ -177,7 +208,7 @@ static rt_uint8_t  drv_get_free_pipe_index(uint8_t ep_addr)
             if (!(pipe_index & (0x01 << idx)))
             {
                 pipe_index |= (0x01 << idx);
-                RT_DEBUG_LOG(RT_DEBUG_USB, ("%s %dpipe_index=%d,idx=%d\n", __func__, __LINE__, pipe_index, idx));
+                RT_DEBUG_LOG(1, ("%s %d pipe_index=%d,idx=%d\n", __func__, __LINE__, pipe_index, idx));
                 return idx;
             }
         }
@@ -189,7 +220,7 @@ static rt_uint8_t  drv_get_free_pipe_index(uint8_t ep_addr)
             if (!(pipe_index & (0x01 << idx)))
             {
                 pipe_index |= (0x01 << idx);
-                RT_DEBUG_LOG(RT_DEBUG_USB, ("%s %d pipe_index=%d,idx=%d \n", __func__, __LINE__, pipe_index, idx));
+                RT_DEBUG_LOG(1, ("%s %d pipe_index=%d,idx=%d \n", __func__, __LINE__, pipe_index, idx));
                 return idx;
             }
         }
@@ -212,7 +243,6 @@ static rt_uint8_t  drv_get_free_pipe_index(uint8_t ep_addr)
 }
 #endif
 
-
 static void drv_free_pipe_index(rt_uint8_t index)
 {
     pipe_index &= ~(0x01 << index);
@@ -221,7 +251,7 @@ static void drv_free_pipe_index(rt_uint8_t index)
 static rt_err_t drv_open_pipe(upipe_t pipe)
 {
     pipe->pipe_index = drv_get_free_pipe_index(pipe->ep.bEndpointAddress);
-    RT_DEBUG_LOG(RT_DEBUG_USB, ("open_pipe=%d, ep=%d, dev_addr\n", pipe->pipe_index, pipe->ep.bEndpointAddress, pipe->inst->address));
+    RT_DEBUG_LOG(1, ("open_pipe=%d, ep=%d, dev_addr=0x%x\n", pipe->pipe_index, pipe->ep.bEndpointAddress, pipe->inst->address));
     HAL_HCD_HC_Init(&sifli_hhcd_fs,
                     pipe->pipe_index,
                     pipe->ep.bEndpointAddress,
@@ -256,19 +286,27 @@ static struct uhcd_ops _uhcd_ops =
     drv_close_pipe,
 };
 
+void BSP_GPIO_Set(int pin, int val, int is_porta);
+
 static rt_err_t sifli_hcd_init(rt_device_t device)
 {
     HAL_StatusTypeDef state;
 
     HCD_HandleTypeDef *hhcd = (HCD_HandleTypeDef *)device->user_data;
+    //BSP_GPIO_Set(17, 0, 1);
 
     HAL_RCC_EnableModule(RCC_MOD_USBC);
     hhcd->Instance = hwp_usbc;
     hhcd->Init.Host_channels = 8;
+#ifdef SOC_SF32LB58X
+    hhcd->Init.speed = HCD_SPEED_HIGH;
+#else
     hhcd->Init.speed = HCD_SPEED_FULL;
+#endif
     hhcd->Init.dma_enable = DISABLE;
     hhcd->Init.phy_itface = HCD_PHY_EMBEDDED;
     hhcd->Init.Sof_enable = DISABLE;
+    //hhcd->State = HAL_HCD_STATE_RESET;
     state = HAL_HCD_Init(hhcd);
     if (state != HAL_OK)
     {
@@ -277,11 +315,25 @@ static rt_err_t sifli_hcd_init(rt_device_t device)
     rt_kprintf("USB HCD started\n");
     HAL_HCD_Start(hhcd);
     hwp_usbc->dbgl = 0x80;
+    //hwp_usbc->swcntl1 = 0x40;
 #ifdef USBH_USING_CONTROLLABLE_POWER
     rt_pin_mode(USBH_POWER_PIN, PIN_MODE_OUTPUT);
     rt_pin_write(USBH_POWER_PIN, PIN_LOW);
 #endif
+
+    if (!usb_timer_handler)
+    {
+        usb_timer_handler = rt_timer_create("usb_timer", usb_timerout, 0, rt_tick_from_millisecond(1000), RT_TIMER_FLAG_PERIODIC | RT_TIMER_FLAG_SOFT_TIMER);
+        RT_ASSERT(usb_timer_handler);
+    }
     return RT_EOK;
+}
+static void usb_timerout(void *param)
+{
+    if (!usb_get_state_idle())
+    {
+        HAL_HCD_Timerout_Callback(&sifli_hhcd_fs);
+    }
 }
 
 int sifli_usbh_register(void)

@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   bl6133.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -52,14 +13,10 @@
 
 /* Define -------------------------------------------------------------------*/
 
-
 #define I2C_ADDR                    (0x2C)
-
 
 #define BL_MAX_WIDTH                   (454)
 #define BL_MAX_HEIGHT                  (454)
-
-
 
 #pragma pack(push, 1) //make sure no padding bytes between report_id and desc
 
@@ -81,8 +38,6 @@ typedef struct _touch_desc_t
 } touch_desc_t;
 
 #pragma pack(pop)
-
-
 
 // rotate to left with 90, 180, 270
 // rotate to left with 360 for mirror
@@ -116,8 +71,6 @@ int bl_i2c_transfer(unsigned char i2c_addr, unsigned char *buf, int len, unsigne
     return res;
 }
 
-
-
 int bl_read_fw(unsigned char i2c_addr, unsigned char reg_addr, unsigned char *buf, int len)
 {
     if (rt_i2c_mem_read(i2c_bus, i2c_addr, reg_addr, 8, buf, len) == len)
@@ -126,7 +79,6 @@ int bl_read_fw(unsigned char i2c_addr, unsigned char reg_addr, unsigned char *bu
         return -RT_ERROR;
 
 }
-
 
 void bl_ts_set_intmode(char mode)
 {
@@ -152,7 +104,6 @@ void bl_ts_set_intup(char level)
         rt_pin_write(TOUCH_IRQ_PIN, 0); //CTP_SET_I2C_EINT_LOW;
 }
 
-
 void bl_ts_reset_wakeup(void)
 {
     LOG_D("bl_ts_reset_wakeup");
@@ -167,10 +118,6 @@ void bl_ts_reset_wakeup(void)
 }
 
 #endif /* BL_UPDATE_FIRMWARE_ENABLE */
-
-
-
-
 
 void bl6133_irq_handler(void *arg)
 {
@@ -199,7 +146,6 @@ static rt_err_t read_point(touch_msg_t p_msg)
 
         x = (touch_msg.PosXH << 8) | touch_msg.PosXL;
         y = (touch_msg.PosYH << 8) | touch_msg.PosYL;
-
 
         LOG_D("PosIDID=%d, PointNum=%d,Event=%d, GestureCode=%d, X=%d, Y=%d\n",
               touch_msg.PosID, touch_msg.PointNum, touch_msg.Event, touch_msg.GestureCode, x, y);
@@ -242,8 +188,6 @@ static rt_err_t read_point(touch_msg_t p_msg)
 
     }
 
-
-
     return ret;
 }
 
@@ -252,8 +196,6 @@ static rt_err_t init(void)
     struct touch_message msg;
 
     LOG_I("bl6133 init");
-
-
 
     rt_touch_irq_pin_attach(PIN_IRQ_MODE_FALLING, bl6133_irq_handler, NULL);
     rt_touch_irq_pin_enable(1); //Must enable before read I2C
@@ -291,7 +233,6 @@ static rt_err_t deinit(void)
 static rt_bool_t probe(void)
 {
     rt_err_t err;
-
 
     i2c_bus = (struct rt_i2c_bus_device *)rt_device_find(TOUCH_DEVICE_NAME);
     if (RT_Device_Class_I2CBUS != i2c_bus->parent.type)
@@ -339,7 +280,6 @@ static rt_bool_t probe(void)
     }
 #endif /* BL_UPDATE_FIRMWARE_ENABLE */
 
-
     {
         struct rt_i2c_configuration configuration =
         {
@@ -357,14 +297,12 @@ static rt_bool_t probe(void)
     return RT_TRUE;
 }
 
-
 static struct touch_ops ops =
 {
     read_point,
     init,
     deinit
 };
-
 
 static int rt_bl6133_init(void)
 {
@@ -379,4 +317,3 @@ static int rt_bl6133_init(void)
 }
 INIT_COMPONENT_EXPORT(rt_bl6133_init);
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

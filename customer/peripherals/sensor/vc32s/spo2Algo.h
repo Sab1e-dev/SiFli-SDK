@@ -32,7 +32,7 @@
 #ifndef SPO2ALGO_H
 #define SPO2ALGO_H
 
-/* Include Files */
+
 #include <float.h>
 #include <math.h>
 #include <stddef.h>
@@ -40,11 +40,20 @@
 #include <string.h>
 
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Include Files */
 /* Function Declarations */
 extern float vcSpo2Calculate(float r_ppg, float ir_ppg);
 extern void vcSpo2AlgoInit(void);
 extern void vcSpo2AlgoTerminate(void);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
 
 /*

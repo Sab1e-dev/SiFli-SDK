@@ -1,7 +1,13 @@
 #ifndef PXIALG_H__
 #define PXIALG_H__
+
 #include "stdint.h"
 #include "pxivar.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define FW              1
 
@@ -695,4 +701,8 @@ PXIALG_API uint8_t PxiAlg_GetHrUpdateFlag();
 PXIALG_API void PxiAlg_SetData_Seg(pah8series_data_t *pah8series_data);
 PXIALG_API uint8_t PxiAlg_Process_Seg(uint8_t *is_finished);
 PXIALG_API uint8_t PxiAlg_ProcessD_Seg(uint8_t *is_finished);
+
+#ifdef __cplusplus
+}
+#endif
 #endif /* PXIALG_H__ */

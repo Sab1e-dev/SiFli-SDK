@@ -3,7 +3,13 @@
  *********************/
 #ifndef _AT_AG3335M_EPO_H
 #define _AT_AG3335M_EPO_H
+
 #include "rtdevice.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define EPO_RECORD_SIZE (72)
 
@@ -63,4 +69,7 @@ typedef struct
 gps_err_t epo_ading_start(epo_file_t *file);
 void epo_transfer_ind(at_client_t client, const char *data, rt_size_t size);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* _AT_AG3335M_EPO_H */

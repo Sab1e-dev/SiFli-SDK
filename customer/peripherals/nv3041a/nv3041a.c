@@ -7,7 +7,6 @@
   ******************************************************************************
 */
 
-
 #include <rtthread.h>
 #include "string.h"
 #include "board.h"
@@ -18,10 +17,8 @@
 #define DBG_LVL               DBG_INFO
 #include <rtdbg.h>
 
-
 #define ROW_OFFSET  (0x00)
 #define COL_OFFSET  (0x00)
-
 
 /**
   * @brief NV3041A chip IDs
@@ -33,11 +30,6 @@
   */
 #define  THE_LCD_PIXEL_WIDTH    (480)
 #define  THE_LCD_PIXEL_HEIGHT   (272)
-
-
-
-
-
 
 /**
   * @brief  NV3041A Registers
@@ -57,9 +49,6 @@
 #define REG_CASET              0x2A
 #define REG_RASET              0x2B
 
-
-
-
 #define REG_TEARING_EFFECT     0x35
 #define REG_MACTL     0x36
 //#define REG_IDLE_MODE_OFF      0x38
@@ -67,20 +56,6 @@
 #define REG_COLOR_MODE         0x3A
 
 #define REG_WBRIGHT            0x51 /* Write brightness*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #define DEBUG
 
@@ -94,9 +69,7 @@
 #define LCD_ALIGN2(x) ((x) = (x) & (~1))
 #define LCD_ALIGN1(x) ((x) = (0 == ((x) & 1)) ? (x - 1) : x)
 
-
 #define QAD_SPI_ITF LCDC_INTF_SPI_DCX_4DATA
-
 
 static const LCDC_InitTypeDef lcdc_int_cfg_qadspi =
 {
@@ -129,20 +102,10 @@ static void     LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_
 static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8_t ReadSize);
 static void LCD_ReadMode(LCDC_HandleTypeDef *hlcdc, bool enable);
 
-
-
-
-
-
-
-
-
 #ifdef QAD_SPI_USE_GPIO_CS
     void gpio_cs_enable(void);
     void gpio_cs_disable(void);
 #endif /* QAD_SPI_USE_GPIO_CS */
-
-
 
 /**
   * @brief  spi read/write mode
@@ -164,7 +127,6 @@ static void LCD_ReadMode(LCDC_HandleTypeDef *hlcdc, bool enable)
     }
 
 }
-
 
 static void NV3041A_Drv_Init(LCDC_HandleTypeDef *hlcdc)
 {
@@ -201,12 +163,10 @@ static void NV3041A_Drv_Init(LCDC_HandleTypeDef *hlcdc)
 #endif
     /* bist mode */
 
-
 //    SPI_WriteComm(0xE7);//TE_output_en
 //    SPI_WriteData(0x10);
     parameter[0] = 0x10;
     LCD_WriteReg(hlcdc, 0xE7, parameter, 1);
-
 
 //    SPI_WriteComm(0x35);//TE_ interface_en
 //    SPI_WriteData(0x01);
@@ -728,7 +688,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     return;
 }
 
-
 /**
   * @brief  Disables the Display.
   * @param  None
@@ -786,7 +745,6 @@ static void LCD_SetRegion(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos0, uint16_t Yp
 {
     uint8_t   parameter[4];
 
-
     LCD_ALIGN2(Xpos0);
     LCD_ALIGN2(Ypos0);
     LCD_ALIGN1(Xpos1);
@@ -824,7 +782,6 @@ static void LCD_WritePixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Yp
 {
     uint8_t data = 0;
 
-
     if ((Xpos >= THE_LCD_PIXEL_WIDTH) || (Ypos >= THE_LCD_PIXEL_HEIGHT))
     {
         return;
@@ -849,7 +806,6 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
         HAL_LCDC_SendLayerData2Reg_IT(hlcdc, REG_WRITE_RAM, 1);
     }
 }
-
 
 /**
   * @brief  Writes  to the selected LCD register.
@@ -883,8 +839,6 @@ static void LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *P
 
 }
 
-
-
 /**
   * @brief  Reads the selected LCD Register.
   * @param  RegValue: Address of the register to read
@@ -917,8 +871,6 @@ static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8
 
     return rd_data;
 }
-
-
 
 static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Ypos)
 {
@@ -959,12 +911,10 @@ static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t
         break;
     }
 
-
     //LCD_WriteReg(hlcdc,REG_COLOR_MODE, parameter, 1);
 
     return ret_v;
 }
-
 
 static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
 {
@@ -997,8 +947,6 @@ static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
     LCD_WriteReg(hlcdc, REG_COLOR_MODE, parameter, 1);
     HAL_LCDC_SetOutFormat(hlcdc, lcdc_int_cfg.color_mode);
 }
-
-
 
 static void LCD_SetBrightness(LCDC_HandleTypeDef *hlcdc, uint8_t br)
 {
@@ -1037,9 +985,6 @@ static void LCD_Rotate(LCDC_HandleTypeDef *hlcdc, LCD_DrvRotateTypeDef degree)
 #endif /* LCDC_SUPPORT_H_MIRROR */
 }
 
-
-
-
 static const LCD_DrvOpsDef NV3041A_drv =
 {
     LCD_Init,
@@ -1060,8 +1005,6 @@ static const LCD_DrvOpsDef NV3041A_drv =
     LCD_Rotate,
 };
 
-
 LCD_DRIVER_EXPORT2(nv3041a, THE_LCD_ID, &lcdc_int_cfg,
                    &NV3041A_drv, 2);
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

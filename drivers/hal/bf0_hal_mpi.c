@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   bf0_hal_mpi.c
-  * @author Sifli software development team
-  * @brief   QSPI HAL module driver.
-  *
-  ******************************************************************************
-*/
-/**
+/*
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
  *
- * Copyright (c) 2019 - 2022,  Sifli Technology
- *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "bf0_hal.h"
@@ -245,16 +204,24 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_SET_CMD(FLASH_HandleTypeDef *hflash, 
     hflash->Instance->AR1 = addr;
     if (hflash->cs_ctrl != NULL)
     {
+#if 0
         hflash->cs_ctrl(0);
         // DELAY
         volatile uint32_t i = 240 / 5; // max 240m?
         while (i-- > 0);
+#endif
         hflash->cs_ctrl(1);
     }
     hflash->Instance->CMDR1 = cmd & 0XFF;
 
     while (!HAL_FLASH_IS_CMD_DONE(hflash));
     HAL_FLASH_CLR_CMD_DONE(hflash);
+
+    if (hflash->cs_ctrl)
+    {
+        /* pull up CS after command is done */
+        hflash->cs_ctrl(0);
+    }
 
     return res;
 }
@@ -1804,6 +1771,3 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_MPI_EN_PREFETCH(FLASH_HandleTypeDef *hflash
 /// @} FLASH
 
 /// @} BF0_HAL_Driver
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

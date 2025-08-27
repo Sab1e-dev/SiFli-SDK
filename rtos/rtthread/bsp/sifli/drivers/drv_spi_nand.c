@@ -1,49 +1,9 @@
-/**
-  ******************************************************************************
-  * @file   drv_spi_nand.c
-  * @author Sifli software development team
-  * @brief Nor Flash Controller BSP driver
-  This driver is validated by using MSH command 'date'.
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
+
 #include "board.h"
 
 /** @addtogroup bsp_driver Driver IO
@@ -55,7 +15,6 @@
   This driver is validated by using MSH command 'nand'.
   * @{
   */
-
 
 #if defined (BSP_USING_SPI_NAND) || defined(_SIFLI_DOXYGEN_)
 #include "drv_config.h"
@@ -86,7 +45,6 @@
     #include "sifli_bbm.h"
 #endif
 
-
 // global value
 static int nand_index = -1;   // only ONE nand support in system.
 static QSPI_FLASH_CTX_T spi_nand_handle;
@@ -95,7 +53,6 @@ static struct rt_semaphore         nand_lock;
 static int nand_sys_init = 0;
 static uint32_t nand_pagesize = 2048;
 static uint32_t nand_blksize = 0x20000;
-
 
 #if ((NAND_BUF_CPY_MODE == 1) && defined(BSP_USING_EXT_DMA))
 extern rt_sem_t ExtDma_sema;
@@ -139,7 +96,6 @@ __HAL_ROM_USED void rt_nand_lock()
     rt_err_t r = rt_sem_take(&nand_lock, RT_WAITING_FOREVER);
     RT_ASSERT(RT_EOK == r);
 }
-
 
 __HAL_ROM_USED void rt_nand_unlock()
 {
@@ -545,7 +501,6 @@ int rt_nand_register_cache(uint32_t addr, uint8_t *buf)
     return RT_ERROR;
 }
 
-
 int rt_nand_get_total_size(uint32_t addr)
 {
     if (nand_index < 0)
@@ -727,7 +682,6 @@ __HAL_ROM_USED int rt_hw_nand_deinit(void)
     return 0;
 }
 
-
 #ifdef BSP_USING_RTTHREAD
 
 #ifdef RT_USING_MTD_NAND
@@ -790,7 +744,6 @@ static rt_err_t _nand_readpage(struct rt_mtd_nand_device *device,
     return 0;
 }
 
-
 static rt_err_t _nand_readpage_with_offset(struct rt_mtd_nand_device *device,
         rt_off_t page,     rt_uint32_t offset,
         rt_uint8_t *data, rt_uint32_t data_len,
@@ -842,7 +795,6 @@ static rt_err_t _nand_movepage(struct rt_mtd_nand_device *device, rt_off_t src_p
     uint32_t base = (uint32_t)device->parent.user_data;
     int res;
 
-
     return -RT_MTD_ENOMEM;
 }
 
@@ -854,7 +806,6 @@ static rt_err_t _nand_eraseblk(struct rt_mtd_nand_device *device, rt_uint32_t bl
     block += device->block_start;
 
     //LOG_I("eraseblk:%d", block);
-
 
     res = rt_nand_erase_block((block * nand_blksize) + base);
     if (res)
@@ -1165,7 +1116,6 @@ int port_erase_block(int blk)
     return 0;
 }
 
-
 // mark blk as bad block
 int bbm_mark_bb(int blk)
 {
@@ -1215,7 +1165,6 @@ __HAL_ROM_USED int rt_sys_spi_nand_init(void)
     if (res > 0)
     {
 
-
     }
 
     return 0;
@@ -1232,7 +1181,6 @@ INIT_BOARD_EXPORT(rt_sys_spi_nand_init);
 
 #define SPI_FLASH_TEST_LEN          SPI_NOR_PAGE_SIZE
 #define SPI_FLASH_TEST_VALUE        (0x5a)
-
 
 static void nand_test_help()
 {
@@ -1452,6 +1400,3 @@ FINSH_FUNCTION_EXPORT_ALIAS(cmd_spi_nand, __cmd_spi_nand, Test spi_nand driver);
 /// @} drv_nand
 /// @} bsp_driver
 
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

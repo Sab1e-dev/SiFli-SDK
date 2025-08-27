@@ -1,11 +1,17 @@
 #ifndef SDMMC_TST_DRV_H
 #define SDMMC_TST_DRV_H
 
+
 #include <bf0_hal.h>
 #include <string.h>
 #include <stdio.h>
 #include <drv_io.h>
 
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define SD_SUCCESS 0
 #define SD_TIMEOUT 1
@@ -49,4 +55,7 @@ uint8_t sd1_wait_read();
 uint8_t sd1_iowrite(uint8_t func,uint32_t addr,uint8_t data);
 uint8_t sd1_ioread(uint8_t func,uint32_t addr,uint8_t *data);
 
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -1,48 +1,8 @@
-/**
-  ******************************************************************************
-  * @file   dfu_reset.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
-
 
 #if 1
 #include <stdio.h>
@@ -58,7 +18,6 @@
 
 static uint8_t dfu_temp[DFU_MAX_BLK_SIZE];
 
-
 ALIGN(4)
 static uint8_t dfu_key[DFU_KEY_SIZE];
 ALIGN(4)
@@ -66,8 +25,6 @@ static uint8_t dfu_key1[DFU_KEY_SIZE];
 
 #define LOG_TAG "dfu_reset"
 #include "log.h"
-
-
 
 typedef struct
 {
@@ -97,8 +54,6 @@ int dfu_encrypt_packet(int flashid, uint32_t offset, uint8_t *data, uint32_t siz
     return DFU_SUCCESS;
 }
 
-
-
 static int dfu_decompress(uint8_t flashid, uint8_t *dfu_key, uint16_t img_flags, uint8_t *uncompress_buf, uint32_t *pksize, uint8_t *compress_buf, uint32_t *packet_len,
                           uint32_t *total_uncompress_len, uint32_t *uncompress_offset)
 {
@@ -122,7 +77,6 @@ static int dfu_decompress(uint8_t flashid, uint8_t *dfu_key, uint16_t img_flags,
     return r;
 
 }
-
 
 int dfu_reset_install(uint8_t *dfu_key, uint8_t flashid, uint16_t img_flags, uint32_t img_index)
 {
@@ -262,7 +216,6 @@ int dfu_reset_install(uint8_t *dfu_key, uint8_t flashid, uint16_t img_flags, uin
                     break;
                 // Always read more if could
 
-
                 if (left_len < sizeof(dfu_compress_packet_header_t))
                 {
                     memcpy(dfu_temp, dfu_temp + left_size, left_len);
@@ -302,7 +255,6 @@ int dfu_reset_install(uint8_t *dfu_key, uint8_t flashid, uint16_t img_flags, uin
                     left_size += sizeof(dfu_compress_packet_header_t);
                     left_len -= sizeof(dfu_compress_packet_header_t);
 
-
                 }
 
                 if (blk_offset == 0)
@@ -327,7 +279,6 @@ int dfu_reset_install(uint8_t *dfu_key, uint8_t flashid, uint16_t img_flags, uin
             uint32_t temp_left, temp_offset;
             //RT_ASSERT(blk_offset != 0);
             packet_len = ((dfu_compress_packet_header_t *)(dfu_temp))->packet_len;
-
 
             temp_offset = sizeof(dfu_compress_packet_header_t);
             temp_left = blksize + blk_offset - temp_offset;
@@ -500,10 +451,6 @@ int32_t dfu_reset_start(void)
     return 0;
 }
 
-
-
-
-
 void SVC_Handler_Main(unsigned int *svc_args)
 {
     unsigned int svc_number;
@@ -537,8 +484,5 @@ void SVC_Handler(void)
 
 #endif
 
-
 #endif
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

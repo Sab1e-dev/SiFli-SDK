@@ -6,6 +6,7 @@
 #include "time.h"
 #include <rtdevice.h>
 
+
 /* Common functions for RT-Thread based platform -----------------------------------------------*/
 
 /* User code start from here --------------------------------------------------------*/

@@ -1,11 +1,17 @@
 #ifndef __GUI_APP_PM_H__
 #define __GUI_APP_PM_H__
 
+
 #include <rtthread.h>
 #include <rtdevice.h>
 #include <board.h>
 #include <string.h>
 #include "button.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** GUI PM event */
 typedef enum
@@ -169,4 +175,7 @@ void sys_poweron_fsm(sys_pwron_evt_t evt);
 
 
 
+#ifdef __cplusplus
+}
+#endif
 #endif  /* __GUI_APP_PM_H__ */

@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   st77903.c
-  * @author Sifli software development team
-  * @brief   This file includes the LCD driver for st77903 LCD.
-  * @attention
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -53,20 +12,11 @@
 
 #include "log.h"
 
-
-
-
-
-
-
-
-
 #ifdef ROW_OFFSET_PLUS
     #define ROW_OFFSET  (ROW_OFFSET_PLUS)
 #else
     #define ROW_OFFSET  (0)
 #endif
-
 
 /**
   * @brief ST77903 chip IDs
@@ -78,11 +28,6 @@
   */
 #define  THE_LCD_PIXEL_WIDTH    ((uint16_t)400)
 #define  THE_LCD_PIXEL_HEIGHT   ((uint16_t)400)
-
-
-
-
-
 
 /**
   * @brief  ST77903 Registers
@@ -100,7 +45,6 @@
 #define REG_CASET              0x2A
 #define REG_RASET              0x2B
 
-
 #define REG_TEARING_EFFECT     0x35
 
 #define REG_IDLE_MODE_OFF      0x38
@@ -108,26 +52,8 @@
 #define REG_COLOR_MODE         0x3A
 #define REG_WBRIGHT            0x51
 
-
-
-
-
-
 #define REG_VDV_VRH_EN         0xC2
 #define REG_VDV_SET            0xC4
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #define DEBUG
 
@@ -142,10 +68,6 @@ static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8
 static uint32_t LCD_ESDCehck(LCDC_HandleTypeDef *hlcdc);
 static void LCD_TimeoutDbg(LCDC_HandleTypeDef *hlcdc);
 static void LCD_TimeoutReset(LCDC_HandleTypeDef *hlcdc);
-
-
-
-
 
 static LCDC_InitTypeDef lcdc_int_cfg =
 {
@@ -183,12 +105,10 @@ static LCDC_InitTypeDef lcdc_int_cfg =
             .backlight_pwm = 0,
             .backlight_polarity = 1,
 
-
         },
     },
 
 };
-
 
 #define MAX_CMD_LEN 16
 #if 1//defined(LCD_USING_ED_LB55SPI17601_QADSPI_SS6600)
@@ -271,8 +191,6 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     { 0xbc, 8,  0x00, 0x30, 0x00, 0x2c, 0x82, 0x87, 0x18, 0x00},
     { 0xbd, 11, 0xa1, 0xb2, 0x2b, 0x1a, 0x56, 0x43, 0x34, 0x65, 0xff, 0xff, 0x0f}
 
-
-
 };
 
 //Display  color bar to check LCD ok.
@@ -283,14 +201,6 @@ static const uint8_t bist_cmds[][MAX_CMD_LEN] =
 };
 
 #endif
-
-
-
-
-
-
-
-
 
 /**
   * @brief  spi read/write mode
@@ -339,7 +249,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     /* Wait for 120ms */
     LCD_DRIVER_DELAY_MS(120);
 
-
     for (int i = 0; i < sizeof(lcd_init_cmds) / MAX_CMD_LEN; i++)
     {
         //rt_kprintf("write %d,cmd=0x%x,len=%d\n",i,(int)lcd_init_cmds[i][0], (int)lcd_init_cmds[i][1]);
@@ -349,11 +258,9 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
         //__asm("B .");
     }
 
-
     /* Tearing Effect Line On: Option (00h:VSYNC Only, 01h:VSYNC & HSYNC ) */
     parameter[0] = 0x00;
     LCD_WriteReg(hlcdc, REG_TEARING_EFFECT, parameter, 1);
-
 
     LCD_WriteReg(hlcdc, REG_DISPLAY_INVERSION, (uint8_t *)NULL, 0);
     LCD_WriteReg(hlcdc, REG_SLEEP_OUT, (uint8_t *)NULL, 0);
@@ -365,8 +272,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     /* Wait for 120ms */
     LCD_DRIVER_DELAY_MS(120);
 
-
-
 #if 0
     for (int i = 0; i < sizeof(bist_cmds) / MAX_CMD_LEN; i++)
     {
@@ -376,8 +281,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     __asm("B .");
 #endif /* 1 */
 
-
-
     HAL_LCDC_SetROIArea(hlcdc, 0, 0, LCD_HOR_RES_MAX - 1, LCD_VER_RES_MAX - 1);
 
     {
@@ -385,7 +288,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
 
         data = LCD_ReadData(hlcdc, REG_LCD_ID, 4);
         DEBUG_PRINTF("ST77903_ReadID 0x%x \n", data);
-
 
         data = LCD_ReadData(hlcdc, REG_POWER_MODE, 4);
         DEBUG_PRINTF("ST77903_ReadPowerMode 0x%x \n", data);
@@ -472,7 +374,6 @@ void ST77903_WriteMultiplePixels_mcu(LCDC_HandleTypeDef *hlcdc, const uint8_t *R
     {
         HAL_LCDC_LayerSetData(hlcdc, HAL_LCDC_LAYER_DEFAULT, (uint8_t *)RGBCode, Xpos0, Ypos0, Xpos1, Ypos1);
 
-
         while (1)
         {
             /*
@@ -497,7 +398,6 @@ void ST77903_WriteMultiplePixels_mcu(LCDC_HandleTypeDef *hlcdc, const uint8_t *R
                 HAL_LCDC_SendLayerData2Reg_IT(hlcdc, 0xDE006000, 4);
                 //Must delay 40us
             }
-
 
             for (uint32_t front_porch = 8; front_porch > 0; front_porch--)
             {
@@ -545,8 +445,6 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
     rt_hw_interrupt_enable(level);
 }
 
-
-
 /**
   * @brief  Writes  to the selected LCD register.
   * @param  LCD_Reg: address of the selected register.
@@ -556,12 +454,10 @@ static void LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *P
 {
     uint32_t cmd;
 
-
     cmd = (0xDE << 24) | (LCD_Reg << 8);
 
     HAL_LCDC_WriteU32Reg(hlcdc, cmd, Parameters, NbParameters);
 }
-
 
 /**
   * @brief  Reads the selected LCD Register.
@@ -577,19 +473,15 @@ static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8
 
     HAL_LCDC_ReadU32Reg(hlcdc, ((0xDD << 24) | (RegValue << 8)), (uint8_t *)&rd_data, ReadSize);
 
-
     LCD_ReadMode(hlcdc, false);
 
     return rd_data;
 }
 
-
-
 static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Ypos)
 {
     return 0;
 }
-
 
 static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
 {
@@ -617,7 +509,6 @@ static void LCD_SetBrightness(LCDC_HandleTypeDef *hlcdc, uint8_t br)
     }
 
 }
-
 
 static void LCD_TimeoutDbg(LCDC_HandleTypeDef *hlcdc)
 {
@@ -677,7 +568,6 @@ static uint32_t LCD_ESDCehck(LCDC_HandleTypeDef *hlcdc)
     err = HAL_LCDC_RAMLESS_ReadDatasEnd(hlcdc, (uint8_t *)&data, 4);
     LOG_I("ST77903_ESD_CHECK 0a 0x%x \n", data);
 
-
     err = HAL_LCDC_RAMLESS_ReadDatasStart(hlcdc, 4000000, 0xDD000900, 4, 1);
     RT_ASSERT(HAL_OK == err);
     LCD_DRIVER_DELAY_MS(20);
@@ -688,10 +578,6 @@ static uint32_t LCD_ESDCehck(LCDC_HandleTypeDef *hlcdc)
     return 0;
 
 }
-
-
-
-
 
 static const LCD_DrvOpsDef ST77903_drv =
 {
@@ -719,11 +605,3 @@ static const LCD_DrvOpsDef ST77903_drv =
 LCD_DRIVER_EXPORT2(st77903, THE_LCD_ID, &lcdc_int_cfg,
                    &ST77903_drv, 1);
 
-
-
-
-
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

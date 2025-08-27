@@ -7,7 +7,6 @@
   ******************************************************************************
 */
 
-
 #include <rtthread.h>
 #include "string.h"
 #include "board.h"
@@ -16,20 +15,8 @@
 
 #include "log.h"
 
-
-
-
-
-
-
-
-
 #define ROW_OFFSET  (0x00)
 #define COL_OFFSET  (0x00)
-
-
-
-
 
 /**
   * @brief XM80240 chip IDs
@@ -41,11 +28,6 @@
   */
 #define  THE_LCD_PIXEL_WIDTH    (390)
 #define  THE_LCD_PIXEL_HEIGHT   (450)
-
-
-
-
-
 
 /**
   * @brief  XM80240 Registers
@@ -65,9 +47,6 @@
 #define REG_CASET              0x2A
 #define REG_RASET              0x2B
 
-
-
-
 //#define REG_TEARING_EFFECT     0x35
 
 //#define REG_IDLE_MODE_OFF      0x38
@@ -75,40 +54,6 @@
 #define REG_COLOR_MODE         0x3A
 
 #define REG_WBRIGHT            0x51 /* Write brightness*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #define DEBUG
 
@@ -122,16 +67,6 @@
 #define LCD_ALIGN2(x) ((x) = (x) & (~1))
 #define LCD_ALIGN1(x) ((x) = (0 == ((x) & 1)) ? (x - 1) : x)
 
-
-
-
-
-
-
-
-
-
-
 #ifdef BSP_LCDC_USING_DSI
 
 #if 0//def APP_BSP_TEST  //Keep two data lanes for bsp test
@@ -141,8 +76,6 @@
     #define  XM80240_DSI_FREQ       DSI_FREQ_480Mbps
     #define  XM80240_DSI_DATALANES  DSI_ONE_DATA_LANE
 #endif /* APP_BSP_TEST */
-
-
 
 static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
 {
@@ -191,7 +124,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
                 .BTATimeout = 0,
             },
 
-
             .LPCmd = {
                 .LPGenShortWriteNoP    = DSI_LP_GSW0P_ENABLE,
                 .LPGenShortWriteOneP   = DSI_LP_GSW1P_ENABLE,
@@ -208,7 +140,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
                 .AcknowledgeRequest    = DSI_ACKNOWLEDGE_DISABLE, //disable LCD error reports
             },
 
-
             .vsyn_delay_us = 0,
         },
     },
@@ -216,7 +147,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_dsi =
 #endif /* BSP_LCDC_USING_DSI */
 
 #define QAD_SPI_ITF LCDC_INTF_SPI_DCX_4DATA
-
 
 static const LCDC_InitTypeDef lcdc_int_cfg_qadspi =
 {
@@ -241,7 +171,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_qadspi =
     },
 
 };
-
 
 static const LCDC_InitTypeDef lcdc_int_cfg_3spi_1data =
 {
@@ -303,23 +232,19 @@ static const LCDC_InitTypeDef lcdc_int_cfg_4spi_1data =
 
 };
 
-
 static LCDC_InitTypeDef lcdc_int_cfg;
 
 static void     LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *Parameters, uint32_t NbParameters);
 static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8_t ReadSize);
 static void LCD_ReadMode(LCDC_HandleTypeDef *hlcdc, bool enable);
 
-
 #if 0//def DSI_TEST
 MSH_CMD_EXPORT(XM80240_Init, XM80240_Init);
-
 
 static rt_err_t lcd_rreg(int argc, char **argv)
 {
 
     uint16_t reg, len;
-
 
     reg = strtoul(argv[1], 0, 16);
     len = strtoul(argv[2], 0, 16);
@@ -346,7 +271,6 @@ static rt_err_t lcd_rreg(int argc, char **argv)
 }
 MSH_CMD_EXPORT(lcd_rreg, lcd_rreg);
 
-
 static rt_err_t lcd_wreg(int argc, char **argv)
 {
     uint8_t   parameter[4];
@@ -361,7 +285,6 @@ static rt_err_t lcd_wreg(int argc, char **argv)
         parameter[i - 2] = strtoul(argv[i], 0, 16);
     }
 
-
     LCD_WriteReg(hlcdc, reg, parameter, argc - 2);
     DEBUG_PRINTF("\nXM80240_Write reg[%x] %d(byte) done.\n", reg, argc - 2);
 
@@ -369,7 +292,6 @@ static rt_err_t lcd_wreg(int argc, char **argv)
 
 }
 MSH_CMD_EXPORT(lcd_wreg, lcd_wreg);
-
 
 uint32_t my_debug_pwl, my_debug_pwh;
 uint8_t  dual_spi_cfg;
@@ -404,10 +326,7 @@ static rt_err_t spi_cfg(int argc, char **argv)
         break;
     }
 
-
     dual_spi_cfg = strtoul(argv[2], 0, 16);
-
-
 
     return 0;
 
@@ -416,19 +335,10 @@ MSH_CMD_EXPORT(spi_cfg, spi_cfg);
 
 #endif /* DSI_TEST */
 
-
-
-
-
-
-
-
 #ifdef QAD_SPI_USE_GPIO_CS
     void gpio_cs_enable(void);
     void gpio_cs_disable(void);
 #endif /* QAD_SPI_USE_GPIO_CS */
-
-
 
 /**
   * @brief  spi read/write mode
@@ -453,7 +363,6 @@ static void LCD_ReadMode(LCDC_HandleTypeDef *hlcdc, bool enable)
 
 #define MAX_CMD_LEN        18
 
-
 static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
 {
     //#==== Initial Code Start =======
@@ -468,14 +377,11 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     {0x00, 1, 0x80},
     {0xC1, 1, 0xE0},
 
-
 //      {0x00, 1 ,0x81},
 //      {0xA2, 1 ,0x0D},
 
-
     {0x00, 1, 0x99},
     {0xA4, 1, 0x70},
-
 
     {0x00, 1, 0x82},
     {0xB0, 1, 0x80},
@@ -489,9 +395,7 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
 //      {0x00, 1 ,0xA1},
 //      {0xA4, 1 ,0x80},
 
-
     //#======== x_resolution 320 TM1.41 ========
-
 
     {0x00, 1, 0xA1},
     {0xC0, 4, 0x01, 0x86, 0x01, 0xC2}, //#390x450
@@ -512,10 +416,8 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     {0x00, 1, 0xB0},
     {0xA5, 1, 0x00},
 
-
     {0x00, 1, 0x82},
     {0xB2, 2, 0x00, 0x02},
-
 
     {0x00, 1, 0x80},
     {0xB2, 2, 0x00, 0x79}, //#44.8
@@ -526,34 +428,27 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     {0x00, 1, 0x90},
     {0xb4, 11, 0x18, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x71, 0x00, 0x00, 0x09},
 
-
     {0x00, 1, 0x80},
     {0xb5, 7, 0x80, 0x00, 0x3C, 0x50, 0x35, 0x00, 0x81},
-
 
     {0x00, 1, 0x87},
     {0xb5, 7, 0x81, 0x00, 0x3C, 0x50, 0x35, 0x00, 0x81},
 
-
     {0x00, 1, 0x80},
     {0xb6, 6, 0x83, 0x06, 0x00, 0x00, 0x00, 0x00},
 
-
     {0x00, 1, 0x86},
     {0xb6, 6, 0x82, 0x81, 0x00, 0x00, 0x00, 0x00},
-
 
     {0x00, 1, 0x80},
     {0xbc, 16, 0x2B, 0x2C, 0x2D, 0x2E, 0x2F, 0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x15, 0x00, 0x0E},
     {0x00, 1, 0x90},
     {0xbc, 16, 0x06, 0x00, 0x05, 0x00, 0x39, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 
-
     {0x00, 1, 0xa0},
     {0xbc, 16, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30, 0x2F, 0x2E, 0x2D, 0x2C, 0x2B, 0x16, 0x15, 0x0D},
     {0x00, 1, 0xb0},
     {0xbc, 16, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x30, 0x2F, 0x2E, 0x2D, 0x2C, 0x2B, 0x06, 0x05, 0x0E},
-
 
     {0x00, 1, 0x80},
     {0xb9, 16, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x56, 0x00, 0x56, 0x00, 0x56},
@@ -565,22 +460,17 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     {0x00, 1, 0xb0},
     {0xb9, 16, 0x95, 0x00, 0x95, 0x00, 0xA6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 
-
     {0x00, 1, 0x80},
     {0xba, 11, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa},
-
 
     {0x00, 1, 0x8A},
     {0xB2, 1, 0x09},
 
-
     {0x00, 1, 0x89},
     {0xB2, 1, 0x00},
 
-
     {0x00, 1, 0x8B},
     {0xB2, 1, 0x03},
-
 
     {0x00, 1, 0xB0},
     {0xC9, 5, 0xff, 0xff, 0xff, 0xff, 0xff},
@@ -618,8 +508,6 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     {0x00, 1, 0xA3},
     {0xA4, 1, 0x1E},  //# VREFN=-3V
 
-
-
     //#======== Visual effect ========
 
     //##Gamma Code4
@@ -650,8 +538,6 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     {0x00, 1, 0xA0},
     {0xD3, 9, 0x52, 0x01, 0x30, 0x02, 0x22, 0x05, 0x50, 0x64, 0x30},
 
-
-
     {0x00, 1, 0xE0},
     {0xD0, 2, 0x10, 0x42},
 
@@ -664,15 +550,11 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     {0x00, 1, 0xF3},
     {0xD0, 4, 0x00, 0x00, 0x00, 0x00},
 
-
-
     {0x00, 1, 0xC0},
     {0xD0, 1, 0x00},
 
     {0x00, 1, 0xD6},
     {0xD0, 1, 0x06},
-
-
 
     {0x00, 1, 0x9a},
     {0xa5, 1, 0x00},
@@ -700,8 +582,6 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     {0x00, 1, 0xF0},
     {0xA4, 1, 0xA3},
 
-
-
     {0x00, 1, 0x83},
     {0xA6, 1, 0x83},
 
@@ -726,7 +606,6 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     {0x00, 1, 0xC4},
     {0xA6, 2, 0x0D, 0x00},
 
-
     {0x00, 1, 0xC0},
     {0xA6, 2, 0x8A, 0x8D},
 
@@ -740,10 +619,8 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     {0x00, 1, 0xB0},
     {0xA6, 2, 0x1B, 0xB0},
 
-
     {0x00, 1, 0xC3},
     {0xA6, 1, 0x86},
-
 
     {0x00, 1, 0xc2},
     {0xb2, 1, 0x81},
@@ -751,10 +628,8 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     {0x00, 1, 0xf9},
     {0xb6, 1, 0x01},
 
-
     {0x00, 1, 0x9a},
     {0xa5, 1, 0x00},
-
 
     {0x00, 1, 0xA1},
     {0xC1, 1, 0x0B},
@@ -762,10 +637,8 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     {0x00, 1, 0xA3},
     {0xC1, 1, 0x02},
 
-
     {0x00, 1, 0xB0},
     {0xB2, 6, 0x00, 0x93, 0x00, 0x08, 0x00, 0x08},
-
 
     {0x00, 1, 0xF1},
     {0xB6, 1, 0x40},
@@ -785,8 +658,6 @@ static const uint8_t lcd_init_cmds[][MAX_CMD_LEN] =
     {0x44, 2, 0x00, 0x5A},
 };
 
-
-
 /**
   * @brief  Power on the LCD.
   * @param  None
@@ -804,7 +675,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     memcpy(&lcdc_int_cfg, &lcdc_int_cfg_3spi_1data, sizeof(lcdc_int_cfg));
 #endif /* BSP_LCDC_USING_QADSPI */
 
-
     /* Initialize XM80240 low level bus layer ----------------------------------*/
     memcpy(&hlcdc->Init, &lcdc_int_cfg, sizeof(LCDC_InitTypeDef));
     HAL_LCDC_Init(hlcdc);
@@ -814,7 +684,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     BSP_LCD_Reset(1);
 
     LCD_DRIVER_DELAY_MS(100); //LCD must at sleep in mode after power on, 10ms is enough.
-
 
     /* SW Reset Command */
     //LCD_WriteReg(hlcdc,REG_SW_RESET, (uint8_t *)NULL, 0);
@@ -855,7 +724,6 @@ static uint32_t LCD_ReadID(LCDC_HandleTypeDef *hlcdc)
            | ((data <<  8) & 0x00FF0000)
            | ((data >>  8) & 0x0000FF00)
            | ((data >> 24) & 0x000000FF);
-
 
     if (QAD_SPI_ITF == lcdc_int_cfg.lcd_itf)
     {
@@ -950,9 +818,7 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
     LCD_ALIGN1(Xpos1);
     LCD_ALIGN1(Ypos1);
 
-
     HAL_LCDC_LayerSetData(hlcdc, HAL_LCDC_LAYER_DEFAULT, (uint8_t *)RGBCode, Xpos0, Ypos0, Xpos1, Ypos1);
-
 
     if (0)
     {
@@ -966,7 +832,6 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
         HAL_LCDC_SendLayerData2Reg_IT(hlcdc, REG_WRITE_RAM, 1);
     }
 }
-
 
 /**
   * @brief  Writes  to the selected LCD register.
@@ -1011,8 +876,6 @@ static void LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *P
 
 }
 
-
-
 /**
   * @brief  Reads the selected LCD Register.
   * @param  RegValue: Address of the register to read
@@ -1045,8 +908,6 @@ static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8
 
     return rd_data;
 }
-
-
 
 static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Ypos)
 {
@@ -1087,12 +948,10 @@ static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t
         break;
     }
 
-
     //LCD_WriteReg(hlcdc,REG_COLOR_MODE, parameter, 1);
 
     return ret_v;
 }
-
 
 static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
 {
@@ -1134,8 +993,6 @@ static void LCD_SetBrightness(LCDC_HandleTypeDef *hlcdc, uint8_t br)
     LCD_WriteReg(hlcdc, REG_WBRIGHT, &bright, 1);
 }
 
-
-
 static const LCD_DrvOpsDef XM80240_drv =
 {
     LCD_Init,
@@ -1153,15 +1010,6 @@ static const LCD_DrvOpsDef XM80240_drv =
     LCD_SetBrightness
 };
 
-
-
-
 LCD_DRIVER_EXPORT2(xm80240, THE_LCD_ID, &lcdc_int_cfg,
                    &XM80240_drv, 2);
 
-
-
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

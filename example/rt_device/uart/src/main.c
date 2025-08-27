@@ -11,7 +11,6 @@
 
 /* uart example for RT-Thread based platform -----------------------------------------------*/
 
-
 #define UART_DEMO_NAME "uart2"
 #define ONE_DATA_MAXLEN 256
 
@@ -147,6 +146,4 @@ int main(void)
     }
     return RT_EOK;
 }
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

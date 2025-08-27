@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   pmic_controller.c
-  * @author Sifli software development team
-  * @brief   This file includes the BMP280 driver functions
-  *
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "pmic_controller.h"
@@ -103,7 +62,6 @@
 #define REG_0D_SCLK_PE_MASK     (1<<3)
 #define REG_0D_SCLK_DS_MASK     (1<<5)
 
-
 typedef struct
 {
     int pmic_half_period_us;
@@ -150,7 +108,6 @@ static const pmic_control_map_t g_pmic_control_map[] =
 };
 #endif
 #endif
-
 
 #ifdef DRV_PMIC_TEST
     static int g_debug = 0;
@@ -264,7 +221,6 @@ static void DBG_SDA_INPUT(PMIC_PIN_PARAM_T *pm)
 
 #else
 
-
 #define PA_MAX_PIN_CNT      GPIO1_PIN_NUM
 
 #define LBIT_FIRST          (1)
@@ -286,7 +242,6 @@ static void GPIO_Init(uint16_t gpio, uint32_t mode)
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(hwp_gpio, &GPIO_InitStruct);
 }
-
 
 static void GPIO_Write(uint16_t gpio, uint16_t val)
 {
@@ -403,7 +358,6 @@ static uint32_t PMIC_get_bits(PMIC_PIN_PARAM_T *pm, uint8_t len)
     return data;
 }
 
-
 static void PMIC_Interface_Init(PMIC_PIN_PARAM_T *pm, uint32_t freq, uint16_t scl, uint16_t sda)
 {
     PMIC_init_pins(pm, scl, sda);
@@ -513,7 +467,6 @@ static void PMIC_WriteReg(PMIC_PIN_PARAM_T *pm, uint16_t RegAddr, uint8_t Val)
     PMIC_WAIT(pm);
     return;
 }
-
 
 void BSP_PMIC_Init()
 {
@@ -862,4 +815,3 @@ FINSH_FUNCTION_EXPORT_ALIAS(cmd_pmic, __cmd_pmic, Test driver pmic);
 
 #endif  // PMIC_CTRL_ENABLE
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

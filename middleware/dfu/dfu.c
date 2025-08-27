@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   dfu.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <stdio.h>
@@ -72,8 +33,6 @@
 #include "log.h"
 
 #define IS_MPI_ADDR(addr, i) ((addr >= MPI##i##_MEM_BASE) && (addr < (MPI##i##_MEM_BASE + QSPI##i##_MAX_SIZE)))
-
-
 
 static uint8_t dfu_temp[DFU_MAX_BLK_SIZE];
 static uint8_t dfu_data[DFU_MAX_BLK_SIZE];
@@ -125,7 +84,6 @@ static const uint8_t g_fake_dfu_efuse_root_key[DFU_KEY_SIZE] =
     0x50, 0x9D, 0xE5, 0xC2, 0xF4, 0x05, 0x62, 0xE6, 0xC8, 0x25, 0x85, 0x81, 0x02, 0x59, 0x17, 0x2B,
 };
 
-
 static int dfu_get_efuse_hook(uint8_t id, uint8_t *data, int size)
 {
     int ret = 0;
@@ -149,7 +107,6 @@ static int dfu_get_efuse_hook(uint8_t id, uint8_t *data, int size)
     return ret;
 
 }
-
 
 uint8_t *dfu_get_counter(uint32_t offset)
 {
@@ -180,7 +137,6 @@ uint8_t *sifli_dec_verify(uint8_t *key, uint32_t offset,
     return r;
 }
 
-
 static int8_t sifli_sig_key_verify(uint8_t *sig_pub_key)
 {
     int r = DFU_FAIL;
@@ -196,7 +152,6 @@ static int8_t sifli_sig_key_verify(uint8_t *sig_pub_key)
         r = DFU_SUCCESS;
     return r;
 }
-
 
 #ifdef BSP_USING_DFU_COMPRESS
 static uint32_t dfu_compress_check_dup_image(uint8_t flashid)
@@ -245,8 +200,6 @@ static int dfu_process_hdr_sec(uint8_t flashid, uint8_t *data, int size)
         return r;
     }
 
-
-
     data += sizeof(struct image_cfg_hdr);
     size -= sizeof(struct image_cfg_hdr);
 
@@ -261,7 +214,6 @@ static int dfu_process_hdr_sec(uint8_t flashid, uint8_t *data, int size)
         memcpy(dfu_key1, hdr->key, DFU_KEY_SIZE);
         memcpy(hdr->key, dfu_key, DFU_KEY_SIZE);
 
-
         if (DFU_FLASH_SINGLE == flashid)
         {
             img_idx = DFU_FLASH_IMG_IDX(DFU_FLASH_IMG_HCPU);
@@ -275,7 +227,6 @@ static int dfu_process_hdr_sec(uint8_t flashid, uint8_t *data, int size)
         else if (DFU_FLASH_COMPRESS == flashid)
         {
             uint32_t index = dfu_compress_check_dup_image(compress_img_idx);
-
 
             struct dfu_compress_configuration *config = rt_malloc(sizeof(struct dfu_compress_configuration));
             RT_ASSERT(config);
@@ -333,7 +284,6 @@ static int dfu_process_body_sec(uint8_t flashid, uint8_t *data, int size)
     }
 #endif
 
-
     if (
 #ifdef BSP_USING_DFU_COMPRESS
         (flashid > DFU_FLASH_COMPRESS)
@@ -345,7 +295,6 @@ static int dfu_process_body_sec(uint8_t flashid, uint8_t *data, int size)
     {
         return r;
     }
-
 
     // Read image key
     //key = &(g_sec_config->imgs[coreid].key[0]);
@@ -466,8 +415,6 @@ static int dfu_end(uint8_t flashid)
     }
 #endif
 
-
-
     if (
 #ifdef BSP_USING_DFU_COMPRESS
         (flashid > DFU_FLASH_COMPRESS)
@@ -479,7 +426,6 @@ static int dfu_end(uint8_t flashid)
     {
         return r;
     }
-
 
     if (DFU_FLASH_SINGLE == flashid)
     {
@@ -673,9 +619,7 @@ static int dfu_process_hdr(uint8_t flashid, uint8_t *data, int size)
     }
 #endif
 
-
     struct image_header *hdr = (struct image_header *)data;
-
 
     // Save to flash and erase the image flash section.
 
@@ -683,7 +627,6 @@ static int dfu_process_hdr(uint8_t flashid, uint8_t *data, int size)
 //    if (DFU_FLASH_IMAGE_COMPRESS == flashid ||
 //             DFU_FLASH_COMPRESS_FONT == flashid)
     {
-
 
         uint32_t index = dfu_compress_check_dup_image(flashid);
 
@@ -699,7 +642,6 @@ static int dfu_process_hdr(uint8_t flashid, uint8_t *data, int size)
         g_dfu_img_progress.compress_img_id = flashid;
         g_dfu_img_progress.current_img_len = 0;
         g_dfu_img_progress.current_packet_count = 0;
-
 
         if (index != 0xFF)
         {
@@ -719,7 +661,6 @@ static int dfu_process_hdr(uint8_t flashid, uint8_t *data, int size)
             rt_memcpy((void *)&config->imgs[config->img_count++], (const void *)&g_dfu_img_progress, sizeof(struct image_header_compress));
         }
 
-
         sec_flash_erase(DFU_FLASH_COMPRESS_CONFIG, 0, SPI_NOR_SECT_SIZE);
         sec_flash_write(DFU_FLASH_COMPRESS_CONFIG, 0, (uint8_t *)config, sizeof(struct dfu_compress_configuration));
         rt_free(config);
@@ -730,7 +671,6 @@ static int dfu_process_hdr(uint8_t flashid, uint8_t *data, int size)
     r = DFU_SUCCESS;
     return r;
 }
-
 
 static int dfu_process_body(uint8_t flashid, uint8_t *data, uint32_t offset, int size)
 {
@@ -749,7 +689,6 @@ static int dfu_process_body(uint8_t flashid, uint8_t *data, uint32_t offset, int
     {
         return r;
     }
-
 
 #ifdef BSP_USING_DFU_COMPRESS
     {
@@ -785,7 +724,6 @@ static int dfu_end_wo_enc(uint8_t flashid)
     int img_idx;
     struct image_header *img_hdr;
     uint8_t *sig_pub_key;
-
 
     if (flashid < DFU_FLASH_IMAGE ||
 #ifndef BSP_USING_DFU_COMPRESS
@@ -891,7 +829,6 @@ RT_WEAK uint8_t is_addr_in_flash(uint32_t addr)
     return is_in_flash;
 }
 
-
 static uint8_t is_addr_in_mpi(uint32_t addr)
 {
     uint8_t ret = 0;
@@ -911,7 +848,6 @@ static uint8_t is_addr_in_mpi(uint32_t addr)
         ret = 1;
     return ret;
 }
-
 
 void run_img(uint8_t *dest)
 {
@@ -1047,8 +983,6 @@ static void dfu_copy_img(uint8_t *dest, uint8_t *src, uint32_t len)
     SCB_CleanDCache();
 }
 
-
-
 void dfu_boot_img_in_flash(int flashid)
 {
     struct image_header_enc *img_hdr;
@@ -1084,10 +1018,10 @@ void dfu_boot_img_in_flash(int flashid)
             is_flash = 0;
         }
 
-        if (coreid < 4 * CORE_MAX)
+        if (coreid < 2 * CORE_MAX)
         {
             coreid %= CORE_MAX;
-            if (coreid == CORE_HCPU || coreid == CORE_BL)
+            if (coreid == CORE_HCPU || coreid == CORE_BL || coreid == CORE_LCPU)
             {
                 if (is_addr_in_mpi((uint32_t)dest))
                 {
@@ -1148,10 +1082,10 @@ void dfu_boot_img_in_flash(int flashid)
         {
             dfu_copy_img(dest, src, img_hdr->length);
         }
-        if (coreid < 4 * CORE_MAX)
+        if (coreid < 2 * CORE_MAX)
         {
             coreid %= CORE_MAX;
-            if (coreid == CORE_HCPU || coreid == CORE_BL)
+            if (coreid == CORE_HCPU || coreid == CORE_BL || coreid == CORE_LCPU)
             {
                 if (is_addr_in_flash((uint32_t)dest))
                 {
@@ -1171,7 +1105,6 @@ void dfu_boot_img_in_flash(int flashid)
         }
     }
 }
-
 
 static uint8_t dfu_secure_boot_check()
 {
@@ -1242,7 +1175,6 @@ int dfu_verify_body_sec(uint8_t flashid, uint8_t *data, int size)
     }
     return r;
 }
-
 
 int dfu_receive_resume(uint8_t flashid, uint8_t *data, int size)
 {
@@ -1502,7 +1434,6 @@ int dfu_bin_verify(uint8_t *dfu_key)
 }
 #endif
 
-
 #ifdef FINSH_USING_MSH
 
 void dump_config()
@@ -1575,7 +1506,6 @@ void dump_config()
         LOG_W(" empty\n");
 }
 MSH_CMD_EXPORT(dump_config, Dump system configuration.);
-
 
 extern struct finsh_shell *shell;
 static int dfu_recv(int argc, char **argv)
@@ -1662,5 +1592,3 @@ MSH_CMD_EXPORT(reset_efuse, Reset flash simulated efuse.);
 
 #endif
 
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

@@ -193,7 +193,6 @@ static void adc_example(void)
     hadc.Init.en_slot = 0;  // default slot 0
     hadc.Init.op_mode = 0;  // single mode, not continous
 
-
     /* 2, open adc clock source  */
     HAL_RCC_EnableModule(RCC_MOD_GPADC);
 
@@ -252,6 +251,4 @@ int main(void)
     while (1);
     return 0;
 }
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

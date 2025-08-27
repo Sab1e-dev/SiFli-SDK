@@ -1,6 +1,8 @@
 si SWD
 speed 10000
 
+w4 0x40040000 0 //release lcpun in case
+
 w4 0x5000B008 1 //Switch to LCPU and halt it
 Sleep 500
 ip 127.0.0.1:19025

@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   main.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2025 - 2025,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2025-2025 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -80,13 +41,11 @@ void HAL_MspInit(void)
 
 #define FS_ROOT "root"
 
-
 #ifdef ZBT
     #include "zephyr/bluetooth/bluetooth.h"
 #endif
 
 #define BT_APP_READY  1
-
 
 typedef struct
 {
@@ -97,7 +56,6 @@ typedef struct
 
 static bt_app_t g_bt_app_env;
 static rt_mailbox_t g_bt_app_mb;
-
 
 /** Mount file system if using NAND, as BT NVDS is save in file*/
 #if defined(RT_USING_DFS) && !defined(ZBT)
@@ -144,7 +102,6 @@ int mnt_init(void)
 }
 INIT_ENV_EXPORT(mnt_init);
 #endif
-
 
 /* User code start from here --------------------------------------------------------*/
 #define MUSIC_FILE_PATH "/test.mp3"
@@ -320,7 +277,6 @@ void mp3_proc_thread_entry(void *params)
     }
 }
 
-
 /**
  * @brief Common initialization.
  */
@@ -337,7 +293,6 @@ static rt_err_t comm_init(void)
 
     return RT_EOK;
 }
-
 
 static void bt_app_inquiry_ind_handler(bt_notify_remote_device_info_t *info)
 {
@@ -443,7 +398,6 @@ static int bt_app_interface_event_handle(uint16_t type, uint16_t event_id, uint8
     return 0;
 }
 
-
 /**
   * @brief  Main program
   * @param  None
@@ -489,7 +443,6 @@ int main(void)
     // Update Bluetooth name
     bt_interface_set_local_name(strlen(local_name), (void *)local_name);
 
-
     /* Infinite loop */
     while (1)
     {
@@ -499,12 +452,9 @@ int main(void)
     return 0;
 }
 
-
-
 static void help(void)
 {
 }
-
 
 __ROM_USED void music(int argc, char **argv)
 {
@@ -556,8 +506,4 @@ __ROM_USED void music(int argc, char **argv)
     }
 }
 MSH_CMD_EXPORT(music, music command)
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

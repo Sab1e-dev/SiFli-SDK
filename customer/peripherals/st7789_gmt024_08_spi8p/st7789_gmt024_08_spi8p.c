@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   st7789_gmt024_08_spi8p.c
-  * @author Sifli software development team
-  * @brief   This file includes the LCD driver for ST7789V_GMT024 LCD.
-  * @attention
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -53,19 +12,10 @@
 
 #include "log.h"
 
-
-
-
-
 /**
   * @brief ST7789V_GMT024 chip IDs
   */
 #define ST7789V_GMT024_ID                  0x85
-
-
-
-
-
 
 /**
   * @brief  ST7789V_GMT024 Registers
@@ -82,7 +32,6 @@
 #define REG_CASET              0x2A
 #define REG_RASET              0x2B
 
-
 #define REG_TEARING_EFFECT     0x35
 
 #define REG_IDLE_MODE_OFF      0x38
@@ -90,34 +39,8 @@
 #define REG_COLOR_MODE         0x3A
 #define REG_WBRIGHT            0x51
 
-
-
-
-
-
 #define REG_VDV_VRH_EN         0xC2
 #define REG_VDV_SET            0xC4
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 //#define DEBUG
 
@@ -129,11 +52,6 @@
 
 static void LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *Parameters, uint32_t NbParameters);
 static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8_t ReadSize);
-
-
-
-
-
 
 static LCDC_InitTypeDef lcdc_int_cfg =
 {
@@ -154,13 +72,6 @@ static LCDC_InitTypeDef lcdc_int_cfg =
     },
 
 };
-
-
-
-
-
-
-
 
 /**
   * @brief  spi read/write mode
@@ -226,7 +137,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     /* Wait for 120ms */
     LCD_DRIVER_DELAY_MS(120);
 
-
     LCD_WriteReg(hlcdc, 0X01, NULL, 0);
     LCD_DRIVER_DELAY_MS(120);
 
@@ -243,7 +153,6 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     }
     LCD_DRIVER_DELAY_MS(120);
 
-
     LCD_WriteReg(hlcdc, 0X29, NULL, 0);
 }
 
@@ -259,7 +168,6 @@ static uint32_t LCD_ReadID(LCDC_HandleTypeDef *hlcdc)
     data = LCD_ReadData(hlcdc, REG_LCD_ID, 4);
     rt_kprintf("\n ST7789V_GMT024_ReadID 0x%x \n", data);
     data = ((data << 1) >> 8) & 0xFFFFFF;
-
 
     return ST7789V_GMT024_ID;
 }
@@ -295,7 +203,6 @@ static void LCD_SetRegion(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos0, uint16_t Yp
     if (Ypos0 > 319) return;
     if (Xpos1 > 239) Xpos1 = 239;
     if (Ypos1 > 319) Ypos1 = 319;
-
 
     HAL_LCDC_SetROIArea(hlcdc, Xpos0, Ypos0, Xpos1, Ypos1);
 
@@ -339,8 +246,6 @@ static void LCD_WriteMultiplePixels(LCDC_HandleTypeDef *hlcdc, const uint8_t *RG
     HAL_LCDC_SendLayerData2Reg_IT(hlcdc, REG_WRITE_RAM, 1);
 }
 
-
-
 /**
   * @brief  Writes  to the selected LCD register.
   * @param  LCD_Reg: address of the selected register.
@@ -350,7 +255,6 @@ static void LCD_WriteReg(LCDC_HandleTypeDef *hlcdc, uint16_t LCD_Reg, uint8_t *P
 {
     HAL_LCDC_WriteU8Reg(hlcdc, LCD_Reg, Parameters, NbParameters);
 }
-
 
 /**
   * @brief  Reads the selected LCD Register.
@@ -370,8 +274,6 @@ static uint32_t LCD_ReadData(LCDC_HandleTypeDef *hlcdc, uint16_t RegValue, uint8
 
     return rd_data;
 }
-
-
 
 static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t Ypos)
 {
@@ -430,12 +332,10 @@ static uint32_t LCD_ReadPixel(LCDC_HandleTypeDef *hlcdc, uint16_t Xpos, uint16_t
 
     //rt_kprintf("ST7789V_GMT024_ReadPixel %x -> %x\n",c, ret_v);
 
-
     LCD_WriteReg(hlcdc, REG_COLOR_MODE, parameter, 1);
 
     return ret_v;
 }
-
 
 static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
 {
@@ -455,7 +355,6 @@ static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
         lcdc_int_cfg.color_mode = LCDC_PIXEL_FORMAT_RGB565;
         break;
 
-
     default:
         RT_ASSERT(0);
         return; //unsupport
@@ -472,10 +371,6 @@ static void LCD_SetBrightness(LCDC_HandleTypeDef *hlcdc, uint8_t br)
     uint8_t bright = (uint8_t)((uint16_t)UINT8_MAX * br / 100);
     LCD_WriteReg(hlcdc, REG_WBRIGHT, &br, 1);
 }
-
-
-
-
 
 static const LCD_DrvOpsDef ST7789V_GMT024_drv =
 {
@@ -499,10 +394,3 @@ static const LCD_DrvOpsDef ST7789V_GMT024_drv =
 LCD_DRIVER_EXPORT2(ST7789V_GMT024, ST7789V_GMT024_ID, &lcdc_int_cfg,
                    &ST7789V_GMT024_drv, 1);
 
-
-
-
-
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

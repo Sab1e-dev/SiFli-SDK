@@ -1,7 +1,13 @@
 #ifndef SDMMC_TST_DRV_H
 #define SDMMC_TST_DRV_H
 
+
 #include "stdint.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define SD_SUCCESS 0
 #define SD_TIMEOUT 1
@@ -53,4 +59,7 @@ int sdmmc_init();
 int sd_read_data(uint32_t addr, uint8_t *data, uint32_t len);
 
 
+#ifdef __cplusplus
+}
+#endif
 #endif

@@ -1,49 +1,9 @@
-/**
-  ******************************************************************************
-  * @file   drv_spi_flash.c
-  * @author Sifli software development team
-  * @brief Nor Flash Controller BSP driver
-  This driver is validated by using MSH command 'date'.
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
+
 #include "board.h"
 
 /** @addtogroup bsp_driver Driver IO
@@ -152,6 +112,7 @@ static int rt_nor_dtr_cfg(FLASH_HandleTypeDef *hflash, uint8_t dtr_en)
 static int rt_nor_read_rom(FLASH_HandleTypeDef *hflash, uint32_t addr, uint8_t *buf, int size)
 {
 #define NOR_READ_THD_SIZE       (128)
+    rt_base_t level;
 
     int res = 0;
 
@@ -168,6 +129,8 @@ static int rt_nor_read_rom(FLASH_HandleTypeDef *hflash, uint32_t addr, uint8_t *
         while (remain > 0)
         {
             nor_lock(hflash->base);
+            level = rt_hw_interrupt_disable();
+            hflash->cs_ctrl(1);
             hflash->Instance->TIMR = 0xffff;
             fill = remain > NOR_READ_THD_SIZE ? NOR_READ_THD_SIZE : remain;
 
@@ -193,6 +156,9 @@ static int rt_nor_read_rom(FLASH_HandleTypeDef *hflash, uint32_t addr, uint8_t *
             hflash->Instance->CR &= ~MPI_CR_EN;
             hflash->Instance->TIMR = 0xff;
             hflash->Instance->CR |= MPI_CR_EN;
+
+            hflash->cs_ctrl(0);
+            rt_hw_interrupt_enable(level);
             nor_unlock(hflash->base);
         }
 #endif
@@ -429,12 +395,8 @@ exit:
     return cnt;
 }
 
-
-
 // FLASH operations -------------------------
 // Singleton APIs
-
-
 
 void *rt_flash_get_handle_by_addr(uint32_t addr)
 {
@@ -487,7 +449,6 @@ __HAL_ROM_USED void rt_flash_lock(uint32_t addr)
     r = rt_sem_take(&flash_lock[id], rt_tick_from_millisecond(RT_WAITING_FOREVER));
     RT_ASSERT(RT_EOK == r);
 }
-
 
 __HAL_ROM_USED void rt_flash_unlock(uint32_t addr)
 {
@@ -755,7 +716,6 @@ uint8_t flash_is_enabled(uint8_t id)
     return 0;
 }
 
-
 int rt_flash_get_pass_id(uint32_t addr)
 {
     int res;
@@ -952,7 +912,6 @@ static rt_err_t _flash_control(struct rt_mtd_nor_device *device, int cmd, void *
     return ret;
 }
 
-
 static const struct rt_mtd_nor_driver_ops _flash_ops =
 {
     .read_id = _flash_read_id,
@@ -961,7 +920,6 @@ static const struct rt_mtd_nor_driver_ops _flash_ops =
     .erase_block = _flash_erase,     /* erase offset for byte or for block count?*/
     .control = _flash_control,
 };
-
 
 static void register_mtd_nor(uint32_t flash_base, uint32_t offset, uint32_t size, uint32_t sect_size, char *name)
 {
@@ -974,6 +932,10 @@ static void register_mtd_nor(uint32_t flash_base, uint32_t offset, uint32_t size
     flash_handle = (FLASH_HandleTypeDef *)rt_flash_get_handle_by_addr(flash_base);
     RT_ASSERT(flash_handle);
 
+    if ((QSPI_NOR_SECT_SIZE == sect_size) && flash_handle->dualFlash)
+    {
+        sect_size <<= 1;
+    }
     blk_size = sect_size;
     sector_size = blk_size;
 
@@ -990,14 +952,12 @@ static void register_mtd_nor(uint32_t flash_base, uint32_t offset, uint32_t size
 
 }
 
-
 void register_nor_device(uint32_t flash_base, uint32_t offset, uint32_t size, char *name)
 {
     register_mtd_nor(flash_base, offset, size, 4096, name);
 }
 
 #endif  //RT_USING_MTD_NOR
-
 
 void register_mtd_device(uint32_t address, uint32_t size, char *name)
 {
@@ -1093,7 +1053,6 @@ int cmd_spi_flash(int argc, char *argv[])
     {
         return 0;
     }
-
 
     if (strcmp(argv[1], "-write") == 0)
     {
@@ -1335,7 +1294,6 @@ FINSH_FUNCTION_EXPORT_ALIAS(cmd_spi_flash, __cmd_spi_flash, Test spi_flash drive
 
 #define SPI_FLASH_TEST_LEN          SPI_NOR_PAGE_SIZE
 #define SPI_FLASH_TEST_VALUE        (0x5a)
-
 
 static void flsh_test_help()
 {
@@ -1923,6 +1881,3 @@ FINSH_FUNCTION_EXPORT_ALIAS(cmd_spi_flash, __cmd_spi_flash, Test spi_flash drive
 /// @} drv_nand
 /// @} bsp_driver
 
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

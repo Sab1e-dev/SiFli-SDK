@@ -5,7 +5,6 @@
 #include "string.h"
 #include "rtthread.h"
 
-
 static SPI_HandleTypeDef spi_Handle = {0};
 #define     SPI_MODE    0
 static void gpio_set(uint16_t pin)
@@ -126,7 +125,6 @@ static void spi_test(void)
 
 }
 
-
 /**
   * @brief  Main program
   * @param  None
@@ -143,6 +141,4 @@ int main(void)
     while (1);
     return 0;
 }
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

@@ -1,52 +1,12 @@
-/**
-  ******************************************************************************
-  * @file   gui_app_fwk.h
-  * @author Sifli software development team
-  * @brief Sifli GUI application framework, provide basic functions for user to start/stop/pause/resume
-  *  application. It also provide navigation among applications and transition of GUI.
-  ******************************************************************************
-*/
 /*
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef __GUI_APP_FWK_H__
 #define __GUI_APP_FWK_H__
+
 
 #include <rtthread.h>
 #include <rtdevice.h>
@@ -68,13 +28,18 @@
 */
 
 
+#include "gui_app_fwk2.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define GUI_APP_NAME_MAX_LEN            16  //!< App display name max length
 #define GUI_APP_ID_MAX_LEN              16  //!< An unique character id of an app (both bult-in app and dl app)
 #define GUI_DL_APP_MAX_FILE_PATH_LEN    64  //!< Max file path length for dynamic loading applications
 #if defined(_MSC_VER)
     #define MSC_APP_STRUCT_MAGIC_HEAD 0xAB
 #endif
-
 
 typedef int (*gui_app_entry_func_ptr_t)(intent_t i);
 typedef int16_t gui_anim_value_t;
@@ -85,7 +50,6 @@ typedef struct
     gui_coord_t x;
     gui_coord_t y;
 } gui_point_t;
-
 
 /**
    built-in app description
@@ -105,7 +69,6 @@ typedef struct
     char id[GUI_APP_ID_MAX_LEN];       //!< an unique character id of an app (both bult-in app and dl app)
     gui_app_entry_func_ptr_t entry;    //!< app entry function
 } builtin_app_desc_t;
-
 
 /**
     Define a build-in GUI applications:
@@ -136,8 +99,6 @@ typedef struct
         (gui_app_entry_func_ptr_t)entry     \
     }
 #endif
-
-#include "gui_app_fwk2.h"
 
 
 typedef void (*gui_page_msg_cb_t)(gui_app_msg_type_t msg, void *param);
@@ -175,8 +136,6 @@ int gui_app_create_page_for_app_ext(const char *app_id, const char *pg_id, gui_p
 
 /************************ Application transfer animation *******************************************************/
 
-
-
 typedef enum
 {
     GUI_APP_TRANS_ANIM_NONE,                                        //!<Disable app's trans anim
@@ -195,7 +154,6 @@ typedef enum
 #define FLAG_TRANS_ANIM_REVERSE  0x01    //Goback animation
 #define FLAG_TRANS_ANIM_FG       0x02    //Foreground animation(on_resumed screen, or on_paused screen if it's goback animation)
 typedef void (*cust_anim_cb_t)(gui_anim_obj_t img, void *user_data, uint32_t flag, gui_anim_value_t process);
-
 
 typedef struct
 {
@@ -231,7 +189,6 @@ typedef struct
     } cfg;
 } gui_app_trans_anim_t;
 
-
 typedef struct
 {
     gui_app_trans_anim_t a_enter;
@@ -239,7 +196,6 @@ typedef struct
     int8_t prio_up; //parent
     int8_t prio_down;//children
 } gui_app_trans_anim_group_t;
-
 
 /**
 * @brief get default configuration of __type__ animation
@@ -272,12 +228,9 @@ void gui_app_set_exit_trans_anim(gui_app_trans_anim_t *cfg);
 
 void gui_app_set_trans_anim_prio(int8_t up, int8_t down);
 
-
 rt_err_t gui_app_manual_animation_start(uint32_t process);
 rt_err_t gui_app_manual_animation_update(uint32_t process);
 rt_err_t gui_app_manual_animation_stop(uint32_t process);
-
-
 
 extern const builtin_app_desc_t *gui_builtin_app_list_open(void);
 
@@ -306,5 +259,8 @@ extern void gui_builtin_app_list_close(const builtin_app_desc_t *ptr_app);
 
 /// @}  gui_app_fwk
 
+#ifdef __cplusplus
+}
+#endif
 #endif  /* __GUI_APP_FWK_H__ */
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

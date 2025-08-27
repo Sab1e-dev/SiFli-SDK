@@ -45,7 +45,7 @@ def PrepareUA(project, RTT_ROOT, BSP_ROOT):
         # ua.write('import sys\n')
         ua.write('\n')
         
-        print RTT_ROOT
+        print(RTT_ROOT)
         
         CPPPATH = []
         CPPDEFINES = []
@@ -111,7 +111,7 @@ def BuildEnv(BSP_ROOT, RTT_ROOT):
             BSP_ROOT = '.'
 
     if not os.path.exists(BSP_ROOT):
-        print 'No BSP(board support package) directory found!'
+        print('No BSP(board support package) directory found!')
         exit(-1)
 
     #if (BSP_ROOT=='.'):
@@ -125,8 +125,8 @@ def BuildEnv(BSP_ROOT, RTT_ROOT):
             SIFLI_SDK=os.getenv('SIFLI_SDK')
             RTT_ROOT = SIFLI_SDK + 'rtos/rtthread'
         except Exception as e:
-            print 'Import rtconfig.py in BSP(board support package) failed.'
-            print e
+            print('Import rtconfig.py in BSP(board support package) failed.')
+            print(e)
             exit(-1)
 
     global Rtt_Root

@@ -1,53 +1,11 @@
-/**
-  ******************************************************************************
-  * @file   drv_pwm.c
-  * @author Sifli software development team
-  * @brief PWM BSP driver
-  * @{
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <board.h>
 #include "bf0_hal_rcc.h"
-
 
 /** @addtogroup bsp_driver Driver IO
   * @{
@@ -81,7 +39,6 @@ struct rt_device_pwm *global_device = RT_NULL;
 #define reg_low  7
 #define reg_end  50
 
-
 struct rt_device_rgb;
 
 struct rt_rgb_ops
@@ -103,7 +60,6 @@ L1_NON_RET_BSS_SECT_BEGIN(rgb_led_buf)
 L1_NON_RET_BSS_SECT(rgb_led_buf, ALIGN(16) static uint16_t rgb_buff[RGB_REST_LEN + RGB_COLOR_LEN + RGB_STOP_LEN]);
 L1_NON_RET_BSS_SECT_END
 
-
 struct bf0_rgbled
 {
     struct rt_device_rgb rgb_device;
@@ -117,14 +73,11 @@ static struct bf0_rgbled bf0_rgbled_obj[] =
 #endif
 };
 
-
 static rt_err_t drv_rgbled_control(struct rt_device_rgb *device, int cmd, void *arg);
 static struct rt_rgb_ops drv_ops =
 {
     drv_rgbled_control
 };
-
-
 
 static void creater_color_array(uint32_t color)
 {
@@ -190,7 +143,6 @@ static rt_err_t drv_rgbled_update_color(struct bf0_rgbled *rgb_obj, struct rt_rg
 
     creater_color_array(configuration->color_rgb);
 
-
     struct rt_pwm_configuration config;
 
     rt_memset((void *)&config, 0, sizeof(config));
@@ -204,8 +156,6 @@ static rt_err_t drv_rgbled_update_color(struct bf0_rgbled *rgb_obj, struct rt_rg
     //DMA is transferred to ccr
     config.dma_data = (rt_uint16_t *)rgb_buff;
     config.data_len = RGB_REST_LEN + RGB_REST_LEN + RGB_STOP_LEN;
-
-
 
     rt_device_control((struct rt_device *)global_device, PWM_CMD_SET, (void *)&config);
     rt_device_control((struct rt_device *)global_device, PWM_CMD_ENABLE, (void *)&config); //DMA -- rgb_buffer
@@ -242,7 +192,6 @@ static rt_err_t drv_rgbled_control(struct rt_device_rgb *device, int cmd, void *
     }
     return RT_EOK;
 }
-
 
 /**
 * @brief RGBLED device driver initialization.
@@ -289,7 +238,6 @@ INIT_COMPONENT_EXPORT(bf0_rgbled_init);
 // @} drv_pwm
 // @} bsp_driver
 
-
 #define DRV_TEST
 #ifdef DRV_TEST
 
@@ -314,7 +262,6 @@ INIT_COMPONENT_EXPORT(bf0_rgbled_init);
 *
 * example: pwm_set pwm3 1 1000000 500
 */
-
 
 static int rgb_color(int argc, char **argv)
 {
@@ -361,6 +308,5 @@ MSH_CMD_EXPORT(rgb_color, rgb_color 0xffffff);
 
 /// @} bsp_sample
 
-
 /// @} file
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

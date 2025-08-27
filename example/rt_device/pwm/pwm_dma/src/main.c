@@ -12,10 +12,8 @@
 #define PWM_DEV_GTIM_NAME_52 "pwm3"//52x  pw3_cc1
 #define PWM_DEV_GTIM_NAME_58 "pwm2"//58x  pw2_cc2
 
-
 #define PWM_DEV_ATIM_NAME_52 "pwma1"//52x  pwma1_cc1
 #define PWM_DEV_ATIM_NAME_58 "pwma2"//58x  pwma2_cc4
-
 
 void pwm_dma_atim_set_example()
 {
@@ -86,13 +84,11 @@ void pwm_dma_atim_set_example()
     LOG_I("hwp_atim2_arr:%d", hwp_atim2->ARR);
 #endif
 
-
     //The pulse dma data is overwritten after calculation
     for (size_t i = 0; i < global_array_length; i++)
     {
         config_atim.pulse_dma_data[i] = (rt_uint32_t)global_pulse_values[i];
     }
-
 
     // Check the calculated pulse dma data
     printf("DMA data before transfer:\n");
@@ -103,16 +99,11 @@ void pwm_dma_atim_set_example()
     //Assign the calculated pulse_dma_data array starting address value to dma_data
     config_atim.dma_data = (rt_uint16_t *)config_atim.pulse_dma_data;
 
-
-
-
     rt_device_control((struct rt_device *)device, PWM_CMD_ENABLE, (void *)&config_atim); //dma_transfer
 
     free(config_atim.pulse_dma_data);
 
 }
-
-
 
 void pwm_dma_gptim_set_example()
 {
@@ -141,8 +132,6 @@ void pwm_dma_gptim_set_example()
     config_gtim.data_len = 3;//dma_data_len
 //Calculating pulse procedure
 
-
-
     // Allocates memory for pulse_dma_data and initializes pulse as a percentage of period before the calculation
     config_gtim.pulse_dma_data = (rt_uint32_t *)malloc(config_gtim.data_len * sizeof(rt_uint32_t));
     if (!config_gtim.pulse_dma_data)
@@ -161,7 +150,6 @@ void pwm_dma_gptim_set_example()
     config_gtim.pulse_dma_data[0] = (20 % 100) * PWM_PERIOD / 100;; // 20%
     config_gtim.pulse_dma_data[1] = (30 % 100) * PWM_PERIOD / 100;; // 40%
     config_gtim.pulse_dma_data[2] = (40 % 100) * PWM_PERIOD / 100;; // 60%
-
 
     struct rt_device_pwm *device = RT_NULL;
 #ifdef SF32LB52X
@@ -203,14 +191,12 @@ void pwm_dma_gptim_set_example()
         printf("dma_data[%zu]: %u\n", i, config_gtim.dma_data[i]);
     }
 
-
     rt_device_control((struct rt_device *)device, PWM_CMD_ENABLE, (void *)&config_gtim); //dma_transfer
 
     free(config_gtim.dma_data);
     free(config_gtim.pulse_dma_data);
 
 }
-
 
 /**
   * @brief  Main program
@@ -238,6 +224,4 @@ int main(void)
     }
     return RT_EOK;
 }
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

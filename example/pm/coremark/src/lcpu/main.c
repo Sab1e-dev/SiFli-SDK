@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   main.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2021 - 2021,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2021-2021 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -57,8 +18,6 @@
 #include "coremark.h"
 #define LOG_TAG "main"
 #include "log.h"
-
-
 
 static struct rt_thread coremark_thread;
 ALIGN(RT_ALIGN_SIZE)
@@ -84,7 +43,6 @@ void rt_hw_systick_init(void);
     static uint8_t dvfs_test_enabled;
     static rt_timer_t dvfs_test_timer;
 #endif /* DVFS_TEST */
-
 
 static void disable_module1(void)
 {
@@ -279,7 +237,6 @@ int run_while_loop(int argc, char *argv[])
 
     rt_hw_systick_init();
 
-
     rt_kprintf("Start\n");
     cnt = 10 * freq / 20;
     //HAL_DBG_DWT_Init();
@@ -353,7 +310,6 @@ static void dvfs_test_timer_callback(void *parameter)
 
     rt_hw_interrupt_enable(level);
 }
-
 
 static int dvfs_test(int argc, char *argv[])
 {
@@ -531,7 +487,6 @@ static int cmd_split(char *cmd, rt_size_t length, char *argv[CMD_ARG_MAX])
     return argc;
 }
 
-
 static void ipc_rx_thread_entry(void *p)
 {
     while (1)
@@ -581,7 +536,6 @@ __CONTINUE:
     }
 }
 
-
 static void console_device_init(void)
 {
     rt_thread_t task_handle;
@@ -590,7 +544,6 @@ static void console_device_init(void)
     RT_ASSERT(ipc_sem);
     task_handle = rt_thread_create("ipc", ipc_rx_thread_entry, RT_NULL, 2048, RT_MAIN_THREAD_PRIORITY, 20);
     rt_thread_startup(task_handle);
-
 
     lh_ipc_queue = sys_init_lh_ipc_queue(ipc_rx_ind);
     RT_ASSERT(IPC_QUEUE_INVALID_HANDLE != lh_ipc_queue);
@@ -636,7 +589,4 @@ int main(void)
     }
     return RT_EOK;
 }
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

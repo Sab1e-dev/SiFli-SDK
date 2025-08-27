@@ -33,7 +33,7 @@ if GetDepend('LVGL_V8'):
     if platform.system() == 'Windows':
         CPPDEFINES = ['LV_CONF_KCONFIG_EXTERNAL_INCLUDE=<lv_conf_sifli.h>']
     else:
-        CPPDEFINES = ['LV_CONF_KCONFIG_EXTERNAL_INCLUDE=\<lv_conf_sifli.h\>']    
+        CPPDEFINES = ['LV_CONF_KCONFIG_EXTERNAL_INCLUDE=\\<lv_conf_sifli.h\\>']
 
     group = DefineGroup('LVGL', src, depend = ['PKG_USING_LITTLEVGL2RTT'], CPPPATH = inc, CPPDEFINES = CPPDEFINES)
     Return('group')

@@ -1,55 +1,21 @@
-/**
-  ******************************************************************************
-  * @file   dfu_service.h
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2021 - 2021,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2021-2021 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
-
 
 #ifndef __DFU_SERVICE_H
 #define __DFU_SERVICE_H
 
+
 #include <stdio.h>
 #include <stdint.h>
 #include "dfu_protocol.h"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum
 {
@@ -105,13 +71,9 @@ typedef enum
     DFU_APP_RESUME_USE_APP,
 } dfu_app_resume_t;
 
-
 typedef dfu_event_ack_t (*dfu_callback)(uint16_t event, void *param);
 
-
-
 typedef dfu_event_ack_t (*dfu_callback_ext)(uint16_t event, uint16_t len, void *param);
-
 
 typedef struct
 {
@@ -132,7 +94,6 @@ typedef struct
     uint8_t is_boot;
 } dfu_app_resume_request_t;
 
-
 typedef struct
 {
     uint32_t total_imgs_num;
@@ -148,7 +109,6 @@ typedef struct
     uint8_t curr_img_id;
 } dfu_app_img_dl_start_ind_ext_t;
 
-
 typedef struct
 {
     uint8_t img_id;
@@ -162,7 +122,6 @@ typedef struct
     uint32_t curr_img_recv_length;
 } dfu_app_img_dl_progress_ind_ext_t;
 
-
 typedef struct
 {
     uint8_t img_id;
@@ -173,7 +132,6 @@ typedef struct
     uint16_t event;
     uint8_t img_id;
 } dfu_app_img_dl_completed_ind_ext_t;
-
 
 typedef struct
 {
@@ -186,7 +144,6 @@ typedef struct
     uint32_t total_imgs_len;
 } dfu_app_img_install_start_ind_ext_t;
 
-
 typedef struct
 {
     dfu_app_status_t result;
@@ -198,7 +155,6 @@ typedef struct
     dfu_app_status_t result;
     uint8_t include_hcpu;
 } dfu_app_img_install_completed_ind_ext_t;
-
 
 typedef struct
 {
@@ -216,7 +172,6 @@ void dfu_register_ext(dfu_callback_ext callback);
 void dfu_respond_start_request(dfu_event_ack_t result);
 
 void run_img(uint8_t *dest);
-
 
 typedef struct
 {
@@ -249,7 +204,6 @@ typedef struct
     uint8_t resume_result;
     uint32_t remote_block;
 } dfu_file_init_completed_t;
-
 
 typedef struct
 {
@@ -303,6 +257,8 @@ void bt_dfu_pan_download(const char *url);
 
 uint8_t dfu_package_install_set();
 
+#ifdef __cplusplus
+}
+#endif
 #endif //__DFU_SERVICE_H
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

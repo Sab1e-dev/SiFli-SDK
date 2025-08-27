@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_i2s_mic.c
-  * @author Sifli software development team
-  * @brief   Audio driver adaption layer
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
- *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rthw.h>
@@ -87,7 +46,6 @@ struct bf0_i2s_audio
     uint8_t *tx_buf;
 };
 
-
 #define AUDIO_DATA_SIZE 1920 //480
 static uint8_t audio_data[AUDIO_DATA_SIZE];
 static uint8_t audio_tx_data[AUDIO_DATA_SIZE];
@@ -111,11 +69,9 @@ static CLK_DIV_T  txrx_clk_div[9]  = {{48000, 64, 64,  2}, {44100, 64, 64,  2}, 
 };
 #endif
 
-
 /**
  *  Register and use Mic device
 */
-
 
 static struct i2s_audio_cfg_t bf0_i2s_audio_obj[1] =
 {
@@ -125,7 +81,6 @@ static struct i2s_audio_cfg_t bf0_i2s_audio_obj[1] =
 };
 
 static struct bf0_i2s_audio h_i2s_mic;
-
 
 static void audio_debug_out_i2sr()
 {
@@ -219,7 +174,6 @@ static rt_err_t bf0_audio_getcaps(struct rt_audio_device *audio, struct rt_audio
     return result;
 }
 
-
 /**
   * @brief  Config audio device.
   * @param[in]  audio: audio device handle.
@@ -303,7 +257,6 @@ static rt_err_t bf0_audio_configure(struct rt_audio_device *audio, struct rt_aud
     return result;
 }
 
-
 /**
   * @brief  Initialize audio device.
   * @param[in]  audio: audio device handle.
@@ -324,7 +277,6 @@ static rt_err_t bf0_audio_shutdown(struct rt_audio_device *audio)
     return RT_EOK;
 }
 
-
 /**
   * @brief  Start audio device for recording/playback.
   * @param[in]  audio: audio device handle.
@@ -337,7 +289,6 @@ static rt_err_t bf0_audio_i2s_start(struct bf0_i2s_audio *aud)
     I2S_HandleTypeDef *hi2s = &aud->hi2s;
 
     bf0_enable_pll(hi2s->Init.rx_cfg.sample_rate, 0);
-
 
 #ifndef ASIC  //i2s mic on FPGA
     /*FPGA have NONE I2S TX device*/
@@ -371,7 +322,6 @@ static rt_err_t bf0_audio_start(struct rt_audio_device *audio, int stream)
     {
         bf0_audio_i2s_start(aud);
     }
-
 
     {
         res = HAL_I2S_Receive_DMA(&(aud->hi2s), aud->rx_buf, AUDIO_DATA_SIZE);
@@ -533,7 +483,6 @@ static rt_size_t bf0_audio_trans(struct rt_audio_device *audio, const void *writ
     return size;
 }
 
-
 static const struct rt_audio_ops       _g_audio_ops =
 {
     .getcaps    = bf0_audio_getcaps,
@@ -548,8 +497,6 @@ static const struct rt_audio_ops       _g_audio_ops =
     .control    = bf0_audio_control,
     .transmit   = bf0_audio_trans,
 };
-
-
 
 /**
 * @} I2S Audio_device
@@ -573,7 +520,7 @@ int rt_bf0_i2s_mic_init(void)
         hi2s->Instance = bf0_i2s_audio_obj[0].i2s_handle;
 
         // init dma handle and request, other parameters configure in HAL driver
-        hi2s->hdmarx = malloc(sizeof(DMA_HandleTypeDef));
+        hi2s->hdmarx = calloc(1, sizeof(DMA_HandleTypeDef));
         hi2s->hdmarx->Instance = bf0_i2s_audio_obj[0].dma_handle;
         hi2s->hdmarx->Init.Request = bf0_i2s_audio_obj[0].dma_request;
 
@@ -599,7 +546,6 @@ int rt_bf0_i2s_mic_init(void)
 #endif
         RT_ASSERT(hi2s->Init.src_clk_freq);
 
-
         hi2s->Init.rx_cfg.data_dw = 16;
         hi2s->Init.rx_cfg.bus_dw = 32;
         hi2s->Init.rx_cfg.pcm_dw = 16;
@@ -610,7 +556,6 @@ int rt_bf0_i2s_mic_init(void)
         hi2s->Init.rx_cfg.lrck_invert = 0;
         hi2s->Init.rx_cfg.bclk = 800000;
         hi2s->Init.rx_cfg.extern_intf = 0;
-
 
 #endif
         hi2s->Init.rx_cfg.clk_div_index = 5;
@@ -628,8 +573,6 @@ INIT_DEVICE_EXPORT(rt_bf0_i2s_mic_init);
 /// @} drv_audio
 /// @} bsp_driver
 
-
-
 /** @addtogroup bsp_sample BSP driver sample commands.
   * @{
   */
@@ -640,7 +583,6 @@ INIT_DEVICE_EXPORT(rt_bf0_i2s_mic_init);
   * This sample commands demonstrate the usage of audio driver.
   * @{
   */
-
 
 /**
   * @brief RX DMA interrupt handler.
@@ -708,7 +650,6 @@ void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s)
     LOG_I("HAL_I2S_ErrorCallback\n");
 }
 
-
 //#define DRV_TEST
 #if defined(DRV_TEST) || defined (APP_BSP_TEST)
 
@@ -729,7 +670,6 @@ File system used, uart do not need any more, 2 choose 1
 
 #define AUDIO_BUF_SIZE 512
 #define AUDIO_TEST_HNAME        "i2s1"
-
 
 static rt_device_t g_mic;
 static uint8_t g_pipe_data[AUDIO_BUF_SIZE];
@@ -814,7 +754,6 @@ static void atest_fill_header(uint32_t sr)
 #endif  //MIC_SAVE2RAM
 
 }
-
 
 #else
 static rt_device_t g_uart;
@@ -925,7 +864,6 @@ static rt_err_t audio_rx_ind(rt_device_t dev, rt_size_t size)
     rt_event_send(g_audio_ev, 1);
     return RT_EOK;
 }
-
 
 /**
 * @brief  Mic commands.
@@ -1058,5 +996,3 @@ FINSH_FUNCTION_EXPORT_ALIAS(cmd_mic, __cmd_mic, Test mic driver);
 
 #endif  /* BSP_ENABLE_I2S_MIC */
 
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

@@ -10,8 +10,8 @@
 #include "rtthread.h"
 #include "rthw.h"
 #include "string.h"
-#if defined(__CC_ARM) || defined(__CLANG_ARM) || defined (__IAR_SYSTEMS_ICC__)
 #include <sys/time.h>
+#if defined(__CC_ARM) || defined(__CLANG_ARM) || defined (__IAR_SYSTEMS_ICC__)
 
 /* seconds per day */
 #define SPD 24*60*60

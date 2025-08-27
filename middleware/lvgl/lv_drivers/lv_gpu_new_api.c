@@ -1,47 +1,9 @@
-/**
-  ******************************************************************************
-  * @file   lvsf_gpu.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
+
 #include "rtconfig.h"
 #include "littlevgl2rtt.h"
 #include "lvgl.h"
@@ -782,12 +744,7 @@ static void draw_img(struct _lv_draw_ctx_t *draw_ctx,
     }
 
 #if LV_USE_GPU
-    if ((draw_dsc->recolor_opa == LV_OPA_TRANSP)
-            //&& (0 == other_mask_cnt)
-            //&& disp->driver.gpu_rotate_cb
-            //&& disp->driver.gpu_rotate_frac_cb
-            && EPIC_SUPPORTED_CF(cf)
-       )
+    if (EPIC_SUPPORTED_CF(cf))
     {
         lv_img_dsc_t src;
         lv_img_dsc_t dest;
@@ -808,10 +765,15 @@ static void draw_img(struct _lv_draw_ctx_t *draw_ctx,
         dest.data_size = lv_img_buf_get_img_size(dest.header.w, dest.header.h, dest.header.cf);
         dest.header.always_zero = 0;
 
+        lv_opa_t opa = (cf == LV_IMG_CF_ALPHA_1BIT || \
+                        cf == LV_IMG_CF_ALPHA_2BIT || \
+                        cf == LV_IMG_CF_ALPHA_4BIT || \
+                        cf == LV_IMG_CF_ALPHA_8BIT) ? draw_dsc->recolor_opa : draw_dsc->opa;
+
         {
             img_rotate_opa_frac(&dest, &src, draw_dsc->angle, (uint32_t)draw_dsc->zoom,
                                 src_area, draw_ctx->buf_area,
-                                draw_ctx->clip_area, (lv_point_t *) & (draw_dsc->pivot), draw_dsc->opa, LV_COLOR_CHROMA_KEY,
+                                draw_ctx->clip_area, (lv_point_t *) & (draw_dsc->pivot), opa, draw_dsc->recolor,
                                 draw_dsc->coord_x_frac, draw_dsc->coord_y_frac,
                                 mask_cf, mask_map, &mask_coords);
 
@@ -1245,7 +1207,66 @@ static void draw_line(struct _lv_draw_ctx_t *draw_ctx, const lv_draw_line_dsc_t 
 static void draw_polygon(struct _lv_draw_ctx_t *draw_ctx, const lv_draw_rect_dsc_t *draw_dsc,
                          const lv_point_t *points, uint16_t point_cnt)
 {
-    LV_ASSERT(0);//Not supported now
+    if (points == NULL || DRV_EPIC_POLYGON_POINT_MAX < point_cnt) return;
+
+    /*Join adjacent points if they are on the same coordinate*/
+    lv_point_t p[DRV_EPIC_POLYGON_POINT_MAX];
+    uint16_t i;
+    uint16_t pcnt = 0;
+    p[0] = points[0];
+    for (i = 0; i < point_cnt - 1; i++)
+    {
+        if (points[i].x != points[i + 1].x || points[i].y != points[i + 1].y)
+        {
+            p[pcnt] = points[i];
+            pcnt++;
+        }
+    }
+    /*The first and the last points are also adjacent*/
+    if (points[0].x != points[point_cnt - 1].x || points[0].y != points[point_cnt - 1].y)
+    {
+        p[pcnt] = points[point_cnt - 1];
+        pcnt++;
+    }
+
+    point_cnt = pcnt;
+    if (point_cnt < 3) return;
+
+    lv_area_t poly_coords = {.x1 = LV_COORD_MAX, .y1 = LV_COORD_MAX, .x2 = LV_COORD_MIN, .y2 = LV_COORD_MIN};
+
+    for (i = 0; i < point_cnt; i++)
+    {
+        poly_coords.x1 = LV_MIN(poly_coords.x1, p[i].x);
+        poly_coords.y1 = LV_MIN(poly_coords.y1, p[i].y);
+        poly_coords.x2 = LV_MAX(poly_coords.x2, p[i].x);
+        poly_coords.y2 = LV_MAX(poly_coords.y2, p[i].y);
+    }
+
+    lv_area_t clip_area;
+    if (!_lv_area_intersect(&clip_area, &poly_coords, draw_ctx->clip_area))
+        return;
+
+    drv_epic_render_buf dst_buf;
+    setup_render_buf(&dst_buf, draw_ctx);
+    letter_blend_reset();
+    drv_epic_operation *o = drv_epic_alloc_op(&dst_buf);
+    RT_ASSERT(o != NULL);
+
+    o->op = DRV_EPIC_DRAW_POLYGON;
+    LV_AREA_TO_EPIC_AREA(&o->clip_area, &clip_area);
+
+    lv_color32_t ax_color_u32;
+    ax_color_u32.full = lv_color_to32(draw_dsc->bg_color);
+    ax_color_u32.ch.alpha = draw_dsc->bg_opa;
+    o->desc.polygon.argb8888 = ax_color_u32.full;
+    o->desc.polygon.point_cnt = point_cnt;
+    for (uint16_t i = 0; i < point_cnt; i++)
+    {
+        o->desc.polygon.points[i].x = points[i].x;
+        o->desc.polygon.points[i].y = points[i].y;
+    }
+    drv_epic_commit_op(o);
+
 }
 
 

@@ -1,9 +1,15 @@
 #ifndef SENSOR_SC_SC7A20_H__
 #define SENSOR_SC_SC7A20_H__
 
+
 #include "board.h"
 #include "sensor.h"
 
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* sc7r30 device structure */
 struct sc7r30_device
@@ -16,5 +22,8 @@ struct sc7r30_device
 
 int rt_hw_sc7r30_init(const char *name, struct rt_sensor_config *cfg);
 
+#ifdef __cplusplus
+}
+#endif
 #endif  // SENSOR_SC_SC7A20_H__
 

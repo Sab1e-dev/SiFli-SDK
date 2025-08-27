@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_button.c
-  * @author Sifli software development team
-  * @brief Button BSP driver
-  * @{
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -63,14 +22,12 @@
   * @{
   */
 
-
 typedef struct
 {
     GPT_TypeDef *instance;
     IRQn_Type irqn;
     uint8_t opened;
 } drv_button_cfg_t;
-
 
 /*******************************************************************
  *                          Variable Declaration
@@ -96,8 +53,6 @@ static drv_button_cfg_t drv_button_cfg =
 #error "wrong config"
 #endif
 };
-
-
 
 /**
   ************************************************************
@@ -300,7 +255,6 @@ void button_process(void)
 static uint32_t g_gpt_press_key = 0;
 static button_event g_gpt_state = BUTTON_UP;
 
-
 __ROM_USED void HAL_GPT_IC_CaptureCallback(GPT_HandleTypeDef *htim)
 {
     //LOG_I("HAL_GPT_IC_CaptureCallback %x, ch:%d\n", htim->Instance, htim->Channel);
@@ -329,8 +283,6 @@ __ROM_USED void HAL_GPT_IC_CaptureCallback(GPT_HandleTypeDef *htim)
         break;
     }
 
-
-
 }
 __ROM_USED void HAL_GPT_IC_MspInit(GPT_HandleTypeDef *htim)
 {
@@ -348,7 +300,6 @@ static rt_err_t gpt_button_init(GPT_HandleTypeDef *tim)
     //tim = hwp_gptim3; //(GPT_HandleTypeDef *)&device->tim_handle;
 
     //HAL_GPT_Base_Stop(tim);
-
 
     /* configure the timer to pwm mode */
     tim->Init.Prescaler = 4799;  //100us
@@ -400,17 +351,14 @@ static rt_err_t gpt_button_init(GPT_HandleTypeDef *tim)
     HAL_NVIC_SetPriority(drv_button_cfg.irqn, 3, 0);
     HAL_NVIC_EnableIRQ(drv_button_cfg.irqn);
 
-
 __exit:
     return result;
 }
-
 
 /** @defgroup button_device button device functions registered to OS
   * @ingroup drv_button
   * @{
  */
-
 
 /**
  * @brief initialize button device
@@ -433,7 +381,6 @@ __exit:
         LOG_E("bf0_button_init failed %d\n", result);
     return result;
 }
-
 
 /**
  * @brief open button device
@@ -502,7 +449,6 @@ static rt_size_t rt_button_read(struct rt_device *dev, rt_off_t pos, void *buffe
 {
     rt_uint32_t *bufptr = (rt_uint32_t *) buffer;
 
-
     if (size < 4) return 0;
 
     *bufptr = g_gpt_press_key;
@@ -518,7 +464,6 @@ static rt_size_t rt_button_read(struct rt_device *dev, rt_off_t pos, void *buffe
 
     return size;
 }
-
 
 static rt_err_t rt_button_ioctl(struct rt_device *dev, int cmd, void *args)
 {
@@ -653,4 +598,3 @@ FINSH_FUNCTION_EXPORT(cmd_button, Test button functions.)
 /// @} bsp_driver
 /// @} file
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

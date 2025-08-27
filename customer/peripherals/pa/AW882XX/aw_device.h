@@ -1,11 +1,17 @@
 #ifndef __AWINIC_DEVICE_FILE_H__
 #define __AWINIC_DEVICE_FILE_H__
 
+
 #include "aw_monitor.h"
 #include "aw_base.h"
 #include "aw_fill_info.h"
 
 
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define AW_VOLUME_STEP_DB   (6 * 2)
 #define AW_REG_NONE     (0xFF)
@@ -298,5 +304,8 @@ void aw_dev_get_init_volume(struct aw_device *aw_dev, uint32_t *volume);
 int aw_device_probe(struct aw_device *aw_dev, struct aw_fill_info *fill_info);
 int aw_dev_set_init_fs(struct aw_device *aw_dev, uint32_t fs, uint8_t chn_sel);
 
+#ifdef __cplusplus
+}
+#endif
 #endif
 

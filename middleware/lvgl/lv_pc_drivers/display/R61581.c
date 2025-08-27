@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   R61581.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "R61581.h"
@@ -122,7 +83,6 @@ void r61581_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color
     int32_t act_y1 = y1 < 0 ? 0 : y1;
     int32_t act_x2 = x2 > R61581_HOR_RES - 1 ? R61581_HOR_RES - 1 : x2;
     int32_t act_y2 = y2 > R61581_VER_RES - 1 ? R61581_VER_RES - 1 : y2;
-
 
     //Set the rectangular area
     r61581_cmd(0x002A);
@@ -219,7 +179,6 @@ void r61581_map(int32_t x1, int32_t y1, int32_t x2, int32_t y2, const lv_color_t
     int32_t act_y1 = y1 < 0 ? 0 : y1;
     int32_t act_x2 = x2 > R61581_HOR_RES - 1 ? R61581_HOR_RES - 1 : x2;
     int32_t act_y2 = y2 > R61581_VER_RES - 1 ? R61581_VER_RES - 1 : y2;
-
 
     //Set the rectangular area
     r61581_cmd(0x002A);
@@ -372,7 +331,6 @@ static void r61581_set_tft_spec(void)
     r61581_data(0x00);
     r61581_data(0x31);
 
-
     r61581_cmd(0x36);
     if (R61581_ORI == 0) r61581_data(0xE0);
     else r61581_data(0x20);
@@ -469,4 +427,4 @@ static inline void r61581_data(uint8_t data)
     LV_DRV_DISP_PAR_WR_WORD(data);
 }
 #endif
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_gpio.c
-  * @author Sifli software development team
-  * @brief GPIO BSP driver
-  * @{
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <board.h>
@@ -94,8 +53,6 @@
         HAL_NVIC_EnableIRQ(GPIO2_IRQn);                          \
     }                                                            \
     while (0)
-
-
 
 static uint16_t pin_irq_hdr_num;
 #ifdef PAD_PBR_PRESENT
@@ -176,7 +133,6 @@ static void record_pin_irq(GPIO_TypeDef *hgpio, uint16_t pin_num)
     else
         gpio_irq_records_iter = 0;
 }
-
 
 #endif /*(DEBUG_RECENT_GPIO_IRQ_RECORDS > 0)*/
 
@@ -281,11 +237,8 @@ void drv_pin_check(void)
 #endif /* SOC_BF0_HCPU */
     }
 
-
-
 #endif /* PAD_PBR_PRESENT */
 }
-
 
 #ifdef BSP_USING_PM
 /*
@@ -301,7 +254,6 @@ static void sifli_pin_resume(rt_device_t dev, rt_uint32_t flag)
     uint32_t i;
     struct rt_pin_irq_hdr *item;
     rt_base_t level = rt_hw_interrupt_disable();
-
 
     item = &pin_irq_hdr_tab[0];
     for (i = 0; i < pin_irq_hdr_num; i++)
@@ -910,9 +862,7 @@ void GPIO2_IRQHandler(void)
         HAL_GPIO_IRQHandler((GPIO_TypeDef *)hwp_gpio2);
     }
 
-
 #endif /* SOC_BF0_HCPU */
-
 
     rt_interrupt_leave();
 }
@@ -946,7 +896,6 @@ void HAL_GPIO_EXTI_Callback(GPIO_TypeDef *hgpio, uint16_t GPIO_Pin)
 #define DBG_LVL DBG_INFO
 #include <rtdbg.h>
 
-
 static void gpio_int_test(void *args)
 {
     int value = (int)args;
@@ -978,7 +927,6 @@ static void print_pin_state(int pin)
     HAL_StatusTypeDef status;
     uint32_t i;
 #endif /* PAD_PBR_PRESENT */
-
 
     if (pin < PIN1_MAX_HANDLE)
     {
@@ -1158,7 +1106,6 @@ static void print_pin_state(int pin)
     }
 }
 
-
 __ROM_USED int cmd_pin(int argc, char **argv)
 {
     rt_device_t device ;
@@ -1235,7 +1182,6 @@ __ROM_USED int cmd_pin(int argc, char **argv)
 #endif /* hwp_pinmux2 */
             }
 
-
             if (strcmp(argv[3], "?") == 0)//Get pin mux
             {
                 print_pin_state(pin);
@@ -1245,7 +1191,6 @@ __ROM_USED int cmd_pin(int argc, char **argv)
                 int func = atoi(argv[3]);
                 HAL_PIN_Select(pad, func, hcpu);
             }
-
 
         }
         else
@@ -1295,4 +1240,3 @@ FINSH_FUNCTION_EXPORT_ALIAS(cmd_pin, __cmd_pin, pin gpio functions);
 /// @} bsp_driver
 /// @} file
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

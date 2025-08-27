@@ -117,15 +117,15 @@ ENTRY(Reset_Handler)
 
 SECTIONS
 {
-#ifndef FLASH_TABLE_ONLY     
+#ifndef FLASH_TABLE_ONLY
   .vectors :
   {
-    _stext = ABSOLUTE(.);  
+    _stext = ABSOLUTE(.);
     KEEP(*(.vectors));
     /* workaround to avoid load address of .retm_data doesn't skip .vectors region */
     . = . + 4;
   } > ROM
- 
+
   .stack :
   {
     . = ALIGN(8);
@@ -156,7 +156,7 @@ SECTIONS
  #ifdef BSP_USING_NOR_FLASH3
     *drv_spi_flash.o     (.text* .rodata*)
 #endif /* BSP_USING_NOR_FLASH3 */
-    *flash_table.o       (.text* .rodata*) 
+    *flash_table.o       (.text* .rodata*)
     *bf0_hal_mpi.o       (.text* .rodata*)
     *bf0_hal_mpi_ex.o    (.text* .rodata*)
     *bf0_hal_mpi_psram.o (.text* .rodata*)
@@ -189,7 +189,7 @@ SECTIONS
     *drv_common.o       (.text.rt_hw_us_delay)
     *.o                 (.text.rt_memset)
     *.o                 (.text.memset)
-    
+
     *.o (.retm_data_*)
 
     . = ALIGN(4);
@@ -201,7 +201,7 @@ SECTIONS
   .text :
   {
 #ifdef FLASH_TABLE_ONLY
-    KEEP(*ftab.o(.text* .rodata*)) 
+    KEEP(*ftab.o(.text* .rodata*))
 #else
     *(.text*)
     *(.rodata*)
@@ -242,7 +242,7 @@ SECTIONS
     LcdDriverDescTab_start = .;
     KEEP(*(LcdDriverDescTab))
     LcdDriverDescTab_end = .;
-    
+
     . = ALIGN(4);
     __rt_utest_tc_tab_start = .;
     KEEP(*(UtestTcTab))
@@ -285,15 +285,24 @@ SECTIONS
     KEEP(*(RTMSymTab))
     __rtmsymtab_end = .;
 
+    . = ALIGN(4);
+    __usbh_class_info_start__ = .;
+    KEEP(*(.usbh_class_info))
+    __usbh_class_info_end__ = .;
+
     KEEP(*(.eh_frame*))
     _etext = ABSOLUTE(.);
 #endif
-  } > ROM 
-  
-#ifndef FLASH_TABLE_ONLY      
+  } > ROM
+
+#ifdef ZBT
+#include "zbt_rom.lds"
+#endif
+
+#ifndef FLASH_TABLE_ONLY
   .rom_ex :
   {
-  
+
     . = ALIGN(4);
     __rw_rom_ex_start__ = .;
     __ER_IROM1_EX$$RO_start__ = .;
@@ -306,7 +315,7 @@ SECTIONS
     __rw_rom_ex_end__ = .;
     __ER_IROM1_EX$$RO_end__ = .;
     __ER_IROM1_EX$$RO_load_end__ = LOADADDR(.rom_ex) + SIZEOF(.rom_ex);
-    
+
   } > ROM_EX AT > ROM
 
   /*
@@ -344,23 +353,23 @@ SECTIONS
     LONG (LOADADDR(.retm_data))
     LONG (ADDR(.retm_data))
     LONG (SIZEOF(.retm_data))
-    
+
     LONG (LOADADDR(.rom_ex))
     LONG (ADDR(.rom_ex))
-    LONG (SIZEOF(.rom_ex))    
-    
+    LONG (SIZEOF(.rom_ex))
+
     __copy_table_end__ = .;
   } > ROM
-  
+
 
   .zero.table :
   {
     . = ALIGN(4);
     __zero_table_start__ = .;
     /* Add each additional bss section here */
-    
+
     LONG (__bss_start__)
-    LONG (__bss_end__ - __bss_start__)    
+    LONG (__bss_end__ - __bss_start__)
 
     LONG (ADDR(.retm_bss))
     LONG (SIZEOF(.retm_bss))
@@ -374,7 +383,7 @@ SECTIONS
     __rw_retm_bss_start__ = .;
     __RW_IRAM_RET$$ZI_start__ = .;
     * (.bss.retm_bss_*)
- 
+
     *idle.o (.bss.idle_thread_stack)
     *.o(.bss.bf0_psram_handle)
 
@@ -387,25 +396,25 @@ SECTIONS
     *(non_ret)
     *(.*l1_non_ret_data_*)
     *(.*l1_non_ret_bss_*)
-#ifndef BSP_USING_PSRAM    
+#ifndef BSP_USING_PSRAM
     *(.nand_cache)
     *(.*l2_non_ret_data_*)
     *(.*l2_non_ret_bss_*)
     *(.*l2_cache_non_ret_data_*)
     *(.*l2_cache_non_ret_bss_*)
 #endif /* BSP_USING_PSRAM */
-  } > RAM 
+  } > RAM
 
   /**
    * Location counter can end up 2byte aligned with narrow Thumb code but
    * __etext is assumed by startup code to be the LMA of a section in RAM
-   * which must be 4byte aligned 
+   * which must be 4byte aligned
    */
   __etext = ALIGN (4);
 
   .data :
   {
-    _sdata = ABSOLUTE(.);    
+    _sdata = ABSOLUTE(.);
     __data_start__ = .;
     __RW_IRAM1_start__ = .;
     *(vtable)
@@ -439,7 +448,7 @@ SECTIONS
     /* finit data */
     PROVIDE(__dtors_start__ = .);
     PROVIDE_HIDDEN (__fini_array_start = .);
-    
+
     KEEP(*(SORT(.dtors.*)))
     KEEP(*(.dtors))
 
@@ -448,12 +457,16 @@ SECTIONS
     PROVIDE_HIDDEN (__fini_array_end = .);
     PROVIDE(__dtors_end__ = .);
 
+#ifdef ZBT
+#include "zbt_data.lds"
+#endif
+
     KEEP(*(.jcr*))
     . = ALIGN(4);
     /* All data end */
     __data_end__ = .;
     __RW_IRAM1_end__ = .;
-    _edata = ABSOLUTE(.);    
+    _edata = ABSOLUTE(.);
   } > RAM AT > ROM
 
   /*
@@ -511,7 +524,7 @@ SECTIONS
 
   } > PSRAM
 #endif /* BSP_USING_PSRAM */
-  
+
   .bss :
   {
     _sbss = ABSOLUTE(.);
@@ -520,7 +533,7 @@ SECTIONS
     *(.bss)
     *(.bss.*)
     *(COMMON)
-    *(.l1_ret_bss_*)   
+    *(.l1_ret_bss_*)
     . = ALIGN(4);
     __bss_end__ = .;
     __bss_end = .;
@@ -528,7 +541,7 @@ SECTIONS
     __end__ = .;
     PROVIDE(end = .);
   } > RAM AT > RAM
-  
+
   /*
    * Secondary bss section, optional
    *
@@ -550,11 +563,11 @@ SECTIONS
 
   /* Check if data + heap + stack exceeds RAM limit */
   /* ASSERT(__StackLimit >= __HeapLimit, "region RAM overflowed with stack") */
-  
+
   .rom2 :
   {
     * (.ROM1_IMG)
-    * (.ROM3_IMG)    
+    * (.ROM3_IMG)
   } > ROM2
 
   .rom3 :

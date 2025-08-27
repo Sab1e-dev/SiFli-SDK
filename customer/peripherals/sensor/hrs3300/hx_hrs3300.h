@@ -1,8 +1,14 @@
 #ifndef _HX_HRS3300_H_
 #define _HX_HRS3300_H_
 
+
 #include <rtthread.h>
 #include <stdbool.h>
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #if defined(HR_USING_HRS3300)
     bool Hrs3300_write_reg(uint8_t addr, uint8_t data);
@@ -20,4 +26,7 @@
     rt_err_t hr_hw_self_check(void);
 #endif
 
+#ifdef __cplusplus
+}
+#endif
 #endif // _HRS3300_H_

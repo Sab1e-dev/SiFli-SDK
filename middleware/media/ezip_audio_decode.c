@@ -142,8 +142,9 @@ ezip_audio_packet_t *ezip_audio_read_packet(ffmpeg_handle thiz, uint32_t size, u
     return p;
 }
 
-void ezip_audio_decode(ffmpeg_handle thiz, audio_server_callback_func callback, AVCodecParserContext *parser)
+void ezip_audio_decode(ffmpeg_handle thiz, audio_server_callback_func callback, void *mp3parser)
 {
+    AVCodecParserContext *parser = (AVCodecParserContext *)mp3parser;
     ezip_audio_cache_t *cache = &thiz->ezip_audio_cache;
 #if EZIP_DECODE_AUDIO_USING_FFMPEG
     AVPacket packet;

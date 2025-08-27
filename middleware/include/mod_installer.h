@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   mod_installer.h
-  * @author Sifli software development team
-  * @brief Sifli wrappter device interface for ipc_queue
-  * @{
-  ******************************************************************************
-*/
 /*
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef MOD_INSTALLER_H
@@ -54,7 +13,6 @@
     #include "dlmodule.h"
 #endif /* RT_USING_MODULE */
 
-
 /**
  ****************************************************************************************
 * @addtogroup mod_installer Module Installer
@@ -64,18 +22,15 @@
 ****************************************************************************************
 */
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 #define DLMODULE_STRINGIFY_(val)       #val
 
 /** Converts a macro argument into a character constant.
  */
 #define DLMODULE_STRINGIFY(val)       DLMODULE_STRINGIFY_(val)
-
 
 #define DLMODULE_CONCAT_2_(p1, p2)     p1##p2
 
@@ -96,7 +51,6 @@ extern "C" {
 
 typedef void (*module_init_func_t)(void);
 typedef void (*module_cleanup_func_t)(void);
-
 
 #ifdef BUILD_DLMODULE
 
@@ -137,19 +91,6 @@ typedef void (*module_cleanup_func_t)(void);
         }                                        \
     }
 
-#else
-#define MODULE_INIT_DEF(init_func)               \
-        void module_init(struct rt_dlmodule *module) \
-        {                                            \
-            module_init_func_t func = init_func;     \
-            if (func)                                \
-            {                                        \
-                func();                              \
-            }                                        \
-        }
-#endif
-
-
 #define MODULE_CLEANUP_DEF(cleanup_func)            \
     void module_cleanup(struct rt_dlmodule *module) \
     {                                               \
@@ -165,7 +106,27 @@ typedef void (*module_cleanup_func_t)(void);
             func();                                 \
         }                                           \
     }
+#else
+#define MODULE_INIT_DEF(init_func)               \
+        void module_init(struct rt_dlmodule *module) \
+        {                                            \
+            module_init_func_t func = init_func;     \
+            if (func)                                \
+            {                                        \
+                func();                              \
+            }                                        \
+        }
 
+#define MODULE_CLEANUP_DEF(cleanup_func)            \
+    void module_cleanup(struct rt_dlmodule *module) \
+    {                                               \
+        module_cleanup_func_t func = cleanup_func;  \
+        if (func)                                   \
+        {                                           \
+            func();                                 \
+        }                                           \
+    }
+#endif
 
 #include "module_name.h"
 
@@ -196,7 +157,6 @@ typedef struct
     const char *pgm_package_path;     /**< App program .so file full path */
     const char *pgm_install_path;     /**< where to install program module  */
 } app_installer_info_t;
-
 
 /**
  * @brief  Install dlmodule
@@ -232,8 +192,6 @@ rt_err_t app_install(app_installer_info_t *info);
  */
 int32_t app_uninstall(const char *app_name, const char *res_install_path, const char *pgm_install_path);
 
-
-
 /**
  * @brief Init mod_installer
  *
@@ -245,6 +203,26 @@ int32_t app_uninstall(const char *app_name, const char *res_install_path, const 
  */
 int32_t mod_installer_init(uint32_t sys_prog_start_addr, uint32_t sys_prog_end_addr);
 
+/**
+ * @brief Open application
+ *
+ *
+ * @param[in]  res_package_path App resource .so file full path
+ * @param[in]  package_path App program .so file full path
+ *
+ * @retval module instance of App
+ */
+struct rt_dlmodule *app_open(const char *res_package_path, const char *package_path);
+
+/**
+ * @brief Close application
+ *
+ *
+ * @param[in]  module Module instance of App
+ *
+ * @retval RT_EOK: success, other: fail
+ */
+rt_err_t app_close(struct rt_dlmodule *module);
 
 /// @}  mod_installer
 
@@ -252,7 +230,6 @@ int32_t mod_installer_init(uint32_t sys_prog_start_addr, uint32_t sys_prog_end_a
 }
 #endif
 
-
 /// @} file
 #endif
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+

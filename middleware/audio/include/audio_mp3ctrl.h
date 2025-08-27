@@ -1,7 +1,13 @@
 #ifndef AUDIO_MP3CTRL_H
 #define AUDIO_MP3CTRL_H     1
 
+
 #include <audio_server.h>
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct mp3ctrl_t *mp3ctrl_handle;
 
@@ -65,4 +71,8 @@ int mp3ctrl_seek(mp3ctrl_handle handle, uint32_t seconds);
 int mp3ctrl_getinfo(const char *filename, mp3_info_t *info);
 int mp3_get_id3_start(const char *filename, mp3_id3_info_t *info);
 void mp3_get_id3_end(mp3_id3_info_t *info);
+
+#ifdef __cplusplus
+}
+#endif
 #endif

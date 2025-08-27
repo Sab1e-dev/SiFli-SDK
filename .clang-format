@@ -8,3 +8,8 @@ PPIndentWidth: 4
 TabWidth: 4
 SpacesInParentheses: false
 IndentPPDirectives: BeforeHash
+
+# 禁用自动重排头文件
+SortIncludes: false
+# 保留已有的 include 分组
+IncludeBlocks: Preserve

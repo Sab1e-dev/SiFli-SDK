@@ -1,6 +1,12 @@
 #ifndef __CHARGE_H__
 #define __CHARGE_H__
+
 #include <rtthread.h>
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define CHARGE_DEFAULT_FULL_VOLTAGE (4200)     /*mv*/
 #define CHARGE_DEFAULT_REP_VOLTAGE  (CHARGE_DEFAULT_FULL_VOLTAGE - 135 )     /*mv*/
@@ -202,4 +208,7 @@ void rt_charge_event_notify(rt_charge_event_t event);
 
 rt_err_t rt_charge_register(rt_charge_device_t *charge, const struct rt_charge_ops *ops, const void *user_data);
 
+#ifdef __cplusplus
+}
+#endif
 #endif /* __CHARGE_H__ */

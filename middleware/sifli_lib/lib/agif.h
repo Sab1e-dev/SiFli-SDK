@@ -1,57 +1,27 @@
-/**
-  ******************************************************************************
-  * @file   agif.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2024,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2024 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
+
 #ifndef _AGIF_H_
 #define _AGIF_H_
+
 
 #include <stdint.h>
 #include <sys/types.h>
 
 #ifndef DFU_OTA_MANAGER
     #include "lvgl.h"
+    #if LVGL_V9
+        #include "lv_image_private.h"
+    #endif
     #define ANIM_LV_TASK
     // #include "app_mem.h"
+#endif
+
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 #define GIF_REFR_PEROID                     _lv_refr_get_disp_refreshing()->refr_timer->period
@@ -305,57 +275,57 @@ int         gif_ioctl(int fd, int mode, uint32_t *addr);
  * @brief  The following interfaces are for internal use only
  */
 #ifdef ANIM_LV_TASK
-    void        _lv_gif_dec_loop(lv_obj_t *img, bool loop, uint32_t interval);
-    void        _lv_gif_dec_loop_ext(lv_obj_t *img, uint32_t interval);
-    lv_obj_t   *_lv_gif_dec_create(lv_obj_t *parent, const void *data,  void *bg_color, uint8_t out_bp);
-    lv_obj_t   *_lv_gif_dec_create_ext(lv_obj_t *parent, const void *data, uint32_t offset, void *bg_color, uint8_t out_bp, uint8_t order, uint16_t start_frame_no);
-    lv_obj_t   *_lv_gif_dec_resrc(lv_obj_t *img, const void *data, uint32_t offset);
-    void        _lv_gif_dec_restart(lv_obj_t *img);
-    uint16_t    _lv_gif_dec_frame_num(lv_obj_t *img);
-    lv_timer_t *_lv_gif_dec_task_create(lv_obj_t *img, uint16_t peroid);
-    void        _lv_gif_dec_task_pause(lv_obj_t *img, bool rel_gif);
-    void        _lv_gif_dec_task_resume_with_delay(lv_obj_t *img, uint16_t delay_play_time);
-    void        _lv_gif_dec_task_resume(lv_obj_t *img);
-    void        _lv_gif_dec_task_del(lv_obj_t *img);
-    void        _lv_gif_dec_destroy(lv_obj_t *img);
-    int         _lv_gif_dec_next_frame(lv_obj_t *anim);
-    int         _lv_gif_dec_indicated_frame(lv_obj_t *img, uint16_t frame_no);
-    void        _lv_gif_dec_end_cb_register(lv_obj_t *img, loop_end_func func);
+void        _lv_gif_dec_loop(lv_obj_t *img, bool loop, uint32_t interval);
+void        _lv_gif_dec_loop_ext(lv_obj_t *img, uint32_t interval);
+lv_obj_t   *_lv_gif_dec_create(lv_obj_t *parent, const void *data,  void *bg_color, uint8_t out_bp);
+lv_obj_t   *_lv_gif_dec_create_ext(lv_obj_t *parent, const void *data, uint32_t offset, void *bg_color, uint8_t out_bp, uint8_t order, uint16_t start_frame_no);
+lv_obj_t   *_lv_gif_dec_resrc(lv_obj_t *img, const void *data, uint32_t offset);
+void        _lv_gif_dec_restart(lv_obj_t *img);
+uint16_t    _lv_gif_dec_frame_num(lv_obj_t *img);
+lv_timer_t *_lv_gif_dec_task_create(lv_obj_t *img, uint16_t peroid);
+void        _lv_gif_dec_task_pause(lv_obj_t *img, bool rel_gif);
+void        _lv_gif_dec_task_resume_with_delay(lv_obj_t *img, uint16_t delay_play_time);
+void        _lv_gif_dec_task_resume(lv_obj_t *img);
+void        _lv_gif_dec_task_del(lv_obj_t *img);
+void        _lv_gif_dec_destroy(lv_obj_t *img);
+int         _lv_gif_dec_next_frame(lv_obj_t *anim);
+int         _lv_gif_dec_indicated_frame(lv_obj_t *img, uint16_t frame_no);
+void        _lv_gif_dec_end_cb_register(lv_obj_t *img, loop_end_func func);
 
-    void         lv_agif_dec_loop(lv_obj_t *img, bool loop, uint32_t interval);
-    void         lv_agif_dec_loop_ext(lv_obj_t *img, uint32_t interval);
-    lv_obj_t    *lv_agif_dec_create_comm(lv_obj_t *parent, const void *data, uint32_t offset, void *bg_color, uint8_t out_bp, uint8_t order, uint16_t start_frame_no, uint8_t cache_all);
-    lv_obj_t    *lv_agif_dec_create(lv_obj_t *parent, const void *data, void *bg_color, uint8_t out_bp);
-    lv_obj_t    *lv_agif_dec_resrc(lv_obj_t *img, const void *data, uint32_t offset);
-    lv_obj_t    *lv_agif_dec_create_ext(lv_obj_t *parent, const void *data, uint32_t offset, void *bg_color, uint8_t out_bp, uint8_t order, uint16_t start_frame_no);
-    lv_obj_t    *lv_agif_wf_dec_create(lv_obj_t *parent, const void *data, uint32_t offset, void *bg_color, uint8_t out_bp);
+void         lv_agif_dec_loop(lv_obj_t *img, bool loop, uint32_t interval);
+void         lv_agif_dec_loop_ext(lv_obj_t *img, uint32_t interval);
+lv_obj_t    *lv_agif_dec_create_comm(lv_obj_t *parent, const void *data, uint32_t offset, void *bg_color, uint8_t out_bp, uint8_t order, uint16_t start_frame_no, uint8_t cache_all);
+lv_obj_t    *lv_agif_dec_create(lv_obj_t *parent, const void *data, void *bg_color, uint8_t out_bp);
+lv_obj_t    *lv_agif_dec_resrc(lv_obj_t *img, const void *data, uint32_t offset);
+lv_obj_t    *lv_agif_dec_create_ext(lv_obj_t *parent, const void *data, uint32_t offset, void *bg_color, uint8_t out_bp, uint8_t order, uint16_t start_frame_no);
+lv_obj_t    *lv_agif_wf_dec_create(lv_obj_t *parent, const void *data, uint32_t offset, void *bg_color, uint8_t out_bp);
 
-    void         lv_agif_dec_restart(lv_obj_t *agif);
-    lv_timer_t  *lv_agif_dec_task_create(lv_obj_t *img, uint16_t period);
-    void         lv_agif_dec_task_pause(lv_obj_t *img, bool rel_gif);
-    void         lv_agif_dec_task_resume_with_delay(lv_obj_t *img, uint16_t delay_play_time);
-    void         lv_agif_dec_task_resume(lv_obj_t *img);
-    void         lv_agif_dec_task_del(lv_obj_t *img);
-    void         lv_agif_dec_destroy(lv_obj_t *img);
-    int          lv_agif_dec_next_frame(lv_obj_t *agif);
-    int          lv_agif_dec_indicated_frame(lv_obj_t *img, uint16_t frame_no);
-    uint16_t     lv_agif_dec_frame_num(lv_obj_t *img);
-    void         lv_agif_dec_end_cb_register(lv_obj_t *img, loop_end_func func);
+void         lv_agif_dec_restart(lv_obj_t *agif);
+lv_timer_t  *lv_agif_dec_task_create(lv_obj_t *img, uint16_t period);
+void         lv_agif_dec_task_pause(lv_obj_t *img, bool rel_gif);
+void         lv_agif_dec_task_resume_with_delay(lv_obj_t *img, uint16_t delay_play_time);
+void         lv_agif_dec_task_resume(lv_obj_t *img);
+void         lv_agif_dec_task_del(lv_obj_t *img);
+void         lv_agif_dec_destroy(lv_obj_t *img);
+int          lv_agif_dec_next_frame(lv_obj_t *agif);
+int          lv_agif_dec_indicated_frame(lv_obj_t *img, uint16_t frame_no);
+uint16_t     lv_agif_dec_frame_num(lv_obj_t *img);
+void         lv_agif_dec_end_cb_register(lv_obj_t *img, loop_end_func func);
 #else
-    extern void *lv_img_class;
-    void        *lv_disp_get_default(void);
-    void         lv_img_set_src(void *obj, void *src);
-    void        *lv_obj_class_create_obj(void *class_p, void *parent);
-    void         lv_obj_class_init_obj(void *obj);
-    void         lv_obj_del(void *obj);
-    void         lv_obj_invalidate(void *obj);
-    uint32_t     lv_tick_get(void);
-    void        *lv_timer_create(void *timer_xcb, uint32_t period, void *user_data);
-    void         lv_timer_del(void *timer);
-    void         lv_timer_pause(void *timer);
-    void         lv_timer_resume(void *timer);
-    void         lv_timer_set_period(void *timer, uint32_t period);
-    void         lv_img_cache_invalidate_src(void *src);
+extern void *lv_img_class;
+void        *lv_disp_get_default(void);
+void         lv_img_set_src(void *obj, void *src);
+void        *lv_obj_class_create_obj(void *class_p, void *parent);
+void         lv_obj_class_init_obj(void *obj);
+void         lv_obj_del(void *obj);
+void         lv_obj_invalidate(void *obj);
+uint32_t     lv_tick_get(void);
+void        *lv_timer_create(void *timer_xcb, uint32_t period, void *user_data);
+void         lv_timer_del(void *timer);
+void         lv_timer_pause(void *timer);
+void         lv_timer_resume(void *timer);
+void         lv_timer_set_period(void *timer, uint32_t period);
+void         lv_img_cache_invalidate_src(void *src);
 #endif
 
 uint32_t    _gif_builtin_flash_read(uint32_t addr, uint8_t *buf, int size);
@@ -379,5 +349,9 @@ int          agif_dec_indicated_frame(agif_dsc_t *agif_dsc, uint16_t frame_no);
 void         agif_dec_reset(agif_dsc_t *agif_desc);
 uint16_t     agif_dec_frame_num(agif_dsc_t *agif_dsc);
 void         agif_set_fs_mode(agif_fs_mode_t mode);
+
+#ifdef __cplusplus
+}
+#endif
 #endif /* _AGIF_H_ */
 

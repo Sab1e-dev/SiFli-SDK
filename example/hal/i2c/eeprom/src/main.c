@@ -5,7 +5,6 @@
 #include "string.h"
 #include "rtthread.h"
 
-
 void delayms(unsigned short int ms)
 {
     HAL_Delay(ms);
@@ -14,7 +13,6 @@ void delayms(unsigned short int ms)
 /* i2c  */
 
 static I2C_HandleTypeDef i2c_Handle = {0};
-
 
 #define EEPROM_I2C_ADDRESS         0x50  // 7bit device address of EEPROM
 
@@ -38,8 +36,6 @@ uint8_t TEST_DATA[] =
     0x44
 };
 
-
-
 /// @brief Initialization work before power on EEPROM
 /// @param
 void EEPROM_init(void)
@@ -58,6 +54,11 @@ void EEPROM_init(void)
 #define EXAMPLE_I2C_IRQ I2C6_IRQn // i2c number of interruput when using interrupte mode 
     HAL_PIN_Set(PAD_PB28, I2C6_SCL, PIN_PULLUP, 0); // i2c io select
     HAL_PIN_Set(PAD_PB29, I2C6_SDA, PIN_PULLUP, 0);
+#elif defined(SF32LB56X)
+#define EXAMPLE_I2C I2C3 // i2c number of cpu
+#define EXAMPLE_I2C_IRQ I2C3_IRQn // i2c number of interruput when using interrupte mode 
+    HAL_PIN_Set(PAD_PA20, I2C3_SCL, PIN_PULLUP, 1); // i2c io select
+    HAL_PIN_Set(PAD_PA12, I2C3_SDA, PIN_PULLUP, 1);
 #endif
 
     // 2. i2c init
@@ -69,7 +70,6 @@ void EEPROM_init(void)
     ret = HAL_I2C_Init(&i2c_Handle);
     rt_kprintf("EEPROM_init%d\n", ret);
 }
-
 
 /// @brief write data to eeprom
 /// @param addr data address
@@ -95,7 +95,6 @@ void EEPROM_write_data(uint8_t addr, uint8_t data)
     __HAL_I2C_DISABLE(&i2c_Handle); // for master, disable it after transmit to reduce error status
 }
 
-
 void EEPROM_read_data(uint8_t addr, uint8_t *pdata)
 {
     HAL_StatusTypeDef ret;
@@ -118,7 +117,6 @@ void EEPROM_read_data(uint8_t addr, uint8_t *pdata)
     __HAL_I2C_DISABLE(&i2c_Handle); // for master, disable it after transmit to reduce error status
 }
 
-
 /// @brief read and write eeprom to test
 /// @param
 void EEPROM_test(void)
@@ -131,20 +129,17 @@ void EEPROM_test(void)
         delayms(5); //5ms delay for AT240C8SC write time cycle
     }
 
-
     for (i = 0; i < 4; i++)
     {
         EEPROM_read_data(TEST_ADDR[i], &RECEIVED);
     }
 }
 
-
 void  EEPROM_example(void)
 {
     EEPROM_init();
     EEPROM_test();
 }
-
 
 /**
   * @brief  Main program
@@ -159,6 +154,4 @@ int main(void)
     while (1)
         return 0;
 }
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

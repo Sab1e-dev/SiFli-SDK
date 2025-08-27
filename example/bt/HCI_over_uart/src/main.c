@@ -1,49 +1,8 @@
-/**
-  ******************************************************************************
-  * @file   main.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2025 - 2025,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2025-2025 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
-*/
-
-
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include <rtthread.h>
 #include <rtdevice.h>
@@ -58,10 +17,7 @@
 #include "bf0_mbox_common.h"
 #include "bf0_sibles_nvds.h"
 
-
 #define BLE_HCI_FORWARD_PORT "uart1"
-
-
 
 #define IO_MB_CH      (0)
 #define TX_BUF_SIZE   HCPU2LCPU_MB_CH1_BUF_SIZE
@@ -71,8 +27,6 @@
 
 #define RX_BUF_REV_B_ADDR   LCPU_ADDR_2_HCPU_ADDR(LCPU2HCPU_MB_CH1_BUF_REV_B_START_ADDR);
 
-
-
 typedef struct
 {
     ipc_queue_handle_t ipc_port;
@@ -81,9 +35,7 @@ typedef struct
     rt_mailbox_t to_uart;
 } ble_forward_env_t;
 
-
 void wvt_local_hdl_entry(void *param);
-
 
 static ble_forward_env_t g_ble_forward_env;
 static rt_device_t g_ble_forward_device;
@@ -92,9 +44,7 @@ static rt_event_t g_ble_forward_evt;
 static void ble_wvt_mailbox_init(void);
 static void ble_wvt_uart_init(void);
 
-
 #include "log.h"
-
 
 /** Mount file system if using NAND, as BT NVDS is save in file*/
 #if defined(BSP_USING_SPI_NAND) && defined(RT_USING_DFS) && !defined(ZBT)
@@ -130,13 +80,10 @@ int mnt_init(void)
 INIT_ENV_EXPORT(mnt_init);
 #endif
 
-
 static ble_forward_env_t *ble_forward_get_env(void)
 {
     return &g_ble_forward_env;
 }
-
-
 
 static rt_err_t ble_wvt_uart_rx_ind(rt_device_t dev, rt_size_t size)
 {
@@ -173,7 +120,6 @@ void hci_ipc_queue_write(uint8_t *ptr, uint32_t size)
     }
 }
 
-
 void ble_wvt_forward_to_mb_entry(void *param)
 {
     ble_forward_env_t *env = ble_forward_get_env();
@@ -205,7 +151,6 @@ void ble_wvt_forward_to_mb_entry(void *param)
         rt_hexdump("hci_tob", 32, ptr, size);
         // Write to mailbox
         HAL_DBG_print_data((char *)ptr, 0, size);
-
 
         if (IPC_QUEUE_INVALID_HANDLE != env->ipc_port)
         {
@@ -250,10 +195,6 @@ static void ble_wvt_ble_power_on(void)
 #endif
 }
 
-
-
-
-
 static void ble_wvt_patch_install(void)
 {
 #ifdef BSP_USING_BCPU_PATCH
@@ -264,7 +205,6 @@ static void ble_wvt_patch_install(void)
     //*p = 0;
 #endif
 }
-
 
 void ble_wvt_forward_to_uart_entry(void *param)
 {
@@ -289,8 +229,6 @@ void ble_wvt_forward_to_uart_entry(void *param)
         HAL_DBG_print_data((char *)ptr, 0, size);
         rt_hexdump("hci_tou", 32, ptr, size);
 
-
-
         // Write to mailbox
         if (env->uart_port)
         {
@@ -301,8 +239,6 @@ void ble_wvt_forward_to_uart_entry(void *param)
     }
 
 }
-
-
 
 static void ble_wvt_mailbox_init(void)
 {
@@ -371,7 +307,6 @@ static void ble_wvt_uart_init(void)
 
 }
 
-
 // init both uart and mailbox
 int ble_wvt_forward_init(void)
 {
@@ -409,5 +344,3 @@ int main(void)
     }
 }
 
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

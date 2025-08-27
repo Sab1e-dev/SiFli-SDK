@@ -157,7 +157,6 @@ static rt_err_t MSD_take_detection(struct rt_spi_device *spi_device)
     return result;
 }
 
-
 static rt_bool_t rt_tick_timeout(rt_tick_t tick_start, rt_tick_t tick_long)
 {
     rt_tick_t tick_end = tick_start + tick_long;
@@ -735,7 +734,6 @@ static rt_err_t rt_msd_init(rt_device_t dev)
 
     }//init tfcard
 
-
     //send  CMD10 CID
     {
 
@@ -761,7 +759,6 @@ static rt_err_t rt_msd_init(rt_device_t dev)
         while (response[0] != MSD_RESPONSE_NO_ERROR);
         rt_spi_release(msd->spi_device);
     }
-
 
 _exit:
     rt_spi_release(msd->spi_device);
@@ -996,7 +993,6 @@ static rt_size_t rt_msd_write(rt_device_t dev, rt_off_t pos, const void *buffer,
         goto _exit;
     }
 
-
     /* SINGLE_BLOCK? */
     if (size == 1)
     {
@@ -1186,7 +1182,6 @@ static rt_err_t rt_msd_control(rt_device_t dev, int cmd, void *args)
     return result;
 }
 
-
 rt_err_t msd_init(const char *sd_device_name, const char *spi_device_name)
 {
     rt_err_t result = RT_EOK;
@@ -1301,7 +1296,6 @@ int rt_spi_msd_init(void)
     }
     rt_kprintf("tf_id:%x\n", tf_id);
 
-
     return RT_EOK;
 }
 int main(void)
@@ -1315,6 +1309,4 @@ int main(void)
     }
     return RT_EOK;
 }
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

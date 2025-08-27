@@ -772,7 +772,8 @@ static rt_err_t rt_serial_close(struct rt_device *dev)
         tx_dma = (struct rt_serial_tx_dma *)serial->serial_tx;
         RT_ASSERT(tx_dma != RT_NULL);
 
-        //TODO: Free all data in tx_dma->data_queue, see RT-Thread 4.x
+        rt_data_queue_deinit(&(tx_dma->data_queue));
+
         rt_free(tx_dma);
         serial->serial_tx = RT_NULL;
 

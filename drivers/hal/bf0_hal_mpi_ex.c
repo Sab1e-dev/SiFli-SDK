@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   bf0_hal_mpi_ex.c
-  * @author Sifli software development team
-  * @brief   QSPI extension HAL module driver.
-  *
-  ******************************************************************************
-*/
-/**
+/*
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
  *
- * Copyright (c) 2019 - 2022,  Sifli Technology
- *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "bf0_hal.h"
@@ -98,19 +57,11 @@ static void uart_output_id(uint32_t dev_id)
 
 int nand_read_id(FLASH_HandleTypeDef *handle, uint8_t dummy);
 uint32_t HAL_QSPI_GET_SRC_CLK(FLASH_HandleTypeDef *fhandle);
-/* TODO: confirm whether 100MHz can be used by all chips.
- *  Actually this value only affects the config when reading ID, after reading ID, MPI_MISCR_RXCLKINV will always be changed to 0.
- *
- * on 52x (e.g. 520 or 52B), if 3.3V sip flash using RXCLKINV=1, ID reading will fail
- */
-#ifndef SF32LB52X
-    #define FLASH_CLK_INVERT_THD            (60000000)
-#else
-    #define FLASH_CLK_INVERT_THD            (100000000)
-#endif /* SF32LB52X */
 #define QSPI_FIFO_SIZE      (64)
 
-#define QSPI_USE_CMD2
+#ifndef DUAL_FLASH
+    #define QSPI_USE_CMD2
+#endif /* !DUAL_FLASH */
 
 // for some HYF nand chip, need more oip for read, and set protect register 2 before clear all protect
 #define HYF_SPECIAL_SUPPORT
@@ -1734,6 +1685,13 @@ __HAL_ROM_USED int HAL_QSPIEX_WRITE_PAGE(FLASH_HandleTypeDef *hflash, uint32_t a
             size = 0;
             goto exit;
         }
+
+        ret = HAL_FLASH_DMA_WAIT_DONE(hflash, 1000);
+        if (ret != HAL_OK)
+        {
+            size = 0;
+            goto exit;
+        }
 #else
 
         HAL_FLASH_ISSUE_CMD(hflash, cid, addr);
@@ -2317,14 +2275,6 @@ __HAL_ROM_USED uint32_t HAL_QSPI_GET_SRC_CLK(FLASH_HandleTypeDef *fhandle)
     {
         clk_module = RCC_CLK_MOD_FLASH4;
     }
-    else if (FLASH3 + HPSYS_MPI_MEM_CBUS_2_SBUS_OFFSET == fhandle->Instance)
-    {
-        clk_module = RCC_CLK_MOD_FLASH3;
-    }
-    else if (FLASH4 + HPSYS_MPI_MEM_CBUS_2_SBUS_OFFSET == fhandle->Instance)
-    {
-        clk_module = RCC_CLK_MOD_FLASH4;
-    }
 #endif
 #ifdef FLASH5
     else if (FLASH5 == fhandle->Instance)
@@ -2892,6 +2842,3 @@ __HAL_ROM_USED uint8_t HAL_NOR_DTR_CAL(FLASH_HandleTypeDef *hflash)
 /// @} FLASH
 
 /// @} BF0_HAL_Driver
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

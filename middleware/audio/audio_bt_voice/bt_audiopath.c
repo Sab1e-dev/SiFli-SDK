@@ -1,49 +1,9 @@
-/**
-  ******************************************************************************
-  * @file   bt_audiopath.c
-  * @author Sifli software development team
-  * @brief SIFLI bt audio path handler.
+/*
+ * SPDX-FileCopyrightText: 2020-2021 SiFli Technologies(Nanjing) Co., Ltd
  *
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2020 - 2021,  Sifli Technology
- *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
+
 #include <rtconfig.h>
 #include "audio_mem.h"
 
@@ -160,7 +120,7 @@ typedef struct bt_sco_callback_para
 } bt_sco_callback_para_t;
 enum sco_handle_type
 {
-#if (!defined(SOC_SF32LB52X)) && (!defined(SF32LB52X_58)) && (!defined(SF32LB58X))
+#if (!defined(SOC_SF32LB52X)) && (!defined(SF32LB52X_58)) && ((!defined(SF32LB58X)) || (defined(SF32LB58X) && !defined(LCPU_CONFIG_V2)))
     AUDIO_PATH_SCO_INIT,
     AUDIO_PATH_SCO_OPEN,
     AUDIO_PATH_SCO_CONFIG,
@@ -189,7 +149,7 @@ uint8_t bt_sco_data_handle_callback_lite(void *p_param)
 {
     return 0;
 }
-#if (!defined(SF32LB52X_58)) && (!defined(SF32LB58X))
+#if (!defined(SF32LB52X_58)) && ((!defined(SF32LB58X)) || (defined(SF32LB58X) && !defined(LCPU_CONFIG_V2)))
 int bt_audiopath_init(void)
 {
     pt_tx_rbf = (struct rt_ringbuffer *)HCPU_LCPU_SHARE_MEM_BASE_ADDR;
@@ -495,7 +455,7 @@ __ROM_USED uint8_t bt_sco_data_handle_callback(void *p_param)
         rt_size_t bufsize = 0;
         rt_size_t putnum = 0;
 
-#if (!defined(SOC_SF32LB52X)) && (!defined(SF32LB52X_58)) && (!defined(SF32LB58X))
+#if (!defined(SOC_SF32LB52X)) && (!defined(SF32LB52X_58)) && ((!defined(SF32LB58X)) || (defined(SF32LB58X) && !defined(LCPU_CONFIG_V2)))
         struct hci_sync_con_cmp_evt sco_para_tmp;
         int32_t cmpret;
         sco_para_tmp = lc_get_sco_para();
@@ -560,7 +520,7 @@ __ROM_USED uint8_t bt_sco_data_handle_callback(void *p_param)
         //*pt_sco_para = lc_get_sco_para(sco_linkid);
 
         rt_kprintf("sco linkid:0x%x,coded:%d,rxlen:%d,txlen:%d\n", scolinkhdl, pt_sco_para->air_mode, pt_sco_para->rx_pkt_len, pt_sco_para->tx_pkt_len);
-#if !defined(SF32LB52X_58) && !defined(SF32LB58X)
+#if !defined(SF32LB52X_58) && ((!defined(SF32LB58X)) || (defined(SF32LB58X) && !defined(LCPU_CONFIG_V2)))
         rt_ringbuffer_reset(pt_tx_rbf);
         rt_ringbuffer_reset(pt_rx_rbf);
         for (int i = 0; i < SCO_STAT_MAX; i++)

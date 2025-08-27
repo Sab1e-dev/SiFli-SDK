@@ -1,47 +1,9 @@
-/**
-  ******************************************************************************
-  * @file   gpu_lcd.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
+
 #include "lvgl.h"
 #include "board.h"
 #include "drv_lcd.h"
@@ -52,11 +14,10 @@
 #ifdef RT_USING_DFS
     #include <dfs_posix.h>
 #endif
-
+#include "drv_epic.h"
 #include "lvsf_perf.h"
 
 #include "cpu_usage_profiler.h"
-
 
 #include "lv_display_private.h"
 #include "lv_refr_private.h"
@@ -80,7 +41,6 @@
     #endif
 #endif /* BSP_USING_LCD */
 
-
 #if defined(LV_FB_TWO_SCREEN_SIZE) || defined(LV_FB_ONE_SCREEN_SIZE)
     #define LV_FB_LINE_NUM LV_VER_RES_MAX
 #endif /* LV_FB_TWO_SCREEN_SIZE || LV_FB_ONE_SCREEN_SIZE*/
@@ -88,10 +48,7 @@
     #error "Not supported on v9 now!"
 #endif
 
-
 #define LCD_FLUSH_EXP_MS   (5000)//Include LCD reset time
-
-
 
 #ifdef FRAME_BUFFER_IN_PSRAM
     #define FRAME_BUFFER_BSS_SECT_BEGIN(frambuf) L2_NON_RET_BSS_SECT_BEGIN(frambuf)
@@ -113,12 +70,9 @@ extern void perf_monitor(lv_display_t *disp_drv, uint32_t time, uint32_t px);
     #define debug_lcd_flush_end()
 #endif /* LV_USE_LVSF */
 
-
-
 static rt_device_t device;
 static struct rt_device_graphic_info info;
 static struct rt_semaphore lcd_sema;
-
 
 static lv_display_t *lcd_flushing_disp_drv = NULL;
 static lv_display_t *disp;
@@ -129,7 +83,6 @@ static lv_display_t *disp;
     typedef lv_color16_t lv_fb_color_t;
 #endif /* LV_COLOR_DEPTH == 24*/
 
-
 /**************************************************
    1. Defination of LVGL buffer(s) on SRAM
 ****************************************************/
@@ -139,8 +92,6 @@ FRAME_BUFFER_BSS_SECT(frambuf, ALIGN(FB_ALIGN_BYTE) static lv_fb_color_t  buf1_1
     FRAME_BUFFER_BSS_SECT(frambuf, ALIGN(FB_ALIGN_BYTE) static lv_fb_color_t  buf1_2[FB_ALIGNED_HOR_RES * LV_FB_LINE_NUM]);
 #endif /* LV_FB_TWO_NOT_SCREEN_SIZE || LV_FB_TWO_SCREEN_SIZE */
 FRAME_BUFFER_BSS_SECT_END
-
-
 
 /**************************************************
    2. Defination of LCD buffer(s) on PSRAM
@@ -156,8 +107,6 @@ FRAME_BUFFER_BSS_SECT_END
         #define LCD_FB_USING_ONE_UNCOMPRESSED
     #endif
 #endif /* LCD_FB_USING_AUTO */
-
-
 
 #ifdef LCD_FB_USING_NONE
     #if defined(LV_FB_ONE_SCREEN_SIZE)
@@ -209,11 +158,9 @@ static void dummy_func2(void)
 {
 };
 
-
 static void dummy_func3(void)
 {
 }
-
 
 #ifdef BSP_USING_LCD_FRAMEBUFFER
 static void update_fb(void)
@@ -249,8 +196,6 @@ static void update_fb(void)
 }
 #endif /* BSP_USING_LCD_FRAMEBUFFER */
 
-
-
 /*
     Some LCD (ie. Rydium DSI LCD):
     The SC and EC-SC+1 must can be divisible by 2, (SC - Start Column, EC - End Column), and row too.
@@ -267,7 +212,6 @@ static void rounder_cb(lv_event_t *e)
 
     area->y1 = RT_ALIGN_DOWN(area->y1, align_size);
     area->y2 = RT_ALIGN(area->y2 + 1, align_size) - 1;
-
 
 #ifdef FB_CMPR_RATE
     /*Extend to whole line if FB compression is enabled.*/
@@ -287,15 +231,12 @@ static void render_start(lv_event_t *e)
     }
 #endif
 
-
 #if defined(LCD_FB_USING_TWO_COMPRESSED)||defined(LCD_FB_USING_TWO_UNCOMPRESSED)
     switch_draw_buf();
     update_fb();
 #endif /* LCD_FB_USING_TWO_COMPRESSED ||  LCD_FB_USING_TWO_UNCOMPRESSED*/
 
 }
-
-
 
 static void wait_flush_done(lv_display_t *disp_drv)
 {
@@ -308,7 +249,6 @@ static void wait_flush_done(lv_display_t *disp_drv)
     err = rt_sem_release(&lcd_sema);
     RT_ASSERT(RT_EOK == err);
 }
-
 
 #ifdef BSP_USING_LCD_FRAMEBUFFER
 static void lcd_flush_done(lcd_fb_desc_t *fb_desc)
@@ -354,7 +294,6 @@ uint8_t drv_gpu_is_cached_ram(uint32_t start, uint32_t len)
         return 0;
     }
 
-
 #if defined(switch_draw_buf)
     uncached_start = (uint32_t)&buf2_2[0];
     uncached_end = uncached_start + sizeof(buf2_2);
@@ -364,7 +303,6 @@ uint8_t drv_gpu_is_cached_ram(uint32_t start, uint32_t len)
     }
 #endif
 #endif /* LCD_FB_USING_NONE */
-
 
     return 1;
 }
@@ -397,11 +335,6 @@ static void lcd_flush(lv_display_t *disp_drv, const lv_area_t *refresh_area, uin
         return;
     }
 
-
-
-
-
-
     rt_err_t err;
     err = rt_sem_take(&lcd_sema, rt_tick_from_millisecond(LCD_FLUSH_EXP_MS));
     RT_ASSERT(RT_EOK == err);
@@ -420,18 +353,53 @@ static void lcd_flush(lv_display_t *disp_drv, const lv_area_t *refresh_area, uin
 #endif /* BSP_USING_LCD_FRAMEBUFFER */
 
 }
+void *get_disp_buf(uint32_t size)
+{
+    lv_display_t *disp = lv_display_get_default();
+    if (!disp)
+    {
+        LOG_E("Display not initialized");
+        return NULL;
+    }
 
+    lv_draw_buf_t *draw_buf = lv_display_get_buf_active(disp);
+    if (!draw_buf || !draw_buf->data)
+    {
+        LOG_E("Active draw buffer is NULL or invalid");
+        return NULL;
+    }
 
+    uint32_t buf_size = draw_buf->header.stride * draw_buf->header.h * lv_color_format_get_size(draw_buf->header.cf);
+    if (buf_size >= size)
+    {
+        return (void *)draw_buf->data;
+    }
 
+#if defined(LV_FB_TWO_NOT_SCREEN_SIZE) || defined(LV_FB_TWO_SCREEN_SIZE)
+    if (disp->buf_1 && disp->buf_2 &&
+            draw_buf == disp->buf_1 &&
+            (uint32_t)((uintptr_t)disp->buf_2->data - (uintptr_t)disp->buf_1->data) == buf_size &&
+            2 * buf_size >= size)
+    {
+        return (void *)disp->buf_1->data;
+    }
+#endif
 
+#ifndef LCD_FB_USING_NONE
+    if (size <= sizeof(buf2_1))
+    {
+        return (void *)get_draw_buf();
+    }
+#endif
 
-
+    LOG_W("No suitable display buffer found for size: %u", size);
+    return NULL;
+}
 
 void lv_lcd_init(const char *name)
 {
     uint16_t cf;
     uint32_t i;
-
 
     /* LCD Device Init */
     device = rt_device_find(name);
@@ -441,7 +409,6 @@ void lv_lcd_init(const char *name)
     {
         rt_device_control(device, RTGRAPHIC_CTRL_GET_INFO, &info);
     }
-
 
     if ((info.bits_per_pixel != LV_COLOR_DEPTH) && (info.bits_per_pixel != 32 && LV_COLOR_DEPTH != 24))
     {
@@ -467,17 +434,13 @@ void lv_lcd_init(const char *name)
 
     rt_device_control(device, RTGRAPHIC_CTRL_SET_BUF_FORMAT, &cf);
 
-
-
     disp = lv_display_create(LV_HOR_RES_MAX, LV_VER_RES_MAX);
     if (disp == NULL)
     {
         RT_ASSERT(0);
     }
 
-
     static lv_draw_buf_t draw_buf;
-
 
     lv_draw_buf_init(&draw_buf, LV_HOR_RES_MAX, LV_FB_LINE_NUM,
                      LV_COLOR_FORMAT_NATIVE,
@@ -525,20 +488,30 @@ void lv_lcd_init(const char *name)
 
     lv_display_set_driver_data(disp, device);
 
-
-
-
 #ifdef BSP_USING_LCD_FRAMEBUFFER
     drv_lcd_fb_init(name);
     update_fb();
 #endif /* BSP_USING_LCD_FRAMEBUFFER */
 
-
     //disp_drv.monitor_cb = perf_monitor;
-
-
 
 }
 
+/*
+    * @brief Check if the refreshing is done(Including LCD flushing, GPU rendering, etc.)
+    * @return true if done, false if not done
+*/
+bool lv_refreshing_done(void)
+{
+    bool lcd_drawing;
+    rt_device_control(device, RTGRAPHIC_CTRL_GET_BUSY, &lcd_drawing);
+    if (lcd_drawing) return false;
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+    if (drv_epic_is_busy())
+    {
+        return false;
+    }
+
+    return true;
+}
+

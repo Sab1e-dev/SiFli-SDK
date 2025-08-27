@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   main.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2021 - 2021,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2021-2021 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -103,8 +64,6 @@ typedef struct
     uint16_t cccd_hdl;
 } ble_app_char_t;
 
-
-
 #define app_svc_uuid { \
     0x73, 0x69, 0x66, 0x6c, \
     0x69, 0x5f, 0x61, 0x70, \
@@ -127,7 +86,6 @@ typedef struct
 #define BLE_APP_MAX_CONN_COUNT 4
 #define APP_MAX_DESC 2
 #define BLE_APP_BIT_CONVERT_DIGIT_INC(n, m) (((n & (1 << m)) != 0) * (m+1))
-
 
 typedef struct
 {
@@ -211,14 +169,12 @@ struct attm_desc_128 app_att_db[] =
 
 };
 
-
 static uint8_t ble_app_get_dev_by_idx(app_env_t *env, uint8_t conn_idx);
 
 static app_env_t *ble_app_get_env(void)
 {
     return &g_app_env;
 }
-
 
 static void write_cccd(uint8_t current_conn_idx, uint16_t write_handle)
 {
@@ -237,7 +193,6 @@ static void write_cccd(uint8_t current_conn_idx, uint16_t write_handle)
 
     sibles_write_remote_value(env->conn[current_conn_idx].remote_handle, env->conn[current_conn_idx].conn_idx, &value);
     LOG_I("current_conn_idx %d, conn_idx %d", current_conn_idx, env->conn[current_conn_idx].conn_idx);
-
 
     free(write_data);
 }
@@ -267,7 +222,6 @@ static uint8_t ble_app_advertising_event(uint8_t event, void *context, void *dat
     }
     return 0;
 }
-
 
 #define DEFAULT_LOCAL_NAME "SIFLI_APP"
 #define EXAMPLE_LOCAL_NAME "SIFLI_EXAMPLE"
@@ -423,7 +377,6 @@ static void ble_app_service_init(void)
         sibles_register_cbk(env->srv_handle, ble_app_gatts_get_cbk, ble_app_gatts_set_cbk);
 }
 
-
 #ifdef ULOG_USING_FILTER
 static void app_log_filter_set(void)
 {
@@ -463,7 +416,6 @@ int main(void)
     }
     return RT_EOK;
 }
-
 
 static void ble_app_device_connected(app_env_t *env, connection_manager_connect_ind_t *ind)
 {
@@ -526,7 +478,6 @@ static int8_t send_speed_test_packet(uint8_t *data, uint16_t len, uint8_t conn_i
     value.write_type = SIBLES_WRITE_WITHOUT_RSP;
     value.len = len + 4;
     uint16_t command_flag = BLE_SPEED_TEST_FLAG;
-
 
     uint8_t *write_data = malloc(value.len);
     memcpy(write_data, &command_flag, 2);
@@ -594,7 +545,6 @@ void ble_test_ctrl(uint8_t *addr)
     ble_gap_create_connection(&conn_param);
 }
 
-
 static void ble_app_speed_write(void *param)
 {
     app_env_t *env = ble_app_get_env();
@@ -609,14 +559,12 @@ static void ble_app_speed_write(void *param)
     uint8_t *raw_data = malloc(raw_data_len);
     uint32_t data_index = env->current_index;
 
-
     while (data_index <= data_count)
     {
         // here is notify example
         *raw_data = BLE_SPEED_COMMAND_PACKET;
         memcpy(raw_data + 1, &data_index, 4);
         memset(raw_data + 5, 0, raw_data_len - 5);
-
 
         int ret;
         //LOG_I("SEND INDEX %d", data_index);
@@ -645,14 +593,12 @@ static void ble_app_speed_write(void *param)
                     break;
                 }
 
-
                 if (retry == 0 && ret == SIBLES_WIRTE_TX_FLOWCTRL_ERR)
                 {
                     LOG_I("write limit reach");
                 }
             }
         }
-
 
         if (env->response_frequency != 0)
         {
@@ -665,7 +611,6 @@ static void ble_app_speed_write(void *param)
 
         env->current_index++;
     }
-
 
     // LOG_D("send count %d", data_index - 1);
 
@@ -713,7 +658,6 @@ static void send_test_start_handler(uint8_t conn_idx, uint8_t *data, uint16_t si
     *rsp_data = BLE_SPEED_COMMAND_START_RSP;
     send_speed_test_packet_notify(rsp_data, 1, conn_idx);
 
-
     if (type == 0)
     {
         // start record time
@@ -748,7 +692,6 @@ static void send_test_end_rsp_process(uint8_t conn_idx, uint8_t *data)
     {
         LOG_I("test failed with %d", result);
     }
-
 
     ble_gap_disconnect_t dis_conn;
     dis_conn.conn_idx = conn_idx;
@@ -792,8 +735,6 @@ static void send_test_end_handler(uint8_t conn_idx, uint8_t *data, uint16_t size
     LOG_I("send_test_end_handler len %d, count %d", env->packet_len + 4 + 5, env->packet_count);
     speed = (env->packet_len + 4 + 5) * env->packet_count / ((double)(env->time_end - env->time_start) / 1000) / 1000;
     LOG_I("BLE speed %.2lf kB/s", speed);
-
-
 
     send_test_end_response(conn_idx, result, speed * 100);
 }
@@ -876,8 +817,6 @@ static void ble_speed_test_handler(uint8_t conn_idx, uint8_t *data, uint16_t siz
     }
     }
 }
-
-
 
 // process notify
 static void ble_speed_test_rsp_handler(uint8_t conn_idx, uint8_t *data, uint16_t size)
@@ -1012,7 +951,6 @@ static int ble_app_gattc_event_handler(uint16_t event_id, uint8_t *data, uint16_
             ble_speed_test_rsp_handler(conn_idx, ind->value, ind->length);
         }
 
-
         // Notify upper layer
         break;
     }
@@ -1054,7 +992,6 @@ void start_speed_test_search(uint8_t conn_idx)
     sibles_search_service(conn_idx, ATT_UUID_128_LEN, (uint8_t *)app_svc);
     env->conn[conn_idx].search_state = BLE_SPEED_TEST_STATE_SEARCHING;
 }
-
 
 int ble_app_event_handler(uint16_t event_id, uint8_t *data, uint16_t len, uint32_t context)
 {
@@ -1117,7 +1054,6 @@ int ble_app_event_handler(uint16_t event_id, uint8_t *data, uint16_t len, uint32
             //send_test_start_request(ind->conn_idx, 0, env->packet_count, env->packek_len, env->response_frequency);
         }
 
-
         break;
     }
     case SIBLES_MTU_EXCHANGE_IND:
@@ -1178,8 +1114,6 @@ int ble_app_event_handler(uint16_t event_id, uint8_t *data, uint16_t len, uint32
         env->conn[conn_idx].hdl_start = rsp->svc->hdl_start;
         env->conn[conn_idx].hdl_end = rsp->svc->hdl_end;
 
-
-
         uint32_t i;
         uint8_t ready = 0; // This char is madatory
 
@@ -1218,7 +1152,6 @@ int ble_app_event_handler(uint16_t event_id, uint8_t *data, uint16_t len, uint32
     return 0;
 }
 BLE_EVENT_REGISTER(ble_app_event_handler, NULL);
-
 
 static uint8_t ble_app_create_connection(ble_gap_addr_t *peer_addr, uint8_t own_addr_type, uint16_t super_timeout,
         uint16_t conn_itv, uint16_t scan_itv, uint16_t scan_wd)
@@ -1382,7 +1315,6 @@ int cmd_diss(int argc, char *argv[])
             uint16_t t_c = (uint16_t)atoi(argv[2]);
             uint16_t t_f = (uint16_t)atoi(argv[3]);
 
-
             send_test_start_request(0, 0, t_c, 0xFF, t_f);
         }
         else if (strcmp(argv[1], "update_con") == 0)
@@ -1414,9 +1346,5 @@ int cmd_diss(int argc, char *argv[])
     return 0;
 }
 
-
 FINSH_FUNCTION_EXPORT_ALIAS(cmd_diss, __cmd_diss, My device information service.);
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

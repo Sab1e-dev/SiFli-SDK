@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   uart_pc.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <stdio.h>
@@ -67,8 +28,6 @@ struct console_uart
 static struct rt_serial_device _serial;
 
 #define SAVEKEY(key)  do { char ch = key; rt_ringbuffer_put_force(&(_console_uart.rb), &ch, 1); } while (0)
-
-
 
 /**
   * @brief  Print a byte value in hex string.
@@ -108,7 +67,6 @@ static void setchar(char *buffer, unsigned char ch, int offset)
         buffer[60 + offset] = '.';
 }
 
-
 /**
   * @brief  Dump a data in hex, also display ASCII on the right.
   * @param[in] data: data to dump.
@@ -147,7 +105,6 @@ void debug_print_data(char *data, unsigned int offset, int len)
     printf("%s\n", temp);
     memset(temp, ' ', sizeof(temp) - 1);
 }
-
 
 /*
  * Handler for OSKey Thread
@@ -529,7 +486,6 @@ static rt_size_t pc_dma(struct rt_serial_device *serial, rt_uint8_t *buf, rt_siz
     return dNoOfBytesWritten;
 }
 
-
 static int pc_putc(struct rt_serial_device *serial, char c)
 {
     struct console_uart *uart;
@@ -626,7 +582,6 @@ int uart_pc_init()
     /* initialize ring buffer */
     rt_ringbuffer_init(&uart->rb, uart->rx_buffer, sizeof(uart->rx_buffer));
 
-
 #ifdef UART_PORT0_PORT
     /* register UART device */
     rt_hw_serial_register(serial, UART_PORT0_PORT,
@@ -639,4 +594,3 @@ int uart_pc_init()
     return 0;
 }
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

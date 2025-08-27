@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   main.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2021 - 2021,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2021-2021 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <rtthread.h>
@@ -73,7 +34,6 @@ enum ble_app_att_list
     BLE_APP_CLIENT_CHAR_CONFIG_DESCRIPTOR,
     BLE_APP_ATT_NB
 };
-
 
 #define app_svc_uuid { \
     0x73, 0x69, 0x66, 0x6c, \
@@ -122,9 +82,6 @@ static rt_mailbox_t g_app_mb;
 
 static uint8_t g_app_svc[ATT_UUID_128_LEN] = app_svc_uuid;
 
-
-
-
 BLE_GATT_SERVICE_DEFINE_128(app_att_db)
 {
     // Service declaration
@@ -142,14 +99,10 @@ BLE_GATT_SERVICE_DEFINE_128(app_att_db)
                                      BLE_GATT_PERM_READ_ENABLE | BLE_GATT_PERM_WRITE_REQ_ENABLE, BLE_GATT_VALUE_PERM_RI_ENABLE, 2),
 };
 
-
-
-
 static app_env_t *ble_app_get_env(void)
 {
     return &g_app_env;
 }
-
 
 SIBLES_ADVERTISING_CONTEXT_DECLAR(g_app_advertising_bg_context);
 static void ble_write_to_remote();
@@ -175,7 +128,6 @@ static uint8_t ble_app_background_advertising_event(uint8_t event, void *context
     }
     return 0;
 }
-
 
 /* Enable advertise via advertising service. */
 static void ble_app_bg_advertising_start(void)
@@ -221,11 +173,6 @@ static void ble_app_bg_advertising_start(void)
     rt_free(para.adv_data.manufacturer_data);
 }
 
-
-
-
-
-
 SIBLES_ADVERTISING_CONTEXT_DECLAR(g_app_advertising_context);
 
 static uint8_t ble_app_advertising_event(uint8_t event, void *context, void *data)
@@ -256,7 +203,6 @@ static uint8_t ble_app_advertising_event(uint8_t event, void *context, void *dat
     }
     return 0;
 }
-
 
 #define DEFAULT_LOCAL_NAME "SIFLI_APP"
 #define EXAMPLE_LOCAL_NAME "SIFLI_EXAMPLE"
@@ -348,7 +294,6 @@ static void ble_app_ext_advertising_start(void)
     para.config.mode_config.extended_config.adv_sid = 0;
     para.config.mode_config.extended_config.connectable_enable = 1;
 
-
     para.config.max_tx_pwr = 0x7F;
     /* Advertising will re-start after disconnected. */
     // in multi-connection
@@ -403,7 +348,6 @@ static void update_adv_content()
     rt_free(para.rsp_data.completed_name);
     rt_free(para.adv_data.manufacturer_data);
 }
-
 
 // Hanlde read operation
 uint8_t *ble_app_gatts_get_cbk(uint8_t conn_idx, uint8_t idx, uint16_t *len)
@@ -548,7 +492,6 @@ static void ble_app_service_init(void)
         sibles_register_cbk(env->data.srv_handle, ble_app_gatts_get_cbk, ble_app_gatts_set_cbk);
 }
 
-
 void app_timeout_handler(void *parameter)
 {
     app_env_t *env = ble_app_get_env();
@@ -563,9 +506,6 @@ void app_timeout_handler(void *parameter)
         rt_timer_start(env->time_handle);
     }
 }
-
-
-
 
 #ifndef NVDS_AUTO_UPDATE_MAC_ADDRESS_ENABLE
 ble_common_update_type_t ble_request_public_address(bd_addr_t *addr)
@@ -616,7 +556,6 @@ int main(void)
     }
     return RT_EOK;
 }
-
 
 static void ble_app_update_conn_param(uint8_t conn_idx, uint16_t inv_max, uint16_t inv_min, uint16_t timeout)
 {
@@ -792,7 +731,4 @@ void lcpu_rom_config(void)
     HAL_LCPU_CONFIG_set(HAL_LCPU_CONFIG_BT_ACT_CFG, &act_cfg, sizeof(hal_lcpu_bluetooth_act_configt_t));
 }
 #endif
-
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
 

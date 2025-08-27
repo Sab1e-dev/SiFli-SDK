@@ -1,48 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_psram.c
-  * @author Sifli software development team
-  * @brief PSRAM Controller BSP driver
-  This driver is validated by using MSH command 'date'.
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "board.h"
@@ -70,7 +29,6 @@
     #define LOG_TAG                "drv.psram"
     #include <drv_log.h>
 #endif
-
 
 /* -----------------output apis --------------------------------*/
 
@@ -146,7 +104,6 @@ void rt_psram_wait_idle(char *name)
 {
     bsp_psram_wait_idle(name);
 }
-
 
 //#define DRV_PSRAM_TEST
 #ifdef DRV_PSRAM_TEST
@@ -559,7 +516,6 @@ int cmd_psram(int argc, char *argv[])
             LOG_I("FULL read with DMA IT use %d tick, size %dMB, speed %d KBps\n", end - start, total >> 20, total / (end - start));
             LOG_I("data = 0x%x\n", data);
 
-
 #else
             // write from sram to psram, source(sram) use fixed address
             EXT_DMA_Config(0, 1);
@@ -642,7 +598,6 @@ FINSH_FUNCTION_EXPORT_ALIAS(cmd_psram, __cmd_psram, Test psram driver);
 
 #endif  // DRV_PSRAM_TEST
 
-
 #endif
 
 /// @} drv_psram
@@ -662,5 +617,3 @@ FINSH_FUNCTION_EXPORT_ALIAS(cmd_psram, __cmd_psram, Test psram driver);
 /// @} bsp_sample_psram
 /// @} bsp_sample
 
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

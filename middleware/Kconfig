@@ -116,6 +116,7 @@ menu "Sifli middleware"
                 default 14
             config DATA_SVC_MBOX_THREAD_DISABLED
                 bool "Disable MBOX Thread and Related Queue"
+                default y if SOC_SF32LB52X
                 default n
             config DATA_SVC_PROC_THREAD_DISABLED
                 bool "Disable Proc Thread and Related Queue"
@@ -310,18 +311,27 @@ menu "Sifli middleware"
                             default 7
                         if ADC_BUTTON_GROUP1_MAX_NUM > 0
                             config ADC_BUTTON_GROUP1_BUTTON1_VOLT
-                                int "ADC Button1 Voltage"
+                                int "ADC Button1 Voltage (mV)"
                                 default 1000
+                            config ADC_BUTTON_GROUP1_BUTTON1_RANGE
+                                int "ADC Button1 Voltage Valid Range (mV)"
+                                default 50
                         endif     
                         if ADC_BUTTON_GROUP1_MAX_NUM > 1
                             config ADC_BUTTON_GROUP1_BUTTON2_VOLT
-                                int "ADC Button2 Voltage"
+                                int "ADC Button2 Voltage (mV)"
                                 default 1000
+                            config ADC_BUTTON_GROUP1_BUTTON2_RANGE
+                                int "ADC Button2 Voltage Valid Range (mV)"
+                                default 50
                         endif     
                         if ADC_BUTTON_GROUP1_MAX_NUM > 2
                             config ADC_BUTTON_GROUP1_BUTTON3_VOLT
-                                int "ADC Button3 Voltage"
+                                int "ADC Button3 Voltage (mV)"
                                 default 1000
+                            config ADC_BUTTON_GROUP1_BUTTON3_RANGE
+                                int "ADC Button3 Voltage Valid Range (mV)"
+                                default 50
                         endif     
                     endif  
                     if ADC_BUTTON_GROUP_NUM > 1
@@ -334,18 +344,27 @@ menu "Sifli middleware"
                             default 7
                         if ADC_BUTTON_GROUP2_MAX_NUM > 0
                             config ADC_BUTTON_GROUP2_BUTTON1_VOLT
-                                int "ADC Button1 Voltage"
+                                int "ADC Button1 Voltage (mV)"
                                 default 1000
+                            config ADC_BUTTON_GROUP2_BUTTON1_RANGE
+                                int "ADC Button1 Voltage Valid Range (mV)"
+                                default 50
                         endif     
                         if ADC_BUTTON_GROUP2_MAX_NUM > 1
                             config ADC_BUTTON_GROUP2_BUTTON2_VOLT
-                                int "ADC Button2 Voltage"
+                                int "ADC Button2 Voltage (mV)"
                                 default 1000
+                            config ADC_BUTTON_GROUP2_BUTTON2_RANGE
+                                int "ADC Button2 Voltage Valid Range (mV)"
+                                default 50
                         endif     
                         if ADC_BUTTON_GROUP2_MAX_NUM > 2
                             config ADC_BUTTON_GROUP2_BUTTON3_VOLT
-                                int "ADC Button3 Voltage"
+                                int "ADC Button3 Voltage (mV)"
                                 default 1000
+                            config ADC_BUTTON_GROUP2_BUTTON3_RANGE
+                                int "ADC Button3 Voltage Valid Range (mV)"
+                                default 50
                         endif     
                     endif                     
                 endif         

@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   pps960.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <string.h>
@@ -59,11 +20,9 @@
 
 #include "Mac_Hr.h"
 
-
 #define DRV_DEBUG
 #define LOG_TAG              "drv.afe"
 #include <drv_log.h>
-
 
 // move it to menuconfig if needed
 //#define AFE_I2C_BUS         "i2c3"
@@ -129,7 +88,6 @@ void PPS960_sample_open(void)
     }
     else
         LOG_E("Create heart rate thread fail\n");
-
 
     struct rt_device_pin_mode m;
     m.pin = HRM_RDY_GPIO_BIT;
@@ -216,7 +174,6 @@ int AFE4404_I2C_Init()
 
     return 0;
 }
-
 
 int pps960_Init_gpio(void)
 {
@@ -473,7 +430,6 @@ int pps960_self_check(void)
     return 0;
 }
 
-
 void PPS960_writeReg(uint8_t regaddr, uint32_t wdata)
 {
     uint8_t temp[4];
@@ -527,7 +483,6 @@ uint32_t PPS960_readReg(uint8_t regaddr)
     return 0XFFFFFFFF;
 }
 
-
 #define DRV_HR_TEST
 #ifdef DRV_HR_TEST
 
@@ -563,7 +518,6 @@ void PPS960_output_start(void)
         LOG_I("Create heart rate output thread fail\n");
 
 }
-
 
 int pps960_test(int argc, char *argv[])
 {
@@ -640,4 +594,3 @@ FINSH_FUNCTION_EXPORT_ALIAS(pps960_test, __cmd_hr, Test hw hr);
 
 #endif  //DRV_HR_TEST
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

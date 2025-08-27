@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   drv_io.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include "string.h"
@@ -91,7 +52,6 @@ void BSP_PIN_Init(void)
     HAL_PIN_Set(PAD_SIP06, PSRAM_CLKB, PIN_NOPULL, 1);          // Legacy interface only.
     HAL_PIN_Set(PAD_SIP00, PSRAM_DM0, PIN_NOPULL, 1);
 #endif
-
 
 #ifdef BSP_USING_USBD
     HAL_PIN_Set_Analog(PAD_PA01, 1);
@@ -162,7 +122,6 @@ void BSP_PIN_Init(void)
 
     HAL_PIN_Set(PAD_PA52, GPIO_A52, PIN_PULLUP, 1);             // BT_PWREN
 
-
     HAL_PIN_Set(PAD_PA54, GPIO_A54, PIN_PULLDOWN, 1);           // I2SDAC_VBAT_EN
     HAL_PIN_Set(PAD_PA56, GPTIM2_CH4, PIN_PULLDOWN, 1);         // MOT_PWM
 
@@ -229,8 +188,6 @@ void BSP_PIN_Init(void)
     //HAL_PIN_Set(PAD_PB31, GPIO_B31, PIN_NOPULL, 0);       // SWCLK
     //HAL_PIN_Set(PAD_PB34, GPIO_B34, PIN_NOPULL, 0);       // SWDIO
 
-
-
     HAL_PIN_Set(PAD_PB45, USART3_TXD, PIN_NOPULL, 0);       // USART3 TX/SPI3_INT
     HAL_PIN_Set(PAD_PB46, USART3_RXD, PIN_PULLUP, 0);       // USART3 RX
 
@@ -238,5 +195,3 @@ void BSP_PIN_Init(void)
     HAL_PIN_Set(PAD_PB48, GPIO_B48, PIN_PULLUP, 0);         // PWRKEY_MCU
 }
 
-
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

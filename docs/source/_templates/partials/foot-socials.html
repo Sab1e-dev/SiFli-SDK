@@ -1,0 +1,13 @@
+<div class="sy-foot-socials">
+{%- include "components/foot-socials.html" -%}
+{%- if portal_url %}
+<a href="{{ portal_url }}" aria-label="Portal">
+<iconify-icon icon="tabler:home-filled"></iconify-icon>
+</a>
+{%- endif -%}
+{%- if wiki_url %}
+<a href="{{ wiki_url }}" aria-label="Wiki">
+<iconify-icon icon="tdesign:book-filled"></iconify-icon>
+</a>
+{%- endif -%}
+</div>

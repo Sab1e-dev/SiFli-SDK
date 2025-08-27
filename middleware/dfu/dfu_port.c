@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   dfu_port.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2021 - 2021,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2021-2021 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <stdio.h>
@@ -69,9 +30,6 @@
 
 #define LOG_TAG "DFU_P"
 #include "log.h"
-
-
-
 
 typedef struct
 {
@@ -104,7 +62,6 @@ typedef struct
     } rc;
 
 } dfu_protocol_port_env_t;
-
 
 static OS_THREAD_DECLAR(g_dfu_tid);
 static OS_SEM_DECLAR(g_dfu_sem);
@@ -152,8 +109,6 @@ static uint8_t ble_app_advertising_event(uint8_t event, void *context, void *dat
     }
     return 0;
 }
-
-
 
 #define DEFAULT_LOCAL_NAME "OTA"
 /* Enable advertise via advertising service. */
@@ -248,8 +203,13 @@ int8_t dfu_protocol_reset_env_prepare(void)
 {
 #ifdef BSP_BLE_SIBLES
     sifli_ble_enable();
+#ifdef OS_ADAPTOR_V2
+    g_dfu_sem = os_sem_create("dfu_sem", 0);
+    g_dfu_tid = os_thread_create("dfu_tid", dfu_protocol_reset_entry, NULL, NULL, 4096, RT_MAIN_THREAD_PRIORITY + 8, 10);
+#else
     os_sem_create(g_dfu_sem, 0);
     os_thread_create(g_dfu_tid, dfu_protocol_reset_entry, NULL, NULL, 4096, RT_MAIN_THREAD_PRIORITY + 8, 10);
+#endif
     return 0;
 #else // BSP_BLE_SIBLES
     return -1;
@@ -376,8 +336,6 @@ uint8_t *dfu_protocol_packet_buffer_alloc(dfu_protocol_msg_id_t msg_id, uint16_t
     return (uint8_t *)&packet->data;
 }
 
-
-
 int8_t dfu_protocol_packet_send(uint8_t *data)
 {
     if (!data)
@@ -454,7 +412,6 @@ static void ble_dfu_serial_callback(uint8_t event, uint8_t *data)
         break;
     }
 
-
 }
 #endif
 
@@ -517,7 +474,6 @@ static int8_t ble_dfu_service_send_data(dfu_protocol_port_env_t *env, ble_serial
     return 0;
 }
 
-
 static int ble_dfu_serial_service_callback(data_callback_arg_t *arg)
 {
     OS_ASSERT(arg);
@@ -565,7 +521,6 @@ static int ble_dfu_serial_service_callback(data_callback_arg_t *arg)
     return 0;
 }
 
-
 // For dual core.
 //BLE_SERIAL_TRAN_EXPORT(BLE_DFU_CATEID, ble_dfu_serial_callback);
 
@@ -579,7 +534,6 @@ int ble_dfu_serial_service_subscribe(void)
     datac_subscribe(env->srv_handle, "DFUS", ble_dfu_serial_service_callback, 0);
     return 0;
 }
-
 
 INIT_APP_EXPORT(ble_dfu_serial_service_subscribe);
 #else
@@ -692,4 +646,3 @@ void ble_dfu_request_connection_priority()
 #endif
 }
 
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/

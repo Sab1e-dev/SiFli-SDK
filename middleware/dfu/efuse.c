@@ -1,46 +1,7 @@
-/**
-  ******************************************************************************
-  * @file   efuse.c
-  * @author Sifli software development team
-  ******************************************************************************
-*/
-/**
- * @attention
- * Copyright (c) 2019 - 2022,  Sifli Technology
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
  *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form, except as embedded into a Sifli integrated circuit
- *    in a product or a software update for such product, must reproduce the above
- *    copyright notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. Neither the name of Sifli nor the names of its contributors may be used to endorse
- *    or promote products derived from this software without specific prior written permission.
- *
- * 4. This software, with or without modification, must only be used with a
- *    Sifli integrated circuit.
- *
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- *
- * THIS SOFTWARE IS PROVIDED BY SIFLI TECHNOLOGY "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL SIFLI TECHNOLOGY OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #include <string.h>
@@ -109,7 +70,6 @@ int sifli_hw_efuse_read(uint8_t id, uint8_t *data, int size)
 
 }
 
-
 int sifli_hw_efuse_read_init(void)
 {
     //HAL_StatusTypeDef ret= HAL_EFUSE_Init();
@@ -118,7 +78,6 @@ int sifli_hw_efuse_read_init(void)
     hwp_efusec->TIMR = 0x2D08F;
     return 0;
 }
-
 
 int sifli_hw_efuse_read_all(void)
 {
@@ -218,7 +177,6 @@ int sifli_hw_efuse_write(uint8_t id, uint8_t *data, int size)
 }
 #endif
 
-
 int sifli_hw_dec(uint8_t *key, uint8_t *in_data, uint8_t *out_data, int size, uint32_t init_offset)
 {
 #if defined(OTA_55X) || defined (OTA_56X_NAND)
@@ -259,7 +217,6 @@ int sifli_hw_dec(uint8_t *key, uint8_t *in_data, uint8_t *out_data, int size, ui
     return 0;
 #endif
 }
-
 
 void sifli_hw_init_xip_key(uint8_t *enc_img_key)
 {
@@ -302,7 +259,6 @@ int sifli_hw_dec_key(uint8_t *in_data, uint8_t *out_data, int size)
     key = &root_key[0];
     sifli_hw_efuse_read(EFUSE_ID_ROOT, key, DFU_KEY_SIZE);
 
-
     static mbedtls_aes_context ctx;
     static uint8_t stream_block[16];
     mbedtls_aes_init(&ctx);
@@ -311,10 +267,8 @@ int sifli_hw_dec_key(uint8_t *in_data, uint8_t *out_data, int size)
     mbedtls_aes_crypt_cbc(&ctx, MBEDTLS_AES_DECRYPT, size, &uid[0], in_data, out_data);
 #endif
 
-
     return 0;
 }
-
 
 void sifli_hw_enc(uint8_t *in_data, uint8_t *out_data, int size)
 {
@@ -351,7 +305,6 @@ void sifli_hw_enc(uint8_t *in_data, uint8_t *out_data, int size)
 #endif
 }
 
-
 void sifli_hw_enc_with_key(uint8_t *key, uint8_t *in_data, uint8_t *out_data, int size, uint32_t init_offset)
 {
     uint32_t offset = 0;
@@ -373,4 +326,4 @@ void sifli_hw_enc_with_key(uint8_t *key, uint8_t *in_data, uint8_t *out_data, in
 
 #endif
 }
-/************************ (C) COPYRIGHT Sifli Technology *******END OF FILE****/
+
