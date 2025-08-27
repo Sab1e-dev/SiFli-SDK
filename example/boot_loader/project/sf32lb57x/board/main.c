@@ -16,6 +16,8 @@
 #include "boot_flash.h"
 #include "secboot.h"
 
+void HAL_MspInit(void);
+
 int board_boot_src;
 ALIGN(4) struct sec_configuration sec_config_cache;
 
