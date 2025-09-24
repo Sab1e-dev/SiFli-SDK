@@ -115,6 +115,9 @@ HAL_StatusTypeDef HAL_EPICTL_Start(EPICTL_HandleTypeDef *epictl, EPICTL_DataType
 */
 uint32_t HAL_EPICTL_CMPR_Target_size(uint32_t chunk_pixels, uint32_t color_mode, uint32_t cmpr_rate);
 
+//Get the bytes of compressed line pixels with specified compression rate
+#define HAL_EPICTL_GetCompressedBytes(line_pixels, pixel_bytes, cmpr_rate) CMPR_GetCompressedBytes(line_pixels, pixel_bytes, cmpr_rate)
+
 #define HAL_EPICTL_CMPR_GetConfig(color_mode, p_cfg0, p_cfg1) CMPR_GetConfig(color_mode, p_cfg0, p_cfg1)
 #endif /*HAL_EPICTL_ENABLED*/
 

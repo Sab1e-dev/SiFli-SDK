@@ -25,7 +25,7 @@ typedef struct
     __IO uint32_t LAYER0_FILTER;
     __IO uint32_t LAYER0_SRC;
     __IO uint32_t LAYER0_FILL;
-    __IO uint32_t RSVD3[3];
+    __IO uint32_t RSVD1[3];
     __IO uint32_t LAYER1_CONFIG;
     __IO uint32_t LAYER1_TL_POS;
     __IO uint32_t LAYER1_BR_POS;
@@ -34,6 +34,10 @@ typedef struct
     __IO uint32_t LAYER1_FILL;
     __IO uint32_t DITHER_CONF;
     __IO uint32_t DITHER_LFSR;
+    __IO uint32_t CONV_CFG;
+    __IO uint32_t GREY_CONV;
+    __IO uint32_t FLEX_SEL_L;
+    __IO uint32_t FLEX_SEL_H;
     __IO uint32_t LCD_CONF;
     __IO uint32_t LCD_IF_CONF;
     __IO uint32_t LCD_MEM;
@@ -76,7 +80,6 @@ typedef struct
     __IO uint32_t TCON_IF_CONF2;
     __IO uint32_t TCON_IF_CONF3;
     __IO uint32_t TCON_IF_CONF4;
-    __IO uint32_t RSVD2[2];
     __IO uint32_t COENG_CFG;
     __IO uint32_t JPEG_ENG_CFG0;
     __IO uint32_t JPEG_ENG_CFG1;
@@ -87,7 +90,6 @@ typedef struct
     __IO uint32_t PERF_CNT;
     __IO uint32_t LINE_BUF0;
     __IO uint32_t LINE_BUF1;
-    __IO uint32_t RSVD1[2];
     __IO uint32_t CANVAS_STAT0;
     __IO uint32_t CANVAS_STAT1;
     __IO uint32_t OL0_STAT;
@@ -423,6 +425,53 @@ typedef struct
 #define LCD_IF_DITHER_LFSR_INIT_VAL_Pos  (0U)
 #define LCD_IF_DITHER_LFSR_INIT_VAL_Msk  (0xFFFFFFFFUL << LCD_IF_DITHER_LFSR_INIT_VAL_Pos)
 #define LCD_IF_DITHER_LFSR_INIT_VAL     LCD_IF_DITHER_LFSR_INIT_VAL_Msk
+
+/**************** Bit definition for LCD_IF_CONV_CFG register *****************/
+#define LCD_IF_CONV_CFG_FORMAT_Pos      (0U)
+#define LCD_IF_CONV_CFG_FORMAT_Msk      (0x7UL << LCD_IF_CONV_CFG_FORMAT_Pos)
+#define LCD_IF_CONV_CFG_FORMAT          LCD_IF_CONV_CFG_FORMAT_Msk
+
+/**************** Bit definition for LCD_IF_GREY_CONV register ****************/
+#define LCD_IF_GREY_CONV_COEF0_Pos      (0U)
+#define LCD_IF_GREY_CONV_COEF0_Msk      (0x3FFUL << LCD_IF_GREY_CONV_COEF0_Pos)
+#define LCD_IF_GREY_CONV_COEF0          LCD_IF_GREY_CONV_COEF0_Msk
+#define LCD_IF_GREY_CONV_COEF1_Pos      (10U)
+#define LCD_IF_GREY_CONV_COEF1_Msk      (0x3FFUL << LCD_IF_GREY_CONV_COEF1_Pos)
+#define LCD_IF_GREY_CONV_COEF1          LCD_IF_GREY_CONV_COEF1_Msk
+#define LCD_IF_GREY_CONV_COEF2_Pos      (20U)
+#define LCD_IF_GREY_CONV_COEF2_Msk      (0x3FFUL << LCD_IF_GREY_CONV_COEF2_Pos)
+#define LCD_IF_GREY_CONV_COEF2          LCD_IF_GREY_CONV_COEF2_Msk
+#define LCD_IF_GREY_CONV_ORDER_Pos      (30U)
+#define LCD_IF_GREY_CONV_ORDER_Msk      (0x1UL << LCD_IF_GREY_CONV_ORDER_Pos)
+#define LCD_IF_GREY_CONV_ORDER          LCD_IF_GREY_CONV_ORDER_Msk
+
+/*************** Bit definition for LCD_IF_FLEX_SEL_L register ****************/
+#define LCD_IF_FLEX_SEL_L_BIT0_Pos      (0U)
+#define LCD_IF_FLEX_SEL_L_BIT0_Msk      (0x1FUL << LCD_IF_FLEX_SEL_L_BIT0_Pos)
+#define LCD_IF_FLEX_SEL_L_BIT0          LCD_IF_FLEX_SEL_L_BIT0_Msk
+#define LCD_IF_FLEX_SEL_L_BIT1_Pos      (5U)
+#define LCD_IF_FLEX_SEL_L_BIT1_Msk      (0x1FUL << LCD_IF_FLEX_SEL_L_BIT1_Pos)
+#define LCD_IF_FLEX_SEL_L_BIT1          LCD_IF_FLEX_SEL_L_BIT1_Msk
+#define LCD_IF_FLEX_SEL_L_BIT2_Pos      (10U)
+#define LCD_IF_FLEX_SEL_L_BIT2_Msk      (0x1FUL << LCD_IF_FLEX_SEL_L_BIT2_Pos)
+#define LCD_IF_FLEX_SEL_L_BIT2          LCD_IF_FLEX_SEL_L_BIT2_Msk
+#define LCD_IF_FLEX_SEL_L_BIT3_Pos      (15U)
+#define LCD_IF_FLEX_SEL_L_BIT3_Msk      (0x1FUL << LCD_IF_FLEX_SEL_L_BIT3_Pos)
+#define LCD_IF_FLEX_SEL_L_BIT3          LCD_IF_FLEX_SEL_L_BIT3_Msk
+
+/*************** Bit definition for LCD_IF_FLEX_SEL_H register ****************/
+#define LCD_IF_FLEX_SEL_H_BIT4_Pos      (0U)
+#define LCD_IF_FLEX_SEL_H_BIT4_Msk      (0x1FUL << LCD_IF_FLEX_SEL_H_BIT4_Pos)
+#define LCD_IF_FLEX_SEL_H_BIT4          LCD_IF_FLEX_SEL_H_BIT4_Msk
+#define LCD_IF_FLEX_SEL_H_BIT5_Pos      (5U)
+#define LCD_IF_FLEX_SEL_H_BIT5_Msk      (0x1FUL << LCD_IF_FLEX_SEL_H_BIT5_Pos)
+#define LCD_IF_FLEX_SEL_H_BIT5          LCD_IF_FLEX_SEL_H_BIT5_Msk
+#define LCD_IF_FLEX_SEL_H_BIT6_Pos      (10U)
+#define LCD_IF_FLEX_SEL_H_BIT6_Msk      (0x1FUL << LCD_IF_FLEX_SEL_H_BIT6_Pos)
+#define LCD_IF_FLEX_SEL_H_BIT6          LCD_IF_FLEX_SEL_H_BIT6_Msk
+#define LCD_IF_FLEX_SEL_H_BIT7_Pos      (15U)
+#define LCD_IF_FLEX_SEL_H_BIT7_Msk      (0x1FUL << LCD_IF_FLEX_SEL_H_BIT7_Pos)
+#define LCD_IF_FLEX_SEL_H_BIT7          LCD_IF_FLEX_SEL_H_BIT7_Msk
 
 /**************** Bit definition for LCD_IF_LCD_CONF register *****************/
 #define LCD_IF_LCD_CONF_TARGET_LCD_Pos  (0U)

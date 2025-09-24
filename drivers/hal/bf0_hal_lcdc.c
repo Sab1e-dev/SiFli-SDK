@@ -97,6 +97,19 @@ static void HAL_LCDC_JDIParallelInit(LCDC_HandleTypeDef *lcdc);
 #define GET_LCDC_SYSID(lcdc) ((LCDC1 == ((lcdc)->Instance))?CORE_ID_HCPU:CORE_ID_LCPU)
 #define LCDC_DELAY_NS(ns) HAL_Delay_us(((ns)/1000) + 1)
 
+//write single command
+#define lcdc_single_wr ((0 << LCD_IF_LCD_SINGLE_TYPE_Pos)|(1 << LCD_IF_LCD_SINGLE_WR_TRIG_Pos) |(0 << LCD_IF_LCD_SINGLE_RD_TRIG_Pos))
+//write single date
+#define lcdc_single_wd ((1 << LCD_IF_LCD_SINGLE_TYPE_Pos)|(1 << LCD_IF_LCD_SINGLE_WR_TRIG_Pos) |(0 << LCD_IF_LCD_SINGLE_RD_TRIG_Pos))
+//read single command
+#define lcdc_single_rr ((0 << LCD_IF_LCD_SINGLE_TYPE_Pos)|(0 << LCD_IF_LCD_SINGLE_WR_TRIG_Pos) |(1 << LCD_IF_LCD_SINGLE_RD_TRIG_Pos))
+//read single data
+#ifndef LCD_IF_LCD_SINGLE_RD_TYPE
+    #define lcdc_single_rd ((1 << LCD_IF_LCD_SINGLE_TYPE_Pos)|(0 << LCD_IF_LCD_SINGLE_WR_TRIG_Pos) |(1 << LCD_IF_LCD_SINGLE_RD_TRIG_Pos))
+#else
+    #define lcdc_single_rd ((1 << LCD_IF_LCD_SINGLE_RD_TYPE_Pos) | (1 << LCD_IF_LCD_SINGLE_TYPE_Pos)|(0 << LCD_IF_LCD_SINGLE_WR_TRIG_Pos) |(1 << LCD_IF_LCD_SINGLE_RD_TRIG_Pos))
+#endif /* LCD_IF_LCD_SINGLE_RD_TYPE */
+
 #ifdef HAL_DSI_MODULE_ENABLED
     /**
     * @brief  [Obsolete]   Send layer data to LCD by several memory write ops.
@@ -1217,7 +1230,7 @@ static HAL_StatusTypeDef SendSingleCmd(LCDC_HandleTypeDef *lcdc, uint32_t addr, 
             {
                 WAIT_LCDC_SINGLE_BUSY(lcdc);
                 lcdc->Instance->LCD_WR = (addr >> ((addr_len - 1) << 3)) & 0xFF;
-                lcdc->Instance->LCD_SINGLE = LCD_IF_LCD_SINGLE_WR_TRIG;
+                lcdc->Instance->LCD_SINGLE = lcdc_single_wr;
 
                 if (byte_gap > 1) HAL_Delay_us(byte_gap);
 
@@ -1232,7 +1245,7 @@ static HAL_StatusTypeDef SendSingleCmd(LCDC_HandleTypeDef *lcdc, uint32_t addr, 
 
             lcdc->Instance->SPI_IF_CONF = config;
             lcdc->Instance->LCD_WR = (addr);
-            lcdc->Instance->LCD_SINGLE = LCD_IF_LCD_SINGLE_WR_TRIG;
+            lcdc->Instance->LCD_SINGLE = lcdc_single_wr;
         }
     }
     else if (HAL_LCDC_IS_DBI_IF(lcdc->Init.lcd_itf) || HAL_LCDC_IS_DSI_IF(lcdc->Init.lcd_itf))
@@ -1241,7 +1254,7 @@ static HAL_StatusTypeDef SendSingleCmd(LCDC_HandleTypeDef *lcdc, uint32_t addr, 
         {
             WaitBusy(lcdc);
             lcdc->Instance->LCD_WR = (addr >> ((addr_len - 1) << 3)) & 0xFF;
-            lcdc->Instance->LCD_SINGLE = LCD_IF_LCD_SINGLE_WR_TRIG;
+            lcdc->Instance->LCD_SINGLE = lcdc_single_wr;
 
             addr_len--;
         }
@@ -1343,7 +1356,15 @@ static HAL_StatusTypeDef LayerUpdate(LCDC_HandleTypeDef *lcdc)
     /*** 1. setup canvas info ***/
     roi_w   = lcdc->roi.x1  - lcdc->roi.x0  + 1;
     roi_h   = lcdc->roi.y1  - lcdc->roi.y0  + 1;
-    lcdc->Instance->CANVAS_BG = (lcdc->bg.r << LCD_IF_CANVAS_BG_RED_Pos) | (lcdc->bg.g << LCD_IF_CANVAS_BG_GREEN_Pos) | (lcdc->bg.b << LCD_IF_CANVAS_BG_BLUE_Pos);
+
+    reg = lcdc->Instance->CANVAS_BG;
+    reg &= ~(LCD_IF_CANVAS_BG_RED_Msk | LCD_IF_CANVAS_BG_GREEN_Msk | LCD_IF_CANVAS_BG_BLUE_Msk);
+    reg |= (lcdc->bg.r << LCD_IF_CANVAS_BG_RED_Pos)&LCD_IF_CANVAS_BG_RED_Msk;
+    reg |= (lcdc->bg.g << LCD_IF_CANVAS_BG_GREEN_Pos)&LCD_IF_CANVAS_BG_GREEN_Msk;
+    reg |= (lcdc->bg.b << LCD_IF_CANVAS_BG_BLUE_Pos)&LCD_IF_CANVAS_BG_BLUE_Msk;
+
+    lcdc->Instance->CANVAS_BG = reg;
+
 
     if (LCDC_IS_TLBR_OVERFLOW(LCD_IF_CANVAS, lcdc->roi.x0, lcdc->roi.y0, lcdc->roi.x1, lcdc->roi.y1))
     {
@@ -1764,6 +1785,24 @@ static HAL_StatusTypeDef _SendLayerData(LCDC_HandleTypeDef *lcdc, LCDC_AsyncMode
         }
     }
 #endif /* LCDC_SUPPORT_TE_WINDOW */
+#ifdef LCD_IF_CANVAS_BG_LB_BYPASS
+    if (0)
+    {
+
+    }
+#ifdef LCDC_SUPPORT_EXTENAL_LINEBUF
+    else if ((0 == lcdc->sram_line_buf0) && (0 == lcdc->sram_line_buf1))
+    {
+        lcdc->Instance->LINE_BUF0 = (uint32_t) lcdc->sram_line_buf0;
+        lcdc->Instance->LINE_BUF1 = (uint32_t) lcdc->sram_line_buf1;
+        lcdc->Instance->CANVAS_BG |= LCD_IF_CANVAS_BG_LB_BYPASS;
+    }
+#endif /* LCDC_SUPPORT_EXTENAL_LINEBUF */
+    else
+    {
+        lcdc->Instance->CANVAS_BG &= ~LCD_IF_CANVAS_BG_LB_BYPASS;
+    }
+#endif /* LCD_IF_CANVAS_BG_LB_BYPASS */
 
     g_LCDC_CpltCallback = LCDC_TransCpltCallback;
     if (LCDC_ASYNC_MODE == async_mode)  lcdc->debug_cnt1++;
@@ -2701,7 +2740,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_ReadDatas(LCDC_HandleTypeDef *lcdc, ui
 
 
             lcdc->Instance->SPI_IF_CONF = config;
-            lcdc->Instance->LCD_SINGLE = LCD_IF_LCD_SINGLE_RD_TRIG | LCD_IF_LCD_SINGLE_TYPE;;
+            lcdc->Instance->LCD_SINGLE = lcdc_single_rd;
 
             if (HAL_TIMEOUT == WaitBusy(lcdc)) goto READ_TIMEOUT;
 
@@ -2723,7 +2762,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_ReadDatas(LCDC_HandleTypeDef *lcdc, ui
 
         for (i = 0; i < data_len; i++)
         {
-            lcdc->Instance->LCD_SINGLE = LCD_IF_LCD_SINGLE_RD_TRIG | LCD_IF_LCD_SINGLE_TYPE;
+            lcdc->Instance->LCD_SINGLE = lcdc_single_rd;
             if (HAL_TIMEOUT == WaitBusy(lcdc)) goto READ_TIMEOUT;
             *(p_data + i) = (uint8_t)(lcdc->Instance->LCD_RD & 0xff);
         }
@@ -2829,7 +2868,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_WriteDatas(LCDC_HandleTypeDef *lcdc, u
 
                 WAIT_LCDC_SINGLE_BUSY(lcdc);
                 lcdc->Instance->LCD_WR = (addr >> ((addr_len - 1) << 3)) & 0xFF;
-                lcdc->Instance->LCD_SINGLE = LCD_IF_LCD_SINGLE_WR_TRIG;
+                lcdc->Instance->LCD_SINGLE = lcdc_single_wr;
 
                 if (byte_gap > 1) HAL_Delay_us(byte_gap);
 
@@ -2850,7 +2889,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_WriteDatas(LCDC_HandleTypeDef *lcdc, u
 
                     WAIT_LCDC_SINGLE_BUSY(lcdc);
                     lcdc->Instance->LCD_WR = *p_data;
-                    lcdc->Instance->LCD_SINGLE = LCD_IF_LCD_SINGLE_WR_TRIG | LCD_IF_LCD_SINGLE_TYPE;
+                    lcdc->Instance->LCD_SINGLE = lcdc_single_wd;
 
                     if (byte_gap > 1) HAL_Delay_us(byte_gap);
 
@@ -2873,7 +2912,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_WriteDatas(LCDC_HandleTypeDef *lcdc, u
 
 
             lcdc->Instance->LCD_WR = addr;
-            lcdc->Instance->LCD_SINGLE = LCD_IF_LCD_SINGLE_WR_TRIG;
+            lcdc->Instance->LCD_SINGLE = lcdc_single_wr;
 
 
 
@@ -2900,7 +2939,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_WriteDatas(LCDC_HandleTypeDef *lcdc, u
                     MODIFY_REG(lcdc->Instance->SPI_IF_CONF, LCD_IF_SPI_IF_CONF_WR_LEN_Msk, (l - 1) << LCD_IF_SPI_IF_CONF_WR_LEN_Pos);
 
                     lcdc->Instance->LCD_WR = v;
-                    lcdc->Instance->LCD_SINGLE = LCD_IF_LCD_SINGLE_WR_TRIG | LCD_IF_LCD_SINGLE_TYPE;
+                    lcdc->Instance->LCD_SINGLE = lcdc_single_wd;
                 }
                 while (data_len > 0);
             }
@@ -2914,7 +2953,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_WriteDatas(LCDC_HandleTypeDef *lcdc, u
         {
             WaitBusy(lcdc);
             lcdc->Instance->LCD_WR = (addr >> ((addr_len - 1) << 3)) & 0xFF;
-            lcdc->Instance->LCD_SINGLE = LCD_IF_LCD_SINGLE_WR_TRIG;
+            lcdc->Instance->LCD_SINGLE = lcdc_single_wr;
 
             addr_len--;
         }
@@ -2927,7 +2966,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_WriteDatas(LCDC_HandleTypeDef *lcdc, u
             {
                 WaitBusy(lcdc);
                 lcdc->Instance->LCD_WR = *p_data;
-                lcdc->Instance->LCD_SINGLE = LCD_IF_LCD_SINGLE_WR_TRIG | LCD_IF_LCD_SINGLE_TYPE;
+                lcdc->Instance->LCD_SINGLE = lcdc_single_wd;
 
                 data_len--;
                 p_data++;
@@ -3459,9 +3498,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_SendLayerData2Reg(LCDC_HandleTypeDef *
 
 
 
-#define lcdc_single_wr ((0 << LCD_IF_LCD_SINGLE_TYPE_Pos)|(1 << LCD_IF_LCD_SINGLE_WR_TRIG_Pos) |(0 << LCD_IF_LCD_SINGLE_RD_TRIG_Pos))
-#define lcdc_single_wd ((1 << LCD_IF_LCD_SINGLE_TYPE_Pos)|(1 << LCD_IF_LCD_SINGLE_WR_TRIG_Pos) |(0 << LCD_IF_LCD_SINGLE_RD_TRIG_Pos))
-#define lcdc_single_rr ((0 << LCD_IF_LCD_SINGLE_TYPE_Pos)|(0 << LCD_IF_LCD_SINGLE_WR_TRIG_Pos) |(1 << LCD_IF_LCD_SINGLE_RD_TRIG_Pos))
+
 
 
 static void SPI_AUX_RST_HW_FSM(void)
@@ -4515,9 +4552,6 @@ static void SPI_AUX_HW_FSM_START(LCDC_HandleTypeDef *lcdc)
     uint32_t frame_cmd = lcdc->Init.cfg.spi.frame_cmd; //0xDE006100
     uint32_t line_cmd  = lcdc->Init.cfg.spi.line_cmd; //0xDE006000;
     uint32_t porch_line_cmd = lcdc->Init.cfg.spi.porch_cmd;
-    uint32_t lcdc_single_wr = (0 << LCD_IF_LCD_SINGLE_TYPE_Pos) |
-                              (1 << LCD_IF_LCD_SINGLE_WR_TRIG_Pos) |
-                              (0 << LCD_IF_LCD_SINGLE_RD_TRIG_Pos);
 
 
 #ifdef hwp_busmon1

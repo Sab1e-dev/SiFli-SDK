@@ -15,7 +15,9 @@
 #define __SIFLI_CMPR_H
 #include "bf0_hal_def.h"
 
-
+#ifndef HAL_ALIGN
+    #define HAL_ALIGN(size, align)           (((size) + (align) - 1) & ~((align) - 1))
+#endif /* HAL_ALIGN */
 
 #define MAX_CMPR_TBL_SIZE (3)
 //const float rgb565_cmpr_rate_tbl[MAX_CMPR_TBL_SIZE] = {1.33, 1.47, 1.6, 1.73, 1.87, 1.93, 2, 2.13, 2.26, 2.4};
@@ -45,17 +47,17 @@
     #define CMPR_2_ARGB8888_TGT_SIZE(chunk_pixels) ROUNDED_TARGET_SIZE(chunk_pixels*4, 100, 293)
     #define CMPR_3_ARGB8888_TGT_SIZE(chunk_pixels) ROUNDED_TARGET_SIZE(chunk_pixels*4, 25, 80)
 
-    #define CMPR_1_RGB565_DATA_COUNT(pixels)     (CMPR_CHUNKS(pixels) * 6 * CMPR_1_RGB565_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
-    #define CMPR_2_RGB565_DATA_COUNT(pixels)     (CMPR_CHUNKS(pixels) * 6 * CMPR_2_RGB565_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
-    #define CMPR_3_RGB565_DATA_COUNT(pixels)     (CMPR_CHUNKS(pixels) * 6 * CMPR_3_RGB565_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
+    #define CMPR_1_RGB565_COMPRESSED_BYTES(pixels)     (CMPR_CHUNKS(pixels) * 6 * CMPR_1_RGB565_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
+    #define CMPR_2_RGB565_COMPRESSED_BYTES(pixels)     (CMPR_CHUNKS(pixels) * 6 * CMPR_2_RGB565_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
+    #define CMPR_3_RGB565_COMPRESSED_BYTES(pixels)     (CMPR_CHUNKS(pixels) * 6 * CMPR_3_RGB565_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
 
-    #define CMPR_1_RGB888_DATA_COUNT(pixels)     (CMPR_CHUNKS(pixels) * 6 * CMPR_1_RGB888_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
-    #define CMPR_2_RGB888_DATA_COUNT(pixels)     (CMPR_CHUNKS(pixels) * 6 * CMPR_2_RGB888_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
-    #define CMPR_3_RGB888_DATA_COUNT(pixels)     (CMPR_CHUNKS(pixels) * 6 * CMPR_3_RGB888_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
+    #define CMPR_1_RGB888_COMPRESSED_BYTES(pixels)     (CMPR_CHUNKS(pixels) * 6 * CMPR_1_RGB888_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
+    #define CMPR_2_RGB888_COMPRESSED_BYTES(pixels)     (CMPR_CHUNKS(pixels) * 6 * CMPR_2_RGB888_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
+    #define CMPR_3_RGB888_COMPRESSED_BYTES(pixels)     (CMPR_CHUNKS(pixels) * 6 * CMPR_3_RGB888_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
 
-    #define CMPR_1_ARGB8888_DATA_COUNT(pixels)    (CMPR_CHUNKS(pixels) * 6 * CMPR_1_ARGB8888_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
-    #define CMPR_2_ARGB8888_DATA_COUNT(pixels)    (CMPR_CHUNKS(pixels) * 6 * CMPR_2_ARGB8888_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
-    #define CMPR_3_ARGB8888_DATA_COUNT(pixels)    (CMPR_CHUNKS(pixels) * 6 * CMPR_3_ARGB8888_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
+    #define CMPR_1_ARGB8888_COMPRESSED_BYTES(pixels)    (CMPR_CHUNKS(pixels) * 6 * CMPR_1_ARGB8888_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
+    #define CMPR_2_ARGB8888_COMPRESSED_BYTES(pixels)    (CMPR_CHUNKS(pixels) * 6 * CMPR_2_ARGB8888_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
+    #define CMPR_3_ARGB8888_COMPRESSED_BYTES(pixels)    (CMPR_CHUNKS(pixels) * 6 * CMPR_3_ARGB8888_TGT_SIZE(CMPR_CHUNK_SIZE(pixels)))
 
 
     #define CMPR_DATA_TYPE uint8_t
@@ -85,27 +87,27 @@
 
 
 
-    #define CMPR_1_RGB565_DATA_COUNT(pixels)     TARGET_SIZE_TO_CMPR_WORDS(CMPR_1_RGB565_TGT_SIZE(HAL_ALIGN((pixels)*2, 4)/4))
-    #define CMPR_2_RGB565_DATA_COUNT(pixels)     TARGET_SIZE_TO_CMPR_WORDS(CMPR_2_RGB565_TGT_SIZE(HAL_ALIGN((pixels)*2, 4)/4))
-    #define CMPR_3_RGB565_DATA_COUNT(pixels)     TARGET_SIZE_TO_CMPR_WORDS(CMPR_3_RGB565_TGT_SIZE(HAL_ALIGN((pixels)*2, 4)/4))
+    #define CMPR_1_RGB565_COMPRESSED_BYTES(pixels)     (6 * CMPR_1_RGB565_TGT_SIZE(HAL_ALIGN((pixels)*2, 4)/4))
+    #define CMPR_2_RGB565_COMPRESSED_BYTES(pixels)     (6 * CMPR_2_RGB565_TGT_SIZE(HAL_ALIGN((pixels)*2, 4)/4))
+    #define CMPR_3_RGB565_COMPRESSED_BYTES(pixels)     (6 * CMPR_3_RGB565_TGT_SIZE(HAL_ALIGN((pixels)*2, 4)/4))
 
-    #define CMPR_1_RGB888_DATA_COUNT(pixels)     TARGET_SIZE_TO_CMPR_WORDS(CMPR_1_RGB888_TGT_SIZE(HAL_ALIGN((pixels)*3, 4)/4))
-    #define CMPR_2_RGB888_DATA_COUNT(pixels)     TARGET_SIZE_TO_CMPR_WORDS(CMPR_2_RGB888_TGT_SIZE(HAL_ALIGN((pixels)*3, 4)/4))
-    #define CMPR_3_RGB888_DATA_COUNT(pixels)     TARGET_SIZE_TO_CMPR_WORDS(CMPR_3_RGB888_TGT_SIZE(HAL_ALIGN((pixels)*3, 4)/4))
+    #define CMPR_1_RGB888_COMPRESSED_BYTES(pixels)     (6 * CMPR_1_RGB888_TGT_SIZE(HAL_ALIGN((pixels)*3, 4)/4))
+    #define CMPR_2_RGB888_COMPRESSED_BYTES(pixels)     (6 * CMPR_2_RGB888_TGT_SIZE(HAL_ALIGN((pixels)*3, 4)/4))
+    #define CMPR_3_RGB888_COMPRESSED_BYTES(pixels)     (6 * CMPR_3_RGB888_TGT_SIZE(HAL_ALIGN((pixels)*3, 4)/4))
 
-    #define CMPR_1_ARGB8888_DATA_COUNT(pixels)   TARGET_SIZE_TO_CMPR_WORDS(CMPR_1_ARGB8888_TGT_SIZE(pixels))
-    #define CMPR_2_ARGB8888_DATA_COUNT(pixels)   TARGET_SIZE_TO_CMPR_WORDS(CMPR_2_ARGB8888_TGT_SIZE(pixels))
-    #define CMPR_3_ARGB8888_DATA_COUNT(pixels)   TARGET_SIZE_TO_CMPR_WORDS(CMPR_3_ARGB8888_TGT_SIZE(pixels))
+    #define CMPR_1_ARGB8888_COMPRESSED_BYTES(pixels)   (6 * CMPR_1_ARGB8888_TGT_SIZE(pixels))
+    #define CMPR_2_ARGB8888_COMPRESSED_BYTES(pixels)   (6 * CMPR_2_ARGB8888_TGT_SIZE(pixels))
+    #define CMPR_3_ARGB8888_COMPRESSED_BYTES(pixels)   (6 * CMPR_3_ARGB8888_TGT_SIZE(pixels))
 
-    #define CMPR_DATA_TYPE uint32_t
+    #define CMPR_DATA_TYPE uint8_t
 
 
 #endif /* HAL_EPICTL_ENABLED */
 
 
-__STATIC_INLINE HAL_StatusTypeDef CMPR_GetConfig(uint32_t color_mode, uint32_t *p_cfg0, uint32_t *p_cfg1)
+__STATIC_INLINE HAL_StatusTypeDef CMPR_GetConfig(uint32_t pixel_bytes, uint32_t *p_cfg0, uint32_t *p_cfg1)
 {
-    (void) color_mode;
+    (void) pixel_bytes;
 
     if (!p_cfg0 || !p_cfg1)
     {
@@ -120,5 +122,63 @@ __STATIC_INLINE HAL_StatusTypeDef CMPR_GetConfig(uint32_t color_mode, uint32_t *
     return HAL_OK;
 }
 
+// Get the compressed pixels bytes with specified compression rate.
+__STATIC_INLINE uint32_t CMPR_GetCompressedBytes(uint32_t pixels, uint32_t pixel_bytes, uint32_t cmpr_rate)
+{
+    // HAL_ASSERT((pixel_bytes >= 2) && (pixel_bytes <= 4));
+    // HAL_ASSERT((cmpr_rate > 0) && ((cmpr_rate - 1) < MAX_CMPR_TBL_SIZE));
+    uint32_t compressed_bytes = UINT32_MAX;
 
+
+    if (2 == pixel_bytes)//RGB565
+    {
+        switch (cmpr_rate)
+        {
+        case 1:
+        default:
+            compressed_bytes = CMPR_1_RGB565_COMPRESSED_BYTES(pixels);
+            break;
+        case 2:
+            compressed_bytes = CMPR_2_RGB565_COMPRESSED_BYTES(pixels);
+            break;
+        case 3:
+            compressed_bytes = CMPR_3_RGB565_COMPRESSED_BYTES(pixels);
+            break;
+        }
+    }
+    else if (3 == pixel_bytes)//RGB888
+    {
+        switch (cmpr_rate)
+        {
+        case 1:
+        default:
+            compressed_bytes = CMPR_1_RGB888_COMPRESSED_BYTES(pixels);
+            break;
+        case 2:
+            compressed_bytes = CMPR_2_RGB888_COMPRESSED_BYTES(pixels);
+            break;
+        case 3:
+            compressed_bytes = CMPR_3_RGB888_COMPRESSED_BYTES(pixels);
+            break;
+        }
+    }
+    else if (4 == pixel_bytes) //ARGB8888
+    {
+        switch (cmpr_rate)
+        {
+        case 1:
+        default:
+            compressed_bytes = CMPR_1_ARGB8888_COMPRESSED_BYTES(pixels);
+            break;
+        case 2:
+            compressed_bytes = CMPR_2_ARGB8888_COMPRESSED_BYTES(pixels);
+            break;
+        case 3:
+            compressed_bytes = CMPR_3_ARGB8888_COMPRESSED_BYTES(pixels);
+            break;
+        }
+    }
+
+    return compressed_bytes;
+}
 #endif /* __SIFLI_CMPR_H */

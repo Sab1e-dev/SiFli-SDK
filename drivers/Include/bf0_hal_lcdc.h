@@ -47,9 +47,7 @@ extern "C" {
 #define LCDC_SUPPORT_DDR_QSPI
 #endif
 
-#if defined(SF32LB57X)
-#define LCDC_SUPPORT_TE_WINDOW
-#endif
+
 
 
 #define LCDC_SUPPORT_V_MIRROR
@@ -84,6 +82,12 @@ extern "C" {
 #endif /* SF32LB58X */
 
 #endif /* SF32LB52X */
+
+
+#if !(defined(SF32LB55X) || defined(SF32LB58X) || defined(SF32LB56X) || defined(SF32LB52X))
+#define LCDC_SUPPORT_TE_WINDOW
+#define LCDC_SUPPORT_EXTENAL_LINEBUF
+#endif /* !(defined(SF32LB55X) || defined(SF32LB58X) || defined(SF32LB56X) || defined(SF32LB52X)) */
 
 // 'v', 'a', 'b' have same origin,
 // and get new 'v' after swap 'a' and 'b'
@@ -489,6 +493,11 @@ typedef struct __LCDC_HandleTypeDef
     uint8_t *sram_buf1;
     uint32_t sram_buf_bytes;
 #endif /* HAL_RAMLESS_LCD_ENABLED */
+
+#ifdef LCDC_SUPPORT_EXTENAL_LINEBUF
+    uint32_t *sram_line_buf0;
+    uint32_t *sram_line_buf1;
+#endif /* LCDC_SUPPORT_EXTENAL_LINEBUF */
 
     LCDC_AreaDef roi;                   //!< Clip area position (Origin is LCD top-left, same as below)
     LCDC_ColorDef bg;                   //!< LCDC default background color
