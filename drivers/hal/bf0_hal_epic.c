@@ -611,6 +611,16 @@ static uint32_t EPIC_GetColorBitMask(uint32_t color_mode, Alpha_BlendTypeDef ble
     {
         bit_mask = 0xFFFFFFFF;
     }
+    else if (IS_EZIP_COLOR_MODE(color_mode))
+    {
+        /* EZIP format is regarded as ARGB8888 */
+        bit_mask = 0xFFFFFFFF;
+    }
+    else if (IS_JPEG_COLOR_MODE(color_mode))
+    {
+        /* JPEG format is regarded as RGB888 */
+        bit_mask = 0x00FFFFFF;
+    }
     else
     {
         HAL_ASSERT(0);
@@ -1602,6 +1612,9 @@ static HAL_StatusTypeDef EPIC_ConfigLayer(EPIC_HandleTypeDef *hepic, EPIC_LAYER_
     HAL_ASSERT(layer_idx < EPIC_LAYER_IDX_VL);
 #endif
 
+    EPIC_DEBUG_PRINT_LAYER_INFO(config, "Config");
+    EPIC_PRINTF("Layer idx %d \n", layer_idx);
+
     //Check overflow
     if (EPCI_IS_TLBR_OVERFLOW(EPIC_L0, config->x_offset,
                               config->y_offset,
@@ -1609,7 +1622,6 @@ static HAL_StatusTypeDef EPIC_ConfigLayer(EPIC_HandleTypeDef *hepic, EPIC_LAYER_
                               config->y_offset + config->height - 1))
     {
         //Overflow
-        EPIC_DEBUG_PRINT_LAYER_INFO(config, "Overflow");
         HAL_ASSERT(0);
         return HAL_ERROR;
     }
@@ -2005,11 +2017,14 @@ static HAL_StatusTypeDef EPIC_ClipAndSetupOutputLayer(EPIC_TypeDef *epic,
             epic->CANVAS_BG &= ~EPIC_CANVAS_BG_BG_BLENDING_BYPASS;
         }
 
+        EPIC_PRINTF("output layer,cf=%d,data=%x,total_w=%d,area[x0y0(%d,%d),x1y1(%d,%d)] \n",
+                    output->color_mode, output->data + offset, output->total_width,
+                    x0, y0, x1, y1);
+
         //Check overflow
         if (EPCI_IS_TLBR_OVERFLOW(EPIC_CANVAS, x0, y0, x1, y1))
         {
             //Overflow
-            EPIC_DEBUG_PRINT_LAYER_INFO(output, "Overflow");
             HAL_ASSERT(0);
             return HAL_ERROR;
         }
@@ -2937,7 +2952,7 @@ static HAL_StatusTypeDef EPIC_ConfigVideoLayer(EPIC_HandleTypeDef *epic_handle,
 #ifdef EPIC_VL_CFG_BLEND_DEPTH_Msk
     Vlayer_x->CFG |= MAKE_REG_VAL(layer_depth, EPIC_VL_CFG_BLEND_DEPTH_Msk, EPIC_VL_CFG_BLEND_DEPTH_Pos);
 #else
-    Vlayer_x->CFG |= MAKE_REG_VAL(layer_depth, EPIC_VL_MISC_CFG_BLEND_DEPTH_Msk, EPIC_VL_MISC_CFG_BLEND_DEPTH_Pos);
+    Vlayer_x->MISC_CFG |= MAKE_REG_VAL(layer_depth, EPIC_VL_MISC_CFG_BLEND_DEPTH_Msk, EPIC_VL_MISC_CFG_BLEND_DEPTH_Pos);
 #endif
     if (EPIC_COLOR_MONO != config->color_mode)
     {
@@ -3503,7 +3518,7 @@ static HAL_StatusTypeDef EPIC_ConfigJpegDec(EPIC_HandleTypeDef *epic,
         config.input_data_size = jpeg_layer->data_size;
         //TODO: check buffer size
         config.work_buffer = epic->jpegd_work_buf;
-        EPIC_PRINTF("ezip_config_dat:%x x:%d y: %d w:%d h:%d\n", config.input, config.start_x, config.start_y, config.width, config.height);
+        EPIC_PRINTF("jpeg_config_dat:%x x:%d y: %d w:%d h:%d\n", config.input, config.start_x, config.start_y, config.width, config.height);
         epic->hjpegd->CpltCallback = EPIC_JpegdCpltCallback;
         epic->hjpegd->UserData = (void *)epic;
         // HAL_sw_breakpoint();
@@ -6386,16 +6401,9 @@ static HAL_StatusTypeDef EPIC_ConfigBlendEx(EPIC_HandleTypeDef *epic,
         {
             ret = EPIC_ConfigLayer(epic, epic_layer[i], &input[i], true, alpha[i]);
         }
+
 #ifdef EPIC_SUPPORT_DITHER
-        if (!IS_EZIP_COLOR_MODE(input[i].color_mode))
-        {
-            input_bit_mask |= EPIC_GetColorBitMask(input[i].color_mode, input[i].ax_mode);
-        }
-        else
-        {
-            /* EZIP format is regarded as RGB888 */
-            input_bit_mask |= 0xFFFFFFFF;
-        }
+        input_bit_mask |= EPIC_GetColorBitMask(input[i].color_mode, input[i].ax_mode);
 #endif /* EPIC_SUPPORT_DITHER */
 
         if (HAL_OK != ret)
