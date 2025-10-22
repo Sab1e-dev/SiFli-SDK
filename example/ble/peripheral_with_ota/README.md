@@ -110,6 +110,18 @@ Bin名字后面的第二个参数表示image id，hcpu是0，dfu 是6。
 如果需要升级HCPU和DFU以外的bin，需要自行指定image id对应的flash地址，在dfu_flash.c的dfu_get_download_addr_by_id中，添加新的ID，然后返回ptab.c中定义的地址即可，flag&DFU_FLAG_COMPRESS条件下的地址不需要实现。
 ![package](./assets/package.png)
  
+## 手机APP和DEMO工程获取使用
+### Android sifli ble app下载地址
+https://www.pgyer.com/gurSBc
+
+### Android demo工程
+https://github.com/OpenSiFli/SiFli_OTA_APP\
+对应的部分在"3. SiFli-SDK OTA"
+
+### iOS demo工程
+https://github.com/OpenSiFli/SiFli_OTA_APP_IOS\
+对应的部分在"SiFli-SDK OTA (Nor Offline)"
+
 ## 手机使用
 操作如下图示意，搜索板子的BLE广播，点击对应设备，然后选择nor dfu，最后选择offline，不需要再点击下方的start等按钮
 ![app1](./assets/app.jpg)![app2](./assets/app2.jpg)

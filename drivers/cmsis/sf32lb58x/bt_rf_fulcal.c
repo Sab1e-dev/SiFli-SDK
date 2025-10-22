@@ -1366,13 +1366,13 @@ uint32_t bt_rfc_init()
 
     //EDR_EN_IARY
     bt_txoff_cmd[i++] = RD(0x24) ;
-    bt_txoff_cmd[i++] = AND(12) ;
+    bt_txoff_cmd[i++] = AND(13) ;
     //bt_txoff_cmd[i++] = WR( 0x24 ) ;
 
     //EDR VCO3G_EN/EDR_VCO5G_EN
     //bt_txoff_cmd[i++] = RD( 0x24 ) ;
     //bt_txoff_cmd[i++] = AND( 12 ) ;
-    bt_txoff_cmd[i++] = AND(11) ;
+    bt_txoff_cmd[i++] = AND(12) ;
     bt_txoff_cmd[i++] = WR(0x24) ;
     //VDDPSW RFBG_EN
     //bt_txoff_cmd[i++] = RD( 0x10 ) ;
@@ -3817,10 +3817,10 @@ uint32_t bt_rfc_txdc_cal(uint32_t rslt_start_addr)
 
     //enable rx path
     //hwp_bt_rfc->TRF_EDR_REG2 &= ~BT_RFC_TRF_EDR_REG2_BRF_TRF_EDR_PWRMTR_EN_LV ; // //relocated
-    hwp_bt_rfc->TRF_EDR_REG2 &= ~(BT_RFC_TRF_EDR_REG2_BRF_TRF_EDR_PWRMTR_BM_LV | BT_RFC_TRF_EDR_REG2_BRF_TRF_EDR_PWRMTR_GC_LV);
+    hwp_bt_rfc->TRF_EDR_REG2 &= ~(BT_RFC_TRF_EDR_REG2_BRF_TRF_EDR_PWRMTR_BM_LV | BT_RFC_TRF_EDR_REG2_BRF_TRF_EDR_PWRMTR_GC_LV | BT_RFC_TRF_EDR_REG2_BRF_TRF_EDR_PWRMTR_OS_LV);
     hwp_bt_rfc->TRF_EDR_REG2 |= 0x0 << BT_RFC_TRF_EDR_REG2_BRF_TRF_EDR_PWRMTR_GC_LV_Pos;
     hwp_bt_rfc->TRF_EDR_REG2 |= 0x3 << BT_RFC_TRF_EDR_REG2_BRF_TRF_EDR_PWRMTR_BM_LV_Pos ;
-    hwp_bt_rfc->TRF_EDR_REG2 |= BT_RFC_TRF_EDR_REG2_BRF_TRF_EDR_PWRMTR_OS_LV | BT_RFC_TRF_EDR_REG2_BRF_TRF_EDR_PWRMTR_OS_PN_LV;
+    hwp_bt_rfc->TRF_EDR_REG2 |= (0x8 << BT_RFC_TRF_EDR_REG2_BRF_TRF_EDR_PWRMTR_OS_LV_Pos) | BT_RFC_TRF_EDR_REG2_BRF_TRF_EDR_PWRMTR_OS_PN_LV;
 
     hwp_bt_rfc->RBB_REG2 &= ~BT_RFC_RBB_REG2_BRF_RVGA_GC_LV;
     hwp_bt_rfc->RBB_REG2 |= 0xC << BT_RFC_RBB_REG2_BRF_RVGA_GC_LV_Pos;
@@ -3933,6 +3933,7 @@ uint32_t bt_rfc_txdc_cal(uint32_t rslt_start_addr)
             hwp_bt_phy->EDR_TMXBUF_GC_CFG2 = 0x44444444;
             hwp_bt_rfc->RBB_REG2 &= ~BT_RFC_RBB_REG2_BRF_RVGA_GC_LV;
             hwp_bt_rfc->RBB_REG2 |= 0x4 << BT_RFC_RBB_REG2_BRF_RVGA_GC_LV_Pos;
+            hwp_bt_rfc->TRF_EDR_REG2 |=  BT_RFC_TRF_EDR_REG2_BRF_TRF_EDR_PWRMTR_OS_LV ;
 
         }
         else if (i == 3)
@@ -4863,7 +4864,7 @@ void bt_rf_opt_cal(void)
     if (revid <= 1)
     {
         hwp_bt_rfc->RBB_REG4 |= (0x03 << BT_RFC_RBB_REG4_BRF_PKDET_VTH1I_LV_Pos) | (0x03 << BT_RFC_RBB_REG4_BRF_PKDET_VTH1Q_LV_Pos)
-                                | (0x00 << BT_RFC_RBB_REG4_BRF_PKDET_VTH2I_LV_Pos) | (0x00 << BT_RFC_RBB_REG4_BRF_PKDET_VTH2Q_LV_Pos);
+                                | (0x03 << BT_RFC_RBB_REG4_BRF_PKDET_VTH2I_LV_Pos) | (0x03 << BT_RFC_RBB_REG4_BRF_PKDET_VTH2Q_LV_Pos);
     }
     else
     {
@@ -5003,7 +5004,7 @@ void bt_rf_cal(void)
     HAL_Set_backup(RTC_BACKUP_BT_TXPWR, RF_PWR_PARA(bt_rf_get_max_tx_pwr(), bt_rf_get_min_tx_pwr(), bt_rf_get_init_tx_pwr(), (0x80 | bt_is_in_BQB_mode())));
 #endif
 }
-char *g_rf_ful_ver = "1.0.1.0_3106";
+char *g_rf_ful_ver = "1.0.2.0_3203";
 char *rf_ful_ver(uint8_t *cal_en)
 {
     *cal_en = 0xFF;

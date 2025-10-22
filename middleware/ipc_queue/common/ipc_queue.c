@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "bf0_hal.h"
 #include "ipc_queue.h"
 #include "ipc_hw.h"
 #include "circular_buf.h"

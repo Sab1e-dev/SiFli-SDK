@@ -4,6 +4,7 @@ Source code path: example\rt_device\gpio
 ## Supported Platforms
 The example can run on the following development boards.
 * sf32lb52-lcd_n16r8
+* sf32lb56-lcd_n16r12n1
 * sf32lb58-lcd_n16r64n4
 
 ## Example Overview
@@ -19,14 +20,16 @@ The example can run on the following development boards.
 |Development Board    |OUT Pin |OUT Pin Name|IN Pin |IN Pin Name |
 |:---     |:---    |:---      |:---   |:---      |
 |sf32lb52-lcd_n16r8 |5       |PA41      |3      |PA42      |
+|sf32lb56-lcd_n16r12n1 |5       |PA20      |3      |PA12        |
 |sf32lb58-lcd_n16r64n4 |5       |PB28      |3      |PB29      |
 
 * For more detailed pin definitions please refer to\
 `[sf32lb52-lcd_n16r8]()`\
+`[sf32lb56-lcd_n16r12n1]()`\
 `[sf32lb58-lcd_n16r64n4]()`
 
 ### Compilation and Flashing
-#### SF525 Project Code Compilation
+#### Compiled using the SF32LB52-LCD engineering code as an example
 Switch to the example project directory and run scons command to compile:
 
 > scons --board=sf32lb52-lcd_n16r8 -j8
@@ -38,15 +41,6 @@ Switch to the example `project/build_xx` directory and run `uart_download.bat`, 
 > Uart Download
 
 > please input the serial port num:5
-
-#### SF587 Project Code Compilation
-Switch to the example project directory and run scons command to compile:
-
-> scons --board=sf32lb58-lcd_n16r64n4 -j8
-
-Switch to the example `project/build_xx` directory and run `download.bat`, program downloads automatically through JLink:
-
-> build_sf32lb58-lcd_n16r64n4_hcpu\download.bat
 
 
 ### Example Output Results Display:
@@ -106,6 +100,12 @@ Adapt to different development board pin differences
     #define Pin_Out 124
     #define Pin_In 125
     #define hwp_gpio hwp_gpio2
+#elif defined(SF32LB56X)
+    #define Pin_Out 20
+    #define Pin_In 12
+    #define GPIO_IRQn GPIO1_IRQn
+    #define hwp_gpio hwp_gpio1
+    #define RCC_MOD_GPIO RCC_MOD_GPIO1
 #endif
 ```
 

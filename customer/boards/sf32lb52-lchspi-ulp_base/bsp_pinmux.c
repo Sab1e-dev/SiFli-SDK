@@ -158,16 +158,17 @@ static void BSP_PIN_Common(void)
     /* Keep default pull-down unchanged. Uart download driver would use this function,
      * if pulldown is disabled, download driver would not work on the board without external pull-down
      */
-    // HAL_PIN_Set(PAD_PA34, GPIO_A34, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA34, GPIO_A34, PIN_NOPULL, 1);
     // Key2
     HAL_PIN_Set(PAD_PA43, GPIO_A43, PIN_NOPULL, 1);
 
     // PA22 #XTAL32K_XI
     // PA23 #XTAL32K_XO
 
-    // USBD
-    HAL_PIN_Set_Analog(PAD_PA35, 1);                    // USB_DP
-    HAL_PIN_Set_Analog(PAD_PA36, 1);                    // USB_DM
+    // // USBD
+
+    HAL_PIN_Set(PAD_PA35, USART3_TXD, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA36, USART3_RXD, PIN_PULLUP, 1);
 
     // SPI1(TF card)
     HAL_PIN_Set(PAD_PA24, SPI1_DIO, PIN_NOPULL, 1);
@@ -192,7 +193,7 @@ static void BSP_PIN_Common(void)
     HAL_PIN_Set(PAD_PA26, GPIO_A26, PIN_NOPULL, 1);
     HAL_PIN_Set(PAD_PA32, GPIO_A32, PIN_PULLDOWN, 1);   // RGB LED
     HAL_PIN_Set(PAD_PA38, GPIO_A38, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_PA44, GPIO_A44, PIN_PULLDOWN, 1);   // VBUS_DET
+    HAL_PIN_Set(PAD_PA44, GPIO_A44, PIN_NOPULL, 1);   // VBUS_DET
     HAL_PIN_Set(PAD_PA30, GPIO_A30, PIN_PULLDOWN, 1);   // Sensor Power
 #endif
 

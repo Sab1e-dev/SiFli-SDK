@@ -9,7 +9,7 @@ This example can run on the following development boards:
 * eh-lb523
 
 ## Overview
-This example demonstrates how to develop dual-core applications. The project supports Bluetooth and low power consumption, builds user interface based on LVGL v8 (referencing `multimedia/lvgl/watch`), with big and little cores running their respective programs (SF32LB52 series chips' little core is dedicated to Bluetooth and does not run user programs).
+This example demonstrates how to develop dual-core applications. The project supports Bluetooth and low power consumption, builds user interface based on LVGL v8 (referencing `multimedia/lvgl/watch`), with HCPU and LCPU running their respective programs (SF32LB52 series chips' LCPU is dedicated to Bluetooth and does not run user programs).
 
 ## Directory Structure
 ```
@@ -33,12 +33,27 @@ scons --board=sf32lb52-lcd_n16r8 -j32
 
 Run `build_sf32lb52-lcd_n16r8_hcpu\uart_download.bat`, select the port as prompted to download:
 
-Executing the `scons` command in the HCPU project directory will automatically compile the LCPU project, and the download script will download all firmware including the little core.
+Executing the `scons` command in the HCPU project directory will automatically compile the LCPU project, and the download script will download all firmware including the LCPU.
 
 ### Code Analysis
-#### Big Core
+#### Build Script
+Since LCPU is used, you need to add the following code to `project/hcpu/SConstruct` to include the LCPU project in the build. For `SF32LB52X`, because the LCPU is dedicated to Bluetooth and does not support custom projects, you should directly use the `AddLCPU` command to add the common LCPU project.
+For other chip series, use the `AddChildProj` command to add the project under the `lcpu` directory as a subproject in the build.
 
-The big core's `main` function is in `src/hcpu/main.c`, completing Bluetooth initialization:
+```python
+# Add LCPU project
+if not GetDepend('SOC_SF32LB52X'):
+    lcpu_proj_path = '../lcpu'   
+    lcpu_proj_name = 'lcpu'
+    AddChildProj(lcpu_proj_name, lcpu_proj_path, True, core="LCPU")
+else:
+    # use common LCPU project
+    AddLCPU(SIFLI_SDK, rtconfig.CHIP)
+```
+
+#### HCPU
+
+The HCPU's `main` function is in `src/hcpu/main.c`, completing Bluetooth initialization:
 ```c
 int main(void)
 {
@@ -80,8 +95,8 @@ Graphics initialization is triggered by `app_watch_init` in `src/hcpu/gui_apps/w
 INIT_APP_EXPORT(app_watch_init);
 ```
 
-#### Little Core
-The little core's `main` function is in `src/lcpu/main.c`, as follows:
+#### LCPU
+The LCPU's `main` function is in `src/lcpu/main.c`, as follows:
 
 ```c
 int main(void)
@@ -104,11 +119,11 @@ int main(void)
 ```
 
 #### Button
-If button Key1 is connected to the little core's pin, the little core handles button events and forwards button events to the big core through data service.
-The little core's button initialization code is in the `init_pin` function in `src/lcpu/main.c`. At the same time, the little core project configuration `proj.conf` enables `CONFIG_BUTTON_SERVICE_ENABLED`, which registers the button service, and the big core will subscribe to this service to receive button events.
+If button Key1 is connected to the LCPU's pin, the LCPU handles button events and forwards button events to the HCPU through data service.
+The LCPU's button initialization code is in the `init_pin` function in `src/lcpu/main.c`. At the same time, the LCPU project configuration `proj.conf` enables `CONFIG_BUTTON_SERVICE_ENABLED`, which registers the button service, and the HCPU will subscribe to this service to receive button events.
 
 ````{note}
-Since most boards' little core configuration files (i.e., `board.conf` in the board's lcpu directory) do not define button pins, a `proj.conf` is added for each supported board in the lcpu project directory to define button pin numbers. For example, in the `project/lcpu/eh-lb561_lcpu` directory, `proj.conf` has the following KEY1 configuration parameters, which are effective for the eh-lb561 development board:
+Since most boards' LCPU configuration files (i.e., `board.conf` in the board's lcpu directory) do not define button pins, a `proj.conf` is added for each supported board in the lcpu project directory to define button pin numbers. For example, in the `project/lcpu/eh-lb561_lcpu` directory, `proj.conf` has the following KEY1 configuration parameters, which are effective for the eh-lb561 development board:
 ```c
 CONFIG_BSP_USING_KEY1=y
 CONFIG_BSP_KEY1_PIN=128
@@ -117,7 +132,7 @@ CONFIG_BSP_KEY1_ACTIVE_HIGH=y
 
 ````
 
-The big core's button initialization function is `init_pin` in `src/hcpu/gui_apps/watch_demo.c`. You can see that buttons are only initialized in the big core program when the button's corresponding GPIO pin is a PA pin, otherwise it just subscribes to the button data service.
+The HCPU's button initialization function is `init_pin` in `src/hcpu/gui_apps/watch_demo.c`. You can see that buttons are only initialized in the HCPU program when the button's corresponding GPIO pin is a PA pin, otherwise it just subscribes to the button data service.
 ```c
 #if (SLEEP_CTRL_PIN < GPIO1_PIN_NUM)
     button_cfg_t cfg;
@@ -143,14 +158,14 @@ The big core's button initialization function is `init_pin` in `src/hcpu/gui_app
     datac_subscribe(button_handle, "btn0", button_service_callback, SLEEP_CTRL_PIN);    
 ```
 
-For SF32LB52 series chips, the little core is dedicated to Bluetooth and does not run user programs. The button is connected to the big core's pin and is directly handled by the big core GPIO interrupt, but button events can still be handled uniformly by subscribing to the button service, where the button service is also located on the big core.
+For SF32LB52 series chips, the LCPU is dedicated to Bluetooth and does not run user programs. The button is connected to the HCPU's pin and is directly handled by the HCPU GPIO interrupt, but button events can still be handled uniformly by subscribing to the button service, where the button service is also located on the HCPU.
 
 ```{note}
 SF32LB52 series needs to enable `DATA_SVC_MBOX_THREAD_DISABLED` to disable cross-core service
 ```
 
 ## Expected Results
-After power-on, a honeycomb interface appears. Clicking the clock icon opens the watch face. If there is no operation on the interface or button press for 10 seconds, the screen will automatically turn off. At this time, the big core sleeps and enters low power mode. Button (Key1) wakes up the big core and turns on the screen.
+After power-on, a honeycomb interface appears. Clicking the clock icon opens the watch face. If there is no operation on the interface or button press for 10 seconds, the screen will automatically turn off. At this time, the HCPU sleeps and enters low power mode. Button (Key1) wakes up the HCPU and turns on the screen.
 
 ## Exception Diagnosis
 

@@ -120,6 +120,7 @@ uint8_t lcpu_power_on(void)
     HAL_LPAON_ConfigStartAddr((uint32_t *)HCPU_LCPU_CODE_START_ADDR);
     lcpu_ble_patch_install();
     HAL_RCC_ReleaseLCPU();
+    HAL_Delay_us(5000);
     return 0;
 }
 

@@ -170,7 +170,9 @@ static rt_err_t _audio_dev_open(struct rt_device *dev, rt_uint16_t oflag)
                 }
 
                 AUDIO_DBG("audio_pipe name:%s dev=%s pipe_size=%d\n", pipe_name, audio->dev_name, pipe_size);
-                ret = rt_audio_pipe_create(pipe_name, (rt_int32_t)(RT_PIPE_FLAG_FORCE_WR | RT_PIPE_FLAG_BLOCK_RD), pipe_size);
+
+                ret = rt_audio_pipe_create(pipe_name, (rt_int32_t)(/*RT_PIPE_FLAG_FORCE_WR | */RT_PIPE_FLAG_BLOCK_RD), pipe_size);
+
                 if (ret != RT_EOK)
                 {
                     AUDIO_DBG("audio pipe create fail, %s\n", pipe_name);

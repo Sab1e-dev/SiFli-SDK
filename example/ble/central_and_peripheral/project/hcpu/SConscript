@@ -14,7 +14,7 @@ for d in list:
 # Add SDK
 Import('SIFLI_SDK')
 #Add source code
-objs.extend(SConscript(os.path.join(SIFLI_SDK, 'example/ble/central_and_peripheral/src/SConscript'), variant_dir="peripheral", duplicate=0))
+objs.extend(SConscript(cwd + '/../../src/SConscript', variant_dir='peripheral', duplicate=0))
 
 
 # Add SDK

@@ -80,14 +80,14 @@ av_cold int ff_mdct_init(FFTContext *s, int nbits, int inverse, double scale)
         goto fail;
     }
 
-    theta = 1.0 / 8.0 + (scale < 0 ? n4 : 0);
+    theta = 1.0f / 8.0f + (scale < 0 ? n4 : 0);
     scale = sqrt(fabs(scale));
     for (i = 0; i < n4; i++)
     {
         alpha = 2 * M_PI * (i + theta) / n;
 #if FFT_FIXED_32
-        s->tcos[i * tstep] = lrint(-cos(alpha) * 2147483648.0);
-        s->tsin[i * tstep] = lrint(-sin(alpha) * 2147483648.0);
+        s->tcos[i * tstep] = lrint(-cos(alpha) * 2147483648.0f);
+        s->tsin[i * tstep] = lrint(-sin(alpha) * 2147483648.0f);
 #else
         s->tcos[i * tstep] = FIX15(-cos(alpha) * scale);
         s->tsin[i * tstep] = FIX15(-sin(alpha) * scale);

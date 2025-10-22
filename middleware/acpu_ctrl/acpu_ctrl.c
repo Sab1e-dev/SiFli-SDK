@@ -20,6 +20,7 @@
 
 #define ACPU_TASK_DONE_NTF_QUEUE (8)
 
+#define ACPU_CALLER_ENABLED 1
 typedef struct
 {
     volatile uint8_t task_name;  /**< task name, @ref #acpu_task_name_t */
@@ -147,7 +148,7 @@ void acpu_send_assert(const char *file, int line)
 {
     MAILBOX_HandleTypeDef handle;
 
-    acpu_task_output->error_code = (uint8_t)0xFF;
+    acpu_task_output->error_code = (uint8_t)ACPU_ERR_ASSERT;
 
     acpu_task_output->seq_no = acpu_task_input->seq_no;
     snprintf((char *)&acpu_task_output->val[0], ACPU_TASK_OUTPUT_VAL_SIZE - 1, "%s %d\n", file, line);
@@ -419,6 +420,11 @@ int32_t acpu_task_done_ind(ipc_queue_handle_t handle, size_t size)
         rt_kprintf("%s\n", acpu_task_output->val);
         acpu_task_output->error_code = ACPU_ERR_OK;
     }
+    else if (acpu_task_output->error_code == ACPU_ERR_ASSERT)
+    {
+        rt_kprintf("acpu assert:%s\n", acpu_task_output->val);
+        RT_ASSERT(0);
+    }
 #ifdef ACPU_CALLER_ENABLED
     else if (acpu_task_output->error_code == ACPU_ERR_CALL_HCPU)
     {
@@ -515,7 +521,7 @@ RT_WEAK void *acpu_run_task(uint8_t task_name, void *param, uint32_t param_size,
 
     HAL_RCC_EnableModule(RCC_MOD_ACPU);
 
-    err = rt_sem_take(&acpu_task_done_sema, rt_tick_from_millisecond(10 * 1000));
+    err = rt_sem_take(&acpu_task_done_sema, RT_WAITING_FOREVER);
     RT_ASSERT(RT_EOK == err);
 
     HAL_RCC_DisableModule(RCC_MOD_ACPU);
@@ -523,7 +529,7 @@ RT_WEAK void *acpu_run_task(uint8_t task_name, void *param, uint32_t param_size,
     RT_ASSERT(task_name == acpu_task_output->task_name);
 
     // rt_kprintf("acpu error_code=%d\n", acpu_task_output->error_code);
-    if (acpu_task_output->error_code == (uint8_t)0xFF)
+    if (acpu_task_output->error_code == (uint8_t)ACPU_ERR_ASSERT)
     {
         rt_kprintf("acpu assert: %s\n", acpu_task_output->val);
         RT_ASSERT(0);

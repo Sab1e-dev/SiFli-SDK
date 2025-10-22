@@ -3870,10 +3870,12 @@ static rt_err_t render_line_hor(drv_epic_operation *p_operation, EPIC_LayerConfi
     int32_t w_half1 = w_half0 + (w & 0x1); /*Compensate rounding error*/
 
     EPIC_AreaTypeDef blend_area;
+    int16_t dash_origin;
     blend_area.x0 = (int32_t)MIN(p_operation->desc.line.p1.x, p_operation->desc.line.p2.x);
     blend_area.x1 = (int32_t)MAX(p_operation->desc.line.p1.x, p_operation->desc.line.p2.x)  - 1;
     blend_area.y0 = (int32_t)p_operation->desc.line.p1.y - w_half1;
     blend_area.y1 = (int32_t)p_operation->desc.line.p1.y + w_half0;
+    dash_origin = blend_area.x0 - w_half1;
 
     bool is_common;
     is_common = HAL_EPIC_AreaIntersect(&blend_area, &blend_area, p_clip_area);
@@ -3888,7 +3890,71 @@ static rt_err_t render_line_hor(drv_epic_operation *p_operation, EPIC_LayerConfi
     }
     else
     {
-        RT_ASSERT(0);//Not supported now
+        HAL_StatusTypeDef ret;
+        EPIC_LayerConfigTypeDef fg_layer, output_layer;
+
+        uint32_t dst_color_bytes = HAL_EPIC_GetColorDepth(dst->color_mode) >> 3;
+        uint32_t argb8888 = p_operation->desc.line.argb8888;
+
+        /*Inital fg layer*/
+        HAL_EPIC_LayerConfigInit(&fg_layer);
+        fg_layer.alpha = (uint8_t)((argb8888 >> 24) & 0xFF);
+        fg_layer.color_en = true;
+        fg_layer.color_r = (uint8_t)((argb8888 >> 16) & 0xFF);
+        fg_layer.color_g = (uint8_t)((argb8888 >> 8) & 0xFF);
+        fg_layer.color_b = (uint8_t)((argb8888 >> 0) & 0xFF);
+        fg_layer.color_mode = EPIC_INPUT_MONO;
+        fg_layer.ax_mode = ALPHA_BLEND_RGBCOLOR;
+        fg_layer.data = (uint8_t *)mono_layer_addr;
+        fg_layer.width  = p_operation->desc.line.dash_width;
+        fg_layer.height = HAL_EPIC_AreaHeight(&blend_area);
+        fg_layer.total_width = fg_layer.width;
+
+
+        /*Inital output layer*/
+        memcpy(&output_layer, dst, sizeof(EPIC_LayerConfigTypeDef));
+
+        int32_t dash_width = p_operation->desc.line.dash_width;
+        int32_t dash_gap  = p_operation->desc.line.dash_gap;
+        EPIC_AreaTypeDef dash_area = blend_area;
+        int16_t dash_offset = (blend_area.x0 - dash_origin) % (dash_gap + dash_width);
+
+        for (dash_area.x0 = blend_area.x0 - dash_offset;
+                dash_area.x0 <= blend_area.x1; dash_area.x0 += dash_width + dash_gap)
+        {
+            dash_area.x1 = dash_area.x0 + dash_width - 1;
+            if (dash_area.x1 < blend_area.x0) continue;
+
+            EPIC_AreaTypeDef final_area;
+
+            if (HAL_EPIC_AreaIntersect(&final_area, &blend_area, &dash_area))
+            {
+                //setup dash fg
+                {
+                    fg_layer.x_offset = dash_area.x0;
+                    fg_layer.y_offset = dash_area.y0;
+                }
+                //setup output_layer according to final_area
+                {
+
+                    int16_t x_off = final_area.x0 - dst->x_offset;
+                    int16_t y_off = final_area.y0 - dst->y_offset;
+
+                    output_layer.data     = dst->data + (y_off * dst->total_width + x_off) * dst_color_bytes;
+                    output_layer.x_offset = dst->x_offset + x_off;
+                    output_layer.y_offset = dst->y_offset + y_off;
+                    output_layer.width    = final_area.x1 - final_area.x0 + 1;
+                    output_layer.height   = final_area.y1 - final_area.y0 + 1;
+                }
+
+
+
+                ret =  Call_Hal_Api(HAL_API_CONT_BLEND, &fg_layer,
+                                    (p_operation->mask.data != NULL) ? &p_operation->mask : NULL,
+                                    &output_layer);
+                DRV_EPIC_ASSERT(HAL_OK == ret);
+            }
+        }
     }
     return RT_EOK;
 }
@@ -3900,10 +3966,12 @@ static rt_err_t render_line_ver(drv_epic_operation *p_operation, EPIC_LayerConfi
     int32_t w_half1 = w_half0 + (w & 0x1); /*Compensate rounding error*/
 
     EPIC_AreaTypeDef blend_area;
+    int16_t dash_origin;
     blend_area.x0 = (int32_t)p_operation->desc.line.p1.x - w_half1;
     blend_area.x1 = (int32_t)p_operation->desc.line.p1.x + w_half0;
     blend_area.y0 = (int32_t)MIN(p_operation->desc.line.p1.y, p_operation->desc.line.p2.y);
     blend_area.y1 = (int32_t)MAX(p_operation->desc.line.p1.y, p_operation->desc.line.p2.y) - 1;
+    dash_origin = blend_area.y0 - w_half1;
 
     bool is_common;
     is_common = HAL_EPIC_AreaIntersect(&blend_area, &blend_area, p_clip_area);
@@ -3918,7 +3986,73 @@ static rt_err_t render_line_ver(drv_epic_operation *p_operation, EPIC_LayerConfi
     }
     else
     {
-        RT_ASSERT(0);//Not supported now
+        HAL_StatusTypeDef ret;
+        EPIC_LayerConfigTypeDef fg_layer, output_layer;
+
+        uint32_t dst_color_bytes = HAL_EPIC_GetColorDepth(dst->color_mode) >> 3;
+        uint32_t argb8888 = p_operation->desc.line.argb8888;
+
+        /*Inital fg layer*/
+        HAL_EPIC_LayerConfigInit(&fg_layer);
+        fg_layer.alpha = (uint8_t)((argb8888 >> 24) & 0xFF);
+        fg_layer.color_en = true;
+        fg_layer.color_r = (uint8_t)((argb8888 >> 16) & 0xFF);
+        fg_layer.color_g = (uint8_t)((argb8888 >> 8) & 0xFF);
+        fg_layer.color_b = (uint8_t)((argb8888 >> 0) & 0xFF);
+        fg_layer.color_mode = EPIC_INPUT_MONO;
+        fg_layer.ax_mode = ALPHA_BLEND_RGBCOLOR;
+        fg_layer.data = (uint8_t *)mono_layer_addr;
+        fg_layer.width  = HAL_EPIC_AreaWidth(&blend_area);
+        fg_layer.height = p_operation->desc.line.dash_width;
+        fg_layer.total_width = fg_layer.width;
+
+
+        /*Inital output layer*/
+        memcpy(&output_layer, dst, sizeof(EPIC_LayerConfigTypeDef));
+
+        int32_t dash_width = p_operation->desc.line.dash_width;
+        int32_t dash_gap  = p_operation->desc.line.dash_gap;
+        EPIC_AreaTypeDef dash_area = blend_area;
+        int16_t dash_offset = (blend_area.y0 - dash_origin) % (dash_gap + dash_width);
+
+
+
+        for (dash_area.y0 = blend_area.y0 - dash_offset;
+                dash_area.y0 <= blend_area.y1; dash_area.y0 += dash_width + dash_gap)
+        {
+            dash_area.y1 = dash_area.y0 + dash_width - 1;
+            if (dash_area.y1 < blend_area.y0) continue;
+
+            EPIC_AreaTypeDef final_area;
+
+            if (HAL_EPIC_AreaIntersect(&final_area, &blend_area, &dash_area))
+            {
+                //setup dash fg
+                {
+                    fg_layer.x_offset = dash_area.x0;
+                    fg_layer.y_offset = dash_area.y0;
+                }
+                //setup output_layer according to final_area
+                {
+
+                    int16_t x_off = final_area.x0 - dst->x_offset;
+                    int16_t y_off = final_area.y0 - dst->y_offset;
+
+                    output_layer.data     = dst->data + (y_off * dst->total_width + x_off) * dst_color_bytes;
+                    output_layer.x_offset = dst->x_offset + x_off;
+                    output_layer.y_offset = dst->y_offset + y_off;
+                    output_layer.width    = final_area.x1 - final_area.x0 + 1;
+                    output_layer.height   = final_area.y1 - final_area.y0 + 1;
+                }
+
+
+
+                ret =  Call_Hal_Api(HAL_API_CONT_BLEND, &fg_layer,
+                                    (p_operation->mask.data != NULL) ? &p_operation->mask : NULL,
+                                    &output_layer);
+                DRV_EPIC_ASSERT(HAL_OK == ret);
+            }
+        }
     }
 
     return RT_EOK;
@@ -4057,56 +4191,128 @@ static rt_err_t render_line(drv_epic_operation *p_operation, EPIC_LayerConfigTyp
     is_common = HAL_EPIC_AreaIntersect(&clip_line, &clip_line, p_clip_area);
     if (!is_common) return RT_EOK;
 
-    if (p_operation->desc.line.p1.y == p_operation->desc.line.p2.y) render_line_hor(p_operation, dst, p_clip_area);
-    else if (p_operation->desc.line.p1.x == p_operation->desc.line.p2.x) render_line_ver(p_operation, dst, p_clip_area);
-    else render_line_skew(p_operation, dst, p_clip_area);
+    uint8_t line_type; //0: hor, 1: ver, 2: skew
+    if (p_operation->desc.line.p1.y == p_operation->desc.line.p2.y)
+    {
+        render_line_hor(p_operation, dst, p_clip_area);
+        line_type = 0;
+    }
+    else if (p_operation->desc.line.p1.x == p_operation->desc.line.p2.x)
+    {
+        render_line_ver(p_operation, dst, p_clip_area);
+        line_type = 1;
+    }
+    else
+    {
+        render_line_skew(p_operation, dst, p_clip_area);
+        line_type = 2;
+    }
 
     if (p_operation->desc.line.round_end || p_operation->desc.line.round_start)
     {
         int32_t r = (p_operation->desc.line.width >> 1);
         int32_t r_corr = (p_operation->desc.line.width & 1) ? 0 : 1;
-        EPIC_AreaTypeDef cir_area;
-
-        if (p_operation->desc.line.round_start)
+        if (r > 1)
         {
-            cir_area.x0 = (int32_t)p_operation->desc.line.p1.x - r;
-            cir_area.y0 = (int32_t)p_operation->desc.line.p1.y - r;
-            cir_area.x1 = (int32_t)p_operation->desc.line.p1.x + r - r_corr;
-            cir_area.y1 = (int32_t)p_operation->desc.line.p1.y + r - r_corr ;
+            EPIC_AreaTypeDef cir_area;
+            bool dashed = p_operation->desc.line.dash_gap && p_operation->desc.line.dash_width;
+
+            if (p_operation->desc.line.round_start)
+            {
+                cir_area.x0 = (int32_t)p_operation->desc.line.p1.x - r;
+                cir_area.y0 = (int32_t)p_operation->desc.line.p1.y - r;
+                cir_area.x1 = (int32_t)p_operation->desc.line.p1.x + r - r_corr;
+                cir_area.y1 = (int32_t)p_operation->desc.line.p1.y + r - r_corr ;
 
 
-            void *mask_list[2] = {0};
-            /*Create an outer mask*/
-            drv_epic_mask_radius_param_t mask_out_param;
-            drv_epic_mask_radius_init2(&mask_out_param, &cir_area, r, false);
-            mask_list[0] = &mask_out_param;
-            //draw_masked_rect
-            draw_masked_rect(dst, NULL,
-                             mask_list, &clip_line, p_operation->desc.line.argb8888,
-                             NULL, NULL, NULL, 0);
-            drv_epic_mask_free_param(&mask_out_param);
+                void *mask_list[3] = {0};
+                /*Create an outer mask*/
+                drv_epic_mask_radius_param_t mask_out_param;
+                drv_epic_mask_radius_init2(&mask_out_param, &cir_area, r, false);
+                mask_list[0] = &mask_out_param;
 
-        }
+                if (((opa < EPIC_OPA_MAX) || dashed) && (line_type < 2))
+                {
+                    drv_epic_mask_line_param_t mask_line_param;
+                    drv_epic_mask_line_side_t side;
+                    EPIC_PointTypeDef p1_ortho = p_operation->desc.line.p1;
+                    if (line_type == 0) //hor
+                    {
+                        if (p_operation->desc.line.p2.x > p_operation->desc.line.p1.x) side = DRAW_MASK_LINE_SIDE_LEFT;
+                        else side = DRAW_MASK_LINE_SIDE_RIGHT;
 
-        if (p_operation->desc.line.round_end)
-        {
-            cir_area.x0 = (int32_t)p_operation->desc.line.p2.x - r;
-            cir_area.y0 = (int32_t)p_operation->desc.line.p2.y - r;
-            cir_area.x1 = (int32_t)p_operation->desc.line.p2.x + r - r_corr;
-            cir_area.y1 = (int32_t)p_operation->desc.line.p2.y + r - r_corr ;
+                        p1_ortho.y -= (p_operation->desc.line.p2.x - p_operation->desc.line.p1.x);
+                    }
+                    else //ver
+                    {
+                        if (p_operation->desc.line.p2.y > p_operation->desc.line.p1.y) side = DRAW_MASK_LINE_SIDE_TOP;
+                        else side = DRAW_MASK_LINE_SIDE_BOTTOM;
+
+                        p1_ortho.x -= (p_operation->desc.line.p2.y - p_operation->desc.line.p1.y);
+                    }
+
+
+                    drv_epic_mask_line_points_init(&mask_line_param, p_operation->desc.line.p1.x, p_operation->desc.line.p1.y, p1_ortho.x, p1_ortho.y, side);
+
+                    mask_list[1] = &mask_line_param;
+                }
+
+                //draw_masked_rect
+                draw_masked_rect(dst, NULL,
+                                 mask_list, &clip_line, p_operation->desc.line.argb8888,
+                                 NULL, NULL, NULL, 0);
+                drv_epic_mask_free_param(&mask_out_param);
+
+            }
+
+            if (p_operation->desc.line.round_end)
+            {
+                cir_area.x0 = (int32_t)p_operation->desc.line.p2.x - r;
+                cir_area.y0 = (int32_t)p_operation->desc.line.p2.y - r;
+                cir_area.x1 = (int32_t)p_operation->desc.line.p2.x + r - r_corr;
+                cir_area.y1 = (int32_t)p_operation->desc.line.p2.y + r - r_corr ;
 
 
 
-            void *mask_list[2] = {0};
-            /*Create an outer mask*/
-            drv_epic_mask_radius_param_t mask_out_param;
-            drv_epic_mask_radius_init2(&mask_out_param, &cir_area, r, false);
-            mask_list[0] = &mask_out_param;
-            //draw_masked_rect
-            draw_masked_rect(dst, NULL,
-                             mask_list, &clip_line, p_operation->desc.line.argb8888,
-                             NULL, NULL, NULL, 0);
-            drv_epic_mask_free_param(&mask_out_param);
+                void *mask_list[3] = {0};
+                /*Create an outer mask*/
+                drv_epic_mask_radius_param_t mask_out_param;
+                drv_epic_mask_radius_init2(&mask_out_param, &cir_area, r, false);
+                mask_list[0] = &mask_out_param;
+
+                if (((opa < EPIC_OPA_MAX) || dashed) && (line_type < 2))
+                {
+                    drv_epic_mask_line_param_t mask_line_param;
+                    drv_epic_mask_line_side_t side;
+                    EPIC_PointTypeDef p2_ortho = p_operation->desc.line.p2;
+                    if (line_type == 0) //hor
+                    {
+                        if (p_operation->desc.line.p2.x > p_operation->desc.line.p1.x) side = DRAW_MASK_LINE_SIDE_RIGHT;
+                        else side = DRAW_MASK_LINE_SIDE_LEFT;
+
+                        p2_ortho.y -= (p_operation->desc.line.p2.x - p_operation->desc.line.p1.x);
+                    }
+                    else //ver
+                    {
+                        if (p_operation->desc.line.p2.y > p_operation->desc.line.p1.y) side = DRAW_MASK_LINE_SIDE_BOTTOM;
+                        else side = DRAW_MASK_LINE_SIDE_TOP;
+
+                        p2_ortho.x -= (p_operation->desc.line.p2.y - p_operation->desc.line.p1.y);
+                    }
+
+
+                    drv_epic_mask_line_points_init(&mask_line_param, p_operation->desc.line.p2.x, p_operation->desc.line.p2.y, p2_ortho.x, p2_ortho.y, side);
+
+                    mask_list[1] = &mask_line_param;
+                }
+
+                //draw_masked_rect
+                draw_masked_rect(dst, NULL,
+                                 mask_list, &clip_line, p_operation->desc.line.argb8888,
+                                 NULL, NULL, NULL, 0);
+                drv_epic_mask_free_param(&mask_out_param);
+
+            }
 
         }
     }

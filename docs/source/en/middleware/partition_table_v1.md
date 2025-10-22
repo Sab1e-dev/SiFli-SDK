@@ -399,3 +399,176 @@ Generates:
 Note: Dictionary values must be integers.
 ```
 
+
+## Multi binary configuration
+
+### CODE, Resource binary separation
+
+Taking 'example\multimedia\lvgl\watch\project\sf32lb52-lcd_n16r8_ccpu' as an example, under this project configuration,  will generate 3 binary files:  
++ ER_IROM1.bin：CODE  
++ ER_IROM2.bin：Image Resources  
++ ER_IROM3.bin：Font Resources    
+
+Key configurations：
+1. partition configuration(ptab.json)
+    ![ptab_config](../../assets/partition_table/ptab_config.png)
+2. link script configuration(.sct or .lds)
+
+    + link.sct
+
+    ```c
+    ; CODE/ER_IROM1
+    LR_IROM1 CODE_START_ADDR CODE_SIZE  {    ; load region size_region
+        ER_IROM1 CODE_START_ADDR CODE_SIZE  {  ; load address = execution address
+        *.o (RESET, +First)
+        *(InRoot$$Sections)
+        .ANY (+RO)
+        *(FSymTab)
+        *.o (.rodata.*)
+    }
+
+    ; Image resource/ER_IROM2
+    LR_IROM2 HCPU_FLASH2_IMG_START_ADDR HCPU_FLASH2_IMG_SIZE  {  ; load region size_region
+        ER_IROM2 HCPU_FLASH2_IMG_START_ADDR HCPU_FLASH2_IMG_SIZE  {  ; RW data
+        *.o (.ROM1_IMG)
+        *.o (.ROM3_IMG*.*)
+        *.o (.ROM3_IMG*)
+        }
+    }
+
+    ; Font/ER_IROM3
+    LR_IROM3 HCPU_FLASH2_FONT_START_ADDR HCPU_FLASH2_FONT_SIZE  {  ; load region size_region
+        ER_IROM3 HCPU_FLASH2_FONT_START_ADDR HCPU_FLASH2_FONT_SIZE  {  ; RW data
+        lvsf_font_*.o  (.rodata.*)
+        *.o (.SECTION_TTF*.*)
+        }
+    }
+    ```
+
+    + link.lds
+
+    ```c
+    /* Image resource/ER_IROM2 */
+    .rom2 :
+    {
+        *(.ROM1_IMG)
+        *(.ROM3_IMG*.*)
+        *(.ROM3_IMG*)
+    } > ROM2
+
+    /* Font/ER_IROM3 */
+    .rom3 :
+    {
+        *lvsf_font_*(.rodata*)
+        *(.SECTION_TTF*.*)
+    } > ROM3
+    ```
+
+### Add custom binary
+
+For example, it is necessary to add a binary to store the `RO data` of 'xxx.c' and download it independently.
+Refer to [ CODE, Resource binary separation](#code-resource-binary-separation), complete step by step：  
+1. Add a new partition(ptab.json)：  
+    ```c
+        {
+            "offset": "0x00420000", 
+            "max_size": "0x00200000", 
+            "tags": [
+                "HCPU_FLASH2_FONT"
+             ], 
+            "img": "main:ER_IROM3.bin"
+        },
+        /* Add a partition and specify the starting address, size, and other information.
+        * #undef  HCPU_FUNC_START_ADDR
+        * #define HCPU_FUNC_START_ADDR                         (0x12420000)
+        * #undef  HCPU_FUNC_SIZE
+        * #define HCPU_FUNC_SIZE                               (0x00200000)
+        * #undef  HCPU_FUNC_OFFSET
+        * #define HCPU_FUNC_OFFSET                             (0x00000000)
+        */
+        {
+            "offset": "0x00620000", 
+            "max_size": "0x00200000", 
+            "tags": [
+                "HCPU_FUNC"
+            ], 
+            "img": "main:ER_IROM4.bin"
+        },
+    ```
+2. link script configuration(.sct or.lds)：  
+    Add a new region to store `xxx.o  (+RO)` data.（rules can be modified as needed）：  
+    + link.sct  
+
+        ```c
+        LR_IROM3 HCPU_FLASH2_FONT_START_ADDR HCPU_FLASH2_FONT_SIZE  {  ; load region size_region
+            ER_IROM3 HCPU_FLASH2_FONT_START_ADDR HCPU_FLASH2_FONT_SIZE  {  ; RW data
+            lvsf_font_*.o  (.rodata.*)
+            *.o (.SECTION_TTF*.*)
+            }
+        }
+
+        ; IROM4, specify which part data will store here
+        LR_IROM4 HCPU_FUNC_START_ADDR HCPU_FUNC_SIZE  {  ; load region size_region
+            ER_IROM4 HCPU_FUNC_START_ADDR HCPU_FUNC_SIZE  {  ; RW data
+            xxx.o  (+RO)
+            }
+        }
+        ```  
+     + link.lds
+        ```c
+        ... ...
+        __ROM3_BASE = HCPU_FLASH2_FONT_START_ADDR;
+        __ROM3_SIZE = HCPU_FLASH2_FONT_SIZE;
+
+        /* ROM4 BASE/SIZE */
+        __ROM4_BASE = HCPU_FUNC_START_ADDR;
+        __ROM4_SIZE = HCPU_FUNC_SIZE;
+
+        /*
+        *-------------------- <<< end of configuration section >>> -------------------
+        */
+        MEMORY
+        {
+            ... ...
+            /* ROM 4*/
+            ROM4 (rx): ORIGIN = __ROM4_BASE, LENGTH = __ROM4_SIZE
+        }
+
+        ... ...
+        .rom3 :
+        {
+            *lvsf_font_*(.rodata*)
+            *(.SECTION_TTF*.*)
+        } > ROM3
+
+        /* ROM4 , specify which part data will store here */
+        .rom4 :
+        {
+            *xxx.o(.rodata*)
+        } > ROM4
+        ```
+
+### Add custom img
+
+For example, adding a partition for downloading pre packaged binary files (such as third-party or other pre packaged ones)：  
+1. partition configuration(ptab.json)
+    ```c
+            {
+                "offset": "0x00640000", 
+                "max_size": "0x00400000", 
+                "img": "ext_bin", 
+                "tags": [
+                    "EXT_BIN"
+                ]
+            }, 
+    ```
+2. `AddCustomImg`(Sconstruct of this project)  
+
+    ```c
+    # Add custom image bin. `bin` specifies the path of the target binary.
+    AddCustomImg("ext_bin",bin=["../ext_bin.bin"])
+
+    # Generate download .bat script
+    GenDownloadScript(env)
+    ```
+Compile and you can see that it already includes the newly added custom img binary in download script.

@@ -712,6 +712,9 @@ def _main():
         elif board.endswith("_hcpu"):
             board = board[:-len("_hcpu")]
             core = "hcpu"
+        elif board.endswith("_acpu"):
+            board = board[:-len("_acpu")]
+            core = "acpu"
         else:
             core = "hcpu"    
         

@@ -13,6 +13,7 @@ config KCONFIG_V2
 source "$SIFLI_SDK/rtos/Kconfig"
 source "$SIFLI_SDK/middleware/Kconfig"
 source "$SIFLI_SDK/external/Kconfig"
+osource "$PKGS_ROOT/packages/Kconfig"
 
 menu "Build Options"
     config USING_MICROLIB
@@ -50,5 +51,13 @@ menu "Build Options"
     config USING_CPLUSPLUS
         bool "Support C++"
         default n
+    config STARTUP_STACK_SIZE
+        int "Stack Size (byte) for Main Stack"
+        default 221184 if BSP_USING_NO_OS
+        default 8192
+    config STARTUP_HEAP_SIZE
+        int "Heap Size (byte) used by standard lib"
+        default 65536 if BSP_USING_NO_OS
+        default 3072
 endmenu
 

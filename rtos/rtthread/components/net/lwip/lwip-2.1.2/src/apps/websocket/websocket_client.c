@@ -140,7 +140,7 @@ wsock_init(wsock_state_t *pws, int ssl_enabled, int ping_enabled, wsapp_fn messa
 
     if (pws == NULL || pws->pcb != NULL)
     {
-        printf("websocket init err\n");
+        printf("websocket init err, %p\n", pws);
         return ERR_ARG;
     }
 
@@ -497,11 +497,6 @@ err_t wsock_close(wsock_state_t *pws, wsock_result_t result, err_t err)
 
     err_t   close_err = err;
 
-    if (pws->tcp_state == WS_TCP_CLOSED)
-    {
-        rt_kprintf("wsocTCP already closed\n");
-        return ERR_OK;
-    }
 
     if (!pws)
     {
@@ -511,9 +506,10 @@ err_t wsock_close(wsock_state_t *pws, wsock_result_t result, err_t err)
 
     if (pws->tcp_state == WS_TCP_CLOSED)
     {
-        printf("wsock_close() TCP already closed\n");
-        // return ERR_CLSD;
+        rt_kprintf("wsocTCP already closed\n");
+        return ERR_OK;
     }
+
 
     if (!(pws->pcb &&
             (pws->state0 == PWS_STATE_INITD) &&
@@ -550,13 +546,17 @@ err_t wsock_close(wsock_state_t *pws, wsock_result_t result, err_t err)
         altcp_poll(pws->pcb, NULL, 0);
         altcp_sent(pws->pcb, NULL);
 
-        // Close the connection via application layer TCP.
-        if (altcp_close(pws->pcb) != ERR_OK)
-        {
-            altcp_abort(pws->pcb);
-            close_err = ERR_ABRT;
-        }
 
+
+        if (pws->tcp_state != WS_TCP_ABORTED)
+        {
+            // Close the connection via application layer TCP.
+            if (altcp_close(pws->pcb) != ERR_OK)
+            {
+                altcp_abort(pws->pcb);
+                close_err = ERR_ABRT;
+            }
+        }
         pws->pcb = NULL;
     }
     if (pws->pconf)
@@ -1097,6 +1097,7 @@ wsock_tcp_err(void *arg, err_t err)
     wsock_state_t *pws = (wsock_state_t *)arg;
 
     printf("TCP closed unexpectedly: %s(%d)\n", err2str(err), err);
+    pws->tcp_state = WS_TCP_ABORTED;
     wsock_close(pws, WSOCK_RESULT_ERR_CLOSED, err);
 }
 

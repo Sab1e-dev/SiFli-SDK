@@ -37,6 +37,21 @@ scons --board=sf32lb52-lcd_n16r8 -j32
 在HCPU工程目录下执行`scons`命令会自动编译LCPU的工程，下载脚本会下载包括小核在内的所有的固件。
 
 ### 代码解析
+#### 编译脚本
+由于用到了小核，需要在`project/hcpu/SConstruct`增加如下代码将小核工程编译进来，对于`SF32LB52X`，由于小核为蓝牙专用，不能使用自定义工程，所以直接使用命令`AddLCPU`添加小核的公共工程，
+其他芯片系列则调用添加子工程的命令`AddChildProj`，将`lcpu`目录下的工程作为子工程加入编译。
+
+```python
+# Add LCPU project
+if not GetDepend('SOC_SF32LB52X'):
+    lcpu_proj_path = '../lcpu'   
+    lcpu_proj_name = 'lcpu'
+    AddChildProj(lcpu_proj_name, lcpu_proj_path, True, core="LCPU")
+else:
+    # use common LCPU project
+    AddLCPU(SIFLI_SDK, rtconfig.CHIP)
+```
+
 #### 大核
 
 大核的`main`函数在`src/hcpu/main.c`中，完成蓝牙初始化

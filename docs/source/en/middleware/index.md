@@ -19,6 +19,6 @@ dfu_service/index.md
 ipc_queue.md
 gauss.md
 security.md
-audio_server.md
+multimedia.md
 partition_table.md
 ```

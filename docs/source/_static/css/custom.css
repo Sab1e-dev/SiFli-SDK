@@ -84,30 +84,27 @@ width: 120px;
 
 .sy-foot-feedback {
     font-size: 1.0rem;
-  }
-  
+}
+
 .sy-foot-feedback a {
-  font-weight: 600;
+    font-weight: 600;
 }
 
 .sy-foot-feedback a:hover {
-  text-decoration: underline;
+    text-decoration: underline;
 }
-  
 
-  #feedback-btn {
+#feedback-btn {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: #e24329;
-    color: white;
     padding: 10px 14px;
     border-radius: 6px;
     cursor: pointer;
     font-size: 14px;
     z-index: 9999;
-  }
-  
+}
+
 #feedback-popup {
   max-width: 420px;
   width: 90vw;
@@ -115,10 +112,7 @@ width: 120px;
   min-height: 430px;
   box-sizing: border-box;
   padding: 24px 18px 16px 18px;
-  background: #f6f8fa;
   border-radius: 8px;
-  border: 2px solid #b3b3b3;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.18);
   position: fixed;
   top: 50%;
   left: 50%;
@@ -127,12 +121,10 @@ width: 120px;
   display: none;
   overflow: auto;
 }
- 
 
 #feedback-popup input, #feedback-popup textarea {
   width: 100%;
   box-sizing: border-box;
-  background: #fff;
 }
 
 #feedback-popup .feedback-actions {
@@ -150,30 +142,128 @@ width: 120px;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
 }
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --feedback-btn-bg: #e24329;
+        --feedback-btn-color: white;
+        --feedback-popup-bg: #f6f8fa;
+        --feedback-popup-border: #b3b3b3;
+        --feedback-popup-shadow: rgba(0, 0, 0, 0.18);
+        --input-bg: #fff;
+        --input-color: #333;
+        --input-border: #ccc;
+        --cancel-bg: #e0e3e8;
+        --cancel-color: #333;
+        --cancel-hover-bg: #d0d3d8;
+        --submit-bg: #3477f5;
+        --submit-color: #fff;
+        --submit-hover-bg: #2457c5;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --feedback-btn-bg: #444;
+        --feedback-btn-color: #fff;
+        --feedback-popup-bg: #1e1e1e;
+        --feedback-popup-border: #555;
+        --feedback-popup-shadow: rgba(0, 0, 0, 0.6);
+        --input-bg: #333;
+        --input-color: #ccc;
+        --input-border: #555;
+        --cancel-bg: #333;
+        --cancel-color: #ccc;
+        --cancel-hover-bg: #444;
+        --submit-bg: #007acc;
+        --submit-color: #fff;
+        --submit-hover-bg: #005a9e;
+    }
+}
+
+/* light mode for manual config */
+html.light {
+    --feedback-btn-bg: #e24329;
+    --feedback-btn-color: white;
+    --feedback-popup-bg: #f6f8fa;
+    --feedback-popup-border: #b3b3b3;
+    --feedback-popup-shadow: rgba(0, 0, 0, 0.18);
+    --input-bg: #fff;
+    --input-color: #333;
+    --input-border: #ccc;
+    --cancel-bg: #e0e3e8;
+    --cancel-color: #333;
+    --cancel-hover-bg: #d0d3d8;
+    --submit-bg: #3477f5;
+    --submit-color: #fff;
+    --submit-hover-bg: #2457c5;
+}
+
+/* dark mode for manual config */
+html.dark {
+    --feedback-btn-bg: #444;
+    --feedback-btn-color: #fff;
+    --feedback-popup-bg: #1e1e1e;
+    --feedback-popup-border: #555;
+    --feedback-popup-shadow: rgba(0, 0, 0, 0.6);
+    --input-bg: #333;
+    --input-color: #ccc;
+    --input-border: #555;
+    --cancel-bg: #333;
+    --cancel-color: #ccc;
+    --cancel-hover-bg: #444;
+    --submit-bg: #007acc;
+    --submit-color: #fff;
+    --submit-hover-bg: #005a9e;
+}
+
+/* apply setting */
+#feedback-btn {
+    background: var(--feedback-btn-bg);
+    color: var(--feedback-btn-color);
+}
+
+#feedback-popup {
+    background: var(--feedback-popup-bg);
+    border: 2px solid var(--feedback-popup-border);
+    box-shadow: 0 2px 16px var(--feedback-popup-shadow);
+}
+
+#feedback-popup input,
+#feedback-popup textarea {
+    background: var(--input-bg);
+    color: var(--input-color);
+    border: 1px solid var(--input-border);
+}
+
 #feedback-popup #feedback-cancel {
-  background: #e0e3e8;
-  color: #333;
+    background: var(--cancel-bg);
+    color: var(--cancel-color);
 }
+
 #feedback-popup #feedback-cancel:hover {
-  background: #d0d3d8;
+    background: var(--cancel-hover-bg);
 }
+
 #feedback-popup #feedback-submit {
-  background: #3477f5;
-  color: #fff;
+    background: var(--submit-bg);
+    color: var(--submit-color);
 }
+
 #feedback-popup #feedback-submit:hover {
-  background: #2457c5;
+    background: var(--submit-hover-bg);
 }
 
 @media (max-width: 500px) {
-  #feedback-popup {
-    max-width: 98vw;
-    padding: 12px 4vw 12px 4vw;
-    min-height: 0;
-  }
-  #feedback-popup .flex-row {
-    flex-direction: column;
-    gap: 8px !important;
-  }
+    #feedback-popup {
+        max-width: 98vw;
+        padding: 12px 4vw 12px 4vw;
+        min-height: 0;
+    }
+
+    #feedback-popup .flex-row {
+        flex-direction: column;
+        gap: 8px !important;
+    }
 }
 

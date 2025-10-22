@@ -27,8 +27,8 @@
 #include <zephyr/sys/util_macro.h>
 
 #define SEM_TIMEOUT K_SECONDS(10)
-#define PA_SYNC_SKIP         5
-#define PA_SYNC_INTERVAL_TO_TIMEOUT_RATIO 20 /* Set the timeout relative to interval */
+#define PA_SYNC_SKIP         1
+#define PA_SYNC_INTERVAL_TO_TIMEOUT_RATIO 5 /* Set the timeout relative to interval */
 
 static bool tmap_bms_found;
 

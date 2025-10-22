@@ -17,7 +17,7 @@
 #include "dfs_posix.h"
 
 #include "audio_mem.h"
-#define DBG_TAG           "audio_3a"
+#define DBG_TAG           "a3a"
 #define DBG_LVL           AUDIO_DBG_LVL //LOG_LVL_WARNING
 #include "log.h"
 #include "audio_server.h"
@@ -40,7 +40,6 @@ typedef struct audio_3a_tag
     uint8_t     is_bt_voice;
     uint8_t     is_far_putted;
     uint16_t    samplerate;
-    uint16_t    frame_size;
     uint8_t    *rbuf_dwlink_pool;
     uint8_t    *mic_far;
     struct rt_ringbuffer rbuf_dwlink;
@@ -61,6 +60,8 @@ static audio_3a_t g_audio_3a_env =
     .samplerate = 16000,
 };
 
+static uint8_t g_bypass;
+
 static t_vad_instance vad1;
 static struct echo_param_vad vad_param =
 {
@@ -71,14 +72,14 @@ static struct echo_param_vad vad_param =
     最后算法看到的mic信号比参考信号晚多少个采样,
     调整g_mic_delay_ref，保证实际测量出来和这个值一致
 */
-#define DELAY_SAMPLE    5
+#define DELAY_SAMPLE    10
 
 /*
    需要把参考信号最前面插入多少个采样
    才能把保证算法看到的mic信号比参考信号延迟DELAY_SAMPLE
    个采样
 */
-static uint16_t g_mic_delay_ref = 434;
+static uint16_t g_mic_delay_ref = 352;
 
 static const char factory_far[] =
 {
@@ -89,8 +90,8 @@ static const char factory_far[] =
     " --nrEna=1"
     " --noiseSuppressDb=-20"
     " --volLoad=1"
-    " --limit=0.15FS"
-    " --vol_dB=2dB"
+    " --limit=0.80FS"
+    " --vol_dB=5dB"
 };
 
 static const char factory_near[] =
@@ -113,8 +114,8 @@ static const char factory_near[] =
     " --minGain=0.1"
     " --nearSensitivity=20"
     " --volLoad=1"
-    " --limit=1.0FS"
-    " --vol_dB=0dB"
+    " --limit=0.85FS"
+    " --vol_dB=3dB"
 };
 
 static void audio_3a_module_init(audio_3a_t *env, uint32_t samplerate)
@@ -179,6 +180,11 @@ static void my_free(T_pVOID p)
     audio_mem_free(p);
 }
 
+
+void audio_3a_set_bypass(uint8_t is_bypass, uint8_t mic, uint8_t down)
+{
+    g_bypass = is_bypass;
+}
 void audio_3a_open(uint32_t samplerate, uint8_t is_bt_voice, uint8_t disable_uplink_agc)
 {
     audio_3a_t *thiz = &g_audio_3a_env;
@@ -205,6 +211,8 @@ void audio_3a_open(uint32_t samplerate, uint8_t is_bt_voice, uint8_t disable_upl
         // set debug level
         SD_ParamFactory_SetDebugZones(SD_DEFAULT_DEBUG_ZONES | SD_ZONE_ID_PARAM/*SD_ZONE_ID_VERBOSE*/);
 
+        //_SD_Echo_PrintFarPathParamHelp();
+
         // 1. echo init
         memset(&echo_in, 0, sizeof(echo_in));
         echo_in.strVersion = AUDIO_FILTER_VERSION_STRING;
@@ -223,7 +231,6 @@ void audio_3a_open(uint32_t samplerate, uint8_t is_bt_voice, uint8_t disable_upl
             echo_in.m_SampleRate = 8000;
             echo_in.m_hwSampleRate = 8000;
             thiz->samplerate = 8000;
-            thiz->frame_size = ANYKA_FRAME_SIZE / 2;
             audio_3a_module_init(thiz, 8000);
         }
         else
@@ -231,7 +238,6 @@ void audio_3a_open(uint32_t samplerate, uint8_t is_bt_voice, uint8_t disable_upl
             echo_in.m_SampleRate = 16000;
             echo_in.m_hwSampleRate = 16000;
             thiz->samplerate = 16000;
-            thiz->frame_size = ANYKA_FRAME_SIZE / 2;
             audio_3a_module_init(thiz, 16000);
         }
 
@@ -247,6 +253,8 @@ void audio_3a_open(uint32_t samplerate, uint8_t is_bt_voice, uint8_t disable_upl
         _SD_ASLC_login(AK_NULL);
 
         thiz->factory_far = SD_ParamFactory_Create_ByCmdLine(factory_far, sizeof(factory_far));
+        RT_ASSERT(thiz->factory_far);
+        _SD_Echo_SetFarPathParam(thiz->p_far, thiz->factory_far);
 
         // 3. open near path
         echo_in.m_pathId = 0;
@@ -264,7 +272,7 @@ void audio_3a_open(uint32_t samplerate, uint8_t is_bt_voice, uint8_t disable_upl
         _SD_ASLC_login(AK_NULL);
 
         thiz->factory_near = SD_ParamFactory_Create_ByCmdLine(factory_near, sizeof(factory_near));
-
+        RT_ASSERT(thiz->factory_near);
         ret = _SD_Echo_SetNearPathParam(thiz->p_near, thiz->factory_near);
 
         if (vad_param.vadType) // only set when type is valid
@@ -363,9 +371,19 @@ void audio_3a_downlink(uint8_t *fifo, uint8_t size)
         rt_tick_t tick = rt_tick_get();
 
         getsize = _SD_Echo_FillFarStream(thiz->p_far, data_in, ANYKA_FRAME_SIZE, tick * 1000, 1);
-        RT_ASSERT(getsize == ANYKA_FRAME_SIZE);
+        //RT_ASSERT(getsize == ANYKA_FRAME_SIZE);
+        if (!getsize)
+        {
+            LOG_I("far full");
+            continue;
+        }
         getsize = _SD_Echo_GetDacStream(thiz->p_far, data_out, ANYKA_FRAME_SIZE, &thiz->ts_dac_stream, 1);
-        RT_ASSERT(getsize == ANYKA_FRAME_SIZE);
+
+        if (!getsize)
+        {
+            LOG_I("dac empty");
+            continue;
+        }
 
         audio_dump_data(ADUMP_DOWNLINK_AGC, data_out, ANYKA_FRAME_SIZE);
 
@@ -417,9 +435,15 @@ void audio_3a_uplink(uint8_t *fifo, uint16_t fifo_size, uint8_t is_mute, uint8_t
 #if DEBUG_FRAME_SYNC
     thiz->is_far_using = 0;
 #endif
+    audio_dump_data(ADUMP_AUDPRC, fifo, fifo_size);
     audio_dump_data(ADUMP_AECM_INPUT1, (uint8_t *)refframe, ANYKA_FRAME_SIZE);
     audio_dump_data(ADUMP_AECM_INPUT2, fifo, ANYKA_FRAME_SIZE);
-
+    if (g_bypass)
+    {
+        is_mute = 0;
+        memcpy(result, fifo, ANYKA_FRAME_SIZE);
+        goto skip_3a_up;
+    }
     // todo: change to use HAL_HPAON_READ_GTIMER();
     uint64_t ts = rt_tick_get() * 1000;
     ret = _SD_Echo_FillDacLoopback(thiz->p_near, (uint8_t *)refframe, ANYKA_FRAME_SIZE, ts, 1);
@@ -446,7 +470,7 @@ skip_3a_up:
 
     if (!is_bt_voice)
     {
-        rt_ringbuffer_get(thiz->rbuf_out, fifo, 320);
+        rt_ringbuffer_get(thiz->rbuf_out, fifo, ANYKA_FRAME_SIZE);
         return;
     }
 

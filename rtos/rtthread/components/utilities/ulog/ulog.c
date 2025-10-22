@@ -189,8 +189,10 @@ __ROM_USED size_t ulog_ultoa(char *s, unsigned long int n)
 
 static void output_unlock(void)
 {
+    rt_base_t level = rt_hw_interrupt_disable();
+    rt_hw_interrupt_enable(level);
     /* is in thread context */
-    if (rt_interrupt_get_nest() == 0)
+    if ((rt_interrupt_get_nest() == 0) && (level == 0))
     {
         rt_mutex_release(&ulog.output_locker);
     }
@@ -204,8 +206,10 @@ static void output_unlock(void)
 
 static void output_lock(void)
 {
+    rt_base_t level = rt_hw_interrupt_disable();
+    rt_hw_interrupt_enable(level);
     /* is in thread context */
-    if (rt_interrupt_get_nest() == 0)
+    if ((rt_interrupt_get_nest() == 0) && (level == 0))
     {
         rt_mutex_take(&ulog.output_locker, RT_WAITING_FOREVER);
         RT_ASSERT(ulog.output_locker.hold == 1);
@@ -220,8 +224,10 @@ static void output_lock(void)
 
 static char *get_log_buf(void)
 {
+    rt_base_t level = rt_hw_interrupt_disable();
+    rt_hw_interrupt_enable(level);
     /* is in thread context */
-    if (rt_interrupt_get_nest() == 0)
+    if ((rt_interrupt_get_nest() == 0) && (level == 0))
     {
         return ulog.log_buf_th;
     }

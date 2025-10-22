@@ -31,9 +31,8 @@ static enum benchmark_role device_role_select(void)
         printk("Choose device role - type r (receiver role) or b "
                "(broadcaster role), or q to quit: ");
 
+next:
         role = tolower(console_getchar());
-
-        printk("%c\n", role);
 
         if (role == 'r')
         {
@@ -50,12 +49,12 @@ static enum benchmark_role device_role_select(void)
             printk("Quitting\n");
             return ROLE_QUIT;
         }
-        else if (role == '\n')
+        else if (role == '\n' || role == '\r')
         {
-            continue;
+            goto next;
         }
 
-        printk("Invalid role: %c\n", role);
+        printk("Invalid role: %c, 0x%x\n", role, role);
     }
 }
 
@@ -99,7 +98,7 @@ int main(void)
         {
             if (role != ROLE_QUIT)
             {
-                LOG_INF("Invalid role %u", role);
+                printk("Invalid role %u\n", role);
                 continue;
             }
             else
@@ -109,9 +108,10 @@ int main(void)
             }
         }
 
-        LOG_INF("Test complete %d", err);
+        printk("Test complete %d\n", err);
     }
 
-    LOG_INF("Exiting");
+    console_done();
+    printk("Exiting\n");
     return 0;
 }

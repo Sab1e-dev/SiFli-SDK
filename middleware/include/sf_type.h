@@ -64,7 +64,9 @@ typedef int sf_err_t;
 
 /** Converts a macro argument into a character constant.
  */
-#define STRINGIFY(val)       STRINGIFY_(val)
+#ifndef  STRINGIFY
+    #define STRINGIFY(val)       STRINGIFY_(val)
+#endif
 
 /**
  * @brief Extracting data from the brackets

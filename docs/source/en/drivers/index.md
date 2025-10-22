@@ -24,7 +24,8 @@ Device Driver            | Corresponding HAL           |
 [RTC Device](rtc.md)     | [RTC](../hal/rtc.md)             | 
 [SPI Device](spi.md)     | [SPI](../hal/spi.md)             | 
 [Watchdog Device][watchdog] | [WDT](../hal/wdt.md)          | 
-[I2S Audio Device](audio.md) | [I2S](../hal/i2s.md)          | 
+[audprc_audcodec](i2s.md) | [audprc](../hal/audprc.md) and [audcodec](../hal/audcodec.md)          | 
+[I2S Audio Device](i2s.md) | [I2S](../hal/i2s.md)          | 
 [USBD Device](usbd.md)   | [USBC](../hal/pcd.md)             | 
 [SDIO Device](sdio.md)   |                             |
 [EPIC Driver](epic.md)       |  [EPIC](/hal/epic.md) | 
@@ -45,6 +46,7 @@ usbd.md
 sdio.md
 spi_flash.md
 spi_flash_52x.md
+epic.md
 ```
 
 

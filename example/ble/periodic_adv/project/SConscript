@@ -14,7 +14,7 @@ for d in list:
 Import('SIFLI_SDK')
 
 # Add LCPU Patch
-objs.extend(SConscript(os.path.join(SIFLI_SDK, 'example/rom_bin/lcpu_general_ble_img/SConscript'), variant_dir="lcpu_patch", duplicate=0))
+objs.extend(SConscript(cwd + '../../src/SConscript', variant_dir='peripheral', duplicate=0))
 
 # Add SDK
 objs.extend(SConscript(os.path.join(SIFLI_SDK, 'SConscript'), variant_dir="sifli_sdk", duplicate=0))

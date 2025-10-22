@@ -14,6 +14,17 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(iso_broadcast_receiver, LOG_LEVEL_DBG);
 
+#if 1
+    #undef LOG_DBG
+    #define LOG_DBG(fmt,...) rt_kprintf("%s "fmt"\n",__FUNCTION__,##__VA_ARGS__)
+    #undef LOG_INF
+    #define LOG_INF(fmt,...) rt_kprintf("I:%s "fmt"\n",__FUNCTION__,##__VA_ARGS__)
+    #undef LOG_WRN
+    #define LOG_WRN(fmt,...) rt_kprintf("W:%s "fmt"\n",__FUNCTION__,##__VA_ARGS__)
+    #undef LOG_ERR
+    #define LOG_ERR(fmt,...) rt_kprintf("E:%s "fmt"\n",__FUNCTION__,##__VA_ARGS__)
+#endif
+
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME))
 

@@ -20,6 +20,18 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(iso_connected, LOG_LEVEL_DBG);
 
+#if 1
+    #undef LOG_DBG
+    #define LOG_DBG(fmt,...) rt_kprintf("%s "fmt"\n",__FUNCTION__,##__VA_ARGS__)
+    #undef LOG_INF
+    #define LOG_INF(fmt,...) rt_kprintf("I:%s "fmt"\n",__FUNCTION__,##__VA_ARGS__)
+    #undef LOG_WRN
+    #define LOG_WRN(fmt,...) rt_kprintf("W:%s "fmt"\n",__FUNCTION__,##__VA_ARGS__)
+    #undef LOG_ERR
+    #define LOG_ERR(fmt,...) rt_kprintf("E:%s "fmt"\n",__FUNCTION__,##__VA_ARGS__)
+#endif
+
+
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME))
 
@@ -163,6 +175,7 @@ static enum benchmark_role device_role_select(void)
         printk("Choose device role - type %c (central role) or %c (peripheral role), or %c to quit: ",
                central_char, peripheral_char, quit_char);
 
+next:
         role_char = tolower(console_getchar());
 
         printk("%c\n", role_char);
@@ -184,11 +197,24 @@ static enum benchmark_role device_role_select(void)
         }
         else if (role_char == '\n' || role_char == '\r')
         {
-            continue;
+            goto next;
         }
 
         printk("Invalid role: %c\n", role_char);
     }
+}
+
+static int yes_no_select(void)
+{
+    char in_char;
+
+    while (true)
+    {
+        in_char = console_getchar();
+        if (in_char == 'y' || in_char == 'N')
+            break;
+    }
+    return in_char;
 }
 
 static void print_stats(char *name, struct iso_recv_stats *stats)
@@ -1054,12 +1080,13 @@ static int change_central_settings(void)
            cig_create_param.p_to_c_interval, cig_create_param.c_to_p_latency,
            cig_create_param.p_to_c_latency);
 
-    c = tolower(console_getchar());
+    c = yes_no_select();
     if (c == 'y')
     {
         err = parse_cig_args();
         if (err != 0)
         {
+            printk("CIG args error:%d", err);
             return err;
         }
 
@@ -1075,11 +1102,11 @@ static int change_central_settings(void)
            "phy=%u, sdu=%u)\n",
            iso_tx_qos.rtn, iso_tx_qos.phy, iso_tx_qos.sdu);
 
-    c = tolower(console_getchar());
+    c = yes_no_select();
     if (c == 'y')
     {
         printk("Disable TX (y/N)?\n");
-        c = tolower(console_getchar());
+        c = yes_no_select();
         if (c == 'y')
         {
             iso_qos.tx = NULL;
@@ -1104,11 +1131,11 @@ static int change_central_settings(void)
            "phy=%u, sdu=%u)\n",
            iso_rx_qos.rtn, iso_rx_qos.phy, iso_rx_qos.sdu);
 
-    c = tolower(console_getchar());
+    c = yes_no_select();
     if (c == 'y')
     {
         printk("Disable RX (y/N)?\n");
-        c = tolower(console_getchar());
+        c = yes_no_select();
         if (c == 'y')
         {
             if (iso_qos.tx == NULL)
@@ -1125,7 +1152,7 @@ static int change_central_settings(void)
 
             printk("Set RX settings to TX settings (Y/n)?\n");
 
-            c = tolower(console_getchar());
+            c = yes_no_select();
             if (c == 'n')
             {
                 err = parse_cis_args(&iso_rx_qos);
@@ -1320,7 +1347,7 @@ static int run_central(void)
     reset_sems();
 
     printk("Change ISO settings (y/N)?\n");
-    c = tolower(console_getchar());
+    c = yes_no_select();
     if (c == 'y')
     {
         err = change_central_settings();
@@ -1578,6 +1605,7 @@ int main(void)
         LOG_INF("Test complete: %d", err);
     }
 
+    console_done();
     LOG_INF("Exiting");
     return 0;
 }

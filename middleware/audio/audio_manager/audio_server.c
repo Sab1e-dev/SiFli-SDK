@@ -71,6 +71,12 @@
     #define AUDIO_SERVER_STACK_SIZE         (9 * 1024)
 #endif
 
+#if PKG_USING_ANYKA
+    #define DOWNLINK_STACK_SIZE             3000
+#else
+    #define DOWNLINK_STACK_SIZE             2000
+#endif
+
 #define FADE_VOLUME_STEP        4
 #define FADE_INTERVAL_MS        10
 
@@ -363,7 +369,7 @@ typedef struct
 static int audio_pm_debug = 0;
 static audio_server_t g_server;
 static uint32_t audio_server_stack[AUDIO_SERVER_STACK_SIZE / 4];
-static uint32_t bt_downvoice_stack[500];
+static uint32_t bt_downvoice_stack[DOWNLINK_STACK_SIZE / 4];
 static struct rt_thread audio_server_tid;
 static struct rt_thread bt_downvoice_tid;
 static uint8_t *hfp_dev_input_buf;
@@ -1066,6 +1072,7 @@ void speaker_ring_put(uint8_t *fifo, uint16_t fifo_size)
 
 static void i2s_config(audio_device_speaker_t *my, bool is_tx)
 {
+    RT_ASSERT(TX_DMA_SIZE == AUDIO_DATA_SIZE / 2)
     my->i2s = rt_device_find("i2s2");
     if (!my->i2s)
     {
@@ -2169,7 +2176,7 @@ static void device_print_current_client(audio_device_ctrl_t *device)
     rt_list_for_each(pos, &get_server()->suspend_client_list)
     {
         c = rt_list_entry(pos, struct audio_client_base_t, node);
-        LOG_I("suspend: h=%x name=%s type=%d  rw=%d device_s=%d device_u=%d prio=%d", c, c->name, c->audio_type,
+        LOG_I("suspend: h=%x name=%s type=%d  rw=%d device_s=%d device_u=%d prio=%d", c, c->name, c->audio_type, c->rw_flag,
               c->device_specified, c->device_using, mix_policy[c->audio_type].priority);
     }
     LOG_I("device %d info end", device->device_type);

@@ -49,6 +49,15 @@ uart_download.bat：使用串口使用
 最后在进行读取并检验
 如果读取与写入的不一致,log中会打印：```"Read page fail at pos 0x ``` ```Read data not same to source at pos 0x ```
 ![alt text](assets/nand2.png)
+
+### 性能测试结果
+预期出现的log结果：
+```c
+Write speed: 3121.95 KB/s (time: 41 ticks, pages: 64)
+Write Ops: 64 pages, 1560.98 ops/sec
+Read speed: 10666.67 KB/s (time: 12 ticks, pages: 128)
+Read Ops: 128 pages, 10666.67 ops/sec
+```
 ### 故障排查
 如果log未能出现预期的log和现象，可以从已下几个方面进行故障排查：
 * 硬件连接是否正常

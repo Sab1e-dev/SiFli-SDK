@@ -3326,3 +3326,66 @@ INIT_APP_EXPORT(pm_metrics_init);
 
 #endif /* PM_METRICS_PRINT_DIRECTLY */
 
+
+#ifdef BSP_PM_DEBUG
+static int pm_debug(int argc, char **argv)
+{
+    bool sleep_failed = false;
+    uint32_t wsr;
+    uint32_t idle_time;
+    rt_tick_t next_timeout;
+
+    if (rt_pm_sleep_mode_state_get(PM_SLEEP_MODE_IDLE) > 0)
+    {
+        LOG_I("PM_SLEEP_MODE_IDLE is requested");
+        sleep_failed = true;
+    }
+
+    next_timeout = rt_timer_next_timeout_tick();
+    if (RT_TICK_MAX != next_timeout)
+    {
+        idle_time = next_timeout - rt_tick_get();
+    }
+    else
+    {
+        idle_time = UINT32_MAX;
+    }
+    if (idle_time < pm_policy[0].thresh)
+    {
+        LOG_I("next timer timeout is too close: %d ticks", idle_time);
+        LOG_I("use command list_timer to list check timers");
+        sleep_failed = true;
+    }
+
+#ifdef USING_IPC_QUEUE
+    if (!ipc_queue_check_idle()
+#ifdef SOC_BF0_LCPU
+            || !ipc_queue_check_idle_rom()
+#endif /* SOC_BF0_LCPU */
+       )
+    {
+        LOG_I("ipc queue is not empty");
+        sleep_failed = true;
+    }
+#endif /* USING_IPC_QUEUE */
+
+#ifdef SOC_BF0_HCPU
+    wsr = HAL_HPAON_GET_WSR() & HAL_HPAON_GET_WER();
+#else
+    wsr = HAL_LPAON_GET_WSR() & HAL_LPAON_GET_WER();
+#endif /* SOC_BF0_HCPU */
+    if (wsr)
+    {
+        LOG_I("wakeup source is present: 0x%x", wsr);
+        sleep_failed = true;
+    }
+
+    if (sleep_failed)
+    {
+        LOG_I("sleep failed, pls check the reason above");
+    }
+
+    return 0;
+}
+MSH_CMD_EXPORT(pm_debug, pm debug);
+#endif /* BSP_PM_DEBUG */

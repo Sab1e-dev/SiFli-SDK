@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, sakumisu
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co, Ltd
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -11,7 +11,7 @@
 #define CDC_OUT_EP 0x02
 #define CDC_INT_EP 0x86
 
-#define USBD_VID           0xFFFF
+#define USBD_VID           0x38f4
 #define USBD_PID           0xFFFF
 #define USBD_MAX_POWER     100
 #define USBD_LANGID_STRING 1033
@@ -20,22 +20,25 @@
 #define USB_CONFIG_SIZE (9 + CDC_ACM_DESCRIPTOR_LEN)
 
 #ifdef CONFIG_USB_HS
-#define CDC_MAX_MPS 512
+    #define CDC_MAX_MPS 512
 #else
-#define CDC_MAX_MPS 64
+    #define CDC_MAX_MPS 64
 #endif
 
 #ifdef CONFIG_USBDEV_ADVANCE_DESC
-static const uint8_t device_descriptor[] = {
+static const uint8_t device_descriptor[] =
+{
     USB_DEVICE_DESCRIPTOR_INIT(USB_2_0, 0xEF, 0x02, 0x01, USBD_VID, USBD_PID, 0x0100, 0x01)
 };
 
-static const uint8_t config_descriptor[] = {
+static const uint8_t config_descriptor[] =
+{
     USB_CONFIG_DESCRIPTOR_INIT(USB_CONFIG_SIZE, 0x02, 0x01, USB_CONFIG_BUS_POWERED, USBD_MAX_POWER),
     CDC_ACM_DESCRIPTOR_INIT(0x00, CDC_INT_EP, CDC_OUT_EP, CDC_IN_EP, CDC_MAX_MPS, 0x02)
 };
 
-static const uint8_t device_quality_descriptor[] = {
+static const uint8_t device_quality_descriptor[] =
+{
     ///////////////////////////////////////
     /// device qualifier descriptor
     ///////////////////////////////////////
@@ -51,7 +54,8 @@ static const uint8_t device_quality_descriptor[] = {
     0x00,
 };
 
-static const char *string_descriptors[] = {
+static const char *string_descriptors[] =
+{
     (const char[]){ 0x09, 0x04 }, /* Langid */
     "CherryUSB",                  /* Manufacturer */
     "CherryUSB CDC DEMO",         /* Product */
@@ -75,13 +79,15 @@ static const uint8_t *device_quality_descriptor_callback(uint8_t speed)
 
 static const char *string_descriptor_callback(uint8_t speed, uint8_t index)
 {
-    if (index > 3) {
+    if (index > 3)
+    {
         return NULL;
     }
     return string_descriptors[index];
 }
 
-const struct usb_descriptor cdc_descriptor = {
+const struct usb_descriptor cdc_descriptor =
+{
     .device_descriptor_callback = device_descriptor_callback,
     .config_descriptor_callback = config_descriptor_callback,
     .device_quality_descriptor_callback = device_quality_descriptor_callback,
@@ -89,7 +95,8 @@ const struct usb_descriptor cdc_descriptor = {
 };
 #else
 /*!< global descriptor */
-static const uint8_t cdc_descriptor[] = {
+static const uint8_t cdc_descriptor[] =
+{
     USB_DEVICE_DESCRIPTOR_INIT(USB_2_0, 0xEF, 0x02, 0x01, USBD_VID, USBD_PID, 0x0100, 0x01),
     USB_CONFIG_DESCRIPTOR_INIT(USB_CONFIG_SIZE, 0x02, 0x01, USB_CONFIG_BUS_POWERED, USBD_MAX_POWER),
     CDC_ACM_DESCRIPTOR_INIT(0x00, CDC_INT_EP, CDC_OUT_EP, CDC_IN_EP, CDC_MAX_MPS, 0x02),
@@ -175,29 +182,30 @@ volatile bool ep_tx_busy_flag = false;
 
 static void usbd_event_handler(uint8_t busid, uint8_t event)
 {
-    switch (event) {
-        case USBD_EVENT_RESET:
-            break;
-        case USBD_EVENT_CONNECTED:
-            break;
-        case USBD_EVENT_DISCONNECTED:
-            break;
-        case USBD_EVENT_RESUME:
-            break;
-        case USBD_EVENT_SUSPEND:
-            break;
-        case USBD_EVENT_CONFIGURED:
-            ep_tx_busy_flag = false;
-            /* setup first out ep read transfer */
-            usbd_ep_start_read(busid, CDC_OUT_EP, read_buffer, 2048);
-            break;
-        case USBD_EVENT_SET_REMOTE_WAKEUP:
-            break;
-        case USBD_EVENT_CLR_REMOTE_WAKEUP:
-            break;
+    switch (event)
+    {
+    case USBD_EVENT_RESET:
+        break;
+    case USBD_EVENT_CONNECTED:
+        break;
+    case USBD_EVENT_DISCONNECTED:
+        break;
+    case USBD_EVENT_RESUME:
+        break;
+    case USBD_EVENT_SUSPEND:
+        break;
+    case USBD_EVENT_CONFIGURED:
+        ep_tx_busy_flag = false;
+        /* setup first out ep read transfer */
+        usbd_ep_start_read(busid, CDC_OUT_EP, read_buffer, 2048);
+        break;
+    case USBD_EVENT_SET_REMOTE_WAKEUP:
+        break;
+    case USBD_EVENT_CLR_REMOTE_WAKEUP:
+        break;
 
-        default:
-            break;
+    default:
+        break;
     }
 }
 
@@ -216,21 +224,26 @@ void usbd_cdc_acm_bulk_in(uint8_t busid, uint8_t ep, uint32_t nbytes)
 {
     USB_LOG_RAW("actual in len:%d\r\n", (unsigned int)nbytes);
 
-    if ((nbytes % usbd_get_ep_mps(busid, ep)) == 0 && nbytes) {
+    if ((nbytes % usbd_get_ep_mps(busid, ep)) == 0 && nbytes)
+    {
         /* send zlp */
         usbd_ep_start_write(busid, CDC_IN_EP, NULL, 0);
-    } else {
+    }
+    else
+    {
         ep_tx_busy_flag = false;
     }
 }
 
 /*!< endpoint call back */
-struct usbd_endpoint cdc_out_ep = {
+struct usbd_endpoint cdc_out_ep =
+{
     .ep_addr = CDC_OUT_EP,
     .ep_cb = usbd_cdc_acm_bulk_out
 };
 
-struct usbd_endpoint cdc_in_ep = {
+struct usbd_endpoint cdc_in_ep =
+{
     .ep_addr = CDC_IN_EP,
     .ep_cb = usbd_cdc_acm_bulk_in
 };
@@ -261,19 +274,24 @@ volatile uint8_t dtr_enable = 0;
 
 void usbd_cdc_acm_set_dtr(uint8_t busid, uint8_t intf, bool dtr)
 {
-    if (dtr) {
+    if (dtr)
+    {
         dtr_enable = 1;
-    } else {
+    }
+    else
+    {
         dtr_enable = 0;
     }
 }
 
 void cdc_acm_data_send_with_dtr_test(uint8_t busid)
 {
-    if (dtr_enable) {
+    if (dtr_enable)
+    {
         ep_tx_busy_flag = true;
         usbd_ep_start_write(busid, CDC_IN_EP, write_buffer, 2048);
-        while (ep_tx_busy_flag) {
+        while (ep_tx_busy_flag)
+        {
         }
     }
 }

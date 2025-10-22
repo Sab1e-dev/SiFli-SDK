@@ -40,7 +40,9 @@ extensions = ["breathe",
               "sphinx_copybutton",
               "sphinx.ext.intersphinx",
               #"sphinx_ext_substitution",
-              "sphinx_design"
+              "sphinx_design",
+              "sphinx_selective_exclude.eager_only",
+              "sphinx_selective_exclude.search_auto_exclude",
               ]
 
 templates_path = ['_templates']
@@ -95,11 +97,13 @@ html_theme_options = {
 html_css_files = [
     'css/custom.css',
     'css/feedback.css',
+    'css/lightbox.css',
 ]
 
 html_js_files = [
     'js/baidu.js',
     'js/feedback.js',
+    'js/lightbox.js',
 ]
 
 # -- Options for Breathe ----------------------------------------------------

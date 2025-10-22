@@ -839,12 +839,12 @@ def BuildOptionUpdate(BuildOptions,BSP_Root):
     PreProcessor = PatchedPreProcessor()
     
     if GetBoardName():
-        f = open(os.path.join(rtconfig.OUTPUT_DIR, 'rtconfig.h'), 'r')
+        f = open(os.path.join(rtconfig.OUTPUT_DIR, 'rtconfig.h'), 'r', encoding='utf-8')
     else:     
         if BSP_Root:
-            f = open(os.path.join(BSP_Root, 'rtconfig.h'), 'r')
+            f = open(os.path.join(BSP_Root, 'rtconfig.h'), 'r', encoding='utf-8')
         else:
-            f = open('rtconfig.h', 'r')
+            f = open('rtconfig.h', 'r', encoding='utf-8')
 
     contents = f.read()
     f.close()
@@ -1220,15 +1220,21 @@ def PrepareBuilding(env, has_libcpu=False, remove_components=[], buildlib=None):
                 return ' '.join(tlist)
 
             def expand_ldir(target, source, env, for_signature):
-                slist = [str(a).replace('\\','\\\\') for a in env['LIBPATH']]
-                return '-L' + ' -L'.join(slist)
+                if 'LIBPATH' in env and len(env['LIBPATH']) > 0:
+                    slist = [str(a).replace('\\','\\\\') for a in env['LIBPATH']]
+                    ldir = '-L' + ' -L'.join(slist)
+                else:
+                    ldir = ''
+
+                return ldir
 
             env['EXPANDED_SOURCES'] = expand_sources
             env['EXPANDED_TARGETS'] = expand_target            
             env['EXPANDED_LDIR'] = expand_ldir
             env["TEMPFILE"] = SCons.Platform.TempFileMunge
-            #env["LINKCOM"] = "${TEMPFILE('%s','$LINKCOMSTR')}"%env['LINKCOM']    
-            env["LINKCOM"] = "${TEMPFILE('$LINK -o $EXPANDED_TARGETS $LINKFLAGS $__RPATH $EXPANDED_SOURCES $EXPANDED_LDIR -Wl,--start-group $_LIBFLAGS -Wl,--end-group','$LINKCOMSTR')}"  
+            #env["LINKCOM"] = "${TEMPFILE('%s','$LINKCOMSTR')}"%env['LINKCOM']   
+            env.setdefault('LINKFLAGS_POST', '') 
+            env["LINKCOM"] = "${TEMPFILE('$LINK -o $EXPANDED_TARGETS $LINKFLAGS $__RPATH $EXPANDED_SOURCES $EXPANDED_LDIR -Wl,--start-group $LINKFLAGS_POST $_LIBFLAGS -Wl,--end-group ','$LINKCOMSTR')}"  
             #if hasattr(SCons.Platform.TempFileMunge, 'version'):
             #    env["CCCOM"] = "${TEMPFILE('%s','$CCCOMSTR')}"%env['CCCOM']
             #    env["CXXCOM"] = "${TEMPFILE('%s','$CXXCOMSTR')}"%env['CXXCOM']
@@ -1485,6 +1491,10 @@ def PrepareBuilding(env, has_libcpu=False, remove_components=[], buildlib=None):
                                duplicate=0,
                                exports='remove_components'))
 
+    # Add rt-thread online packages
+    if os.path.isfile(os.path.join(Env['BSP_ROOT'], 'packages/SConscript')):
+        objs.extend(SConscript(os.path.join(Env['BSP_ROOT'], 'packages/SConscript'), variant_dir=bsp_vdir + '/rt-pkgs', duplicate=0))
+
     return objs
 
 
@@ -1619,7 +1629,7 @@ def PrepareModuleBuilding(env, root_directory, bsp_directory):
 
     # parse bsp rtconfig.h to get used component
     PreProcessor = PatchedPreProcessor()
-    f = open(bsp_directory + '/rtconfig.h', 'r')
+    f = open(bsp_directory + '/rtconfig.h', 'r', encoding='utf-8')
     contents = f.read()
     f.close()
     PreProcessor.process_contents(contents)
@@ -1706,7 +1716,7 @@ def LocalOptions(config_filename):
     # parse wiced_config.h to get used component
     PreProcessor = SCons.cpp.PreProcessor()
 
-    f = open(config_filename, 'r')
+    f = open(config_filename, 'r', encoding='utf-8')
     contents = f.read()
     f.close()
 
@@ -1954,7 +1964,8 @@ def BuildLibInstallAction(target, source, env):
             break
 
 def DoBuilding(target, objects):
-        
+    import rtconfig
+
     # merge all objects into one list
     def one_list(l):
         lst = []
@@ -1983,6 +1994,14 @@ def DoBuilding(target, objects):
 
     objects = one_list(objects)
     program = None
+
+    if rtconfig.CROSS_TOOL == 'keil':
+        for group in Projects:
+            if 'Kernel' == group['name']:
+                # only add cpppath of Kernel group to get the path of `rtconfig.h`, avoid too long command line parameters
+                asm_include_paths = ' ' + ' '.join(['-I{}'.format(path.replace('\\', '/')) for path in group['CPPPATH']]) + ' '
+                Env.AppendUnique(ASFLAGS = asm_include_paths)
+                break
         
     # check whether special buildlib option
     lib_name = GetOption('buildlib')
@@ -2487,7 +2506,7 @@ def SifliGccEnv(cpu):
     # rtconfig.CFLAGS += f' -ffile-prefix-map={SIFLI_SDK}=./'
     rtconfig.CFLAGS += ' -mlittle-endian -gdwarf-3 -Wno-packed -Wno-missing-noreturn -Wno-sign-conversion -Wno-unused-macros -Wnull-dereference'
     rtconfig.CFLAGS += ' -fno-unwind-tables -fno-exceptions'
-    rtconfig.CFLAGS += ' -fno-common'
+    rtconfig.CFLAGS += ' -fno-common -fno-strict-aliasing'
     
     rtconfig.CFLAGS += ' -Os'
     rtconfig.CXXFLAGS = rtconfig.CFLAGS

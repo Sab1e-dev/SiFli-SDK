@@ -20,8 +20,8 @@ objs.extend(SConscript(os.path.join(SIFLI_SDK, 'example/rom_bin/lcpu_general_ble
 objs.extend(SConscript(os.path.join(SIFLI_SDK, 'SConscript'), variant_dir="sifli_sdk", duplicate=0))
 
 #Add test code
-objs.extend(SConscript(os.path.join(SIFLI_SDK, 'example/bt/test_example/app_bt/SConscript'), variant_dir="app_bt", duplicate=0))
+objs.extend(SConscript(os.path.join(cwd + '../../app_bt/SConscript'), variant_dir='app_bt', duplicate=0))
 #Add source code
-objs.extend(SConscript(os.path.join(SIFLI_SDK, 'example/bt/test_example/src/SConscript'), variant_dir="peripheral", duplicate=0))
+objs.extend(SConscript(os.path.join(cwd + '../../src/SConscript'), variant_dir='peripheral', duplicate=0))
 
 Return('objs')

@@ -6,6 +6,7 @@ from copy_example_doc import ExampleDocCopier
 from copy_board_doc import BoardDocCopier
 
 def run_command(command, cwd=None):
+    print(f"Run command: {command}")
     result = subprocess.run(command, shell=True, cwd=cwd)
     if result.returncode != 0:
         print(f"Error executing {command}")
@@ -63,7 +64,10 @@ def make_html(chip, lang):
         },
     }
     output_dir = get_build_dir(chip, lang)
-    run_command(f'sphinx-build -M html source/{lang} {output_dir} -t {arg_mapping[chip]["tag"]} -j 8')
+    if args.cores > 1:
+        # eager `only` is implemented by extension `sphinx_selective_exclude`
+        print("WARNING: eager `only` directive doesn't work properly when number of parallel jobs is greater than 1")
+    run_command(f'sphinx-build -M html source/{lang} {output_dir} -t {arg_mapping[chip]["tag"]} -j {args.cores}')
 
 def copy_templates(chip, lang):
     print(f"Copying templates for {chip}...")
@@ -101,9 +105,12 @@ def main(chip, lang):
     make_html(chip, lang)
 
 if __name__ == "__main__":
+    global args
+
     parser = argparse.ArgumentParser(description='Generate documentation for specified board.')
     parser.add_argument('chip', choices=['52x', '55x', '56x', '58x'], help='Specify the chip (52x or 55x or 56x or 58x)')
     parser.add_argument('--lang', choices=['en', 'zh_CN'], default='zh_CN', help='Specify language(en or zh_CN)')
+    parser.add_argument('--cores', type=int, default=1, help='number for cores used by multi-thread building')
     args = parser.parse_args()
 
     main(args.chip, args.lang)

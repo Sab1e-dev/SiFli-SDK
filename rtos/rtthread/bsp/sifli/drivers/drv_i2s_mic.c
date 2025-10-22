@@ -85,7 +85,44 @@ static struct bf0_i2s_audio h_i2s_mic;
 static void audio_debug_out_i2sr()
 {
     I2S_TypeDef *hi2s = h_i2s_mic.hi2s.Instance;
+    LOG_I("TX_PCM_FORMAT = 0X%x\n", hi2s->TX_PCM_FORMAT);
+    LOG_I("TX_PCM_SAMPLE_CLK = 0X%x\n", hi2s->TX_PCM_SAMPLE_CLK);
+    LOG_I("TX_RS_SMOOTH = 0X%x\n", hi2s->TX_RS_SMOOTH);
+    LOG_I("TX_PCM_CH_SEL = 0X%x\n", hi2s->TX_PCM_CH_SEL);
+    LOG_I("TX_VOL_CTRL = 0X%x\n", hi2s->TX_VOL_CTRL);
+    LOG_I("TX_LR_BAL_CTRL = 0X%x\n", hi2s->TX_LR_BAL_CTRL);
+    LOG_I("AUDIO_TX_LRCK_DIV = 0X%x\n", hi2s->AUDIO_TX_LRCK_DIV);
+    LOG_I("AUDIO_TX_BCLK_DIV = 0X%x\n", hi2s->AUDIO_TX_BCLK_DIV);
+    LOG_I("AUDIO_TX_FORMAT = 0X%x\n", hi2s->AUDIO_TX_FORMAT);
+    LOG_I("AUDIO_SERIAL_TIMING = 0X%x\n", hi2s->AUDIO_SERIAL_TIMING);
+    LOG_I("AUDIO_TX_FUNC_EN = 0X%x\n", hi2s->AUDIO_TX_FUNC_EN);
+    LOG_I("AUDIO_TX_PAUSE = 0X%x\n", hi2s->AUDIO_TX_PAUSE);
+    LOG_I("AUDIO_I2S_SL_MERGE = 0X%x\n", hi2s->AUDIO_I2S_SL_MERGE);
+    LOG_I("AUDIO_RX_FUNC_EN = 0X%x\n", hi2s->AUDIO_RX_FUNC_EN);
+    LOG_I("AUDIO_RX_PAUSE = 0X%x\n", hi2s->AUDIO_RX_PAUSE);
+    LOG_I("AUDIO_RX_SERIAL_TIMING = 0X%x\n", hi2s->AUDIO_RX_SERIAL_TIMING);
+    LOG_I("AUDIO_RX_PCM_DW = 0X%x\n", hi2s->AUDIO_RX_PCM_DW);
+    LOG_I("AUDIO_RX_LRCK_DIV = 0X%x\n", hi2s->AUDIO_RX_LRCK_DIV);
+    LOG_I("AUDIO_RX_BCLK_DIV = 0X%x\n", hi2s->AUDIO_RX_BCLK_DIV);
+    LOG_I("RECORD_DATA_SEL = 0X%x\n", hi2s->RECORD_DATA_SEL);
     LOG_I("RX_RE_SAMPLE_CLK_DIV = 0X%x\n", hi2s->RX_RE_SAMPLE_CLK_DIV);
+    LOG_I("RX_RE_SAMPLE = 0X%x\n", hi2s->RX_RE_SAMPLE);
+    LOG_I("RECORD_FORMAT = 0X%x\n", hi2s->RECORD_FORMAT);
+    LOG_I("RX_CH_SEL = 0X%x\n", hi2s->RX_CH_SEL);
+    LOG_I("BT_PHONE_CTRL = 0X%x\n", hi2s->BT_PHONE_CTRL);
+    LOG_I("BB_PCM_FORMAT = 0X%x\n", hi2s->BB_PCM_FORMAT);
+    LOG_I("BT_PCM_DW = 0X%x\n", hi2s->BT_PCM_DW);
+    LOG_I("BT_PCM_TIMING = 0X%x\n", hi2s->BT_PCM_TIMING);
+    LOG_I("BT_PCM_CLK_DUTY = 0X%x\n", hi2s->BT_PCM_CLK_DUTY);
+    LOG_I("BT_PCM_SYNC_DUTY = 0X%x\n", hi2s->BT_PCM_SYNC_DUTY);
+    LOG_I("BT_VOL_CTRL = 0X%x\n", hi2s->BT_VOL_CTRL);
+    LOG_I("INT_MASK = 0X%x\n", hi2s->INT_MASK);
+    LOG_I("INT_STATUS = 0X%x\n", hi2s->INT_STATUS);
+    LOG_I("TX_DMA_ENTRY = 0X%x\n", hi2s->TX_DMA_ENTRY);
+    LOG_I("RX_DMA_ENTRY = 0X%x\n", hi2s->RX_DMA_ENTRY);
+    LOG_I("DMA_MASK = 0X%x\n\n", hi2s->DMA_MASK);
+
+
     LOG_I("AUDIO_RX_LRCK_DIV = 0X%x\n", hi2s->AUDIO_RX_LRCK_DIV);
     LOG_I("AUDIO_RX_BCLK_DIV = 0X%x\n", hi2s->AUDIO_RX_BCLK_DIV);
     LOG_I("AUDIO_RX_SERIAL_TIMING = 0X%x\n", hi2s->AUDIO_RX_SERIAL_TIMING);
@@ -221,7 +258,7 @@ static rt_err_t bf0_audio_configure(struct rt_audio_device *audio, struct rt_aud
             uint8_t index;
             for (index = 0; index < 9; index++)
             {
-                if (txrx_clk_div[index].samplerate == caps->udata.config.samplerate)
+                if (txrx_clk_div[index].samplerate == rate)
                 {
                     break;
                 }
@@ -241,6 +278,26 @@ static rt_err_t bf0_audio_configure(struct rt_audio_device *audio, struct rt_aud
             HAL_I2S_Config_Receive(hi2s, &(hi2s->Init.rx_cfg));
         }
         break;
+        case AUDIO_DSP_MODE:              // Config device work mode
+        {
+            int mode = caps->udata.value;
+            I2S_HandleTypeDef *hi2s = &(aud->hi2s);
+            hi2s->Init.rx_cfg.slave_mode = 1; //rx in slave mode all the time
+#ifdef SF32LB58X
+            // for i2s1, rx must be same as tx
+            if (hwp_i2s1 == hi2s->Instance && mode == 0)
+            {
+                hi2s->Init.rx_cfg.slave_mode = 0;
+            }
+#endif
+            HAL_I2S_Config_Receive(hi2s, &(hi2s->Init.rx_cfg));
+            if (hwp_i2s1 != hi2s->Instance && mode == 0)
+            {
+                hi2s->Init.tx_cfg.slave_mode = (uint8_t)mode;
+                HAL_I2S_Config_Transmit(hi2s, &(hi2s->Init.tx_cfg));
+            }
+            break;
+        }
         default:
         {
             result = -RT_ERROR;
@@ -662,11 +719,11 @@ Then use cmd "mkfs -t elm sd0" to create FS,this step only need once if do not f
 After FS created success, use cmd "mountfs -t elm sd0 /" to mount FS to root.
 File system used, uart do not need any more, 2 choose 1
 **/
-#define MIC_TEST_FILE_SAVE
+//#define MIC_TEST_FILE_SAVE
 
-#ifdef MIC_TEST_FILE_SAVE
-    #define MIC_SAVE2RAM
-#endif
+// #ifdef MIC_TEST_FILE_SAVE
+//     #define MIC_SAVE2RAM
+// #endif
 
 #define AUDIO_BUF_SIZE 512
 #define AUDIO_TEST_HNAME        "i2s1"
@@ -860,8 +917,8 @@ static void bf0_audio_entry(void *param)
 */
 static rt_err_t audio_rx_ind(rt_device_t dev, rt_size_t size)
 {
-    //LOG_I("audio_rx_ind %d\n", size);
-    rt_event_send(g_audio_ev, 1);
+    LOG_I("audio_rx_ind %d\n", size);
+    //rt_event_send(g_audio_ev, 1);
     return RT_EOK;
 }
 
@@ -920,10 +977,11 @@ int cmd_mic(int argc, char *argv[])
                 else
                     strcpy(g_transport_name, "uart4");
 #endif //MIC_TEST_FILE_SAVE
+#if 0
                 // start record thread
                 tid = rt_thread_create("aud_th", bf0_audio_entry, g_mic, 1024, RT_THREAD_PRIORITY_HIGH, RT_THREAD_TICK_DEFAULT);
                 rt_thread_startup(tid);
-
+#endif
             }
         }
         else if (strcmp(argv[1], "config") == 0)
@@ -936,6 +994,13 @@ int cmd_mic(int argc, char *argv[])
                 caps.sub_type = AUDIO_DSP_SAMPLERATE;
                 caps.udata.value = atoi(argv[2]);
                 rt_device_control(g_mic, AUDIO_CTL_CONFIGURE, &caps);
+
+                //for i2s1, rx must set to master mode for i2s master mode
+                // i2s2/i2s3 master mode, must set rx to slave mode and set tx to master mode
+                caps.main_type = AUDIO_TYPE_INPUT;      // for I2S2, configure RX will configure RX+TX
+                caps.sub_type = AUDIO_DSP_MODE;
+                caps.udata.value = 0; // is salve mode setting, 0---master mode; 1--- salve mode
+                rt_device_control(g_mic, AUDIO_CTL_CONFIGURE, &caps);
             }
         }
         else if (strcmp(argv[1], "start") == 0)
@@ -943,8 +1008,12 @@ int cmd_mic(int argc, char *argv[])
             if (g_mic)
             {
                 int stream = 0;
-
+#if 1
                 stream = AUDIO_STREAM_RECORD;
+#else
+                // if is not 58x or i2s1, rx is alway slave, should start tx for blck in master mode
+                stream = AUDIO_STREAM_RXandTX;
+#endif
 #ifdef MIC_TEST_FILE_SAVE
                 atest_fill_header(16000);   // TODO : can get SampleRate by interface 'getcaps'
 #endif

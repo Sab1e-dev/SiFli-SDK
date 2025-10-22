@@ -1,7 +1,27 @@
-<div class="sy-foot-feedback">
-   <p>
-      <a href="#" id="feedback-btn-link">提交反馈</a>
-   </p>   
-</div>
-
-<script src="{{ pathto('_static/feedback.js', 1) }}" doc-version="{{ current_version }}"></script>
+<button id="feedback-btn-link" style="margin: 0 10px; padding: 5px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+    {{ _("Submit Feedback") if language == 'en' else _('提交反馈') }}
+</button>
+<script>
+  // temporary solution for i18n, it's better to use gettext or pybabel
+  var LANG_JS = {
+    unknownVersion: "{{ _('Unknown Version') if language == 'en' else _('版本') }}",
+    page: "{{ _('Page') if language == 'en' else _('页面') }}",
+    version: "{{ _('Version') if language == 'en' else _('版本') }}",
+    feedbackPlaceholder: "{{ _('Please enter your feedback...') if language == 'en' else _('请输入您的反馈...') }}",
+    contactInfo: "{{ _('Please provide the following information if you would like us to contact you: ') if language == 'en' else _('如果您希望我们联系您，请提供以下信息：') }}",
+    nameLabel: "{{ _('Name') if language == 'en' else _('姓名') }}",
+    namePlaceholder: "{{ _('Your name') if language == 'en' else _('您的姓名') }}",
+    emailLabel: "{{ _('Email') if language == 'en' else _('邮箱') }}",
+    emailPlaceholder: "{{ _('Your email') if language == 'en' else _('您的邮箱') }}",
+    cancel: "{{ _('Cancel') if language == 'en' else _('取消') }}",
+    submit: "{{ _('Submit') if language == 'en' else _('提交') }}",
+    submitting: "{{ _('Submitting...') if language == 'en' else _('提交中...') }}",
+    emptyFeedback: "{{ _('Please enter your feedback') if language == 'en' else _('请填写您的反馈') }}",
+    incompleteInfo: "{{ _('Please provide both your name and email, or leave both blank.') if language == 'en' else _('请同时提供您的姓名和邮箱，或者两者都留空。') }}",
+    invalidEmail: "{{ _('Please enter a valid email address') if language == 'en' else _('请输入有效的邮箱地址') }}",
+    thankYou: "{{ _('Thank you for your feedback! We will process it as soon as possible.') if language == 'en' else _('感谢您的反馈！我们会尽快处理。') }}",
+    submitFail: "{{ _('Submission failed, please try again later.') if language == 'en' else _('提交失败，请稍后再试。') }}",
+    networkError: "{{ _('Network error, submission failed. Please try again later.') if language == 'en' else _('网络错误，提交失败。请稍后再试。') }}"
+  };
+  var docVersion = "{{ current_version }}";
+</script>

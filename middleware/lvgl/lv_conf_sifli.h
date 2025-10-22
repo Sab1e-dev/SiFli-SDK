@@ -9,6 +9,11 @@
 
 #define LV_USE_DEV_VERSION
 
+#include "rtconfig.h"
+
+#include "lv_conf_kconfig_remap_v9.h"
+#include "lv_conf_kconfig_remap_v8.h"
+
 #if 1//def __RTTHREAD__
 
     #define LV_RTTHREAD_INCLUDE <rtthread.h>
@@ -186,9 +191,9 @@
 
 
 #ifdef DISABLE_LVGL_V8
-    #ifdef RT_USING_HEAP
-        #define LV_USE_STDLIB_MALLOC    LV_STDLIB_RTTHREAD
-    #endif
+    // #ifdef RT_USING_HEAP
+    //     #define LV_USE_STDLIB_MALLOC    LV_STDLIB_RTTHREAD
+    // #endif
 
     //Use assembled memcpy/memset
     #undef LV_USE_STDLIB_STRING

@@ -440,7 +440,7 @@ void cap_initiator_setup(void)
         }
 
         /* Keeping running for a little while */
-        k_sleep(K_SECONDS(15));
+        k_sleep(K_SECONDS(20));
 
         err = bt_cap_initiator_broadcast_audio_stop(broadcast_source);
         if (err != 0)

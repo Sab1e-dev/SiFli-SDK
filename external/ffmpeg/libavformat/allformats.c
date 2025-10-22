@@ -77,8 +77,13 @@ void av_register_all(void)
 #endif
 
 #if CONFIG_FFMPEG_HTTP
+    REGISTER_PROTOCOL(HTTPS,            https);
     REGISTER_PROTOCOL(HTTP,             http);
     REGISTER_PROTOCOL(TCP,              tcp);
+    {
+        extern URLProtocol ff_tls_protocol;
+        ffurl_register_protocol(&ff_tls_protocol);
+    }
 #endif
 
 #if 0

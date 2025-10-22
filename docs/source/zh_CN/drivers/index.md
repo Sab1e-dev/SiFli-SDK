@@ -23,7 +23,8 @@ RT-Thread的设备模型介绍：[I/O设备模型][device]
 [RTC设备](rtc.md)           | [RTC](/hal/rtc.md)   | 
 [SPI设备](spi.md)           | [SPI](/hal/spi.md)   | 
 [看门狗设备][watchdog]   | [WDT](/hal/wdt.md)   | 
-[I2S Audio设备](audio.md)       |  [I2S](/hal/i2s.md) | 
+[audprc_audcodec](audprc_audcodec.md)       |  [audprc](/hal/audprc.md) and [audcodec](/hal/audcodec.md) | 
+[I2S Audio设备](i2s.md)       |  [I2S](/hal/i2s.md) | 
 [USBD设备](usbd.md)       |  [USBC](/hal/pcd.md) | 
 [SDIO设备](sdio.md)       |   | 
 [图形渲染驱动层](epic.md)       |  [EPIC](/hal/epic.md) | 
@@ -39,11 +40,13 @@ i2c.md
 pwm.md
 rtc.md
 spi.md
-audio.md
+audprc_audcodec.md
+i2s.md
 usbd.md
 sdio.md
 spi_flash.md
 spi_flash_52x.md
+epic.md
 ```
 
 

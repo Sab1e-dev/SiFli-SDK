@@ -53,6 +53,7 @@ extern "C" {
 #define DFU_INTERVAL_SLOW 20
 #define DFU_OTA_VERSION_LEN_MAX 32
 #define DFU_HASH_VERIFY_WDT_PET_FREQUENCY 20
+#define DFU_DOWNLOAD_FREQUENCY 10
 
 #define DFU_EMMC_ADDR_RANGE 0xA0000000
 #define DFU_EMMC_ADDR_RANGE_FLAG 0xF0000000
@@ -61,40 +62,40 @@ extern "C" {
     (msg_struct *)dfu_protocol_packet_buffer_alloc(msg_id, sizeof(msg_struct));
 
 #ifdef BSP_USING_PSRAM
-    #define DFU_NON_RET_SECT_BEGIN L2_CACHE_RET_BSS_SECT_BEGIN(kvdb)
-    #define DFU_NON_RET_SECT_END   L2_CACHE_RET_BSS_SECT_END
+#define DFU_NON_RET_SECT_BEGIN L2_CACHE_RET_BSS_SECT_BEGIN(kvdb)
+#define DFU_NON_RET_SECT_END   L2_CACHE_RET_BSS_SECT_END
 #else
-    #define DFU_NON_RET_SECT_BEGIN L1_NON_RET_BSS_SECT_BEGIN(dfu_not)
-    #define DFU_NON_RET_SECT_END   L1_NON_RET_BSS_SECT_END
+#define DFU_NON_RET_SECT_BEGIN L1_NON_RET_BSS_SECT_BEGIN(dfu_not)
+#define DFU_NON_RET_SECT_END   L1_NON_RET_BSS_SECT_END
 #endif
 
 #ifdef HCPU_PATCH_BURN_ADDR
-    #define DFU_NAND_PATCH_DOWNLOAD_ADDR HCPU_PATCH_BURN_ADDR
-    #define DFU_NAND_HCPU_FIRST_ADDR HCPU_FLASH_CODE_BURN_ADDR
-    #define DFU_NAND_HCPU_BACK_UP_ADDR HCPU_FLASH_CODE_Y_BURN_ADDR
+#define DFU_NAND_PATCH_DOWNLOAD_ADDR HCPU_PATCH_BURN_ADDR
+#define DFU_NAND_HCPU_FIRST_ADDR HCPU_FLASH_CODE_BURN_ADDR
+#define DFU_NAND_HCPU_BACK_UP_ADDR HCPU_FLASH_CODE_Y_BURN_ADDR
 
-    #define DFU_NAND_HCPU_DOWNLOAD_SIZE HCPU_PATCH_SIZE
-    #define DFU_NAND_HCPU_BACK_UP_SIZE HCPU_FLASH_CODE_Y_SIZE
-    #define DFU_NAND_PATCH_DOWNLOAD_SIZE HCPU_PATCH_SIZE
+#define DFU_NAND_HCPU_DOWNLOAD_SIZE HCPU_PATCH_SIZE
+#define DFU_NAND_HCPU_BACK_UP_SIZE HCPU_FLASH_CODE_Y_SIZE
+#define DFU_NAND_PATCH_DOWNLOAD_SIZE HCPU_PATCH_SIZE
 #else
 
-    #ifdef HCPU_FLASH_CODE_LOAD_REGION_START_ADDR
-        #define DFU_NAND_PATCH_DOWNLOAD_ADDR 0
-        #define DFU_NAND_HCPU_FIRST_ADDR HCPU_FLASH_CODE_LOAD_REGION_START_ADDR
-        #define DFU_NAND_HCPU_BACK_UP_ADDR HCPU_FLASH_CODE_LOAD_REGION2_START_ADDR
+#ifdef HCPU_FLASH_CODE_LOAD_REGION_START_ADDR
+#define DFU_NAND_PATCH_DOWNLOAD_ADDR 0
+#define DFU_NAND_HCPU_FIRST_ADDR HCPU_FLASH_CODE_LOAD_REGION_START_ADDR
+#define DFU_NAND_HCPU_BACK_UP_ADDR HCPU_FLASH_CODE_LOAD_REGION2_START_ADDR
 
-        #define DFU_NAND_HCPU_DOWNLOAD_SIZE HCPU_FLASH_CODE_LOAD_REGION_SIZE
-        #define DFU_NAND_HCPU_BACK_UP_SIZE HCPU_FLASH_CODE_LOAD_REGION2_SIZE
-        #define DFU_NAND_PATCH_DOWNLOAD_SIZE 0
-    #else
-        #define DFU_NAND_PATCH_DOWNLOAD_ADDR 0
-        #define DFU_NAND_HCPU_FIRST_ADDR 0x14000000
-        #define DFU_NAND_HCPU_BACK_UP_ADDR 0x14200000
+#define DFU_NAND_HCPU_DOWNLOAD_SIZE HCPU_FLASH_CODE_LOAD_REGION_SIZE
+#define DFU_NAND_HCPU_BACK_UP_SIZE HCPU_FLASH_CODE_LOAD_REGION2_SIZE
+#define DFU_NAND_PATCH_DOWNLOAD_SIZE 0
+#else
+#define DFU_NAND_PATCH_DOWNLOAD_ADDR 0
+#define DFU_NAND_HCPU_FIRST_ADDR 0x14000000
+#define DFU_NAND_HCPU_BACK_UP_ADDR 0x14200000
 
-        #define DFU_NAND_HCPU_DOWNLOAD_SIZE 0x200000
-        #define DFU_NAND_HCPU_BACK_UP_SIZE 0x200000
-        #define DFU_NAND_PATCH_DOWNLOAD_SIZE 0
-    #endif
+#define DFU_NAND_HCPU_DOWNLOAD_SIZE 0x200000
+#define DFU_NAND_HCPU_BACK_UP_SIZE 0x200000
+#define DFU_NAND_PATCH_DOWNLOAD_SIZE 0
+#endif
 #endif
 
 // 32K for lcpu rom patch download
@@ -113,11 +114,11 @@ extern "C" {
 #define L2_CACHE_RET_OTA_SECT_END                        SECTION_ZIDATA_END
 
 #ifdef BSP_USING_PSRAM
-    #define OTA_L2_RET_SECT_BEGIN L2_RET_SECT_BEGIN(ota_psram_ret_cache)
-    #define OTA_L2_RET_SECT_END L2_RET_SECT_END
+#define OTA_L2_RET_SECT_BEGIN L2_RET_SECT_BEGIN(ota_psram_ret_cache)
+#define OTA_L2_RET_SECT_END L2_RET_SECT_END
 
-    #define L2_RET_SECT_BEGIN(section_name)  SECTION_ZIDATA_BEGIN(.l2_ota_ret_data_##section_name)
-    #define L2_RET_SECT_END SECTION_ZIDATA_END
+#define L2_RET_SECT_BEGIN(section_name)  SECTION_ZIDATA_BEGIN(.l2_ota_ret_data_##section_name)
+#define L2_RET_SECT_END SECTION_ZIDATA_END
 #endif
 
 typedef enum
@@ -463,6 +464,8 @@ typedef struct
     uint8_t is_sync_timer_on;
 
     uint8_t flash_erase_state;
+    uint8_t remote_version;
+    uint8_t rsp_frequency;
 
     uint8_t resume_async;
     uint8_t resume_status;
@@ -808,8 +811,8 @@ void set_image_offset(uint32_t offset);
 void dfu_offline_install_start();
 
 #ifdef OTA_MODEM_RECORD
-    uint8_t dfu_get_modem_state();
-    uint8_t dfu_set_modem_state(uint8_t state);
+uint8_t dfu_get_modem_state();
+uint8_t dfu_set_modem_state(uint8_t state);
 #endif
 
 uint8_t dfu_get_download_state();

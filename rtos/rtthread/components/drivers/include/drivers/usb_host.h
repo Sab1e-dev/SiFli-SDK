@@ -254,7 +254,7 @@ rt_inline rt_err_t rt_usb_hcd_free_pipe(uhcd_t hcd, upipe_t pipe)
     return RT_EOK;
 }
 
-int rt_usb_hcd_pipe_xfer(uhcd_t hcd, upipe_t pipe, void *buffer, int nbytes, int timeout);
+int rt_usb_hcd_pipe_xfer(uhcd_t hcd, upipe_t pipe, void *buffer, rt_size_t nbytes, int timeout);
 rt_inline int rt_usb_hcd_setup_xfer(uhcd_t hcd, upipe_t pipe, ureq_t setup, int timeout)
 {
     return hcd->ops->pipe_xfer(pipe, USBH_PID_SETUP, (void *)setup, 8, timeout);

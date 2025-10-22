@@ -193,7 +193,7 @@ def MDK45Project(tree, target, script):
         CPPDEFINES = building.Env['CPPDEFINES']
     else:
         CPPDEFINES = []
-    CPPDEFINES = [i[0] for i in CPPDEFINES]
+    CPPDEFINES = [i for i in CPPDEFINES]
     LINKFLAGS = building.Env['LINKFLAGS']
     CCFLAGS = ''
     ASFLAGS = ''

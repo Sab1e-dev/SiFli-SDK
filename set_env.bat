@@ -2,6 +2,8 @@
 @REM toolchain could be: keil | gcc | iar
 @echo off
 set SIFLI_SDK=%~dp0
+set SIFLI_SDK_PATH=%~dp0
+set PKGS_DIR=%PKGS_ROOT%
 
 if not defined ORG_PATH (
     echo Please upgrate env to v1.1.2 or greater

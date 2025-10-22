@@ -17,5 +17,6 @@ misc/index
 bt/index
 ble/index
 zbt/index
+cherryusb/index
 
 ```

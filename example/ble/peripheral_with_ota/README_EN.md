@@ -105,6 +105,18 @@ After creation, only offline_install.bin needs to be transmitted
 If you need to upgrade bins other than HCPU and DFU, you need to specify the flash address corresponding to the image id. In dfu_get_download_addr_by_id in dfu_flash.c, add the new ID, then return the address defined in ptab.c. The address under the flag&DFU_FLAG_COMPRESS condition does not need to be implemented.
 ![package](./assets/package.png)
 
+## Mobile App and Demo Project Access
+### Android SiFli BLE App Download Link
+https://www.pgyer.com/gurSBc
+
+### Android Demo Project
+https://github.com/OpenSiFli/SiFli_OTA_APP\
+Relevant sections are under "3. SiFli-SDK OTA"
+
+### iOS Demo Project
+https://github.com/OpenSiFli/SiFli_OTA_APP_IOS\
+Relevant sections are under "SiFli-SDK OTA (Nor Offline)"
+
 ## Mobile App Usage
 The operation is shown in the following figures. Search for the board's BLE broadcast, click on the corresponding device, then select nor dfu, and finally select offline. No need to click the start button below
 ![app1](./assets/app.jpg)![app2](./assets/app2.jpg)

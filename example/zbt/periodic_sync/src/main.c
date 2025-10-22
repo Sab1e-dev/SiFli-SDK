@@ -6,6 +6,7 @@
 
 #include <zephyr/device.h>
 #include <zephyr/bluetooth/bluetooth.h>
+#include <zephyr/settings/settings.h>
 
 #define TIMEOUT_SYNC_CREATE K_SECONDS(10)
 #define NAME_LEN            30
@@ -165,6 +166,11 @@ int main(void)
     {
         printk("Bluetooth init failed (err %d)\n", err);
         return 0;
+    }
+
+    if (IS_ENABLED(CONFIG_SETTINGS))
+    {
+        settings_load();
     }
 
     printk("Scan callbacks register...");

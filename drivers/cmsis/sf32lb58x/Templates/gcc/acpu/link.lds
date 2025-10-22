@@ -53,8 +53,8 @@ __RAM_SIZE = ACPU_CODE_REGION1_SBUS_SIZE;
     <o1> Heap Size (in Bytes) <0x0-0xFFFFFFFF:8>
   </h>
   -----------------------------------------------------------------------------*/
-__STACK_SIZE = 0x00036000;
-__HEAP_SIZE  = 0x00010000;
+__STACK_SIZE = STARTUP_STACK_SIZE;
+__HEAP_SIZE  = STARTUP_HEAP_SIZE;
 
 /*
  *-------------------- <<< end of configuration section >>> -------------------

@@ -15,6 +15,10 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "bf0_hal_def.h"
 
+#if !defined(KEIL)
+/* For Keil Flash download algorithm, don't enable dynamic alloc as bss section is not initialized automatically,
+   so dma_ch_pool is not initialized correclty.
+ */
 #if defined(SOC_BF0_LCPU) && (defined(SF32LB55X) || defined(SF32LB58X) || defined(SF32LB52X))
 #else
 /* SF32LB55X, SF32LB58X and SF32LB52X LCPU doesn't support DMA channel dynamic allocation,
@@ -22,6 +26,7 @@ extern "C" {
  */
 #define DMA_SUPPORT_DYN_CHANNEL_ALLOC
 #endif /* SOC_BF0_LCPU && (SF32LB55X || SF32LB58X || SF32LB52X) */
+#endif /* !KEIL */
 
 #ifdef GPDMA_LISR_LCIF1
 #define DMA_LINK_LIST_SUPPORT

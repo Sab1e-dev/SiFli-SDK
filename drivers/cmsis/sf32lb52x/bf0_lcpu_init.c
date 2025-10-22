@@ -61,12 +61,18 @@ void lcpu_rom_config_default(void)
     {
         uint32_t tx_queue = HCPU2LCPU_MB_CH1_BUF_START_ADDR;
         hal_lcpu_bluetooth_rom_config_t config = {0};
+
         config.bit_valid |= 1 << 10 | 1 << 6 | 1 << 2;
         config.lld_prog_delay = 3;
         config.is_fpga = 0;
         config.default_xtal_enabled = is_enable_lxt;
         HAL_LCPU_CONFIG_set(HAL_LCPU_CONFIG_HCPU_TX_QUEUE, &tx_queue, 4);
         HAL_LCPU_CONFIG_set(HAL_LCPU_CONFIG_BT_CONFIG, &config, sizeof(config));
+
+        hal_lcpu_ble_mem_config_t ble_config = {0};
+        ble_config.max_nb_of_hci_completed = 6;
+        ble_config.bit_valid = 1 << 6;
+        HAL_LCPU_CONFIG_set(HAL_LCPU_CONFIG_BT_KE_BUF, &ble_config, sizeof(ble_config));
     }
 #endif // defined(SF32LB52X_REV_B) || defined(SF32LB52X_REV_AUTO)
 }
@@ -148,6 +154,7 @@ uint8_t lcpu_power_on(void)
     HAL_SECU_SetAttr(SECU_MOD_HCPU, SECU_ROLE_MASTER, SECU_FLAG_NONE);
     HAL_SECU_Apply(SECU_GROUP_HPMST);
 #endif
+    HAL_Delay_us(5000);
     return 0;
 }
 

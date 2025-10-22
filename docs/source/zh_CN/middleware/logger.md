@@ -26,7 +26,7 @@ ulog可以在menuconfig里面进行众多选项的配置，除了日志输出级
 
 void app_log_demo(void)
 {
-	uing8_t hex_data = {0x01, 0x02, 0x03, 0x04, 0x05, ... ,0xFF};
+	uing8_t hex_data[] = {0x01, 0x02, 0x03, 0x04, 0x05, ... ,0xFF};
 	
 	// All logs are belongs to module 'app'
 	LOG_D("Debug log"); // Output debug level log, but it could not output due to module 'app' set the log level as info.

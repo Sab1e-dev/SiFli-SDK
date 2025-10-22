@@ -56,11 +56,9 @@ struct sifli_adc
 };
 
 //MAX support voltage, for A0, voltage = 1.1v, for RPO, voltage = 3.3v
-#ifdef SF32LB55X
-    #define ADC_MAX_VOLTAGE_MV     (1100)
-#else
-    #define ADC_MAX_VOLTAGE_MV     (3300)
-#endif
+#define ADC_MAX_VOLTAGE_MV_1100     (1100)
+#define ADC_MAX_VOLTAGE_MV_3300     (3300)
+
 
 #define ADC_SW_AVRA_CNT         (22)
 
@@ -83,18 +81,21 @@ static struct sifli_adc sifli_adc_obj[sizeof(adc_config) / sizeof(adc_config[0])
     static int adc_range = 0;   /* flag for ATE calibration voltage range,
     *  0 for big range (1.0v/2.5v)
     *  1 for small range () */
+    static uint32_t adc_max_vol_mv = ADC_MAX_VOLTAGE_MV_1100;
 #elif defined(SF32LB56X)
     // it should be register value offset vs 0 v value.
     static float adc_vol_offset = 822.0;
     // 0.001 mv per bit
     static float adc_vol_ratio = 1068.0; //
     static int adc_range = 1;
+    static uint32_t adc_max_vol_mv = ADC_MAX_VOLTAGE_MV_3300;
 #else
     // it should be register value offset vs 0 v value.
     static float adc_vol_offset = 822.0;
     // 0.001 mv per bit,
     static float adc_vol_ratio = 1068.0; //
     static int adc_range = 1;
+    static uint32_t adc_max_vol_mv = ADC_MAX_VOLTAGE_MV_3300;
 #endif
 
 static float adc_vbat_factor = 2.01;
@@ -400,6 +401,7 @@ int sifli_adc_calibration(uint32_t value1, uint32_t value2,
     float gap1, gap2;
     uint32_t reg_max;
 
+
     if (offset == NULL || ratio == NULL)
         return 0;
 
@@ -421,7 +423,7 @@ int sifli_adc_calibration(uint32_t value1, uint32_t value2,
     adc_vol_offset = *offset;
 
     // get register value for max voltage
-    adc_thd_reg = ADC_MAX_VOLTAGE_MV * ADC_RATIO_ACCURATE / adc_vol_ratio + adc_vol_offset;
+    adc_thd_reg = adc_max_vol_mv * ADC_RATIO_ACCURATE / adc_vol_ratio + adc_vol_offset;
     reg_max = GPADC_ADC_RDATA0_SLOT0_RDATA >> GPADC_ADC_RDATA0_SLOT0_RDATA_Pos;
     if (adc_thd_reg >= (reg_max - 3))
         adc_thd_reg = reg_max - 3;
@@ -932,6 +934,7 @@ static int sifli_adc_init(void)
             vol1 = cfg.low_mv;
             vol2 = cfg.high_mv;
             adc_range = 1;
+            adc_max_vol_mv = ADC_MAX_VOLTAGE_MV_3300;
 #else
             if ((cfg.vol10 & (1 << 15)) && (cfg.vol25 & (1 << 15))) // small range, use X1 mode
             {
@@ -940,12 +943,14 @@ static int sifli_adc_init(void)
                 vol1 = ADC_SML_RANGE_VOL1;
                 vol2 = ADC_SML_RANGE_VOL2;
                 adc_range = 1;
+                adc_max_vol_mv = ADC_MAX_VOLTAGE_MV_1100;
             }
             else // big range , use X3 mode for A0
             {
                 vol1 = ADC_BIG_RANGE_VOL1;
                 vol2 = ADC_BIG_RANGE_VOL2;
                 adc_range = 0;
+                adc_max_vol_mv = ADC_MAX_VOLTAGE_MV_3300;
             }
 #endif
             sifli_adc_calibration(cfg.vol10, cfg.vol25, vol1, vol2, &off, &rat);

@@ -205,7 +205,7 @@ void audio_3a_uplink(uint8_t *fifo, uint16_t fifo_size, uint8_t is_mute, uint8_t
     audio_3a_t *env = &g_audio_3a_env;
     uint16_t get_size;
     int ret, ref_index;
-
+    uint8_t *out = fifo;
     int16_t refframe[SOUNDPLUS_FRAME_SIZE / 2];
 
     RT_ASSERT(fifo_size == SOUNDPLUS_FRAME_SIZE);
@@ -213,8 +213,14 @@ void audio_3a_uplink(uint8_t *fifo, uint16_t fifo_size, uint8_t is_mute, uint8_t
     {
         LOG_I("wait far put");
         is_mute = 1;
+        memset(fifo, 0, fifo_size);
         goto skip_3a_up;
     }
+    if (is_mute)
+    {
+        memset(fifo, 0, fifo_size);
+    }
+
 #if DEBUG_FRAME_SYNC
     extern void save_mic_tick();
     save_mic_tick();
@@ -241,14 +247,6 @@ do_8k_again:
     }
 
 skip_3a_up:
-
-    if (is_mute)
-    {
-        memset(fifo, 0, fifo_size);
-    }
-
-    audio_dump_data(ADUMP_RAMP_OUT_OUT, fifo, SOUNDPLUS_FRAME_SIZE);
-
     if (env->samplerate == 8000)
     {
         //msbc encode 120 bytes for 8K
@@ -260,17 +258,17 @@ skip_3a_up:
             fifo += SOUNDPLUS_FRAME_SIZE / 2;
             goto do_8k_again;
         }
+        audio_dump_data(ADUMP_RAMP_OUT_OUT, out, SOUNDPLUS_FRAME_SIZE);
         return;
     }
     else
     {
+        audio_dump_data(ADUMP_RAMP_OUT_OUT, out, SOUNDPLUS_FRAME_SIZE);
         //msbc encode one frame is 240 bytes for 16K samplerate
         msbc_encode_process(fifo, 240);
         msbc_encode_process(fifo + 240, 240);
         return;
     }
-
-
 }
 
 

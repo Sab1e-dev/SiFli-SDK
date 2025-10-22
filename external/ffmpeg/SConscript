@@ -28,6 +28,7 @@ ogg_decoder_src = []
 cwd = GetCurrentDir()
 inc    += [cwd]
 inc    += [cwd + "/compat"]
+asflags= ' -I' + cwd + ' -I' + cwd + '/compat'
 
 common_src  = Glob('./libavutil/*.c')
 common_src += Glob('./compat/*.c')
@@ -214,6 +215,8 @@ http_src += ['./libavformat/urldecode.c']
 http_src += ['./libavformat/url.c']
 http_src += ['./libavformat/tcp.c']
 http_src += ['./libavformat/os_support.c']
+http_src += ['./libavformat/tls.c']
+http_src += ['./libavformat/tls_mbedtls.c']
 
 
 if (CONFIG_AUDIO_USING_FLOAT == 1):
@@ -392,6 +395,6 @@ if GetDepend(['SOLUTION_RES_BUILT_IN']):
 #src += ['./api-h264-test.c']
 #src += ['./doc/examples/demuxing_decoding.c']
 
-group = DefineGroup('ffmpeg', src, depend = ['PKG_USING_FFMPEG'], CPPPATH = inc, LOCAL_CCFLAGS = LOCAL_CCFLAGS, CPPDEFINES = CPPDEFINES)
+group = DefineGroup('ffmpeg', src, depend = ['PKG_USING_FFMPEG'], CPPPATH = inc, LOCAL_CCFLAGS = LOCAL_CCFLAGS, CPPDEFINES = CPPDEFINES, ASFLAGS=asflags)
 
 Return('group')

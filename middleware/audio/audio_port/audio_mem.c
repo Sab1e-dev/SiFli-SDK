@@ -176,39 +176,5 @@ __WEAK void *audio_mem_calloc(uint32_t count, uint32_t size)
 {
     return rt_calloc(count, size);
 }
-__WEAK void *audio_mem_realloc_do(void *mem_address, unsigned int newsize)
-{
-    void *ptr = NULL;
-#if 1
-    ptr = rt_realloc(mem_address, newsize);
-#else
-    if (!mem_address)
-    {
-        //never come here for audio module
-        if (newsize == 0)
-            newsize++;
-
-        ptr = rt_malloc(newsize);
-    }
-    else if (newsize == 0)
-    {
-        //audio not use this function now, newsize always > 0
-        rt_free(mem_address);
-    }
-    else
-    {
-        ptr = rt_malloc(newsize);
-        if (ptr)
-        {
-            memcpy(ptr, mem_address, newsize); //include rubish data if newsize big than old size
-        }
-        else
-        {
-            rt_free(mem_address);
-        }
-    }
-#endif
-    return ptr;
-}
 #endif
 

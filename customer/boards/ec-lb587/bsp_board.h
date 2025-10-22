@@ -32,7 +32,11 @@ extern int __bss_end;
 #define HEAP_BEGIN      ((void *)&__bss_end)
 #endif
 
-#ifdef SOC_BF0_HCPU
+#ifdef SOC_BF0_ACPU
+#ifndef HEAP_END
+#define HEAP_END       (ACPU_CODE_REGION1_SBUS_START_ADDR + ACPU_CODE_REGION1_SBUS_SIZE)
+#endif
+#elif defined(SOC_BF0_HCPU)
 #ifndef HEAP_END
 #define HEAP_END       (HCPU_RAM_DATA_START_ADDR + HCPU_RAM_DATA_SIZE) //TODO:
 #endif

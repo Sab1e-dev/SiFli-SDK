@@ -77,7 +77,7 @@ void BSP_PIN_Init(void)
 #endif
     HAL_PIN_Set(PAD_PA16, GPIO_A16, PIN_NOPULL, 1);     // Motor_PWM_Ctrl
 
-#ifdef BSP_USING_USBD
+#if defined(BSP_USING_USBD) || defined(PKG_CHERRYUSB_DEVICE)
     HAL_PIN_Set_Analog(PAD_PA17, 1);
     HAL_PIN_Set_Analog(PAD_PA18, 1);
 #endif

@@ -6,7 +6,7 @@ config CUSTOM_MEM_MAP
 
 config PER_ADV_NAME
 	string "Target Periodic Advertising Name"
-	default ""
+	default "Test Periodic Advertising"
 	help
 	  Name of target advertising for Periodic Advertising Synchronization.
       

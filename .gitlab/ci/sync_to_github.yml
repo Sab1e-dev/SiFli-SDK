@@ -46,7 +46,7 @@ sync_to_github:
     - |
       # 触发GitHub Action
       echo "Triggering GitHub Action merge_prs workflow..."
-      #gh workflow run merge_prs.yml --repo ${GITHUB_REPO} --ref "$CURRENT_BRANCH"
+      gh workflow run merge_prs.yml --repo ${GITHUB_REPO} --ref "$CURRENT_BRANCH"
       
       if [ $? -eq 0 ]; then
         echo "✅ GitHub Action triggered successfully"

@@ -17,72 +17,281 @@ DMA has 2 instances, one in HCPU and one in LCPU, both supporting memory-to-memo
 
 ## DMAC Corresponding Peripheral Request ID
 
-|req_sel		|55x DMAC1			|55x DMAC2			|58x DMAC1			|58x DMAC2			|58x DMAC3			|56x DMAC1			|56x DMAC2			|52x DMAC1			|52x DMAC2			|
-|---------------|-------------------|-------------------|-------------------|-------------------|-------------------|-------------------|-------------------|-------------------|-------------------|
-|0			|qspi1			|usart3_tx			|mpi1			|i2s1_tx			|usart4_tx			|mpi1			|usart4_tx			|mpi1			|usart4_tx|
-|1			|qspi2			|usart3_rx			|mpi2/i2c4			|i2s1_rx			|usart4_rx			|mpi2			|usart4_rx			|mpi2			|usart4_rx|
-|2			|qspi3			|usart4_tx			|mpi3			|i2s2_tx			|usart5_tx			|mpi3			|usart5_tx			|/			|usart5_tx|
-|3			|/			|usart4_rx			|mpi4			|i2s2_rx			|usart5_rx			|i2c4			|usart5_rx			|i2c4			|usart5_rx|
-|4			|usart1_tx			|usart5_tx			|usart1_tx			|pdm1_rx_l			|usart6_tx			|usart1_tx			|usart6_tx			|usart1_tx			|/|
-|5			|usart1_rx			|usart5_rx			|usart1_rx			|pdm1_rx_r			|usart6_rx			|usart1_rx			|usart6_rx			|usart1_rx			|/|
-|6			|usart2_tx			|btim3			|usart2_tx			|pdm2_rx_l			|btim3			|usart2_tx			|btim3			|usart2_tx			|btim3|
-|7			|usart2_rx			|btim4			|usart2_rx			|pdm2_rx_r			|btim4			|usart2_rx			|btim4			|usart2_rx			|btim4|
-|8			|gptim1_update			|gptim3_update			|gptim1_update			|/			|gptim3_update			|gptim1_update			|gptim3_update			|gptim1_update			|/|
-|9			|gptim1_trigger			|gptim3_trigger			|gptim1_trigger			|dac0			|gptim3_trigger			|gptim1_trigger			|gptim3_trigger			|gptim1_trigger			|/|
-|10			|gptim1_cc1			|gptim3_cc1			|gptim1_cc1			|dac1			|gptim3_cc1			|gptim1_cc1			|gptim3_cc1			|gptim1_cc1			|/|
-|11			|gptim1_cc2			|gptim3_cc2			|gptim1_cc2			|gptim2_update			|gptim3_cc2			|gptim1_cc2			|gptim3_cc2			|gptim1_cc2			|/|
-|12			|gptim1_cc3			|gptim3_cc3			|gptim1_cc3			|gptim2_trigger			|gptim3_cc3			|gptim1_cc3			|gptim3_cc3			|gptim1_cc3			|/|
-|13			|gptim1_cc4			|gptim3_cc4			|gptim1_cc4			|gptim2_cc1			|gptim3_cc4			|gptim1_cc4			|gptim3_cc4			|gptim1_cc4			|/|
-|14			|btim1			|gptim5_update			|btim1			|audprc_tx_out_ch1			|gptim5_update			|btim1			|gptim5_update			|btim1			|/|
-|15			|btim2			|gptim5_trigger			|btim2			|audprc_tx_out_ch0			|gptim5_trigger			|btim2			|gptim5_trigger			|btim2			|/|
-|16			|/			|spi3_tx			|atim1_update			|audprc_tx_ch3			|spi3_tx			|atim1_update			|spi3_tx			|atim1_update			|/|
-|17			|i2c3			|spi3_rx			|atim1_trigger			|audprc_tx_ch2			|spi3_rx			|atim1_trigger			|spi3_rx			|atim1_trigger			|/|
-|18			|i2s1_tx/pdm1_l			|spi4_tx			|atim1_cc1			|audprc_tx_ch1			|spi4_tx			|atim1_cc1			|spi4_tx			|atim1_cc1			|/|
-|19			|i2s1_rx/pdm1_r			|spi4_rx			|atim1_cc2			|audprc_tx_ch0			|spi4_rx			|atim1_cc2			|spi4_rx			|atim1_cc2			|/|
-|20			|i2s2_tx/pdm2_l			|qspi4			|atim1_cc3			|audprc_rx_ch1			|mpi5			|atim1_cc3			|mpi5			|atim1_cc3			|/|
-|21			|i2s2_rx/pdm2_r			|i2c4			|atim1_cc4			|audprc_rx_ch0			|i2c5			|atim1_cc4			|i2c5			|atim1_cc4			|/|
-|22			|i2c1			|i2c5			|i2c1			|gptim2_cc2			|i2c6			|i2c1			|i2c6			|i2c1			|/|
-|23			|i2c2			|i2c6			|i2c2			|gptim2_cc3			|i2c7			|i2c2			|i2c7			|i2c2			|/|
-|24			|gptim2_update			|gptim4_update			|i2c3			|gptim2_cc4			|gptim4_update			|i2c3			|gptim4_update			|i2c3			|/|
-|25			|gptim2_trigger			|gptim4_trigger			|atim1_com			|atim2_update			|gptim4_trigger			|atim1_com			|gptim4_trigger			|atim1_com			|/|
-|26			|gptim2_cc1			|gptim4_cc1			|usart3_tx			|atim2_trigger			|i2s3_rx/gptim4_cc1			|usart3_tx			|gptim4_cc1			|usart3_tx			|/|
-|27			|gptim2_cc2			|gptim4_cc2			|usart3_rx			|atim2_cc1			|i2s3_tx/gptim4_cc2			|usart3_rx			|gptim4_cc2			|usart3_rx			|/|
-|28			|spi1_tx			|gptim4_cc3			|spi1_tx			|atim2_cc2			|audadc_ch0/gptim4_cc3			|spi1_tx			|audadc_ch0/gptim4_cc3			|spi1_tx			|/|
-|29			|spi1_rx			|gptim4_cc4			|spi1_rx			|atim2_cc3			|audadc_ch1/gptim4_cc4			|spi1_rx			|audadc_ch1/gptim4_cc4			|spi1_rx			|/|
-|30			|spi2_tx			|gpadc			|spi2_tx			|atim2_cc4			|gpadc			|spi2_tx			|gpadc			|spi2_tx			|/|
-|31			|spi2_rx			|sdadc			|spi2_rx			|atim2_com			|sdadc			|spi2_rx			|/			|spi2_rx			|/|
-|32			|	/		|	/		|	/		|	/		|	/		|i2s1_tx			|	/		|i2s1_tx			|/|
-|33			|	/		|	/		|	/		|	/		|	/		|i2s1_rx			|	/		|i2s1_rx			|/|
-|34			|	/		|	/		|	/		|	/		|	/		|sci_tx			|	/		|/			|/|
-|35			|	/		|	/		|	/		|	/		|	/		|sci_rx			|	/		|/			|/|
-|36			|	/		|	/		|	/		|	/		|	/		|pdm1_rx_l			|	/		|pdm1_rx_l			|/|
-|37			|	/		|	/		|	/		|	/		|	/		|pdm1_rx_r			|	/		|pdm1_rx_r			|/|
-|38			|	/		|	/		|	/		|	/		|	/		|pdm2_rx_l			|	/		|gpadc			|/|
-|39			|	/		|	/		|	/		|	/		|	/		|pdm2_rx_r			|	/		|adc0			|/|
-|40			|	/		|	/		|	/		|	/		|	/		|/			|	/		|adc1			|/|
-|41			|	/		|	/		|	/		|	/		|	/		|dac0			|	/		|dac0			|/|
-|42			|	/		|	/		|	/		|	/		|	/		|dac1			|	/		|dac1			|/|
-|43			|	/		|	/		|	/		|	/		|	/		|gptim2_update			|	/		|gptim2_update			|/|
-|44			|	/		|	/		|	/		|	/		|	/		|gptim2_trigger			|	/		|gptim2_trigger			|/|
-|45			|	/		|	/		|	/		|	/		|	/		|gptim2_cc1			|	/		|gptim2_cc1			|/|
-|46			|	/		|	/		|	/		|	/		|	/		|audprc_tx_out_ch1			|	/		|audprc_tx_out_ch1			|/|
-|47			|	/		|	/		|	/		|	/		|	/		|audprc_tx_out_ch0			|	/		|audprc_tx_out_ch0			|/|
-|48			|	/		|	/		|	/		|	/		|	/		|audprc_tx_ch3			|	/		|audprc_tx_ch3			|/|
-|49			|	/		|	/		|	/		|	/		|	/		|audprc_tx_ch2			|	/		|audprc_tx_ch2			|/|
-|50			|	/		|	/		|	/		|	/		|	/		|audprc_tx_ch1			|	/		|audprc_tx_ch1			|/|
-|51			|	/		|	/		|	/		|	/		|	/		|audprc_tx_ch0			|	/		|audprc_tx_ch0			|/|
-|52			|	/		|	/		|	/		|	/		|	/		|audprc_rx_ch1			|	/		|audprc_rx_ch1			|/|
-|53			|	/		|	/		|	/		|	/		|	/		|audprc_rx_ch0			|	/		|audprc_rx_ch0			|/|
-|54			|	/		|	/		|	/		|	/		|	/		|gptim2_cc2			|	/		|gptim2_cc2			|/|
-|55			|	/		|	/		|	/		|	/		|	/		|gptim2_cc3			|	/		|gptim2_cc3			|/|
-|56			|	/		|	/		|	/		|	/		|	/		|gptim2_cc4			|	/		|gptim2_cc4			|/|
-|57			|	/		|	/		|	/		|	/		|	/		|sdmmc2			|	/		|sdmmc1			|/|
-|58			|	/		|	/		|	/		|	/		|	/		|/			|	/		|/			|/|
-|59			|	/		|	/		|	/		|	/		|	/		|/			|	/		|/			|/|
-|60			|	/		|	/		|	/		|	/		|	/		|/			|	/		|/			|/|
-|61			|	/		|	/		|	/		|	/		|	/		|/			|	/		|/			|/|
-|62			|	/		|	/		|	/		|	/		|	/		|/			|	/		|/			|/|
-|63			|	/		|	/		|	/		|	/		|	/		|/			|	/		|/			|/|
+```{only} SF32LB55X
+| req_sel | DMAC1 | DMAC2 |
+|---|---|---|
+|0|qspi1|usart3_tx|
+|1|qspi2|usart3_rx|
+|2|qspi3|usart4_tx|
+|3|/|usart4_rx|
+|4|usart1_tx|usart5_tx|
+|5|usart1_rx|usart5_rx|
+|6|usart2_tx|btim3|
+|7|usart2_rx|btim4|
+|8|gptim1_update|gptim3_update|
+|9|gptim1_trigger|gptim3_trigger|
+|10|gptim1_cc1|gptim3_cc1|
+|11|gptim1_cc2|gptim3_cc2|
+|12|gptim1_cc3|gptim3_cc3|
+|13|gptim1_cc4|gptim3_cc4|
+|14|btim1|gptim5_update|
+|15|btim2|gptim5_trigger|
+|16|/|spi3_tx|
+|17|i2c3|spi3_rx|
+|18|i2s1_tx/pdm1_l|spi4_tx|
+|19|i2s1_rx/pdm1_r|spi4_rx|
+|20|i2s2_tx/pdm2_l|qspi4|
+|21|i2s2_rx/pdm2_r|i2c4|
+|22|i2c1|i2c5|
+|23|i2c2|i2c6|
+|24|gptim2_update|gptim4_update|
+|25|gptim2_trigger|gptim4_trigger|
+|26|gptim2_cc1|gptim4_cc1|
+|27|gptim2_cc2|gptim4_cc2|
+|28|spi1_tx|gptim4_cc3|
+|29|spi1_rx|gptim4_cc4|
+|30|spi2_tx|gpadc|
+|31|spi2_rx|sdadc|
+|32|/|/|
+|33|/|/|
+|34|/|/|
+|35|/|/|
+|36|/|/|
+|37|/|/|
+|38|/|/|
+|39|/|/|
+|40|/|/|
+|41|/|/|
+|42|/|/|
+|43|/|/|
+|44|/|/|
+|45|/|/|
+|46|/|/|
+|47|/|/|
+|48|/|/|
+|49|/|/|
+|50|/|/|
+|51|/|/|
+|52|/|/|
+|53|/|/|
+|54|/|/|
+|55|/|/|
+|56|/|/|
+|57|/|/|
+|58|/|/|
+|59|/|/|
+|60|/|/|
+|61|/|/|
+|62|/|/|
+|63|/|/|
+```
+
+```{only} SF32LB58X
+| req_sel | DMAC1 | DMAC2 | DMAC3 |
+|---|---|---|---|
+|0|mpi1|i2s1_tx|usart4_tx|
+|1|mpi2/i2c4|i2s1_rx|usart4_rx|
+|2|mpi3|i2s2_tx|usart5_tx|
+|3|mpi4|i2s2_rx|usart5_rx|
+|4|usart1_tx|pdm1_rx_l|usart6_tx|
+|5|usart1_rx|pdm1_rx_r|usart6_rx|
+|6|usart2_tx|pdm2_rx_l|btim3|
+|7|usart2_rx|pdm2_rx_r|btim4|
+|8|gptim1_update|/|gptim3_update|
+|9|gptim1_trigger|dac0|gptim3_trigger|
+|10|gptim1_cc1|dac1|gptim3_cc1|
+|11|gptim1_cc2|gptim2_update|gptim3_cc2|
+|12|gptim1_cc3|gptim2_trigger|gptim3_cc3|
+|13|gptim1_cc4|gptim2_cc1|gptim3_cc4|
+|14|btim1|audprc_tx_out_ch1|gptim5_update|
+|15|btim2|audprc_tx_out_ch0|gptim5_trigger|
+|16|atim1_update|audprc_tx_ch3|spi3_tx|
+|17|atim1_trigger|audprc_tx_ch2|spi3_rx|
+|18|atim1_cc1|audprc_tx_ch1|spi4_tx|
+|19|atim1_cc2|audprc_tx_ch0|spi4_rx|
+|20|atim1_cc3|audprc_rx_ch1|mpi5|
+|21|atim1_cc4|audprc_rx_ch0|i2c5|
+|22|i2c1|gptim2_cc2|i2c6|
+|23|i2c2|gptim2_cc3|i2c7|
+|24|i2c3|gptim2_cc4|gptim4_update|
+|25|atim1_com|atim2_update|gptim4_trigger|
+|26|usart3_tx|atim2_trigger|i2s3_rx/gptim4_cc1|
+|27|usart3_rx|atim2_cc1|i2s3_tx/gptim4_cc2|
+|28|spi1_tx|atim2_cc2|audadc_ch0/gptim4_cc3|
+|29|spi1_rx|atim2_cc3|audadc_ch1/gptim4_cc4|
+|30|spi2_tx|atim2_cc4|gpadc|
+|31|spi2_rx|atim2_com|sdadc|
+|32|/|/|/|
+|33|/|/|/|
+|34|/|/|/|
+|35|/|/|/|
+|36|/|/|/|
+|37|/|/|/|
+|38|/|/|/|
+|39|/|/|/|
+|40|/|/|/|
+|41|/|/|/|
+|42|/|/|/|
+|43|/|/|/|
+|44|/|/|/|
+|45|/|/|/|
+|46|/|/|/|
+|47|/|/|/|
+|48|/|/|/|
+|49|/|/|/|
+|50|/|/|/|
+|51|/|/|/|
+|52|/|/|/|
+|53|/|/|/|
+|54|/|/|/|
+|55|/|/|/|
+|56|/|/|/|
+|57|/|/|/|
+|58|/|/|/|
+|59|/|/|/|
+|60|/|/|/|
+|61|/|/|/|
+|62|/|/|/|
+|63|/|/|/|
+```
+
+```{only} SF32LB56X
+| req_sel | DMAC1 | DMAC2 |
+|---|---|---|
+|0|mpi1|usart4_tx|
+|1|mpi2|usart4_rx|
+|2|mpi3|usart5_tx|
+|3|i2c4|usart5_rx|
+|4|usart1_tx|usart6_tx|
+|5|usart1_rx|usart6_rx|
+|6|usart2_tx|btim3|
+|7|usart2_rx|btim4|
+|8|gptim1_update|gptim3_update|
+|9|gptim1_trigger|gptim3_trigger|
+|10|gptim1_cc1|gptim3_cc1|
+|11|gptim1_cc2|gptim3_cc2|
+|12|gptim1_cc3|gptim3_cc3|
+|13|gptim1_cc4|gptim3_cc4|
+|14|btim1|gptim5_update|
+|15|btim2|gptim5_trigger|
+|16|atim1_update|spi3_tx|
+|17|atim1_trigger|spi3_rx|
+|18|atim1_cc1|spi4_tx|
+|19|atim1_cc2|spi4_rx|
+|20|atim1_cc3|mpi5|
+|21|atim1_cc4|i2c5|
+|22|i2c1|i2c6|
+|23|i2c2|i2c7|
+|24|i2c3|gptim4_update|
+|25|atim1_com|gptim4_trigger|
+|26|usart3_tx|gptim4_cc1|
+|27|usart3_rx|gptim4_cc2|
+|28|spi1_tx|audadc_ch0/gptim4_cc3|
+|29|spi1_rx|audadc_ch1/gptim4_cc4|
+|30|spi2_tx|gpadc|
+|31|spi2_rx|/|
+|32|i2s1_tx|/|
+|33|i2s1_rx|/|
+|34|sci_tx|/|
+|35|sci_rx|/|
+|36|pdm1_rx_l|/|
+|37|pdm1_rx_r|/|
+|38|pdm2_rx_l|/|
+|39|pdm2_rx_r|/|
+|40|/|/|
+|41|dac0|/|
+|42|dac1|/|
+|43|gptim2_update|/|
+|44|gptim2_trigger|/|
+|45|gptim2_cc1|/|
+|46|audprc_tx_out_ch1|/|
+|47|audprc_tx_out_ch0|/|
+|48|audprc_tx_ch3|/|
+|49|audprc_tx_ch2|/|
+|50|audprc_tx_ch1|/|
+|51|audprc_tx_ch0|/|
+|52|audprc_rx_ch1|/|
+|53|audprc_rx_ch0|/|
+|54|gptim2_cc2|/|
+|55|gptim2_cc3|/|
+|56|gptim2_cc4|/|
+|57|sdmmc2|/|
+|58|/|/|
+|59|/|/|
+|60|/|/|
+|61|/|/|
+|62|/|/|
+|63|/|/|
+```
+
+```{only} SF32LB52X
+| req_sel | DMAC1 | DMAC2 |
+|---|---|---|
+|0|mpi1|usart4_tx|
+|1|mpi2|usart4_rx|
+|2|/|usart5_tx|
+|3|i2c4|usart5_rx|
+|4|usart1_tx|/|
+|5|usart1_rx|/|
+|6|usart2_tx|btim3|
+|7|usart2_rx|btim4|
+|8|gptim1_update|/|
+|9|gptim1_trigger|/|
+|10|gptim1_cc1|/|
+|11|gptim1_cc2|/|
+|12|gptim1_cc3|/|
+|13|gptim1_cc4|/|
+|14|btim1|/|
+|15|btim2|/|
+|16|atim1_update|/|
+|17|atim1_trigger|/|
+|18|atim1_cc1|/|
+|19|atim1_cc2|/|
+|20|atim1_cc3|/|
+|21|atim1_cc4|/|
+|22|i2c1|/|
+|23|i2c2|/|
+|24|i2c3|/|
+|25|atim1_com|/|
+|26|usart3_tx|/|
+|27|usart3_rx|/|
+|28|spi1_tx|/|
+|29|spi1_rx|/|
+|30|spi2_tx|/|
+|31|spi2_rx|/|
+|32|i2s1_tx|/|
+|33|i2s1_rx|/|
+|34|/|/|
+|35|/|/|
+|36|pdm1_rx_l|/|
+|37|pdm1_rx_r|/|
+|38|gpadc|/|
+|39|adc0|/|
+|40|adc1|/|
+|41|dac0|/|
+|42|dac1|/|
+|43|gptim2_update|/|
+|44|gptim2_trigger|/|
+|45|gptim2_cc1|/|
+|46|audprc_tx_out_ch1|/|
+|47|audprc_tx_out_ch0|/|
+|48|audprc_tx_ch3|/|
+|49|audprc_tx_ch2|/|
+|50|audprc_tx_ch1|/|
+|51|audprc_tx_ch0|/|
+|52|audprc_rx_ch1|/|
+|53|audprc_rx_ch0|/|
+|54|gptim2_cc2|/|
+|55|gptim2_cc3|/|
+|56|gptim2_cc4|/|
+|57|sdmmc1|/|
+|58|/|/|
+|59|/|/|
+|60|/|/|
+|61|/|/|
+|62|/|/|
+|63|/|/|
+```
 
 ## DMA Example 1
 Memory-to-memory 4-byte transfer 4096 bytes.

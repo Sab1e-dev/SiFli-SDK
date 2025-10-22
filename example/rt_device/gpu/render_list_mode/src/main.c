@@ -341,8 +341,8 @@ static void draw_lines(drv_epic_render_buf *p_buf)
         o->desc.line.p2.y = LCD_VER_RES_MAX >> 1;
         o->desc.line.width = 20;
 
-        o->desc.line.dash_width = 0;
-        o->desc.line.dash_gap = 0;
+        o->desc.line.dash_width = 20;
+        o->desc.line.dash_gap = 10;
 
         o->desc.line.round_start = 1;
         o->desc.line.round_end = 1;
@@ -371,8 +371,8 @@ static void draw_lines(drv_epic_render_buf *p_buf)
         o->desc.line.p2.y = LCD_VER_RES_MAX - 30;
         o->desc.line.width = 20;
 
-        o->desc.line.dash_width = 0;
-        o->desc.line.dash_gap = 0;
+        o->desc.line.dash_width = 20;
+        o->desc.line.dash_gap = 40;
 
         o->desc.line.round_start = 1;
         o->desc.line.round_end = 1;
@@ -406,7 +406,7 @@ static void draw_lines(drv_epic_render_buf *p_buf)
 
         o->desc.line.round_start = 1;
         o->desc.line.round_end = 1;
-        o->desc.line.raw_end = 0;
+        o->desc.line.raw_end = 1;
         o->desc.line.argb8888 = 0xFFFFFF00;
 
         int16_t  half_w = o->desc.line.width >> 1;

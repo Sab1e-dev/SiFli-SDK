@@ -47,6 +47,10 @@
 
 #endif /* HAVE_AV_CONFIG_H */
 
+#ifndef WIN32
+#include <arm_math.h>
+#endif
+
 #define AV_BSWAP16C(x) (((x) << 8 & 0xff00)  | ((x) >> 8 & 0x00ff))
 #define AV_BSWAP32C(x) (AV_BSWAP16C(x) << 16 | AV_BSWAP16C((x) >> 16))
 #define AV_BSWAP64C(x) (AV_BSWAP32C(x) << 32 | AV_BSWAP32C((x) >> 32))
@@ -56,6 +60,9 @@
 #ifndef av_bswap16
 static av_always_inline av_const uint16_t av_bswap16(uint16_t x)
 {
+#ifndef WIN32
+    return __REV16(x);
+#endif
     x= (x>>8) | (x<<8);
     return x;
 }
@@ -64,6 +71,9 @@ static av_always_inline av_const uint16_t av_bswap16(uint16_t x)
 #ifndef av_bswap32
 static av_always_inline av_const uint32_t av_bswap32(uint32_t x)
 {
+#ifndef WIN32
+    return __REV(x);
+#endif
     return AV_BSWAP32C(x);
 }
 #endif

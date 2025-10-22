@@ -20,6 +20,7 @@ if not GetDepend('BLUETOOTH'):
     SrcRemove(src, './audio_3a.c')
     SrcRemove(src, './audio_3a_soundplus.c')
     SrcRemove(src, './audio_3a_dummy.c')
+    SrcRemove(src, './audio_3a_anyka.c')
     src += Glob('./audio_3a_dummy.c')
 
 if GetDepend('AUDIO_FREQSHIFT'):

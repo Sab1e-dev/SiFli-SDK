@@ -39,7 +39,7 @@ int main(void)
 
     do
     {
-        k_msleep(1000);
+        k_msleep(K_MSEC(1000));
 
         printk("Sending advertising data: 0x%02X\n", mfg_data[2]);
 
@@ -52,7 +52,7 @@ int main(void)
             return 0;
         }
 
-        k_msleep(1000);
+        k_msleep(K_MSEC(1000));
 
         err = bt_le_adv_stop();
         if (err)

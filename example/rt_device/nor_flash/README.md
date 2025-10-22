@@ -45,6 +45,18 @@ uart_download.bat：使用串口使用
 最后在进行读取并检验
 如果读取与写入的不一致,log中会打印：```compare flash fail ```
 ![alt text](assets/nor1.png)
+
+
+### 性能测试结果
+预期出现的log结果：
+```c
+Write speed: 420.71 KB/s (time: 2434 ticks, sectors: 256)
+Write Ops: 256 sectors, 105.18 ops/sec
+Read speed: 31030.30 KB/s (time: 33 ticks, sectors: 256)
+Read Ops: 256 sectors, 7757.58 ops/sec
+```
+
+
 ### 故障排查
 如果log未能出现预期的log和现象，可以从已下几个方面进行故障排查：
 * 硬件连接是否正常

@@ -503,6 +503,7 @@ FT_CONST FLASH_RDID_TYPE_T flash_cmd_id_pool_typ0[] =
     {0x68, 0x40, 0x17, 0, 0x800000},   //BY25Q64ES_RDID
     {0x68, 0x40, 0x18, 0, 0x1000000},   //BY25Q128ES_RDID
     {0x0B, 0x40, 0X18, 0, 0x1000000},   //XT25F128F_RDID
+    {0xb3, 0x40, 0x18, 1, 0x1000000},   //UC25LQ128A
     {FLASH_INVALID_ID, 0, 0, 0, 0},      //last one
 };
 

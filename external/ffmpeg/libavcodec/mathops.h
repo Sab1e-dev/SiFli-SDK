@@ -33,7 +33,8 @@ extern const uint32_t ff_inverse[257];
 extern const uint8_t ff_sqrt_tab[256];
 extern const uint8_t ff_crop_tab[256 + 2 * MAX_NEG_CROP];
 extern const uint8_t ff_zigzag_direct[64];
-
+#undef ARCH_ARM
+#define ARCH_ARM 1
 #if   ARCH_ARM
 #   include "arm/mathops.h"
 #elif ARCH_AVR32

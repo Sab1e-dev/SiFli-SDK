@@ -43,6 +43,10 @@
 #include "macros.h"
 #include "version.h"
 #include "libavutil/avconfig.h"
+#include <math.h>
+#ifndef WIN32
+#include <arm_math.h>
+#endif
 
 #if AV_HAVE_BIGENDIAN
 #   define AV_NE(be, le) (be)
@@ -151,16 +155,6 @@ static av_always_inline av_const int64_t av_clip64_c(int64_t a, int64_t amin, in
     else               return a;
 }
 
-#ifndef __USAT
-#define __USAT(ARG1, ARG2) \
- __extension__ \
-({                          \
-  uint32_t __RES, __ARG1 = (ARG1); \
-  __asm volatile ("usat %0, %1, %2" : "=r" (__RES) :  "I" (ARG2), "r" (__ARG1) : "cc" ); \
-  __RES; \
- })
-#endif
-
 /**
  * Clip a signed integer value into the 0-255 range.
  * @param a value to clip
@@ -173,7 +167,7 @@ static av_always_inline av_const uint8_t av_clip_uint8_c(int a)
 #else
     if (a&(~0xFF)) return (~a)>>31;
     else           return a;
-#endif	
+#endif
 }
 
 /**
@@ -183,6 +177,9 @@ static av_always_inline av_const uint8_t av_clip_uint8_c(int a)
  */
 static av_always_inline av_const int8_t av_clip_int8_c(int a)
 {
+#ifndef WIN32
+    return __SSAT(a, 8);
+#endif
     if ((a+0x80U) & ~0xFF) return (a>>31) ^ 0x7F;
     else                  return a;
 }
@@ -194,6 +191,9 @@ static av_always_inline av_const int8_t av_clip_int8_c(int a)
  */
 static av_always_inline av_const uint16_t av_clip_uint16_c(int a)
 {
+#ifndef WIN32
+    return __USAT(a, 16);
+#endif
     if (a&(~0xFFFF)) return (~a)>>31;
     else             return a;
 }
@@ -205,6 +205,9 @@ static av_always_inline av_const uint16_t av_clip_uint16_c(int a)
  */
 static av_always_inline av_const int16_t av_clip_int16_c(int a)
 {
+#ifndef WIN32
+    return __SSAT(a, 16);
+#endif
     if ((a+0x8000U) & ~0xFFFF) return (a>>31) ^ 0x7FFF;
     else                      return a;
 }
@@ -216,6 +219,16 @@ static av_always_inline av_const int16_t av_clip_int16_c(int a)
  */
 static av_always_inline av_const int32_t av_clipl_int32_c(int64_t a)
 {
+#ifndef WIN32
+    int x, y;
+    __asm__ ("adds   %1, %R2, %Q2, lsr #31  \n\t"
+             "itet   ne                     \n\t"
+             "mvnne  %1, #1<<31             \n\t"
+             "moveq  %0, %Q2                \n\t"
+             "eorne  %0, %1,  %R2, asr #31  \n\t"
+             : "=r"(x), "=&r"(y) : "r"(a) : "cc");
+    return x;
+#endif
     if ((a+0x80000000u) & ~UINT64_C(0xFFFFFFFF)) return (int32_t)((a>>63) ^ 0x7FFFFFFF);
     else                                         return (int32_t)a;
 }
@@ -228,6 +241,11 @@ static av_always_inline av_const int32_t av_clipl_int32_c(int64_t a)
  */
 static av_always_inline av_const int av_clip_intp2_c(int a, int p)
 {
+#ifndef WIN32
+    unsigned x;
+    __asm__ ("ssat %0, %2, %1" : "=r"(x) : "r"(a), "i"(p+1));
+    return x;
+#endif
     if (((unsigned)a + (1 << p)) & ~((2 << p) - 1))
         return (a >> 31) ^ ((1 << p) - 1);
     else
@@ -242,6 +260,12 @@ static av_always_inline av_const int av_clip_intp2_c(int a, int p)
  */
 static av_always_inline av_const unsigned av_clip_uintp2_c(int a, int p)
 {
+#ifndef WIN32
+    unsigned x;
+    __asm__ ("usat %0, %2, %1" : "=r"(x) : "r"(a), "i"(p));
+    return x;
+
+#endif
     if (a & ~((1<<p) - 1)) return -a >> 31 & ((1<<p) - 1);
     else                   return  a;
 }
@@ -266,6 +290,9 @@ static av_always_inline av_const unsigned av_mod_uintp2_c(unsigned a, unsigned p
  */
 static av_always_inline int av_sat_add32_c(int a, int b)
 {
+#ifndef WIN32
+    return __QADD(a, b);
+#endif
     return av_clipl_int32((int64_t)a + b);
 }
 
@@ -280,6 +307,14 @@ static av_always_inline int av_sat_dadd32_c(int a, int b)
 {
     return av_sat_add32(a, av_sat_add32(b, b));
 }
+#if 0
+static av_always_inline int av_sat_dadd32_c(int a, int b)
+{
+    int r;
+    __asm__ ("qdadd %0, %1, %2" : "=r"(r) : "r"(a), "r"(b));
+    return r;
+}
+#endif
 
 /**
  * Clip a float value into the amin-amax range.

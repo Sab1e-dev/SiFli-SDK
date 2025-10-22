@@ -978,7 +978,7 @@ static void write_cccd(uint8_t current_conn_idx, uint16_t write_handle)
 
     sibles_write_remote_value_t value;
     value.handle = write_handle;
-    value.write_type = SIBLES_WRITE_WITHOUT_RSP;
+    value.write_type = SIBLES_WRITE;
     value.len = 2;
 
     uint8_t *write_data = malloc(2);

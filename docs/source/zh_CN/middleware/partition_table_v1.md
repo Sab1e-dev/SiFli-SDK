@@ -389,3 +389,177 @@ RT_USED const struct sec_configuration sec_config =
 字典key的value值必须为整数
 ```
 
+
+## binary分离（多binary）配置方法
+
+### CODE、资源binary分离
+
+以 `example\multimedia\lvgl\watch\project\sf32lb52-lcd_n16r8_hcpu`为例，此工程配置下，编译会生成3个binary：
++ ER_IROM1.bin：CODE部分  
++ ER_IROM2.bin：图片资源部分  
++ ER_IROM3.bin：字库资源部分  
+
+相关关键配置：
+1. 分区配置(ptab.json)
+    ![ptab_config](../../assets/partition_table/ptab_config.png)
+2. 链接脚本配置(keil使用.sct；gcc使用.lds)
+
+    + link.sct
+
+    ```c
+    ; CODE/ER_IROM1
+    LR_IROM1 CODE_START_ADDR CODE_SIZE  {    ; load region size_region
+        ER_IROM1 CODE_START_ADDR CODE_SIZE  {  ; load address = execution address
+        *.o (RESET, +First)
+        *(InRoot$$Sections)
+        .ANY (+RO)
+        *(FSymTab)
+        *.o (.rodata.*)
+    }
+
+    ; Image resource/ER_IROM2
+    LR_IROM2 HCPU_FLASH2_IMG_START_ADDR HCPU_FLASH2_IMG_SIZE  {  ; load region size_region
+        ER_IROM2 HCPU_FLASH2_IMG_START_ADDR HCPU_FLASH2_IMG_SIZE  {  ; RW data
+        *.o (.ROM1_IMG)
+        *.o (.ROM3_IMG*.*)
+        *.o (.ROM3_IMG*)
+        }
+    }
+
+    ; Font/ER_IROM3
+    LR_IROM3 HCPU_FLASH2_FONT_START_ADDR HCPU_FLASH2_FONT_SIZE  {  ; load region size_region
+        ER_IROM3 HCPU_FLASH2_FONT_START_ADDR HCPU_FLASH2_FONT_SIZE  {  ; RW data
+        lvsf_font_*.o  (.rodata.*)
+        *.o (.SECTION_TTF*.*)
+        }
+    }
+    ```
+
+    + link.lds
+
+    ```c
+    /* Image resource/ER_IROM2 */
+    .rom2 :
+    {
+        *(.ROM1_IMG)
+        *(.ROM3_IMG*.*)
+        *(.ROM3_IMG*)
+    } > ROM2
+
+    /* Font/ER_IROM3 */
+    .rom3 :
+    {
+        *lvsf_font_*(.rodata*)
+        *(.SECTION_TTF*.*)
+    } > ROM3
+    ```
+
+### 增加自定义binary
+
+例如，需要新增一个binary，用于存放`xxx.c`中的只读部分，并独立下载。
+参考 [CODE、资源binary分离](#code资源binary分离)，按步完成：  
+1. 新增分区(修改ptab.json)：  
+    ```c
+        {
+            "offset": "0x00420000", 
+            "max_size": "0x00200000", 
+            "tags": [
+                "HCPU_FLASH2_FONT"
+             ], 
+            "img": "main:ER_IROM3.bin"
+        },
+        /* 新增分区，指定起始地址、size等信息。
+        "tags"用于提取json文件，在ptab.h中生成此分区对应信息宏
+        * #undef  HCPU_FUNC_START_ADDR
+        * #define HCPU_FUNC_START_ADDR                         (0x12420000)
+        * #undef  HCPU_FUNC_SIZE
+        * #define HCPU_FUNC_SIZE                               (0x00200000)
+        * #undef  HCPU_FUNC_OFFSET
+        * #define HCPU_FUNC_OFFSET                             (0x00000000)
+        */
+        {
+            "offset": "0x00620000", 
+            "max_size": "0x00200000", 
+            "tags": [
+                "HCPU_FUNC"
+            ], 
+            "img": "main:ER_IROM4.bin"
+        },
+    ```
+2. 修改链接脚本(keil使用.sct；gcc使用.lds)：  
+    新增一个区域，指定`xxx.o  (+RO)`放到此区域（规则可按需修改）：  
+    + link.sct  
+
+        ```c
+        LR_IROM3 HCPU_FLASH2_FONT_START_ADDR HCPU_FLASH2_FONT_SIZE  {  ; load region size_region
+            ER_IROM3 HCPU_FLASH2_FONT_START_ADDR HCPU_FLASH2_FONT_SIZE  {  ; RW data
+            lvsf_font_*.o  (.rodata.*)
+            *.o (.SECTION_TTF*.*)
+            }
+        }
+
+        ; IROM4, specify which part data will store here
+        LR_IROM4 HCPU_FUNC_START_ADDR HCPU_FUNC_SIZE  {  ; load region size_region
+            ER_IROM4 HCPU_FUNC_START_ADDR HCPU_FUNC_SIZE  {  ; RW data
+            xxx.o  (+RO)
+            }
+        }
+        ```  
+     + link.lds
+        ```c
+        ... ...
+        __ROM3_BASE = HCPU_FLASH2_FONT_START_ADDR;
+        __ROM3_SIZE = HCPU_FLASH2_FONT_SIZE;
+
+        /* ROM4 BASE/SIZE */
+        __ROM4_BASE = HCPU_FUNC_START_ADDR;
+        __ROM4_SIZE = HCPU_FUNC_SIZE;
+
+        /*
+        *-------------------- <<< end of configuration section >>> -------------------
+        */
+        MEMORY
+        {
+            ... ...
+            /* ROM 4*/
+            ROM4 (rx): ORIGIN = __ROM4_BASE, LENGTH = __ROM4_SIZE
+        }
+
+        ... ...
+        .rom3 :
+        {
+            *lvsf_font_*(.rodata*)
+            *(.SECTION_TTF*.*)
+        } > ROM3
+
+        /* ROM4 , specify which part data will store here */
+        .rom4 :
+        {
+            *xxx.o(.rodata*)
+        } > ROM4
+        ```
+
+### 添加custom img
+
+例如，增加了一个flash分区，用于下载预打包的binary(比如三方或其它途径提前打包好的)：  
+1. 分区配置(ptab.json)
+    ```c
+            {
+                "offset": "0x00640000", 
+                "max_size": "0x00400000", 
+                "img": "ext_bin", 
+                "tags": [
+                    "EXT_BIN"
+                ]
+            }, 
+    ```
+2. `AddCustomImg`(工程的Sconstruct)  
+
+    ```c
+    # Add custom image bin. `bin`指定目标binary的路径
+    AddCustomImg("ext_bin",bin=["../ext_bin.bin"])
+
+    # Generate download .bat script
+    GenDownloadScript(env)
+    ```
+编译重新生成下载脚本，可以看到已经包含了新增的custom img binary。

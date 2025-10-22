@@ -2290,22 +2290,36 @@ __HAL_ROM_USED void HAL_RCC_Reset_and_Halt_LCPU(uint8_t is_init)
 
 #if defined(SF32LB52X) || defined(SF32LB57X)
         rst_flag |= LPSYS_RCC_RSTR1_MAC;
-#endif
+#endif /* SF32LB52X */
         hwp_lpsys_rcc->RSTR1 = rst_flag ;
         while (!hwp_lpsys_rcc->RSTR1);
 
 #if !defined(SF32LB52X) && !defined(SF32LB57X)
-        hwp_lpsys_rcc->RSTR2 = LPSYS_RCC_RSTR2_MAC | LPSYS_RCC_RSTR2_GPIO2;
+        if (is_init)
+        {
+            hwp_lpsys_rcc->RSTR2 = LPSYS_RCC_RSTR2_MAC | LPSYS_RCC_RSTR2_GPIO2;
+        }
+        else
+        {
+            hwp_lpsys_rcc->RSTR2 = LPSYS_RCC_RSTR2_MAC;
+        }
         while (!hwp_lpsys_rcc->RSTR2);
-#endif
+#endif /* !SF32LB52X */
         if ((hwp_lpsys_aon->SLP_CTRL & LPSYS_AON_SLP_CTRL_SLEEP_STATUS) != 0)
         {
             hwp_lpsys_aon->SLP_CTRL |= LPSYS_AON_SLP_CTRL_WKUP_REQ;
             while ((hwp_lpsys_aon->SLP_CTRL & LPSYS_AON_SLP_CTRL_SLEEP_STATUS) != 0);
         }
 #if !defined(SF32LB52X) && !defined(SF32LB57X)
-        hwp_lpsys_rcc->RSTR2 &= ~(LPSYS_RCC_RSTR2_MAC | LPSYS_RCC_RSTR2_GPIO2);
-#endif
+        if (is_init)
+        {
+            hwp_lpsys_rcc->RSTR2 &= ~(LPSYS_RCC_RSTR2_MAC | LPSYS_RCC_RSTR2_GPIO2);
+        }
+        else
+        {
+            hwp_lpsys_rcc->RSTR2 &= ~LPSYS_RCC_RSTR2_MAC;
+        }
+#endif /* !SF32LB52X */
         hwp_lpsys_rcc->RSTR1 &= ~rst_flag;
     }
 }

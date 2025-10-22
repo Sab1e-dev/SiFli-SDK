@@ -94,5 +94,21 @@ void *ffmpeg_realloc(void *p, size_t new_size)
     return new_p;
 }
 
-
+void *audio_mem_malloc(uint32_t size)
+{
+    void *ptr = ffmpeg_alloc(size);
+    RT_ASSERT(ptr);
+    return ptr;
+}
+void audio_mem_free(void *ptr)
+{
+    ffmpeg_free(ptr);
+}
+void *audio_mem_calloc(uint32_t count, uint32_t size)
+{
+    void *ptr = ffmpeg_alloc(count * size);
+    RT_ASSERT(ptr);
+    memset(ptr, 0, count * size);
+    return ptr;
+}
 

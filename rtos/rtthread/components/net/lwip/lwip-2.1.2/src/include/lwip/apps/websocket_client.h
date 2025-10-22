@@ -79,6 +79,8 @@ typedef enum ewsock_result
 #define WS_TCP_CLOSED       0
 #define WS_TCP_CONNECTING   1
 #define WS_TCP_CONNECTED    2
+#define WS_TCP_ABORTED      3
+
 
 typedef enum ewsock_parse_state
 {

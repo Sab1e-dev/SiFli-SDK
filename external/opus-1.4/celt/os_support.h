@@ -96,8 +96,17 @@ static OPUS_INLINE void *opus_alloc_scratch (size_t size)
 static OPUS_INLINE void opus_free (void *ptr)
 {
 #if defined(BF0_ACPU)
-    extern void* acpu_call_hcpu_free(void *p);
-    acpu_call_hcpu_free(ptr);
+    if ((uint32_t)ptr >= 0x20200000)
+    {
+        //acpu
+        free(ptr);
+    }
+    else
+    {
+        //hcpu
+        extern void* acpu_call_hcpu_free(void *p);
+        acpu_call_hcpu_free(ptr);
+    }
     return;
 #else
 #ifdef SOLUTION_WATCH

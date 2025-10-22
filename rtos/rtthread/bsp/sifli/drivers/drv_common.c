@@ -629,8 +629,10 @@ RT_WEAK void rt_hw_board_init()
     SCB_EnableDCache();
 #endif
 
+#ifndef SOC_BF0_ACPU
     /* HAL_Init() function is called at the beginning of the program */
     HAL_Init();
+#endif /* SOC_BF0_ACPU */
 
 #ifdef SOC_BF0_LCPU
     /* use hook to overwrite the init result performed by rt_hw_stack_init in ROM

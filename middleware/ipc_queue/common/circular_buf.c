@@ -7,9 +7,9 @@
 #ifdef BSP_USING_RTTHREAD
     #include "rtthread.h"
 #endif
+#include "ipc_hw.h"
 #include "circular_buf.h"
 #include "string.h"
-#include "ipc_hw.h"
 
 #ifndef __ROM_USED
     #define __ROM_USED

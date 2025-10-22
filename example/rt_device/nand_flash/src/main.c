@@ -19,6 +19,12 @@ static int nand_rw_check()
     int i, j, res;
     uint32_t *buf32;
     uint32_t addr = NAND_RW_TEST_START_ADDR;
+    rt_tick_t start_time, end_time;
+    uint32_t elapsed_ticks;
+    float speed; // unit: KB/s
+    int write_count = 0; // Write count
+    int read_count = 0;  // Read count
+
     /* Nand pinmux setting and initialize(by call rt_nand_init) at system beginning , do not show here*/
 
     /* Get block/page size, it not fixed to 2KB/128KB for some chip */
@@ -62,6 +68,7 @@ static int nand_rw_check()
     for (i = 0; i < nand_blk_size / nand_page_size; i++)
     {
         res = rt_nand_read_page(addr + i * nand_page_size, data_buf, nand_page_size, NULL, 0);
+        read_count++; // Increase the reading count
         if (res != nand_page_size)
         {
             rt_kprintf("Read page fail at pos 0x%x\n", addr + i * nand_page_size);
@@ -87,10 +94,14 @@ static int nand_rw_check()
     for (i = 0; i < nand_page_size / 4; i++)
         *buf32++ = rand();
 
+    /* Write speed test */
     rt_kprintf("Write nand at address 0x%x with length 0x%x\n", addr, nand_blk_size);
+    start_time = rt_tick_get();
+
     for (i = 0; i < nand_blk_size / nand_page_size; i++)
     {
         res = rt_nand_write_page(addr + i * nand_page_size, data_buf, nand_page_size, NULL, 0);
+        write_count++; // Increase the write count
         if (res != nand_page_size)
         {
             rt_kprintf("write page fail at pos 0x%x\n", addr + i * nand_page_size);
@@ -99,12 +110,31 @@ static int nand_rw_check()
         }
     }
 
-    /* Read nand and check data */
+    end_time = rt_tick_get();
+    elapsed_ticks = end_time - start_time;
+    if (elapsed_ticks > 0)
+    {
+        // Calculate write speed: Total data volume (KB) / Time (s)
+        speed = ((float)nand_blk_size / 1024.0) / ((float)elapsed_ticks / RT_TICK_PER_SECOND);
+        rt_kprintf("Write speed: %.2f KB/s (time: %d ticks, pages: %d)\n", speed, elapsed_ticks, write_count);
+        // Calculate the number of operations per second
+        float ops_per_sec = (float)write_count / ((float)elapsed_ticks / RT_TICK_PER_SECOND);
+        rt_kprintf("Write Ops: %d pages, %.2f ops/sec\n", write_count, ops_per_sec);
+    }
+    else
+    {
+        rt_kprintf("Write completed (pages: %d)\n", write_count);
+    }
+
+    /* Read speed test and check data */
     rt_kprintf("Read nand and check write result at address 0x%x\n", addr);
+    start_time = rt_tick_get();
+
     for (i = 0; i < nand_blk_size / nand_page_size; i++)
     {
         rt_memset((void *)cmp_buf, 0, nand_page_size);
         res = rt_nand_read_page(addr + i * nand_page_size, cmp_buf, nand_page_size, NULL, 0);
+        read_count++; // Increase the reading count
         if (res != nand_page_size)
         {
             rt_kprintf("Read page fail at pos 0x%x\n", addr + i * nand_page_size);
@@ -119,6 +149,23 @@ static int nand_rw_check()
             goto exit;
         }
     }
+
+    end_time = rt_tick_get();
+    elapsed_ticks = end_time - start_time;
+    if (elapsed_ticks > 0)
+    {
+        // Calculate read speed: Total data volume (KB) / Time (s)
+        speed = ((float)nand_blk_size / 1024.0) / ((float)elapsed_ticks / RT_TICK_PER_SECOND);
+        rt_kprintf("Read speed: %.2f KB/s (time: %d ticks, pages: %d)\n", speed, elapsed_ticks, read_count);
+        // Calculate the number of operations per second
+        float ops_per_sec = (float)read_count / ((float)elapsed_ticks / RT_TICK_PER_SECOND);
+        rt_kprintf("Read Ops: %d pages, %.2f ops/sec\n", read_count, ops_per_sec);
+    }
+    else
+    {
+        rt_kprintf("Read completed (pages: %d)\n", read_count);
+    }
+
     res = 0;
     rt_kprintf("NAND test pass with addr 0x%x , length 0x%x\n", addr, nand_blk_size);
 

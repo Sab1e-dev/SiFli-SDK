@@ -28,6 +28,7 @@ if GetDepend('LVGL_V9'):
             if current_path2.startswith('examples') or current_path2.endswith('msinttypes'):
                 continue
             src = src + Glob(os.path.join(current_path2,'*.c')) # add all .c files
+            src = src + Glob(os.path.join(current_path2,'*.cpp')) # add all .cpp files
             if check_h_hpp_exsit(current_path): # add .h and .hpp path
                 inc = inc + [current_path]
 

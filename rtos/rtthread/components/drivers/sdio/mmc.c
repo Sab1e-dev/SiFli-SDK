@@ -124,7 +124,7 @@ static int mmc_get_ext_csd(struct rt_mmcsd_card *card, rt_uint8_t **new_ext_csd)
 
     *new_ext_csd = RT_NULL;
 
-    if (GET_BITS(card->resp_cid, 122, 4) < 4)
+    if (GET_BITS(card->resp_csd, 122, 4) < 4)
         return 0;
 
     /*

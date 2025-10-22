@@ -8,9 +8,10 @@
 #define IPC_HW_H
 #include <stdbool.h>
 #include <stdint.h>
-#include "sf_type.h"
 #include "ipc_hw_port.h"
 #include "ipc_os_port.h"
+#include "sf_type.h"
+#include "bf0_hal.h"
 
 /**
  ****************************************************************************************
