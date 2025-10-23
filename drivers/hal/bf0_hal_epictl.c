@@ -105,6 +105,7 @@ static uint32_t EPICTL_GetLayerColorFormat(uint32_t color_mode)
 static HAL_StatusTypeDef EPICTL_Config(EPICTL_HandleTypeDef *epictl, EPICTL_DataType *cfg)
 {
     EPIC_TypeDef *hwp_epictl = epictl->Instance;
+    uint32_t ouput_stride;
     if (0 == cfg->transfer_width || 0 == cfg->transfer_height)
     {
         return HAL_EPIC_NOTHING_TO_DO;
@@ -113,13 +114,10 @@ static HAL_StatusTypeDef EPICTL_Config(EPICTL_HandleTypeDef *epictl, EPICTL_Data
     //source configuration
     hwp_epictl->TL_CFG = MAKE_REG_VAL(cfg->src_stride, EPIC_TL_CFG_WIDTH_Msk, EPIC_TL_CFG_WIDTH_Pos)
                          | MAKE_REG_VAL(EPICTL_GetLayerColorFormat(cfg->src_color_mode), EPIC_TL_CFG_FORMAT_Msk, EPIC_TL_CFG_FORMAT_Pos);
-    hwp_epictl->TL_AHB_MEM = (uint32_t)HCPU_MPI_SBUS_ADDR(cfg->src);
+    hwp_epictl->TL_SRC = (uint32_t)HCPU_MPI_SBUS_ADDR(cfg->src);
 
 
     //dstination configuration
-    hwp_epictl->TL_AHB_CTRL = MAKE_REG_VAL(cfg->dst_color_mode, EPIC_AHB_CTRL_O_FORMAT_Msk, EPIC_AHB_CTRL_O_FORMAT_Pos);
-    hwp_epictl->TL_AHB_MEM = (uint32_t)HCPU_MPI_SBUS_ADDR(cfg->dst);
-    hwp_epictl->TL_AHB_STRIDE = cfg->dst_stride;
     if (cfg->dst_compression_rate > 0)
     {
         uint32_t chunk_size, chunks, tgt_size, cfg0, cfg1;
@@ -141,12 +139,21 @@ static HAL_StatusTypeDef EPICTL_Config(EPICTL_HandleTypeDef *epictl, EPICTL_Data
         HAL_EPICTL_CMPR_GetConfig(cfg->dst_color_mode, &cfg0, &cfg1);
         hwp_epictl->CMPRCFG0 = cfg0;
         hwp_epictl->CMPRCFG1 = cfg1;
+
+        ouput_stride = chunks * tgt_size * 6;
     }
     else
     {
         hwp_epictl->CMPRCR = 0;
+        ouput_stride = cfg->transfer_width * (HAL_EPIC_GetColorDepth(cfg->dst_color_mode) >> 3);
     }
-
+    hwp_epictl->TL_AHB_CTRL = MAKE_REG_VAL(cfg->dst_color_mode, EPIC_AHB_CTRL_O_FORMAT_Msk, EPIC_AHB_CTRL_O_FORMAT_Pos);
+    hwp_epictl->TL_AHB_MEM = (uint32_t)HCPU_MPI_SBUS_ADDR(cfg->dst);
+    if (cfg->dst_stride < ouput_stride)
+    {
+        RETURN_ERROR(epictl, HAL_ERROR);
+    }
+    hwp_epictl->TL_AHB_STRIDE = cfg->dst_stride - ouput_stride;
 
     //transfer size configuration
     hwp_epictl->TL_SIZE = MAKE_REG_VAL(cfg->transfer_width, EPIC_TL_SIZE_MAX_COL_Msk, EPIC_TL_SIZE_MAX_COL_Pos)

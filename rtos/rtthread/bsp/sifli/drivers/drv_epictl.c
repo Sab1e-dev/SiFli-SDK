@@ -49,6 +49,9 @@ int drv_epictl_init(void)
         err = rt_sem_init(&drv_epictl.sema, "epictl", 1, RT_IPC_FLAG_FIFO);
         RT_ASSERT(RT_EOK == err);
 
+        HAL_NVIC_SetPriority(EPIC_TL_IRQn, 3, 0);
+        HAL_NVIC_EnableIRQ(EPIC_TL_IRQn);
+
         drv_epictl.inited = 1;
     }
 
@@ -60,6 +63,7 @@ void drv_epictl_deinit(void)
 {
     if (1 == drv_epictl.inited)
     {
+        HAL_NVIC_DisableIRQ(EPIC_TL_IRQn);
         HAL_EPICTL_DeInit(&drv_epictl.hal_handler);
         rt_sem_detach(&drv_epictl.sema);
         memset(&drv_epictl, 0, sizeof(DRV_EPICTL_TypeDef));

@@ -184,10 +184,11 @@ __Vectors       DCD      __initial_sp                        ;     Top of Stack
                 DCD      JPEGD_IRQHandler                       ;  99 Interrupt 99
                 DCD      HASH_IRQHandler                        ;  100 Interrupt 100
                 DCD      USART4_IRQHandler                      ;  101 Interrupt 101
-                DCD      DMAC1_CH9_IRQHandler                   ;  102 Interrupt 102
-                DCD      DMAC1_CH10_IRQHandler                  ;  103 Interrupt 103
+                DCD      EPICTL_IRQHandler                      ;  102 Interrupt 102
+                DCD      DMAC1_CH9_IRQHandler                   ;  103 Interrupt 103
+                DCD      DMAC1_CH10_IRQHandler                  ;  104 Interrupt 104
                 
-                SPACE    (376 * 4)                              ; Interrupts 104 .. 479 are left out
+                SPACE    (375 * 4)                              ; Interrupts 105 .. 479 are left out
 __Vectors_End
 __Vectors_Size  EQU      __Vectors_End - __Vectors
 
@@ -340,7 +341,8 @@ $Handler_Name   PROC
                 Set_Default_Handler      SECU1_IRQHandler 
                 Set_Default_Handler      JPEGD_IRQHandler 
                 Set_Default_Handler      HASH_IRQHandler 
-                Set_Default_Handler      USART4_IRQHandler 
+                Set_Default_Handler      USART4_IRQHandler
+                Set_Default_Handler      EPICTL_IRQHandler 
                 Set_Default_Handler      DMAC1_CH9_IRQHandler 
                 Set_Default_Handler      DMAC1_CH10_IRQHandler 
 

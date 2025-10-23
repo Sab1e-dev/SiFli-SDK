@@ -173,8 +173,9 @@ typedef enum IRQn
     JPEGD_IRQn                    =  99,
     HASH_IRQn                     =  100,
     USART4_IRQn                   =  101,
-    DMAC1_CH9_IRQn                =  102,
-    DMAC1_CH10_IRQn               =  103,
+    EPIC_TL_IRQn                  =  102,
+    DMAC1_CH9_IRQn                =  103,
+    DMAC1_CH10_IRQn               =  104,
     HCPU2LCPU_IRQn                =  -1,
     /* Interrupts 100 .. 479 are left out */
 } IRQn_Type;
