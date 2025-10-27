@@ -62,9 +62,9 @@ choice
         select BPS_V33
         depends on SOC_SF32LB56X
         bool "SS6700XXX HDK" 
-    config BSP_USING_BOARD_EH_LB573XXX_MEM_V3
+    config BSP_USING_BOARD_FPGA_57X_MEM_V3
         depends on SOC_SF32LB57X
-        bool "SF32LB573XXX FPGA"    
+        bool "FPGA 57x MEM V3"    
     config BSP_USING_BOARD_EC_LB583XXX
         depends on SOC_SF32LB58X
         bool "SF32LB583XXX EVB"
@@ -209,8 +209,8 @@ if BSP_USING_BOARD_SF32LB56_LCD_N16R12N1
     source "$SIFLI_SDK/customer/boards/sf32lb56-lcd_n16r12n1/Kconfig.board"
 endif
 
-if BSP_USING_BOARD_EH_LB573XXX_MEM_V3
-    source "$SIFLI_SDK/customer/boards/eh-lb573_mem_v3/Kconfig.board"
+if BSP_USING_BOARD_FPGA_57X_MEM_V3
+    source "$SIFLI_SDK/customer/boards/fpga-57x_mem_v3/Kconfig.board"
 endif
 
 if BSP_USING_BOARD_EC_LB583XXX || SIFLI_LB583

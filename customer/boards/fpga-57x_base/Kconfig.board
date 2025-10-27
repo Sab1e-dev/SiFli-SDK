@@ -1,0 +1,12 @@
+config FPGA
+    bool 
+    default y 
+
+config TOUCH_IRQ_PIN
+    int
+    default 33
+
+config LCD_BACKLIGHT_CONTROL_PIN
+    int
+    default 70
+    
