@@ -149,7 +149,7 @@ void HAL_PreInit(void)
     bsp_psramc_init();
 #endif
 
-#if defined(BSP_USING_NOR_FLASH1) || defined(BSP_USING_NOR_FLASH2)
+#if defined(BSP_USING_NOR_FLASH1) || defined(BSP_USING_NOR_FLASH2) || defined(BSP_USING_NOR_FLASH3)
 
 #ifdef BSP_USING_NOR_FLASH1
     mpi1_div = 3;
@@ -166,6 +166,9 @@ void HAL_PreInit(void)
 #if defined(BSP_USING_NOR_FLASH2)
         BSP_Flash_hw2_init();
 #endif
+#if defined(BSP_USING_NOR_FLASH3)
+        BSP_Flash_hw3_init();
+#endif
     }
     else
     {
@@ -176,7 +179,7 @@ void HAL_PreInit(void)
 #endif
 
     }
-#endif /* BSP_USING_NOR_FLASH3 */
+#endif /* BSP_USING_NOR_FLASH1 || BSP_USING_NOR_FLASH2 || BSP_USING_NOR_FLASH3 */
 
 
     /*
