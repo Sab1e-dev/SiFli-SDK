@@ -28,7 +28,8 @@ CPPDEFINES = []
 if GetDepend(['PKG_CHERRYUSB_DEVICE']):
     path += [cwd + '/osal']
     src += Glob('core/usbd_core.c')
-    src += Glob('osal/usb_osal_rtthread.c')
+    if GetDepend('BSP_USING_RTTHREAD'):
+        src += Glob('osal/usb_osal_rtthread.c')
 
     if GetDepend(['PKG_CHERRYUSB_DEVICE_SPEED_HS']):
         CPPDEFINES+=['CONFIG_USB_HS']
@@ -317,8 +318,9 @@ if GetDepend(['PKG_CHERRYUSB_HOST']):
         or GetDepend('PKG_CHERRYUSB_HOST_RTL8152'):
        src += Glob('platform/rtthread/usbh_lwip.c')
 
-src += Glob('platform/rtthread/usb_msh.c')
-src += Glob('platform/rtthread/usb_check.c')
+if GetDepend('BSP_USING_RTTHREAD'):
+    src += Glob('platform/rtthread/usb_msh.c')
+    src += Glob('platform/rtthread/usb_check.c')
 
 group = DefineGroup('CherryUSB', src, depend = ['PKG_USING_CHERRYUSB'], LIBS = LIBS, LIBPATH=LIBPATH, CPPPATH = path, CPPDEFINES = CPPDEFINES)
 

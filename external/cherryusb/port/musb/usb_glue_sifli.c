@@ -55,7 +55,7 @@ void usb_dc_low_level_init(uint8_t busid)
     HAL_Delay(1);
     hwp_usbc->swcntl3 = 0x1;                    //set utmi_en for USB2.0
     hwp_usbc->usbcfg = hwp_usbc->usbcfg | 0x40; //enable usb PLL.
-#elif defined(SOC_SF32LB56X) || defined(SOC_SF32LB52X)
+#elif defined(SOC_SF32LB56X) || defined(SOC_SF32LB52X) || defined(SOC_SF32LB57X)
     hwp_hpsys_cfg->USBCR |= HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_DP_EN | HPSYS_CFG_USBCR_USB_EN;
 #elif defined(SOC_SF32LB55X)
     hwp_hpsys_cfg->USBCR |= HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_USB_EN;
@@ -76,7 +76,7 @@ void usb_dc_low_level_deinit(uint8_t busid)
     hwp_usbc->usbcfg &= ~0x40; // Disable usb PLL.
     hwp_usbc->swcntl3 = 0x0;
     hwp_usbc->ldo25 &= ~0xa; // Disable psw_en and ldo25_en
-#elif defined(SOC_SF32LB56X) || defined(SOC_SF32LB52X)
+#elif defined(SOC_SF32LB56X) || defined(SOC_SF32LB52X) || defined(SOC_SF32LB57X)
     hwp_hpsys_cfg->USBCR &= ~(HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_DP_EN | HPSYS_CFG_USBCR_USB_EN);
 #elif defined(SOC_SF32LB55X)
     hwp_hpsys_cfg->USBCR &= ~(HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_USB_EN);
@@ -100,7 +100,7 @@ void usb_hc_low_level_init(struct usbh_bus *bus)
     HAL_Delay(1);
     hwp_usbc->swcntl3 = 0x1;                    //set utmi_en for USB2.0
     hwp_usbc->usbcfg = hwp_usbc->usbcfg | 0x40; //enable usb PLL.
-#elif defined(SOC_SF32LB56X) || defined(SOC_SF32LB52X)
+#elif defined(SOC_SF32LB56X) || defined(SOC_SF32LB52X) || defined(SOC_SF32LB57X)
     hwp_hpsys_cfg->USBCR |= HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_DP_EN | HPSYS_CFG_USBCR_USB_EN;
 #elif defined(SOC_SF32LB55X)
     hwp_hpsys_cfg->USBCR |= HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_USB_EN;
@@ -124,7 +124,7 @@ void usb_hc_low_level_deinit(struct usbh_bus *bus)
     hwp_usbc->usbcfg &= ~0x40; // Disable usb PLL.
     hwp_usbc->swcntl3 = 0x0;
     hwp_usbc->ldo25 &= ~0xa; // Disable psw_en and ldo25_en
-#elif defined(SOC_SF32LB56X) || defined(SOC_SF32LB52X)
+#elif defined(SOC_SF32LB56X) || defined(SOC_SF32LB52X) || defined(SOC_SF32LB57X)
     hwp_hpsys_cfg->USBCR &= ~(HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_DP_EN | HPSYS_CFG_USBCR_USB_EN);
 #elif defined(SOC_SF32LB55X)
     hwp_hpsys_cfg->USBCR &= ~(HPSYS_CFG_USBCR_DM_PD | HPSYS_CFG_USBCR_USB_EN);
