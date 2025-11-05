@@ -203,100 +203,22 @@ typedef volatile struct
     REG16   reserved_0;                     //0x036a
     REG32   reserved_1;                     //0x036c
     REG8    usbcfg;                         //0x0370
-    REG8    utmicfg0;                       //0x0371
-    REG8    utmicfg1;                       //0x0372
-    REG8    utmicfg2;                       //0x0373
-    REG8    utmicfg3;                       //0x0374
-    REG8    utmicfg4;                       //0x0375
-    REG8    utmicfg5;                       //0x0376
-    REG8    utmicfg6;                       //0x0377
-    REG8    utmicfg7;                       //0x0378
-    REG8    utmicfg8;                       //0x0379
-    REG8    utmicfg9;                       //0x037a
-    REG8    utmicfg10;                      //0x037b
-    REG8    utmicfg11;                      //0x037c
-    REG8    utmicfg12;                      //0x037d
-    REG8    utmicfg13;                      //0x037e
-    REG8    utmicfg14;                      //0x037f
-    REG8    utmicfg15;                      //0x0380
-    REG8    utmicfg16;                      //0x0381
-    REG8    utmicfg17;                      //0x0382
-    REG8    utmicfg18;                      //0x0383
-    REG8    utmicfg19;                      //0x0384
-    REG8    utmicfg20;                      //0x0385
-    REG8    utmicfg21;                      //0x0386
-    REG8    utmicfg22;                      //0x0387
-    REG8    utmicfg23;                      //0x0388
-    REG8    utmicfg24;                      //0x0389
-    REG8    reserved_3;                     //0x038a
-    REG8    reserved_4;                     //0x038b
-    REG8    reserved_5;                     //0x038c
-    REG8    reserved_6;                     //0x038d
-    REG8    reserved_7;                     //0x038e
-    REG8    reserved_8;                     //0x038f
-    REG32   dma_1_addr1;                    //0x0390
-    REG16   dma_1_flg1;                     //0x0394
-    REG16   dma_2_flg1;                     //0x0396
-    REG32   dma_1_addr2;                    //0x0398
-    REG16   dma_1_flg2;                     //0x039c
-    REG16   dma_2_flg2;                     //0x039e
-    REG8    dma_1_cntl;                     //0x03a0
-    REG8    dma_2_cntl;                     //0x03a1
-    REG8    dma_1_cntsel;                   //0x03a2
-    REG8    dma_2_cntsel;                   //0x03a3
-    REG32   lpbk_txd;                       //0x03a4
-    REG32   lpbk_rxd;                       //0x03a8
-    REG8    lpbk_cntl;                      //0x03ac
-    REG8    reserved_13;                    //0x03ad
-    REG16   reserved_14;                    //0x03ae
-    REG8    ate;                            //0x03b0
-    REG8    rsvd0;                          //0x03b1
-    REG8    rsvd1;                          //0x03b2
-    REG8    rsvd2;                          //0x03b3
-    REG8    rsvd3;                          //0x03b4
-    REG8    ldo25;                          //0x03b5
-    REG8    utmicfg25;                      //0x03b6
-    REG8    reserved_15;                    //0x03b7
-    REG8    swcntl0;                        //0x03b8
-    REG8    swcntl1;                        //0x03b9
-    REG8    swcntl2;                        //0x03ba
-    REG8    swcntl3;                        //0x03bb
-    REG8    swcntl4;                        //0x03bc
-    REG8    swcntl5;                        //0x03bd
-    REG8    reserved_16;                    //0x03be
-    REG8    comp_res;                       //0x03bf
-    REG8    usb_state;                      //0x03c0
-    REG8    dma1_txen;                      //0x03c1
-    REG8    dma1_rxen;                      //0x03c2
-    REG8    dma1_hlf_en;                    //0x03c3
-    REG8    dbgcntl0;                       //0x03c4
-    REG8    dbgcntl1;                       //0x03c5
-    REG8    reserved3;                      //0x03c6
-    REG8    reserved4;                      //0x03c7
-    REG8    fs_lp_cfg;                      //0x03c8
-    REG8    reserved5;                      //0x03c9
-    REG8    reserved6;                      //0x03ca
-    REG8    reserved7;                      //0x03cb
-    REG32   fs_lp_txdata;                   //0x03cc
-    REG32   fs_lp_rxdata;                   //0x03d0
-    REG8    infi_tx;                        //0x03d4
-    REG8    infi_data;                      //0x03d5
-    REG8    dma_1_infi;                     //0x03d6
-    REG8    dma_2_infi;                     //0x03d7
-    REG32   dma_2_addr1;                    //0x03d8
-    REG32   dma_2_addr2;                    //0x03dc
-    REG8    dma1_thr0;                      //0x03e0
-    REG8    dma1_thr1;                      //0x03e1
-    REG8    dma1_thr2;                      //0x03e2
-    REG8    dma1_thr3;                      //0x03e3
-    REG8    dma1_thr4;                      //0x03e4
-    REG8    dma1_thr5;                      //0x03e5
-    REG8    dma1_thr6;                      //0x03e6
-    REG8    autoreqclr_mode;                //0x03e7  
-    REG8    txautoset;                      //0x03e8
-    REG8    sw_cntl6;                       //0x03e9
-    REG8    sw_cntl7;                       //0x03ea
-    REG8    sw_cntl8;                       //0x03eb
+
+    struct musb_reserved_3
+    {
+        REG8 reserved_3;                    //0x0371~0x3bb
+    } rsvd_3[0x4b];
+
+    REG8     dbgcntl0;                     //0x03bc
+    REG8     dbgcntl1;                     //0x03bd
+    REG8     mode_48m;                     //0x03be
+    REG8     reserved5;                    //0x03bf
+    REG8     fs_lp_cfg;                    //0x03c0
+    REG8     reserved6;                    //0x03c1
+    REG8     reserved7;                    //0x03c2
+    REG8     reserved8;                    //0x03c3
+    REG32    fs_lp_txdata;                 //0x03c4
+    REG32    fs_lp_rxdata;                 //0x03c8
 } __attribute__((packed, aligned(32))) USBC_X_Typedef;
 
 
