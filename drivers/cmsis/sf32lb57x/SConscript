@@ -51,11 +51,11 @@ elif GetDepend(['BF0_HCPU']):
     if  rtconfig.PLATFORM != 'gcc':
         ASFLAGS = ' --cpreproc'
     if rtconfig.PLATFORM == 'gcc':
-        src += ['Templates/gcc/startup_bf0_hcpu.s']
+        src += ['Templates/gcc/startup_bf0_hcpu.S']
     elif rtconfig.PLATFORM == 'armcc':
         src += ['Templates/arm/startup_bf0_hcpu.S']
     elif rtconfig.PLATFORM == 'iar':
-        src += ['Templates/iar/startup_bf0_hcpu.s']
+        src += ['Templates/iar/startup_bf0_hcpu.S']
 
     path = path + [os.path.join(SIFLI_SDK, 'external/CMSIS/Include')]
 

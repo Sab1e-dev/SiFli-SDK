@@ -163,7 +163,7 @@ __WEAK void mpu_config(void)
     ARM_MPU_SetRegion(rnr++, rbar, rlar);
 
     // hpsys ram, disable sram cache
-    rbar = ARM_MPU_RBAR(0x20000000, ARM_MPU_SH_NON, 0, 1, 0); //Non-shareable,RW,any privilege,executable
+    rbar = ARM_MPU_RBAR(0x20000000, ARM_MPU_SH_OUTER, 0, 1, 0); //Non-shareable,RW,any privilege,executable
     rlar = ARM_MPU_RLAR(0x2027ffff, ATTR_RAM_IDX);
     ARM_MPU_SetRegion(rnr++, rbar, rlar);
 

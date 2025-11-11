@@ -90,9 +90,6 @@ typedef struct
 #define JPEGD_CORE_CTRL_CORE_CTRL_Pos   (0U)
 #define JPEGD_CORE_CTRL_CORE_CTRL_Msk   (0x7UL << JPEGD_CORE_CTRL_CORE_CTRL_Pos)
 #define JPEGD_CORE_CTRL_CORE_CTRL       JPEGD_CORE_CTRL_CORE_CTRL_Msk
-#define JPEGD_CORE_CTRL_CLR_Pos         (4U)
-#define JPEGD_CORE_CTRL_CLR_Msk         (0x1UL << JPEGD_CORE_CTRL_CLR_Pos)
-#define JPEGD_CORE_CTRL_CLR             JPEGD_CORE_CTRL_CLR_Msk
 
 /*************** Bit definition for JPEGD_START_POINT register ****************/
 #define JPEGD_START_POINT_START_ROW_Pos  (0U)
@@ -138,6 +135,12 @@ typedef struct
 #define JPEGD_INT_EN_START_ERR_EN_Pos   (8U)
 #define JPEGD_INT_EN_START_ERR_EN_Msk   (0x1UL << JPEGD_INT_EN_START_ERR_EN_Pos)
 #define JPEGD_INT_EN_START_ERR_EN       JPEGD_INT_EN_START_ERR_EN_Msk
+#define JPEGD_INT_EN_MEM_ERR_EN_Pos     (9U)
+#define JPEGD_INT_EN_MEM_ERR_EN_Msk     (0x1UL << JPEGD_INT_EN_MEM_ERR_EN_Pos)
+#define JPEGD_INT_EN_MEM_ERR_EN         JPEGD_INT_EN_MEM_ERR_EN_Msk
+#define JPEGD_INT_EN_MJPEG_END_EN_Pos   (10U)
+#define JPEGD_INT_EN_MJPEG_END_EN_Msk   (0x1UL << JPEGD_INT_EN_MJPEG_END_EN_Pos)
+#define JPEGD_INT_EN_MJPEG_END_EN       JPEGD_INT_EN_MJPEG_END_EN_Msk
 
 /***************** Bit definition for JPEGD_INT_STA register ******************/
 #define JPEGD_INT_STA_JPEGD_END_STA_Pos  (0U)
@@ -167,11 +170,12 @@ typedef struct
 #define JPEGD_INT_STA_START_ERR_STA_Pos  (8U)
 #define JPEGD_INT_STA_START_ERR_STA_Msk  (0x1UL << JPEGD_INT_STA_START_ERR_STA_Pos)
 #define JPEGD_INT_STA_START_ERR_STA     JPEGD_INT_STA_START_ERR_STA_Msk
-
-/****************** Bit definition for JPEGD_RELOAD register ******************/
-#define JPEGD_RELOAD_RELOAD_Pos         (0U)
-#define JPEGD_RELOAD_RELOAD_Msk         (0x1UL << JPEGD_RELOAD_RELOAD_Pos)
-#define JPEGD_RELOAD_RELOAD             JPEGD_RELOAD_RELOAD_Msk
+#define JPEGD_INT_STA_MEM_ERR_STA_Pos   (9U)
+#define JPEGD_INT_STA_MEM_ERR_STA_Msk   (0x1UL << JPEGD_INT_STA_MEM_ERR_STA_Pos)
+#define JPEGD_INT_STA_MEM_ERR_STA       JPEGD_INT_STA_MEM_ERR_STA_Msk
+#define JPEGD_INT_STA_MJPEG_END_STA_Pos  (10U)
+#define JPEGD_INT_STA_MJPEG_END_STA_Msk  (0x1UL << JPEGD_INT_STA_MJPEG_END_STA_Pos)
+#define JPEGD_INT_STA_MJPEG_END_STA     JPEGD_INT_STA_MJPEG_END_STA_Msk
 
 /***************** Bit definition for JPEGD_STATUS0 register ******************/
 #define JPEGD_STATUS0_STATUS0_Pos       (0U)
@@ -243,9 +247,57 @@ typedef struct
 #define JPEGD_STATUS13_STATUS13_Msk     (0xFFFFUL << JPEGD_STATUS13_STATUS13_Pos)
 #define JPEGD_STATUS13_STATUS13         JPEGD_STATUS13_STATUS13_Msk
 
+/***************** Bit definition for JPEGD_SOI_TIME register *****************/
+#define JPEGD_SOI_TIME_SOI_TIME_Pos     (0U)
+#define JPEGD_SOI_TIME_SOI_TIME_Msk     (0xFFFFUL << JPEGD_SOI_TIME_SOI_TIME_Pos)
+#define JPEGD_SOI_TIME_SOI_TIME         JPEGD_SOI_TIME_SOI_TIME_Msk
+
+/***************** Bit definition for JPEGD_ACT_TIME register *****************/
+#define JPEGD_ACT_TIME_ACT_TIME_Pos     (0U)
+#define JPEGD_ACT_TIME_ACT_TIME_Msk     (0xFFFFFFFFUL << JPEGD_ACT_TIME_ACT_TIME_Pos)
+#define JPEGD_ACT_TIME_ACT_TIME         JPEGD_ACT_TIME_ACT_TIME_Msk
+
+/**************** Bit definition for JPEGD_MJPEG_STA register *****************/
+#define JPEGD_MJPEG_STA_MJPEG_STA_Pos   (0U)
+#define JPEGD_MJPEG_STA_MJPEG_STA_Msk   (0x1UL << JPEGD_MJPEG_STA_MJPEG_STA_Pos)
+#define JPEGD_MJPEG_STA_MJPEG_STA       JPEGD_MJPEG_STA_MJPEG_STA_Msk
+
+/**************** Bit definition for JPEGD_MJPEG_FRM register *****************/
+#define JPEGD_MJPEG_FRM_FRM_CNT_Pos     (0U)
+#define JPEGD_MJPEG_FRM_FRM_CNT_Msk     (0xFFFFUL << JPEGD_MJPEG_FRM_FRM_CNT_Pos)
+#define JPEGD_MJPEG_FRM_FRM_CNT         JPEGD_MJPEG_FRM_FRM_CNT_Msk
+#define JPEGD_MJPEG_FRM_FRM_NUM_Pos     (16U)
+#define JPEGD_MJPEG_FRM_FRM_NUM_Msk     (0xFFFFUL << JPEGD_MJPEG_FRM_FRM_NUM_Pos)
+#define JPEGD_MJPEG_FRM_FRM_NUM         JPEGD_MJPEG_FRM_FRM_NUM_Msk
+
+/*************** Bit definition for JPEGD_MJPEG_START register ****************/
+#define JPEGD_MJPEG_START_START_OFFSET_Pos  (0U)
+#define JPEGD_MJPEG_START_START_OFFSET_Msk  (0xFFFFFFFFUL << JPEGD_MJPEG_START_START_OFFSET_Pos)
+#define JPEGD_MJPEG_START_START_OFFSET  JPEGD_MJPEG_START_START_OFFSET_Msk
+
 /***************** Bit definition for JPEGD_DB_DATA0 register *****************/
 #define JPEGD_DB_DATA0_DB_DATA0_Pos     (0U)
 #define JPEGD_DB_DATA0_DB_DATA0_Msk     (0xFFFFFFFFUL << JPEGD_DB_DATA0_DB_DATA0_Pos)
 #define JPEGD_DB_DATA0_DB_DATA0         JPEGD_DB_DATA0_DB_DATA0_Msk
+
+/***************** Bit definition for JPEGD_DB_DATA1 register *****************/
+#define JPEGD_DB_DATA1_DB_DATA1_Pos     (0U)
+#define JPEGD_DB_DATA1_DB_DATA1_Msk     (0xFFFFFFFFUL << JPEGD_DB_DATA1_DB_DATA1_Pos)
+#define JPEGD_DB_DATA1_DB_DATA1         JPEGD_DB_DATA1_DB_DATA1_Msk
+
+/***************** Bit definition for JPEGD_DB_DATA2 register *****************/
+#define JPEGD_DB_DATA2_DB_DATA2_Pos     (0U)
+#define JPEGD_DB_DATA2_DB_DATA2_Msk     (0xFFFFFFFFUL << JPEGD_DB_DATA2_DB_DATA2_Pos)
+#define JPEGD_DB_DATA2_DB_DATA2         JPEGD_DB_DATA2_DB_DATA2_Msk
+
+/***************** Bit definition for JPEGD_DB_DATA3 register *****************/
+#define JPEGD_DB_DATA3_DB_DATA3_Pos     (0U)
+#define JPEGD_DB_DATA3_DB_DATA3_Msk     (0xFFFFFFFFUL << JPEGD_DB_DATA3_DB_DATA3_Pos)
+#define JPEGD_DB_DATA3_DB_DATA3         JPEGD_DB_DATA3_DB_DATA3_Msk
+
+/***************** Bit definition for JPEGD_DB_DATA4 register *****************/
+#define JPEGD_DB_DATA4_DB_DATA4_Pos     (0U)
+#define JPEGD_DB_DATA4_DB_DATA4_Msk     (0xFFFFFFFFUL << JPEGD_DB_DATA4_DB_DATA4_Pos)
+#define JPEGD_DB_DATA4_DB_DATA4         JPEGD_DB_DATA4_DB_DATA4_Msk
 
 #endif

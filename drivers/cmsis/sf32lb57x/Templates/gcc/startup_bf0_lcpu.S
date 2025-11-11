@@ -74,7 +74,7 @@ __Vectors:
                 .long      HPSYS0_IRQHandler                      /* 21 Interrupt 21*/
                 .long      HPSYS1_IRQHandler                      /* 22 Interrupt 22*/
                 .long      HCPU2LCPU_IRQHandler                   /* 23 Interrupt 23*/
-                .long      Interrupt24_IRQHandler                 /* 24 Interrupt 24*/
+                .long      ACPU2LCPU_IRQHandler                   /* 24 Interrupt 24*/
                 .long      Interrupt25_IRQHandler                 /* 25 Interrupt 25*/
                 .long      Interrupt26_IRQHandler                 /* 26 Interrupt 26*/
                 .long      Interrupt27_IRQHandler                 /* 27 Interrupt 27*/
@@ -218,7 +218,7 @@ Default_Handler:
                 Set_Default_Handler   HPSYS0_IRQHandler      
                 Set_Default_Handler   HPSYS1_IRQHandler      
                 Set_Default_Handler   HCPU2LCPU_IRQHandler   
-                Set_Default_Handler   Interrupt24_IRQHandler 
+                Set_Default_Handler   ACPU2LCPU_IRQHandler 
                 Set_Default_Handler   Interrupt25_IRQHandler 
                 Set_Default_Handler   Interrupt26_IRQHandler 
                 Set_Default_Handler   Interrupt27_IRQHandler 

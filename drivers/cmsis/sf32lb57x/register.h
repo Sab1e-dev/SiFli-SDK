@@ -92,8 +92,8 @@ typedef enum IRQn
     PTC2_IRQn                     =  18,
     LPTIM3_IRQn                   =  19,
     GPIO2_IRQn                    =  20,
-    HPSYS0_IRQn                   =  21,
-    HPSYS1_IRQn                   =  22,
+    Interrupt21_IRQn              =  21,
+    Interrupt22_IRQn              =  22,
     Interrupt23_IRQn              =  23,
     Interrupt24_IRQn              =  24,
     Interrupt25_IRQn              =  25,
@@ -129,7 +129,7 @@ typedef enum IRQn
     DMAC1_CH6_IRQn                =  55,
     DMAC1_CH7_IRQn                =  56,
     DMAC1_CH8_IRQn                =  57,
-    LCPU2HCPU_IRQn                =  58,
+    LCPU2HCPU_IRQn                =  58, //TODO: for ACPU it's LCPU2ACPU
     USART1_IRQn                   =  59,
     SPI1_IRQn                     =  60,
     I2C1_IRQn                     =  61,
@@ -139,7 +139,7 @@ typedef enum IRQn
     GPADC_IRQn                    =  65,
     EFUSEC_IRQn                   =  66,
     AES_IRQn                      =  67,
-    PTC1_IRQn                     =  68,
+    Interrupt68_IRQn              =  68,
     TRNG_IRQn                     =  69,
     GPTIM1_IRQn                   =  70,
     GPTIM2_IRQn                   =  71,
@@ -148,18 +148,18 @@ typedef enum IRQn
     USART2_IRQn                   =  74,
     SPI2_IRQn                     =  75,
     I2C2_IRQn                     =  76,
-    EXTDMA_IRQn                   =  77,
+    Interrupt77_IRQn              =  77,
     I2C4_IRQn                     =  78,
     SDMMC1_IRQn                   =  79,
-    ACPU2HCPU_IRQn                =  80,
+    ACPU2HCPU_IRQn                =  80, //TODO: for ACPU it's HCPU2ACPU
     SDMMC2_IRQn                   =  81,
     PDM1_IRQn                     =  82,
     CAN1_IRQn                     =  83,
     GPIO1_IRQn                    =  84,
     MPI1_IRQn                     =  85,
     MPI2_IRQn                     =  86,
-    Interrupt87_IRQn              =  87,
-    Interrupt88_IRQn              =  88,
+    MPI3_IRQn                     =  87,
+    PDM2_IRQn                     =  88,
     EZIP_IRQn                     =  89,
     AUDPRC_IRQn                   =  90,
     TSEN_IRQn                     =  91,
@@ -171,7 +171,7 @@ typedef enum IRQn
     DCMI_IRQn                     =  97,
     SECU1_IRQn                    =  98,
     JPEGD_IRQn                    =  99,
-    Interrupt100_IRQn             = 100,
+    CAN2_IRQn                     = 100,
     Interrupt101_IRQn             = 101,
     Interrupt102_IRQn             = 102,
     I2S2_IRQn                     = 103,
@@ -294,7 +294,7 @@ typedef enum IRQn
     HPSYS0_IRQn                   =  21,
     HPSYS1_IRQn                   =  22,
     HCPU2LCPU_IRQn                =  23,
-    Interrupt24_IRQn              =  24,
+    ACPU2LCPU_IRQn                =  24,
     Interrupt25_IRQn              =  25,
     Interrupt26_IRQn              =  26,
     Interrupt27_IRQn              =  27,
@@ -462,7 +462,7 @@ typedef enum IRQn
 #define HPSYS_CFG_BASE      0x5000b000
 #define EFUSEC_BASE         0x5000c000
 #define AES_BASE            0x5000d000
-#define I2S2_BASE           0x5000e000
+#define CAN2_BASE           0x5000e000
 #define TRNG_BASE           0x5000f000
 //------------------------------------
 #define DCMI_BASE           0x50040000
@@ -483,12 +483,14 @@ typedef enum IRQn
 #define USART3_BASE         0x50086000
 #define AUDCODEC_BASE       0x50088000
 #define TSEN_BASE           0x50089000
+#define I2S2_BASE           0x5008a000
 #define GPTIM1_BASE         0x50090000
 #define BTIM1_BASE          0x50092000
 #define WDT1_BASE           0x50094000
 #define SPI1_BASE           0x50095000
 #define SPI2_BASE           0x50096000
 #define PDM1_BASE           0x5009a000
+#define PDM2_BASE           0x5009b000
 #define I2C1_BASE           0x5009c000
 #define I2C2_BASE           0x5009d000
 #define I2C3_BASE           0x5009e000
@@ -585,6 +587,7 @@ typedef enum IRQn
 #define hwp_i2s1        ((I2S_TypeDef           *)    I2S1_BASE)
 #define hwp_i2s2        ((I2S_TypeDef           *)    I2S2_BASE)
 #define hwp_pdm1        ((PDM_TypeDef           *)    PDM1_BASE)
+#define hwp_pdm2        ((PDM_TypeDef           *)    PDM2_BASE)
 #define hwp_crc1        ((CRC_TypeDef           *)    CRC1_BASE)
 #define hwp_crc2        ((CRC_TypeDef           *)    CRC2_BASE)
 #define hwp_trng        ((TRNG_TypeDef          *)    TRNG_BASE)
@@ -612,7 +615,7 @@ typedef enum IRQn
 #define hwp_tsen        ((TSEN_TypeDef          *)    TSEN_BASE)
 #define hwp_jpegd       ((JPEGD_TypeDef         *)    JPEGD_BASE)
 #define hwp_can1        ((CAN_TypeDef           *)    CAN1_BASE)
-
+#define hwp_can2        ((CAN_TypeDef           *)    CAN2_BASE)
 
 /**=================================Extra defines by firmware ==========================================*/
 /** Get mailbox base type*/

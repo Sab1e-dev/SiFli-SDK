@@ -23,11 +23,11 @@ typedef struct
     __IO uint32_t IPLSR0;
     __IO uint32_t IPLCR0;
     __IO uint32_t ISR0;
-    __IO uint32_t RSVD5[4];
+    __IO uint32_t RSVD3[4];
     __IO uint32_t OEMR0;
     __IO uint32_t OEMSR0;
     __IO uint32_t OEMCR0;
-    __IO uint32_t RSVD4[5];
+    __IO uint32_t RSVD2[5];
     __IO uint32_t DIR1;
     __IO uint32_t DOR1;
     __IO uint32_t DOSR1;
@@ -48,35 +48,10 @@ typedef struct
     __IO uint32_t IPLSR1;
     __IO uint32_t IPLCR1;
     __IO uint32_t ISR1;
-    __IO uint32_t RSVD3[4];
+    __IO uint32_t RSVD1[4];
     __IO uint32_t OEMR1;
     __IO uint32_t OEMSR1;
     __IO uint32_t OEMCR1;
-    __IO uint32_t RSVD2[5];
-    __IO uint32_t DIR2;
-    __IO uint32_t DOR2;
-    __IO uint32_t DOSR2;
-    __IO uint32_t DOCR2;
-    __IO uint32_t DOER2;
-    __IO uint32_t DOESR2;
-    __IO uint32_t DOECR2;
-    __IO uint32_t IER2;
-    __IO uint32_t IESR2;
-    __IO uint32_t IECR2;
-    __IO uint32_t ITR2;
-    __IO uint32_t ITSR2;
-    __IO uint32_t ITCR2;
-    __IO uint32_t IPHR2;
-    __IO uint32_t IPHSR2;
-    __IO uint32_t IPHCR2;
-    __IO uint32_t IPLR2;
-    __IO uint32_t IPLSR2;
-    __IO uint32_t IPLCR2;
-    __IO uint32_t ISR2;
-    __IO uint32_t RSVD1[4];
-    __IO uint32_t OEMR2;
-    __IO uint32_t OEMSR2;
-    __IO uint32_t OEMCR2;
 } GPIO1_TypeDef;
 
 
@@ -309,120 +284,5 @@ typedef struct
 #define GPIO1_OEMCR1_OEMC_Pos           (0U)
 #define GPIO1_OEMCR1_OEMC_Msk           (0xFFFFFFFFUL << GPIO1_OEMCR1_OEMC_Pos)
 #define GPIO1_OEMCR1_OEMC               GPIO1_OEMCR1_OEMC_Msk
-
-/******************* Bit definition for GPIO1_DIR2 register *******************/
-#define GPIO1_DIR2_IN_Pos               (0U)
-#define GPIO1_DIR2_IN_Msk               (0xFFFFUL << GPIO1_DIR2_IN_Pos)
-#define GPIO1_DIR2_IN                   GPIO1_DIR2_IN_Msk
-
-/******************* Bit definition for GPIO1_DOR2 register *******************/
-#define GPIO1_DOR2_OUT_Pos              (0U)
-#define GPIO1_DOR2_OUT_Msk              (0xFFFFUL << GPIO1_DOR2_OUT_Pos)
-#define GPIO1_DOR2_OUT                  GPIO1_DOR2_OUT_Msk
-
-/****************** Bit definition for GPIO1_DOSR2 register *******************/
-#define GPIO1_DOSR2_DOS_Pos             (0U)
-#define GPIO1_DOSR2_DOS_Msk             (0xFFFFUL << GPIO1_DOSR2_DOS_Pos)
-#define GPIO1_DOSR2_DOS                 GPIO1_DOSR2_DOS_Msk
-
-/****************** Bit definition for GPIO1_DOCR2 register *******************/
-#define GPIO1_DOCR2_DOC_Pos             (0U)
-#define GPIO1_DOCR2_DOC_Msk             (0xFFFFUL << GPIO1_DOCR2_DOC_Pos)
-#define GPIO1_DOCR2_DOC                 GPIO1_DOCR2_DOC_Msk
-
-/****************** Bit definition for GPIO1_DOER2 register *******************/
-#define GPIO1_DOER2_DOE_Pos             (0U)
-#define GPIO1_DOER2_DOE_Msk             (0xFFFFUL << GPIO1_DOER2_DOE_Pos)
-#define GPIO1_DOER2_DOE                 GPIO1_DOER2_DOE_Msk
-
-/****************** Bit definition for GPIO1_DOESR2 register ******************/
-#define GPIO1_DOESR2_DOES_Pos           (0U)
-#define GPIO1_DOESR2_DOES_Msk           (0xFFFFUL << GPIO1_DOESR2_DOES_Pos)
-#define GPIO1_DOESR2_DOES               GPIO1_DOESR2_DOES_Msk
-
-/****************** Bit definition for GPIO1_DOECR2 register ******************/
-#define GPIO1_DOECR2_DOEC_Pos           (0U)
-#define GPIO1_DOECR2_DOEC_Msk           (0xFFFFUL << GPIO1_DOECR2_DOEC_Pos)
-#define GPIO1_DOECR2_DOEC               GPIO1_DOECR2_DOEC_Msk
-
-/******************* Bit definition for GPIO1_IER2 register *******************/
-#define GPIO1_IER2_IER_Pos              (0U)
-#define GPIO1_IER2_IER_Msk              (0xFFFFUL << GPIO1_IER2_IER_Pos)
-#define GPIO1_IER2_IER                  GPIO1_IER2_IER_Msk
-
-/****************** Bit definition for GPIO1_IESR2 register *******************/
-#define GPIO1_IESR2_IES_Pos             (0U)
-#define GPIO1_IESR2_IES_Msk             (0xFFFFUL << GPIO1_IESR2_IES_Pos)
-#define GPIO1_IESR2_IES                 GPIO1_IESR2_IES_Msk
-
-/****************** Bit definition for GPIO1_IECR2 register *******************/
-#define GPIO1_IECR2_IEC_Pos             (0U)
-#define GPIO1_IECR2_IEC_Msk             (0xFFFFUL << GPIO1_IECR2_IEC_Pos)
-#define GPIO1_IECR2_IEC                 GPIO1_IECR2_IEC_Msk
-
-/******************* Bit definition for GPIO1_ITR2 register *******************/
-#define GPIO1_ITR2_ITR_Pos              (0U)
-#define GPIO1_ITR2_ITR_Msk              (0xFFFFUL << GPIO1_ITR2_ITR_Pos)
-#define GPIO1_ITR2_ITR                  GPIO1_ITR2_ITR_Msk
-
-/****************** Bit definition for GPIO1_ITSR2 register *******************/
-#define GPIO1_ITSR2_ITS_Pos             (0U)
-#define GPIO1_ITSR2_ITS_Msk             (0xFFFFUL << GPIO1_ITSR2_ITS_Pos)
-#define GPIO1_ITSR2_ITS                 GPIO1_ITSR2_ITS_Msk
-
-/****************** Bit definition for GPIO1_ITCR2 register *******************/
-#define GPIO1_ITCR2_ITC_Pos             (0U)
-#define GPIO1_ITCR2_ITC_Msk             (0xFFFFUL << GPIO1_ITCR2_ITC_Pos)
-#define GPIO1_ITCR2_ITC                 GPIO1_ITCR2_ITC_Msk
-
-/****************** Bit definition for GPIO1_IPHR2 register *******************/
-#define GPIO1_IPHR2_IPH_Pos             (0U)
-#define GPIO1_IPHR2_IPH_Msk             (0xFFFFUL << GPIO1_IPHR2_IPH_Pos)
-#define GPIO1_IPHR2_IPH                 GPIO1_IPHR2_IPH_Msk
-
-/****************** Bit definition for GPIO1_IPHSR2 register ******************/
-#define GPIO1_IPHSR2_IPHS_Pos           (0U)
-#define GPIO1_IPHSR2_IPHS_Msk           (0xFFFFUL << GPIO1_IPHSR2_IPHS_Pos)
-#define GPIO1_IPHSR2_IPHS               GPIO1_IPHSR2_IPHS_Msk
-
-/****************** Bit definition for GPIO1_IPHCR2 register ******************/
-#define GPIO1_IPHCR2_IPHC_Pos           (0U)
-#define GPIO1_IPHCR2_IPHC_Msk           (0xFFFFUL << GPIO1_IPHCR2_IPHC_Pos)
-#define GPIO1_IPHCR2_IPHC               GPIO1_IPHCR2_IPHC_Msk
-
-/****************** Bit definition for GPIO1_IPLR2 register *******************/
-#define GPIO1_IPLR2_IPL_Pos             (0U)
-#define GPIO1_IPLR2_IPL_Msk             (0xFFFFUL << GPIO1_IPLR2_IPL_Pos)
-#define GPIO1_IPLR2_IPL                 GPIO1_IPLR2_IPL_Msk
-
-/****************** Bit definition for GPIO1_IPLSR2 register ******************/
-#define GPIO1_IPLSR2_IPLS_Pos           (0U)
-#define GPIO1_IPLSR2_IPLS_Msk           (0xFFFFUL << GPIO1_IPLSR2_IPLS_Pos)
-#define GPIO1_IPLSR2_IPLS               GPIO1_IPLSR2_IPLS_Msk
-
-/****************** Bit definition for GPIO1_IPLCR2 register ******************/
-#define GPIO1_IPLCR2_IPLC_Pos           (0U)
-#define GPIO1_IPLCR2_IPLC_Msk           (0xFFFFUL << GPIO1_IPLCR2_IPLC_Pos)
-#define GPIO1_IPLCR2_IPLC               GPIO1_IPLCR2_IPLC_Msk
-
-/******************* Bit definition for GPIO1_ISR2 register *******************/
-#define GPIO1_ISR2_IS_Pos               (0U)
-#define GPIO1_ISR2_IS_Msk               (0xFFFFUL << GPIO1_ISR2_IS_Pos)
-#define GPIO1_ISR2_IS                   GPIO1_ISR2_IS_Msk
-
-/****************** Bit definition for GPIO1_OEMR2 register *******************/
-#define GPIO1_OEMR2_OEM_Pos             (0U)
-#define GPIO1_OEMR2_OEM_Msk             (0xFFFFUL << GPIO1_OEMR2_OEM_Pos)
-#define GPIO1_OEMR2_OEM                 GPIO1_OEMR2_OEM_Msk
-
-/****************** Bit definition for GPIO1_OEMSR2 register ******************/
-#define GPIO1_OEMSR2_OEMS_Pos           (0U)
-#define GPIO1_OEMSR2_OEMS_Msk           (0xFFFFUL << GPIO1_OEMSR2_OEMS_Pos)
-#define GPIO1_OEMSR2_OEMS               GPIO1_OEMSR2_OEMS_Msk
-
-/****************** Bit definition for GPIO1_OEMCR2 register ******************/
-#define GPIO1_OEMCR2_OEMC_Pos           (0U)
-#define GPIO1_OEMCR2_OEMC_Msk           (0xFFFFUL << GPIO1_OEMCR2_OEMC_Pos)
-#define GPIO1_OEMCR2_OEMC               GPIO1_OEMCR2_OEMC_Msk
 
 #endif

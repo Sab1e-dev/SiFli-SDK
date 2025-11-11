@@ -20,9 +20,14 @@
 
 #if defined(HAL_PINMUX_MODULE_ENABLED)||defined(_SIFLI_DOXYGEN_)
 
-#if !defined(SF32LB55X) && !defined(SF32LB58X)
+#if defined(SF32LB56X) || defined(SF32LB52X)
     #define HAL_PINMUX_EXT_ENABLED
 #endif /* SF32LB56X || SF32LB52X */
+
+#if defined(SF32LB57X)
+    #define HAL_PINMUX_SUPPORT_ARBITRARY_FUNCTION
+#endif /* SF32LB57X */
+
 
 /**
   * @brief  Get pin base.
@@ -974,349 +979,6 @@ static pin_function HAL_PIN_SetLpsysModuleFunc(int pad, pin_function func)
 
 #endif /* SF32LB52X  */
 
-#ifdef SF32LB57X
-static pin_function HAL_PIN_SetUartFunc(int pad, pin_function func)
-{
-    __IO uint32_t *pinr;
-    uint8_t group_idx;
-    uint32_t mask;
-    uint32_t pos;
-    pin_function pinmux_func;
-    int pad_base;
-
-    if (func < USART1_RXD)
-    {
-        return PIN_FUNC_UNDEF;
-    }
-    group_idx = ((func - USART1_RXD) >> 2);
-    if (group_idx >= 5)
-    {
-        return PIN_FUNC_UNDEF;
-    }
-
-    pinr = &hwp_hpsys_cfg->USART1_PINR;
-    pinr += group_idx;
-    pinmux_func = PA00_I2C_UART;
-    pad_base = PAD_PA00;
-
-    /* normalize to the first group */
-    func -= (group_idx << 2);
-    if (USART1_RXD == func)
-    {
-        mask = HPSYS_CFG_USART1_PINR_RXD_PIN_Msk;
-        pos = HPSYS_CFG_USART1_PINR_RXD_PIN_Pos;
-    }
-    else if (USART1_TXD == func)
-    {
-        mask = HPSYS_CFG_USART1_PINR_TXD_PIN_Msk;
-        pos = HPSYS_CFG_USART1_PINR_TXD_PIN_Pos;
-    }
-    else if (USART1_RTS == func)
-    {
-        mask = HPSYS_CFG_USART1_PINR_RTS_PIN_Msk;
-        pos = HPSYS_CFG_USART1_PINR_RTS_PIN_Pos;
-    }
-    else if (USART1_CTS == func)
-    {
-        mask = HPSYS_CFG_USART1_PINR_CTS_PIN_Msk;
-        pos = HPSYS_CFG_USART1_PINR_CTS_PIN_Pos;
-    }
-    else
-    {
-        func = PIN_FUNC_UNDEF;
-    }
-
-    if (PIN_FUNC_UNDEF != func)
-    {
-        MODIFY_REG(*pinr, mask, MAKE_REG_VAL(pad - pad_base, mask, pos));
-
-        /* change function for pinmux */
-        func = pad - pad_base + pinmux_func;
-    }
-
-    return func;
-}
-
-static pin_function HAL_PIN_SetI2cFunc(int pad, pin_function func)
-{
-    __IO uint32_t *pinr;
-    uint8_t group_idx;
-    uint32_t mask;
-    uint32_t pos;
-    pin_function pinmux_func;
-    int pad_base;
-
-    if (func < I2C1_SCL)
-    {
-        return PIN_FUNC_UNDEF;
-    }
-    group_idx = ((func - I2C1_SCL) >> 1);
-    /* I2C1~I2C4 */
-    if (group_idx >= 4)
-    {
-        return PIN_FUNC_UNDEF;
-    }
-
-    pinr = &hwp_hpsys_cfg->I2C1_PINR;
-    pinr += group_idx;
-    pinmux_func = PA00_I2C_UART;
-    pad_base = PAD_PA00;
-
-    /* normalize to the first group */
-    func -= (group_idx << 1);
-    if (I2C1_SCL == func)
-    {
-        mask = HPSYS_CFG_I2C1_PINR_SCL_PIN_Msk;
-        pos = HPSYS_CFG_I2C1_PINR_SCL_PIN_Pos;
-    }
-    else if (I2C1_SDA == func)
-    {
-        mask = HPSYS_CFG_I2C1_PINR_SDA_PIN_Msk;
-        pos = HPSYS_CFG_I2C1_PINR_SDA_PIN_Pos;
-    }
-    else
-    {
-        func = PIN_FUNC_UNDEF;
-    }
-
-    if (PIN_FUNC_UNDEF != func)
-    {
-        MODIFY_REG(*pinr, mask, MAKE_REG_VAL(pad - pad_base, mask, pos));
-        /* change function for pinmux */
-        func = pad - pad_base + pinmux_func;
-    }
-
-    return func;
-}
-
-static pin_function HAL_PIN_SetGptimFunc(int pad, pin_function func)
-{
-    __IO uint32_t *pinr;
-    __IO uint32_t *etr;
-    uint8_t group_idx;
-    uint32_t mask;
-    uint32_t pos;
-    pin_function pinmux_func;
-    int pad_base;
-
-    if (func < GPTIM1_CH1)
-    {
-        return PIN_FUNC_UNDEF;
-    }
-
-    group_idx = ((func - GPTIM1_CH1) / 5);
-    /* GPTIM1~GPTIM2 */
-    if (group_idx >= 2)
-    {
-        return PIN_FUNC_UNDEF;
-    }
-
-    pinr = &hwp_hpsys_cfg->GPTIM1_PINR;
-    pinr += group_idx;
-
-    etr = &hwp_hpsys_cfg->ETR_PINR;
-    pos = HPSYS_CFG_ETR_PINR_ETR1_PIN_Pos + (group_idx * (HPSYS_CFG_ETR_PINR_ETR2_PIN_Pos - HPSYS_CFG_ETR_PINR_ETR1_PIN_Pos));
-    mask = HPSYS_CFG_ETR_PINR_ETR1_PIN_Msk << (pos - HPSYS_CFG_ETR_PINR_ETR1_PIN_Pos);
-
-    pinmux_func = PA00_TIM;
-    pad_base = PAD_PA00;
-
-    /* normalize to the first group */
-    func -= (group_idx * 5);
-    if ((GPTIM1_CH1 <= func) && (GPTIM1_CH4 >= func))
-    {
-        pos = HPSYS_CFG_GPTIM1_PINR_CH1_PIN_Pos + (func - GPTIM1_CH1) * (HPSYS_CFG_GPTIM1_PINR_CH2_PIN_Pos - HPSYS_CFG_GPTIM1_PINR_CH1_PIN_Pos);
-        mask = HPSYS_CFG_GPTIM1_PINR_CH1_PIN_Msk << (pos - HPSYS_CFG_GPTIM1_PINR_CH1_PIN_Pos);
-    }
-    else if (GPTIM1_ETR == func)
-    {
-        /* do nothing, mask and pos have been set before */
-    }
-    else
-    {
-        func = PIN_FUNC_UNDEF;
-    }
-
-    if (PIN_FUNC_UNDEF != func)
-    {
-        if (GPTIM1_ETR == func)
-        {
-            MODIFY_REG(*etr, mask, MAKE_REG_VAL(pad - pad_base, mask, pos));
-        }
-        else
-        {
-            MODIFY_REG(*pinr, mask, MAKE_REG_VAL(pad - pad_base, mask, pos));
-        }
-        /* change function for pinmux */
-        func = pad - pad_base + pinmux_func;
-    }
-
-    return func;
-}
-
-static pin_function HAL_PIN_SetLptimFunc(int pad, pin_function func)
-{
-    __IO uint32_t *pinr;
-    uint8_t group_idx;
-    uint32_t mask;
-    uint32_t pos;
-    pin_function pinmux_func;
-    int pad_base;
-
-    if (func < LPTIM1_IN)
-    {
-        return PIN_FUNC_UNDEF;
-    }
-    group_idx = ((func - LPTIM1_IN) / 3);
-    /* LPTIM1~LPTIM2 */
-    if (group_idx >= 2)
-    {
-        return PIN_FUNC_UNDEF;
-    }
-
-    pinr = &hwp_hpsys_cfg->LPTIM1_PINR;
-    pinr += group_idx;
-    pinmux_func = PA00_TIM;
-    pad_base = PAD_PA00;
-
-    /* normalize to the first group */
-    func -= (group_idx * 3);
-    if (LPTIM1_IN == func)
-    {
-        mask = HPSYS_CFG_LPTIM1_PINR_IN_PIN_Msk;
-        pos = HPSYS_CFG_LPTIM1_PINR_IN_PIN_Pos;
-    }
-    else if (LPTIM1_OUT == func)
-    {
-        mask = HPSYS_CFG_LPTIM1_PINR_OUT_PIN_Msk;
-        pos = HPSYS_CFG_LPTIM1_PINR_OUT_PIN_Pos;
-    }
-    else if (LPTIM1_ETR == func)
-    {
-        mask = HPSYS_CFG_LPTIM1_PINR_ETR_PIN_Msk;
-        pos = HPSYS_CFG_LPTIM1_PINR_ETR_PIN_Pos;
-    }
-    else
-    {
-        func = PIN_FUNC_UNDEF;
-    }
-
-    if (PIN_FUNC_UNDEF != func)
-    {
-        MODIFY_REG(*pinr, mask, MAKE_REG_VAL(pad - pad_base, mask, pos));
-        /* change function for pinmux */
-        func = pad - pad_base + pinmux_func;
-    }
-
-    return func;
-}
-
-
-static pin_function HAL_PIN_SetAtimFunc(int pad, pin_function func)
-{
-    __IO uint32_t *pinr;
-    uint32_t mask;
-    uint32_t pos;
-    pin_function pinmux_func;
-    int pad_base;
-    uint32_t func_offset;
-
-    if ((func < ATIM1_CH1)
-            || (func > ATIM1_BKIN2))
-    {
-        return PIN_FUNC_UNDEF;
-    }
-
-    pinmux_func = PA00_TIM;
-    pad_base = PAD_PA00;
-
-    func_offset = func - ATIM1_CH1;
-    if (func < ATIM1_ETR)
-    {
-        if (0 == (func_offset & 1))  /* CHx */
-        {
-            pos = HPSYS_CFG_ATIM1_PINR1_CH1_PIN_Pos + (func_offset >> 1) * (HPSYS_CFG_ATIM1_PINR1_CH2_PIN_Pos - HPSYS_CFG_ATIM1_PINR1_CH1_PIN_Pos);
-            mask = HPSYS_CFG_ATIM1_PINR1_CH1_PIN_Msk << (pos - HPSYS_CFG_ATIM1_PINR1_CH1_PIN_Pos);
-            pinr = &hwp_hpsys_cfg->ATIM1_PINR1;
-        }
-        else  /*CHxN*/
-        {
-            pos = HPSYS_CFG_ATIM1_PINR2_CH1N_PIN_Pos + (func_offset >> 1) * (HPSYS_CFG_ATIM1_PINR2_CH2N_PIN_Pos - HPSYS_CFG_ATIM1_PINR2_CH1N_PIN_Pos);
-            mask = HPSYS_CFG_ATIM1_PINR2_CH1N_PIN_Msk << (pos - HPSYS_CFG_ATIM1_PINR2_CH1N_PIN_Pos);
-            pinr = &hwp_hpsys_cfg->ATIM1_PINR2;
-        }
-    }
-    else
-    {
-        if (ATIM1_ETR == func)
-        {
-            pos = HPSYS_CFG_ATIM1_PINR3_ETR_PIN_Pos;
-            mask = HPSYS_CFG_ATIM1_PINR3_ETR_PIN_Msk;
-        }
-        else if (ATIM1_BKIN == func)
-        {
-            pos = HPSYS_CFG_ATIM1_PINR3_BK_PIN_Pos;
-            mask = HPSYS_CFG_ATIM1_PINR3_BK_PIN_Msk;
-        }
-        else
-        {
-            pos = HPSYS_CFG_ATIM1_PINR3_BK2_PIN_Pos;
-            mask = HPSYS_CFG_ATIM1_PINR3_BK2_PIN_Msk;
-        }
-        pinr = &hwp_hpsys_cfg->ATIM1_PINR3;
-    }
-
-    if (PIN_FUNC_UNDEF != func)
-    {
-        MODIFY_REG(*pinr, mask, MAKE_REG_VAL(pad - pad_base, mask, pos));
-        /* change function for pinmux */
-        func = pad - pad_base + pinmux_func;
-    }
-
-    return func;
-}
-
-
-static pin_function HAL_PIN_SetHpsysModuleFunc(int pad, pin_function func)
-{
-    if ((func >= USART1_RXD) && (func <= USART3_RTS))
-    {
-        func = HAL_PIN_SetUartFunc(pad, func);
-    }
-    else if ((func >= I2C1_SCL) && (func <= I2C4_SDA))
-    {
-        func = HAL_PIN_SetI2cFunc(pad, func);
-    }
-    else if ((func >= GPTIM1_CH1) && (func <= GPTIM2_ETR))
-    {
-        func = HAL_PIN_SetGptimFunc(pad, func);
-    }
-    else if ((func >= LPTIM1_IN) && (func <= LPTIM2_ETR))
-    {
-        func = HAL_PIN_SetLptimFunc(pad, func);
-    }
-    else if ((func >= ATIM1_CH1) && (func <= ATIM1_BKIN2))
-    {
-        func = HAL_PIN_SetAtimFunc(pad, func);
-    }
-
-    return func;
-}
-
-static pin_function HAL_PIN_SetLpsysModuleFunc(int pad, pin_function func)
-{
-    if ((func >= USART4_RXD) && (func <= USART5_RTS))
-    {
-        func = HAL_PIN_SetUartFunc(pad, func);
-    }
-
-    return func;
-}
-
-
-#endif /* SF32LB57X  */
-
-
 #ifdef SF32LB58X
 static void HAL_PIN_SetAonPE(int pad, int flags, int hcpu)
 {
@@ -1517,7 +1179,7 @@ static void HAL_PIN_SetAonPE(int pad, int flags, int hcpu)
 
 
 
-__weak int HAL_PIN_Func2Idx(int pad, pin_function func,  int hcpu)
+__weak int HAL_PIN_Func2Idx(int pad, pin_function func, int hcpu)
 {
     int i;
     unsigned short *func_array = NULL;
@@ -1526,6 +1188,13 @@ __weak int HAL_PIN_Func2Idx(int pad, pin_function func,  int hcpu)
     {
         pad -= PIN_PAD_UNDEF_L;
     }
+
+#ifdef HAL_PINMUX_SUPPORT_ARBITRARY_FUNCTION
+    if ((func >= PIN_ARBITRARY_FUNC_START) && (func < HPSYS_PINMUX_PAD_SA00_FSEL_Msk))
+    {
+        return func;
+    }
+#endif /* HAL_PINMUX_SUPPORT_ARBITRARY_FUNCTION */
 
     if (hcpu)
     {
@@ -1540,12 +1209,17 @@ __weak int HAL_PIN_Func2Idx(int pad, pin_function func,  int hcpu)
 
     if (!func_array)
     {
-        return PIN_FUNC_SEL_NUM;
+        return -1;
     }
 
     for (i = 0; i < PIN_FUNC_SEL_NUM; i++)
         if (func_array[i] == func)
             break;
+
+    if (i >= PIN_FUNC_SEL_NUM)
+    {
+        i = -1;
+    }
     return i;
 }
 
@@ -1627,7 +1301,7 @@ __HAL_ROM_USED int HAL_PIN_Set(int pad, pin_function func, int flags, int hcpu)
         }
         i = HAL_PIN_Func2Idx(pad, func, hcpu);
 
-        if (i < PIN_FUNC_SEL_NUM)
+        if (i >= 0)
         {
 
 #ifdef SF32LB55X

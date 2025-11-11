@@ -991,9 +991,9 @@ const unsigned short pin_pad_func_hcpu[][16] =
     {0, MPI2_DIO6,  0,  MPI2_DQSDM, MPI2_DIO0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
     {0, MPI2_DIO7,  0,  MPI2_CLK,   MPI2_DIO3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
     {0, MPI2_DQS,   MPI2_DQSDM, MPI2_CS,    MPI2_CLK,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
-    {GPIO_A0,   LCDC1_SPI_RSTB, 0,  0,  PA00_I2C_UART,  PA00_TIM,   0,  LCDC1_8080_RSTB,    0,  0,  0,  0,  0,  0,  0,  0},
-    {GPIO_A1,   0,  0,  0,  PA01_I2C_UART,  PA01_TIM,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
-    {GPIO_A2,   LCDC1_SPI_TE,   0,  I2S1_MCLK,  PA02_I2C_UART,  PA02_TIM,   LCDC1_JDI_B2,   LCDC1_8080_TE,  0,  DBG_DO0,    0,  EDT_CHANNEL_IN0,    0,  0,  0,  0},
+    {GPIO_A0,   LCDC1_SPI_RSTB, 0,  0,  0,  0,   0,  LCDC1_8080_RSTB,    0,  0,  0,  0,  0,  0,  0,  0},
+    {GPIO_A1,   0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    {GPIO_A2,   LCDC1_SPI_TE,   0,  0,  0,  PA02_TIM,   LCDC1_JDI_B2,   LCDC1_8080_TE,  0,  DBG_DO0,    0,  EDT_CHANNEL_IN0,    0,  0,  0,  0},
     {GPIO_A3,   LCDC1_SPI_CS,   0,  I2S1_SDO,   PA03_I2C_UART,  PA03_TIM,   LCDC1_JDI_B1,   LCDC1_8080_CS,  0,  DBG_DO1,    0,  EDT_CHANNEL_IN1,    0,  0,  0,  0},
     {GPIO_A4,   LCDC1_SPI_CLK,  0,  I2S1_SDI,   PA04_I2C_UART,  PA04_TIM,   LCDC1_JDI_G1,   LCDC1_8080_WR,  0,  DBG_DO2,    0,  EDT_CHANNEL_IN2,    0,  0,  0,  0},
     {GPIO_A5,   LCDC1_SPI_DIO0, 0,  I2S1_BCK,   PA05_I2C_UART,  PA05_TIM,   LCDC1_JDI_R1,   LCDC1_8080_RD,  0,  DBG_DO3,    0,  EDT_CHANNEL_IN3,    0,  0,  0,  0},
@@ -1036,6 +1036,8 @@ const unsigned short pin_pad_func_hcpu[][16] =
     {GPIO_A42,  0,  0,  0,  PA42_I2C_UART,  PA42_TIM,   LCDC1_JDI_R2,   LCDC1_8080_DIO6,    0,  DBG_DO13,   0,  EDT_CHANNEL_OUT3,   0,  0,  0,  0},
     {GPIO_A43,  0,  0,  0,  PA43_I2C_UART,  PA43_TIM,   LCDC1_JDI_G2,   LCDC1_8080_DIO7,    0,  DBG_DO14,   0,  EDT_CHANNEL_OUT4,   0,  0,  0,  0},
     {GPIO_A44,  0,  0,  0,  PA44_I2C_UART,  PA44_TIM,   0,  0,  0,  DBG_DO15,   0,  EDT_CHANNEL_OUT5,   0,  0,  0,  0},
+    {GPIO_A45,  0,  0,  0,  0,  0,   0,  0,  0,  0,   0,  0,   0,  0,  0,  0},
+    {GPIO_A46,  0,  0,  0,  0,  0,   0,  0,  0,  0,   0,  0,   0,  0,  0,  0},
 };
 const unsigned short pin_pad_func_lcpu[][16] =
 {

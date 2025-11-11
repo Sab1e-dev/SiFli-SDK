@@ -70,8 +70,8 @@ __Vectors:
                 .long     PTC2_IRQHandler                        /*  18 Interrupt 18 */
                 .long     LPTIM3_IRQHandler                      /*  19 Interrupt 19 */
                 .long     GPIO2_IRQHandler                       /*  20 Interrupt 20 */
-                .long     HPSYS0_IRQHandler                      /*  21 Interrupt 21 */
-                .long     HPSYS1_IRQHandler                      /*  22 Interrupt 22 */
+                .long     Interrupt21_IRQHandler                 /*  21 Interrupt 21 */
+                .long     Interrupt22_IRQHandler                 /*  22 Interrupt 22 */
                 .long     Interrupt23_IRQHandler                 /*  23 Interrupt 23 */
                 .long     Interrupt24_IRQHandler                 /*  24 Interrupt 24 */
                 .long     Interrupt25_IRQHandler                 /*  25 Interrupt 25 */
@@ -117,7 +117,7 @@ __Vectors:
                 .long     GPADC_IRQHandler                       /*  65 Interrupt 65 */
                 .long     EFUSEC_IRQHandler                      /*  66 Interrupt 66 */
                 .long     AES_IRQHandler                         /*  67 Interrupt 67 */
-                .long     PTC1_IRQHandler                        /*  68 Interrupt 68 */
+                .long     Interrupt68_IRQHandler                 /*  68 Interrupt 68 */
                 .long     TRNG_IRQHandler                        /*  69 Interrupt 69 */
                 .long     GPTIM1_IRQHandler                      /*  70 Interrupt 70 */
                 .long     GPTIM2_IRQHandler                      /*  71 Interrupt 71 */
@@ -126,7 +126,7 @@ __Vectors:
                 .long     USART2_IRQHandler                      /*  74 Interrupt 74 */ 
                 .long     SPI2_IRQHandler                        /*  75 Interrupt 75 */
                 .long     I2C2_IRQHandler                        /*  76 Interrupt 76 */
-                .long     EXTDMA_IRQHandler                      /*  77 Interrupt 77 */
+                .long     Interrupt77_IRQHandler                 /*  77 Interrupt 77 */
                 .long     I2C4_IRQHandler                        /*  78 Interrupt 78 */
                 .long     SDMMC1_IRQHandler                      /*  79 Interrupt 79 */
                 .long     ACPU2HCPU_IRQHandler                   /*  80 Interrupt 80 */
@@ -136,8 +136,8 @@ __Vectors:
                 .long     GPIO1_IRQHandler                       /*  84 Interrupt 84 */ 
                 .long     QSPI1_IRQHandler                       /*  85 Interrupt 85 */
                 .long     QSPI2_IRQHandler                       /*  86 Interrupt 86 */
-                .long     Interrupt87_IRQHandler                 /*  87 Interrupt 87 */
-                .long     Interrupt88_IRQHandler                 /*  88 Interrupt 88 */
+                .long     QSPI3_IRQHandler                       /*  87 Interrupt 87 */
+                .long     PDM2_IRQHandler                        /*  88 Interrupt 88 */
                 .long     EZIP_IRQHandler                        /*  89 Interrupt 89 */
                 .long     AUDPRC_IRQHandler                      /*  90 Interrupt 90 */
                 .long     TSEN_IRQHandler                        /*  91 Interrupt 91 */
@@ -149,7 +149,7 @@ __Vectors:
                 .long     DCMI_IRQHandler                        /*  97 Interrupt 97 */
                 .long     SECU1_IRQHandler                     	 /*  98 Interrupt 98 */
                 .long     JPEGD_IRQHandler                     	 /*  99 Interrupt 99 */
-                .long     Interrupt100_IRQHandler                /*  100 Interrupt 100 */
+                .long     CAN2_IRQHandler                        /*  100 Interrupt 100 */
                 .long     Interrupt101_IRQHandler                /*  101 Interrupt 101 */
                 .long     Interrupt102_IRQHandler                /*  102 Interrupt 102 */
                 .long     I2S2_IRQHandler                        /*  103 Interrupt 103 */
@@ -281,12 +281,12 @@ Default_Handler:
                 Set_Default_Handler      SECU2_IRQHandler     
                 Set_Default_Handler      bt_isr       
                 Set_Default_Handler      BTIM3_IRQHandler      
-                Set_Default_Handler      BTIM4_IRQHandler      
+                Set_Default_Handler      BTIM4_IRQHandler
                 Set_Default_Handler      PTC2_IRQHandler       		
                 Set_Default_Handler      LPTIM3_IRQHandler   		
                 Set_Default_Handler      GPIO2_IRQHandler     
-                Set_Default_Handler      HPSYS0_IRQHandler     
-                Set_Default_Handler      HPSYS1_IRQHandler     				
+                Set_Default_Handler      Interrupt21_IRQHandler     
+                Set_Default_Handler      Interrupt22_IRQHandler     				
                 Set_Default_Handler      Interrupt23_IRQHandler       
                 Set_Default_Handler      Interrupt24_IRQHandler       
                 Set_Default_Handler      Interrupt25_IRQHandler       
@@ -332,7 +332,7 @@ Default_Handler:
                 Set_Default_Handler      GPADC_IRQHandler       
                 Set_Default_Handler      EFUSEC_IRQHandler     
                 Set_Default_Handler      AES_IRQHandler        
-                Set_Default_Handler      PTC1_IRQHandler
+                Set_Default_Handler      Interrupt68_IRQHandler
                 Set_Default_Handler      TRNG_IRQHandler
                 Set_Default_Handler      GPTIM1_IRQHandler     
                 Set_Default_Handler      GPTIM2_IRQHandler     
@@ -341,7 +341,7 @@ Default_Handler:
                 Set_Default_Handler      USART2_IRQHandler      
                 Set_Default_Handler      SPI2_IRQHandler      
                 Set_Default_Handler      I2C2_IRQHandler      
-                Set_Default_Handler      EXTDMA_IRQHandler     
+                Set_Default_Handler      Interrupt77_IRQHandler     
                 Set_Default_Handler      I2C4_IRQHandler     
                 Set_Default_Handler      SDMMC1_IRQHandler      
                 Set_Default_Handler      ACPU2HCPU_IRQHandler       
@@ -351,8 +351,8 @@ Default_Handler:
                 Set_Default_Handler      GPIO1_IRQHandler      
                 Set_Default_Handler      QSPI1_IRQHandler      
                 Set_Default_Handler      QSPI2_IRQHandler      
-                Set_Default_Handler      Interrupt87_IRQHandler      
-                Set_Default_Handler      Interrupt88_IRQHandler  
+                Set_Default_Handler      QSPI3_IRQHandler      
+                Set_Default_Handler      PDM2_IRQHandler  
                 Set_Default_Handler      EZIP_IRQHandler
                 Set_Default_Handler      AUDPRC_IRQHandler
                 Set_Default_Handler      TSEN_IRQHandler
@@ -364,7 +364,7 @@ Default_Handler:
                 Set_Default_Handler      DCMI_IRQHandler  
                 Set_Default_Handler      SECU1_IRQHandler 
                 Set_Default_Handler      JPEGD_IRQHandler 
-                Set_Default_Handler      Interrupt100_IRQHandler
+                Set_Default_Handler      CAN2_IRQHandler
                 Set_Default_Handler      Interrupt101_IRQHandler
                 Set_Default_Handler      Interrupt102_IRQHandler
                 Set_Default_Handler      I2S2_IRQHandler

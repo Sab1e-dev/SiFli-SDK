@@ -102,8 +102,8 @@ void BSP_PIN_Init(void)
     // HCPU pins
 
     //touch
-    HAL_PIN_Set(PAD_PA44, I2C1_SCL, PIN_PULLUP, 1); //scl
-    HAL_PIN_Set(PAD_PA43, I2C1_SDA, PIN_PULLUP, 1); //sda
+    HAL_PIN_Set(PAD_PA46, I2C1_SCL, PIN_PULLUP, 1); //scl
+    HAL_PIN_Set(PAD_PA45, I2C1_SDA, PIN_PULLUP, 1); //sda
     //HAL_PIN_Set(PAD_PA01, GPIO_A1, PIN_NOPULL, 1); //reset
 
     uint32_t pid = (hwp_hpsys_cfg->IDR & HPSYS_CFG_IDR_PID_Msk) >> HPSYS_CFG_IDR_PID_Pos;

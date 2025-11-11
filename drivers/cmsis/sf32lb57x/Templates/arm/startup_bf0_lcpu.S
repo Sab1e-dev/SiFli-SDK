@@ -105,7 +105,7 @@ __Vectors       DCD      __initial_sp                        ;     Top of Stack
                 DCD      HPSYS0_IRQHandler                      ;  21 Interrupt 21                    
                 DCD      HPSYS1_IRQHandler                      ;  22 Interrupt 22                    
                 DCD      HCPU2LCPU_IRQHandler                   ;  23 Interrupt 23
-                DCD      Interrupt24_IRQHandler                 ;  24 Interrupt 24
+                DCD      ACPU2LCPU_IRQHandler                   ;  24 Interrupt 24
                 DCD      Interrupt25_IRQHandler                 ;  25 Interrupt 25
                 DCD      Interrupt26_IRQHandler                 ;  26 Interrupt 26
                 DCD      Interrupt27_IRQHandler                 ;  27 Interrupt 27
@@ -188,7 +188,7 @@ $Handler_Name   PROC
                 Set_Default_Handler      HPSYS0_IRQHandler     
                 Set_Default_Handler      HPSYS1_IRQHandler     
                 Set_Default_Handler      HCPU2LCPU_IRQHandler  
-                Set_Default_Handler      Interrupt24_IRQHandler     
+                Set_Default_Handler      ACPU2LCPU_IRQHandler     
                 Set_Default_Handler      Interrupt25_IRQHandler    
                 Set_Default_Handler      Interrupt26_IRQHandler    
                 Set_Default_Handler      Interrupt27_IRQHandler

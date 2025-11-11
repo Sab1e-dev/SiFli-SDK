@@ -14,6 +14,195 @@
 typedef enum
 {
     PIN_FUNC_UNDEF,
+
+    /*  Arbitrary function, enum value must be set same as chip spec */
+    PIN_ARBITRARY_FUNC_START = 16,
+    /** I2C1_SCL */
+    I2C1_SCL          = 16,
+    /** I2C1_SDA */
+    I2C1_SDA,
+    /** I2C2_SCL */
+    I2C2_SCL,
+    /** I2C2_SDA */
+    I2C2_SDA,
+    /** I2C3_SCL */
+    I2C3_SCL,
+    /** I2C3_SDA */
+    I2C3_SDA,
+    /** I2C4_SCL */
+    I2C4_SCL,
+    /** I2C4_SDA */
+    I2C4_SDA,
+
+    /** SPI1_CLK */
+    SPI1_CLK           = 24,
+    /** SPI1_CS */
+    SPI1_CS,
+    /** SPI1_DI */
+    SPI1_DI,
+    /** SPI1_DIO */
+    SPI1_DIO,
+    /** SPI2_CLK */
+    SPI2_CLK,
+    /** SPI2_CS */
+    SPI2_CS,
+    /** SPI2_DI */
+    SPI2_DI,
+    /** SPI2_DIO */
+    SPI2_DIO,
+
+    /** USART1_TXD */
+    USART1_TXD         = 32,
+    /** USART1_RXD */
+    USART1_RXD,
+    /** USART1_RTS */
+    USART1_RTS,
+    /** USART1_CTS */
+    USART1_CTS,
+    /** USART2_TXD */
+    USART2_TXD,
+    /** USART2_RXD */
+    USART2_RXD,
+    /** USART2_RTS */
+    USART2_RTS,
+    /** USART2_CTS */
+    USART2_CTS,
+    /** USART3_TXD */
+    USART3_TXD,
+    /** USART3_RXD */
+    USART3_RXD,
+    /** USART3_RTS */
+    USART3_RTS,
+    /** USART3_CTS */
+    USART3_CTS,
+
+    /** CAN1_TXD */
+    CAN1_TXD           = 44,
+    /** CAN1_RXD */
+    CAN1_RXD,
+
+    /** PDM1_CLK */
+    PDM1_CLK           = 46,
+    /** PDM1_DATA */
+    PDM1_DATA,
+    /** PDM2_CLK */
+    PDM2_CLK,
+    /** PDM2_DATA */
+    PDM2_DATA,
+
+    /** BT_ACTIVE */
+    BT_ACTIVE          = 50,
+    /** BT_PRIORITY */
+    BT_PRIORITY,
+    /** BT_COLLISION */
+    BT_COLLISION,
+    /** WLAN_ACTIVE */
+    WLAN_ACTIVE,
+    BT_TX,
+    BT_RX,
+
+    /** GPTIM1_CH1 */
+    GPTIM1_CH1         = 56,
+    /** GPTIM1_CH2 */
+    GPTIM1_CH2,
+    /** GPTIM1_CH3 */
+    GPTIM1_CH3,
+    /** GPTIM1_CH4 */
+    GPTIM1_CH4,
+    /** GPTIM1_ETR */
+    GPTIM1_ETR,
+    /** GPTIM2_CH1 */
+    GPTIM2_CH1,
+    /** GPTIM2_CH2 */
+    GPTIM2_CH2,
+    /** GPTIM2_CH3 */
+    GPTIM2_CH3,
+    /** GPTIM2_CH4 */
+    GPTIM2_CH4,
+    /** GPTIM2_ETR */
+    GPTIM2_ETR,
+
+    /** LPTIM1_IN */
+    LPTIM1_IN         = 66,
+    /** LPTIM1_OUT */
+    LPTIM1_OUT,
+    /** LPTIM1_ETR */
+    LPTIM1_ETR,
+    /** LPTIM2_IN */
+    LPTIM2_IN,
+    /** LPTIM2_OUT */
+    LPTIM2_OUT,
+    /** LPTIM2_ETR */
+    LPTIM2_ETR,
+
+    /** ATIM1_CH1 */
+    ATIM1_CH1         = 72,
+    /** ATIM1_CH2 */
+    ATIM1_CH2,
+    /** ATIM1_CH3 */
+    ATIM1_CH3,
+    /** ATIM1_CH4 */
+    ATIM1_CH4,
+    /** ATIM1_ETR */
+    ATIM1_ETR,
+    /** ATIM1_CH1N */
+    ATIM1_CH1N,
+    /** ATIM1_CH2N */
+    ATIM1_CH2N,
+    /** ATIM1_CH3N */
+    ATIM1_CH3N,
+    /** ATIM1_BKIN */
+    ATIM1_BKIN,
+    /** ATIM1_BKIN2 */
+    ATIM1_BKIN2,
+
+    PWM1_CH1         = 82,
+    PWM1_CH2,
+    PWM1_CH3,
+    PWM1_CH4,
+    PWM1_CH5,
+
+    /** I2S1_MCLK */
+    I2S1_MCLK        = 87,
+    /** I2S1_SDO */
+    I2S1_SDO,
+    /** I2S1_SDI */
+    I2S1_SDI,
+    /** I2S1_BCK */
+    I2S1_BCK,
+    /** I2S1_LRCK */
+    I2S1_LRCK,
+    /** I2S2_MCLK */
+    I2S2_MCLK,
+    /** I2S2_SDO */
+    I2S2_SDO,
+    /** I2S2_SDI */
+    I2S2_SDI,
+    /** I2S2_BCK */
+    I2S2_BCK,
+    /** I2S2_LRCK */
+    I2S2_LRCK,
+
+    PTM1_CH0         = 97,
+    PTM1_CH1,
+    PTM1_CH2,
+    PTM1_CH3,
+    PTM1_CH4,
+    PTM1_CH5,
+    PTM1_CH6,
+    PTM1_CH7,
+    PTM1_CH8,
+    PTM1_CH9,
+    PTM1_CH10,
+    PTM1_CH11,
+    PTM1_CH12,
+    PTM1_CH13,
+    PTM1_CH14,
+    PTM1_CH15,
+
+    DCMI_CLK         = 144,
+    PIN_ARBITRARY_FUNC_END = 255,
+
     /** MPI1_CLK */
     MPI1_CLK,
     /** MPI1_CLKB */
@@ -588,30 +777,6 @@ typedef enum
     SCIO_D4,
     /** SCIO_D5 */
     SCIO_D5,
-    /** USART1_RXD */
-    USART1_RXD,
-    /** USART1_TXD */
-    USART1_TXD,
-    /** USART1_CTS */
-    USART1_CTS,
-    /** USART1_RTS */
-    USART1_RTS,
-    /** USART2_RXD */
-    USART2_RXD,
-    /** USART2_TXD */
-    USART2_TXD,
-    /** USART2_CTS */
-    USART2_CTS,
-    /** USART2_RTS */
-    USART2_RTS,
-    /** USART3_RXD */
-    USART3_RXD,
-    /** USART3_TXD */
-    USART3_TXD,
-    /** USART3_CTS */
-    USART3_CTS,
-    /** USART3_RTS */
-    USART3_RTS,
     /** USART4_RXD */
     USART4_RXD,
     /** USART4_TXD */
@@ -636,22 +801,6 @@ typedef enum
     USART6_CTS,
     /** USART6_RTS */
     USART6_RTS,
-    /** I2C1_SCL */
-    I2C1_SCL,
-    /** I2C1_SDA */
-    I2C1_SDA,
-    /** I2C2_SCL */
-    I2C2_SCL,
-    /** I2C2_SDA */
-    I2C2_SDA,
-    /** I2C3_SCL */
-    I2C3_SCL,
-    /** I2C3_SDA */
-    I2C3_SDA,
-    /** I2C4_SCL */
-    I2C4_SCL,
-    /** I2C4_SDA */
-    I2C4_SDA,
     /** I2C5_SCL */
     I2C5_SCL,
     /** I2C5_SDA */
@@ -664,22 +813,6 @@ typedef enum
     I2C7_SCL,
     /** I2C7_SDA */
     I2C7_SDA,
-    /** SPI1_CLK */
-    SPI1_CLK,
-    /** SPI1_CS */
-    SPI1_CS,
-    /** SPI1_DI */
-    SPI1_DI,
-    /** SPI1_DIO */
-    SPI1_DIO,
-    /** SPI2_CLK */
-    SPI2_CLK,
-    /** SPI2_CS */
-    SPI2_CS,
-    /** SPI2_DI */
-    SPI2_DI,
-    /** SPI2_DIO */
-    SPI2_DIO,
     /** LCDC1_SPI_CS */
     LCDC1_SPI_CS,
     /** LCDC1_SPI_CLK */
@@ -916,26 +1049,6 @@ typedef enum
     SD2_DIO2,
     /** SD2_DIO3 */
     SD2_DIO3,
-    /** I2S1_BCK */
-    I2S1_BCK,
-    /** I2S1_LRCK */
-    I2S1_LRCK,
-    /** I2S1_MCLK */
-    I2S1_MCLK,
-    /** I2S1_SDI */
-    I2S1_SDI,
-    /** I2S1_SDO */
-    I2S1_SDO,
-    /** I2S2_BCK */
-    I2S2_BCK,
-    /** I2S2_LRCK */
-    I2S2_LRCK,
-    /** I2S2_MCLK */
-    I2S2_MCLK,
-    /** I2S2_SDI */
-    I2S2_SDI,
-    /** I2S2_SDO */
-    I2S2_SDO,
     /** I2S3_BCK */
     I2S3_BCK,
     /** I2S3_LRCK */
@@ -948,34 +1061,6 @@ typedef enum
     I2S3_SDO,
     /** AUD_CLK_EXT */
     AUD_CLK_EXT,
-    /** PDM1_CLK */
-    PDM1_CLK,
-    /** PDM1_DATA */
-    PDM1_DATA,
-    /** PDM2_CLK */
-    PDM2_CLK,
-    /** PDM2_DATA */
-    PDM2_DATA,
-    /** GPTIM1_CH1 */
-    GPTIM1_CH1,
-    /** GPTIM1_CH2 */
-    GPTIM1_CH2,
-    /** GPTIM1_CH3 */
-    GPTIM1_CH3,
-    /** GPTIM1_CH4 */
-    GPTIM1_CH4,
-    /** GPTIM1_ETR */
-    GPTIM1_ETR,
-    /** GPTIM2_CH1 */
-    GPTIM2_CH1,
-    /** GPTIM2_CH2 */
-    GPTIM2_CH2,
-    /** GPTIM2_CH3 */
-    GPTIM2_CH3,
-    /** GPTIM2_CH4 */
-    GPTIM2_CH4,
-    /** GPTIM2_ETR */
-    GPTIM2_ETR,
     /** GPTIM3_CH1 */
     GPTIM3_CH1,
     /** GPTIM3_CH2 */
@@ -1006,26 +1091,6 @@ typedef enum
     GPTIM5_CH4,
     /** GPTIM5_ETR */
     GPTIM5_ETR,
-    /** ATIM1_CH1 */
-    ATIM1_CH1,
-    /** ATIM1_CH1N */
-    ATIM1_CH1N,
-    /** ATIM1_CH2 */
-    ATIM1_CH2,
-    /** ATIM1_CH2N */
-    ATIM1_CH2N,
-    /** ATIM1_CH3 */
-    ATIM1_CH3,
-    /** ATIM1_CH3N */
-    ATIM1_CH3N,
-    /** ATIM1_CH4 */
-    ATIM1_CH4,
-    /** ATIM1_ETR */
-    ATIM1_ETR,
-    /** ATIM1_BKIN */
-    ATIM1_BKIN,
-    /** ATIM1_BKIN2 */
-    ATIM1_BKIN2,
     /** ATIM2_CH1 */
     ATIM2_CH1,
     /** ATIM2_CH1N */
@@ -1046,18 +1111,6 @@ typedef enum
     ATIM2_BKIN,
     /** ATIM2_BKIN2 */
     ATIM2_BKIN2,
-    /** LPTIM1_IN */
-    LPTIM1_IN,
-    /** LPTIM1_OUT */
-    LPTIM1_OUT,
-    /** LPTIM1_ETR */
-    LPTIM1_ETR,
-    /** LPTIM2_IN */
-    LPTIM2_IN,
-    /** LPTIM2_OUT */
-    LPTIM2_OUT,
-    /** LPTIM2_ETR */
-    LPTIM2_ETR,
     /** LPTIM3_IN */
     LPTIM3_IN,
     /** LPTIM3_OUT */
@@ -1074,18 +1127,6 @@ typedef enum
     SCI_CLK,
     /** SCI_DIO */
     SCI_DIO,
-    /** CAN1_RXD */
-    CAN1_RXD,
-    /** CAN1_TXD */
-    CAN1_TXD,
-    /** CAN1_STBY */
-    CAN1_STBY,
-    /** CAN2_RXD */
-    CAN2_RXD,
-    /** CAN2_TXD */
-    CAN2_TXD,
-    /** CAN2_STBY */
-    CAN2_STBY,
     /** SWCLK */
     SWCLK,
     /** SWDIO */
@@ -1094,14 +1135,6 @@ typedef enum
     TWI_CLK,
     /** TWI_DIO */
     TWI_DIO,
-    /** BT_ACTIVE */
-    BT_ACTIVE,
-    /** WLAN_ACTIVE */
-    WLAN_ACTIVE,
-    /** BT_PRIORITY */
-    BT_PRIORITY,
-    /** BT_COLLISION */
-    BT_COLLISION,
     /** SCAN_CLK */
     SCAN_CLK,
     /** SCAN_RSTB */
@@ -1903,6 +1936,10 @@ typedef enum
     PAD_PA43,
     /** PAD_PA44 */
     PAD_PA44,
+    /** PAD_PA45 */
+    PAD_PA45,
+    /** PAD_PA46 */
+    PAD_PA46,
     PIN_PAD_MAX_H,
 
     PIN_PAD_UNDEF_L,
