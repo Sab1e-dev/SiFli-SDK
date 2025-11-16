@@ -49,6 +49,11 @@ void usb_dc_low_level_init(uint8_t busid)
 {
     HAL_RCC_EnableModule(RCC_MOD_USBC);
 
+#ifdef SOC_SF32LB57X
+    /* switch to 48MHz */
+    hwp_usbc->mode_48m |= 2;
+#endif /* SOC_SF32LB57X */
+
 #ifdef SOC_SF32LB58X
     //hwp_usbc->utmicfg12 = hwp_usbc->utmicfg12 | 0x3; //set xo_clk_sel
     hwp_usbc->ldo25 = hwp_usbc->ldo25 | 0xa; //set psw_en and ldo25_en
