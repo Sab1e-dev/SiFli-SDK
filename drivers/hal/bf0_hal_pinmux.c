@@ -1117,62 +1117,7 @@ static void HAL_PIN_SetAonPE(int pad, int flags, int hcpu)
 //TODO:
 static void HAL_PIN_SetAonPE(int pad, int flags, int hcpu)
 {
-    int offset;
-    uint32_t mask;
-    volatile uint32_t *reg;
 
-    if (hcpu && (pad >= PAD_PA28) && (pad <= PAD_PA44))
-    {
-        offset = pad - PAD_PA28;
-        mask = 1UL << (offset + RTC_PAWK2R_PS_Pos);
-
-        if (flags & HPSYS_PINMUX_PAD_PA00_PS_Msk)
-        {
-            MODIFY_REG(hwp_rtc->PAWK2R, mask, mask);
-        }
-        else
-        {
-            MODIFY_REG(hwp_rtc->PAWK2R, mask, 0);
-        }
-
-        mask = 1UL << (offset + RTC_PAWK1R_PE_Pos);
-        if (flags & HPSYS_PINMUX_PAD_PA00_PE_Msk)
-        {
-            MODIFY_REG(hwp_rtc->PAWK1R, mask, mask);
-        }
-        else
-        {
-            MODIFY_REG(hwp_rtc->PAWK1R, mask, 0);
-        }
-    }
-#ifdef hwp_pbr
-    else if (hcpu && (pad >= PAD_PA24) && (pad <= PAD_PA27))
-    {
-//TODO:
-#if 0
-        offset = pad - PAD_PA24;
-        reg = (uint32_t *)hwp_pbr + offset;
-        mask = RTC_PBR0R_PS_Msk;
-        if (flags & HPSYS_PINMUX_PAD_PA00_PS_Msk)
-        {
-            MODIFY_REG(*reg, mask, mask);
-        }
-        else
-        {
-            MODIFY_REG(*reg, mask, 0);
-        }
-        mask = RTC_PBR0R_PE_Msk;
-        if (flags & HPSYS_PINMUX_PAD_PA00_PE_Msk)
-        {
-            MODIFY_REG(*reg, mask, mask);
-        }
-        else
-        {
-            MODIFY_REG(*reg, mask, 0);
-        }
-#endif
-    }
-#endif /* hwp_pbr */
 }
 #endif /* SF32LB57X */
 

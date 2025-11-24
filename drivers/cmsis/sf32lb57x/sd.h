@@ -162,6 +162,9 @@ typedef struct
 #define SD_DCR_WIRE_MODE_Pos            (11U)
 #define SD_DCR_WIRE_MODE_Msk            (0x3UL << SD_DCR_WIRE_MODE_Pos)
 #define SD_DCR_WIRE_MODE                SD_DCR_WIRE_MODE_Msk
+#define SD_DCR_DDR_MODE_Pos             (13U)
+#define SD_DCR_DDR_MODE_Msk             (0x1UL << SD_DCR_DDR_MODE_Pos)
+#define SD_DCR_DDR_MODE                 SD_DCR_DDR_MODE_Msk
 #define SD_DCR_BLOCK_SIZE_Pos           (16U)
 #define SD_DCR_BLOCK_SIZE_Msk           (0x7FFUL << SD_DCR_BLOCK_SIZE_Pos)
 #define SD_DCR_BLOCK_SIZE               SD_DCR_BLOCK_SIZE_Msk

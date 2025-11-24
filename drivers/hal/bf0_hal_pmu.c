@@ -120,7 +120,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_SelectWakeupPin(uint8_t pin, uint8_t ao
 }
 #endif /* PMUC_CR_PIN0_SEL */
 
-
+#ifdef PMUC_WER_PIN0
 __HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_EnablePinWakeup(uint8_t pin, uint8_t mode)
 {
     uint32_t mask;
@@ -160,6 +160,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_DisablePinWakeup(uint8_t pin)
 
     return HAL_OK;
 }
+#endif /* PMUC_WER_PIN0 */
 
 __HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_EnableRtcWakeup()
 {
@@ -1283,14 +1284,12 @@ __EXIT:
     return percent;
 }
 
-
+#ifdef SF32LB52X
 HAL_RAM_RET_CODE_SECT(HAL_PMU_ConfigPeriLdo, HAL_StatusTypeDef HAL_PMU_ConfigPeriLdo(PMU_PeriLdoTypeDef ldo, bool en, bool wait))
 {
     uint32_t mask;
     uint32_t val;
 
-//TODO:
-#ifdef SF32LB52X
     if ((PMU_PERI_LDO_1V8 != ldo) && SF32LB52X_LETTER_SERIES())
     {
         /* letter series doesn't support PERI_LDO V33 */
@@ -1303,8 +1302,6 @@ HAL_RAM_RET_CODE_SECT(HAL_PMU_ConfigPeriLdo, HAL_StatusTypeDef HAL_PMU_ConfigPer
         return HAL_OK;
     }
 #endif /* !HAL_VDDSIP_LDO18_ENABLE */
-
-#endif /* SF32LB52X */
 
     if ((PMU_PERI_LDO_1V8 != ldo)
             && (PMU_PERI_LDO2_3V3 != ldo)
@@ -1337,8 +1334,10 @@ HAL_RAM_RET_CODE_SECT(HAL_PMU_ConfigPeriLdo, HAL_StatusTypeDef HAL_PMU_ConfigPer
 
     return HAL_OK;
 }
-
 #endif /* SF32LB52X */
+
+
+#endif /* SF32LB52X || SF32LB57X */
 
 __HAL_ROM_USED void HAL_PMU_Init(void)
 {

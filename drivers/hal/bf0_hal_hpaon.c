@@ -232,6 +232,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_EnableWakeupSrc(HPAON_WakeupSrcTypeDe
     uint32_t wer_en;
     __IO uint32_t *cr;
 
+#ifdef HPSYS_AON_WER_PIN0
     if ((src >= HPAON_WAKEUP_SRC_PIN0) && (src <= HPAON_WAKEUP_SRC_PIN_LAST))
     {
         wer_en = (HPSYS_AON_WER_PIN0 << (src - HPAON_WAKEUP_SRC_PIN0));
@@ -282,6 +283,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_EnableWakeupSrc(HPAON_WakeupSrcTypeDe
         hwp_hpsys_aon->WER |= wer_en;
     }
     else
+#endif /* HPSYS_AON_WER_PIN0 */
     {
         hwp_hpsys_aon->WER |= (1UL << src);
     }
@@ -298,11 +300,13 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_DisableWakeupSrc(HPAON_WakeupSrcTypeD
 {
     uint32_t wer_en;
 
+#ifdef HPSYS_AON_WER_PIN0
     if ((src >= HPAON_WAKEUP_SRC_PIN0) && (src <= HPAON_WAKEUP_SRC_PIN_LAST))
     {
         wer_en = (HPSYS_AON_WER_PIN0 << (src - HPAON_WAKEUP_SRC_PIN0));
     }
     else
+#endif /* HPSYS_AON_WER_PIN0 */
     {
         wer_en = (1UL << src);
     }
@@ -312,7 +316,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_DisableWakeupSrc(HPAON_WakeupSrcTypeD
     return HAL_OK;
 }
 
-#if defined(SF32LB52X) || defined(SF32LB57X)
+#if defined(SF32LB52X)
 __HAL_ROM_USED int8_t HAL_HPAON_QueryWakeupPin(GPIO_TypeDef *gpio, uint16_t gpio_pin)
 {
     int8_t wakeup_pin = -1;
@@ -345,9 +349,7 @@ __HAL_ROM_USED GPIO_TypeDef *HAL_HPAON_QueryWakeupGpioPin(uint8_t wakeup_pin, ui
 
     return gpio;
 }
-
-
-#else
+#elif !defined(SF32LB57X)
 __HAL_ROM_USED int8_t HAL_HPAON_QueryWakeupPin(GPIO_TypeDef *gpio, uint16_t gpio_pin)
 {
     uint32_t i;
@@ -388,6 +390,7 @@ __HAL_ROM_USED GPIO_TypeDef *HAL_HPAON_QueryWakeupGpioPin(uint8_t wakeup_pin, ui
 
 #endif /* SF32LB52X */
 
+#ifndef SF32LB57X
 __HAL_ROM_USED  HAL_StatusTypeDef HAL_HPAON_GetWakeupPinMode(uint8_t wakeup_pin, AON_PinModeTypeDef *mode)
 {
     uint32_t mask;
@@ -441,6 +444,7 @@ __HAL_ROM_USED  HAL_StatusTypeDef HAL_HPAON_GetWakeupPinMode(uint8_t wakeup_pin,
 
     return HAL_OK;
 }
+#endif /* SF32LB57X */
 
 #ifdef SOC_BF0_HCPU
     __USED
@@ -505,14 +509,14 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_StartGTimer(void)
 
     if (hwp_hpsys_aon->ISSR & HPSYS_AON_ISSR_LP_ACTIVE)
     {
-#ifndef SF32LB55X
+#ifdef HPSYS_AON_CR1_GTIM_EN
         hwp_lpsys_aon->CR1 |= LPSYS_AON_CR1_GTIM_EN;
         hwp_hpsys_aon->CR1 |= HPSYS_AON_CR1_GTIM_EN;
 #else
         /* enable gtimer in two subsys */
         hwp_lpsys_aon->CR |= LPSYS_AON_CR_GTIM_EN;
         hwp_hpsys_aon->CR |= HPSYS_AON_CR_GTIM_EN;
-#endif
+#endif /* HPSYS_AON_CR1_GTIM_EN */
         /* sync two gtimer */
         hwp_hpsys_aon->GTIMR = 1;
 
@@ -528,14 +532,14 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_StopGTimer(void)
 
     if (hwp_hpsys_aon->ISSR & HPSYS_AON_ISSR_LP_ACTIVE)
     {
-#ifndef SF32LB55X
+#ifdef LPSYS_AON_CR1_GTIM_EN
         hwp_lpsys_aon->CR1 &= ~LPSYS_AON_CR1_GTIM_EN;
         hwp_hpsys_aon->CR1 &= ~HPSYS_AON_CR1_GTIM_EN;
 #else
         /* enable gtimer in two subsys */
         hwp_lpsys_aon->CR &= ~LPSYS_AON_CR_GTIM_EN;
         hwp_hpsys_aon->CR &= ~HPSYS_AON_CR_GTIM_EN;
-#endif
+#endif /* HPSYS_AON_CR1_GTIM_EN */
         r = HAL_OK;
     }
 

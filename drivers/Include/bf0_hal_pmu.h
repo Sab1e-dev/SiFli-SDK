@@ -494,6 +494,23 @@ HAL_StatusTypeDef HAL_PMU_EnablePinWakeup(uint8_t pin, uint8_t mode);
  */
 HAL_StatusTypeDef HAL_PMU_DisablePinWakeup(uint8_t pin);
 
+
+/**
+ * @brief  Enable pin wakeup for hibernate
+ * @param  pad pad
+ * @param  mode pin wakeup mode, 0: high level, 1: low level, 2: positive edge, 3: negative edge
+ * @retval status
+ */
+HAL_StatusTypeDef HAL_PMU_EnablePinWakeup2(pin_pad pad, uint8_t mode);
+
+/**
+ * @brief  Disable pin wakeup for hibernate
+ * @param  pad pad
+ * @retval status
+ */
+HAL_StatusTypeDef HAL_PMU_DisablePinWakeup2(pin_pad pin);
+
+
 /**
  * @brief  Enable RTC wakeup for hibernate
  * @retval status

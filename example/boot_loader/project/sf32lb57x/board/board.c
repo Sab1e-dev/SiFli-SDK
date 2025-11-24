@@ -169,9 +169,11 @@ int board_boot_from(void)
     else
     {
 #ifdef CFG_BOOTROM
+//TODO:
+#ifdef PMUC_CR_PIN_RET
         hwp_pmuc->CR &= ~PMUC_CR_PIN_RET;
         HAL_Delay_us(100);
-
+#endif /* PMUC_CR_PIN_RET */
         // Use external PIN(DIO1,DIO3) to detect NOR/NAND/SD-NAND
         int ext_bond = HAL_GPIO_ReadPin(hwp_gpio1, 17);      // A17,  MPI2_DIO3
         ext_bond |= (HAL_GPIO_ReadPin(hwp_gpio1, 13) << 1);  // A13,  MPI2_DIO1

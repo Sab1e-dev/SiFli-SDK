@@ -480,11 +480,6 @@
               <FilePath>..\..\..\..\drivers\hal\bf0_hal_gpio.c</FilePath>
             </File>
             <File>
-              <FileName>bf0_hal_lpaon.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\drivers\hal\bf0_hal_lpaon.c</FilePath>
-            </File>
-            <File>
               <FileName>bf0_hal_mpi.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\drivers\hal\bf0_hal_mpi.c</FilePath>
@@ -975,11 +970,6 @@
               <FileName>bf0_hal_gpio.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\drivers\hal\bf0_hal_gpio.c</FilePath>
-            </File>
-            <File>
-              <FileName>bf0_hal_lpaon.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\drivers\hal\bf0_hal_lpaon.c</FilePath>
             </File>
             <File>
               <FileName>bf0_hal_mpi.c</FileName>
@@ -1474,11 +1464,6 @@
               <FilePath>..\..\..\..\drivers\hal\bf0_hal_gpio.c</FilePath>
             </File>
             <File>
-              <FileName>bf0_hal_lpaon.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\drivers\hal\bf0_hal_lpaon.c</FilePath>
-            </File>
-            <File>
               <FileName>bf0_hal_mpi.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\drivers\hal\bf0_hal_mpi.c</FilePath>
@@ -1971,11 +1956,6 @@
               <FilePath>..\..\..\..\drivers\hal\bf0_hal_gpio.c</FilePath>
             </File>
             <File>
-              <FileName>bf0_hal_lpaon.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\drivers\hal\bf0_hal_lpaon.c</FilePath>
-            </File>
-            <File>
               <FileName>bf0_hal_mpi.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\drivers\hal\bf0_hal_mpi.c</FilePath>
@@ -2466,11 +2446,6 @@
               <FileName>bf0_hal_gpio.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\drivers\hal\bf0_hal_gpio.c</FilePath>
-            </File>
-            <File>
-              <FileName>bf0_hal_lpaon.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\..\..\drivers\hal\bf0_hal_lpaon.c</FilePath>
             </File>
             <File>
               <FileName>bf0_hal_mpi.c</FileName>

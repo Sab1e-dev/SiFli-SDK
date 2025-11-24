@@ -4,8 +4,6 @@
 typedef struct
 {
     __IO uint32_t SYSCR;
-    __IO uint32_t RTC_TR;
-    __IO uint32_t RTC_DR;
     __IO uint32_t ULPMCR;
     __IO uint32_t DBGR;
     __IO uint32_t MDBGR;
@@ -22,70 +20,9 @@ typedef struct
 #define LPSYS_CFG_PINR_SIZE          (0)
 
 /**************** Bit definition for LPSYS_CFG_SYSCR register *****************/
-#define LPSYS_CFG_SYSCR_WDT2_REBOOT_Pos  (0U)
-#define LPSYS_CFG_SYSCR_WDT2_REBOOT_Msk  (0x1UL << LPSYS_CFG_SYSCR_WDT2_REBOOT_Pos)
-#define LPSYS_CFG_SYSCR_WDT2_REBOOT     LPSYS_CFG_SYSCR_WDT2_REBOOT_Msk
-#define LPSYS_CFG_SYSCR_DBG_SWAP_Pos    (1U)
-#define LPSYS_CFG_SYSCR_DBG_SWAP_Msk    (0x3UL << LPSYS_CFG_SYSCR_DBG_SWAP_Pos)
-#define LPSYS_CFG_SYSCR_DBG_SWAP        LPSYS_CFG_SYSCR_DBG_SWAP_Msk
-#define LPSYS_CFG_SYSCR_LDO_VSEL_Pos    (3U)
+#define LPSYS_CFG_SYSCR_LDO_VSEL_Pos    (0U)
 #define LPSYS_CFG_SYSCR_LDO_VSEL_Msk    (0x1UL << LPSYS_CFG_SYSCR_LDO_VSEL_Pos)
 #define LPSYS_CFG_SYSCR_LDO_VSEL        LPSYS_CFG_SYSCR_LDO_VSEL_Msk
-
-/**************** Bit definition for LPSYS_CFG_RTC_TR register ****************/
-#define LPSYS_CFG_RTC_TR_SS_Pos         (0U)
-#define LPSYS_CFG_RTC_TR_SS_Msk         (0x3FFUL << LPSYS_CFG_RTC_TR_SS_Pos)
-#define LPSYS_CFG_RTC_TR_SS             LPSYS_CFG_RTC_TR_SS_Msk
-#define LPSYS_CFG_RTC_TR_SU_Pos         (11U)
-#define LPSYS_CFG_RTC_TR_SU_Msk         (0xFUL << LPSYS_CFG_RTC_TR_SU_Pos)
-#define LPSYS_CFG_RTC_TR_SU             LPSYS_CFG_RTC_TR_SU_Msk
-#define LPSYS_CFG_RTC_TR_ST_Pos         (15U)
-#define LPSYS_CFG_RTC_TR_ST_Msk         (0x7UL << LPSYS_CFG_RTC_TR_ST_Pos)
-#define LPSYS_CFG_RTC_TR_ST             LPSYS_CFG_RTC_TR_ST_Msk
-#define LPSYS_CFG_RTC_TR_MNU_Pos        (18U)
-#define LPSYS_CFG_RTC_TR_MNU_Msk        (0xFUL << LPSYS_CFG_RTC_TR_MNU_Pos)
-#define LPSYS_CFG_RTC_TR_MNU            LPSYS_CFG_RTC_TR_MNU_Msk
-#define LPSYS_CFG_RTC_TR_MNT_Pos        (22U)
-#define LPSYS_CFG_RTC_TR_MNT_Msk        (0x7UL << LPSYS_CFG_RTC_TR_MNT_Pos)
-#define LPSYS_CFG_RTC_TR_MNT            LPSYS_CFG_RTC_TR_MNT_Msk
-#define LPSYS_CFG_RTC_TR_HU_Pos         (25U)
-#define LPSYS_CFG_RTC_TR_HU_Msk         (0xFUL << LPSYS_CFG_RTC_TR_HU_Pos)
-#define LPSYS_CFG_RTC_TR_HU             LPSYS_CFG_RTC_TR_HU_Msk
-#define LPSYS_CFG_RTC_TR_HT_Pos         (29U)
-#define LPSYS_CFG_RTC_TR_HT_Msk         (0x3UL << LPSYS_CFG_RTC_TR_HT_Pos)
-#define LPSYS_CFG_RTC_TR_HT             LPSYS_CFG_RTC_TR_HT_Msk
-#define LPSYS_CFG_RTC_TR_PM_Pos         (31U)
-#define LPSYS_CFG_RTC_TR_PM_Msk         (0x1UL << LPSYS_CFG_RTC_TR_PM_Pos)
-#define LPSYS_CFG_RTC_TR_PM             LPSYS_CFG_RTC_TR_PM_Msk
-
-/**************** Bit definition for LPSYS_CFG_RTC_DR register ****************/
-#define LPSYS_CFG_RTC_DR_DU_Pos         (0U)
-#define LPSYS_CFG_RTC_DR_DU_Msk         (0xFUL << LPSYS_CFG_RTC_DR_DU_Pos)
-#define LPSYS_CFG_RTC_DR_DU             LPSYS_CFG_RTC_DR_DU_Msk
-#define LPSYS_CFG_RTC_DR_DT_Pos         (4U)
-#define LPSYS_CFG_RTC_DR_DT_Msk         (0x3UL << LPSYS_CFG_RTC_DR_DT_Pos)
-#define LPSYS_CFG_RTC_DR_DT             LPSYS_CFG_RTC_DR_DT_Msk
-#define LPSYS_CFG_RTC_DR_MU_Pos         (8U)
-#define LPSYS_CFG_RTC_DR_MU_Msk         (0xFUL << LPSYS_CFG_RTC_DR_MU_Pos)
-#define LPSYS_CFG_RTC_DR_MU             LPSYS_CFG_RTC_DR_MU_Msk
-#define LPSYS_CFG_RTC_DR_MT_Pos         (12U)
-#define LPSYS_CFG_RTC_DR_MT_Msk         (0x1UL << LPSYS_CFG_RTC_DR_MT_Pos)
-#define LPSYS_CFG_RTC_DR_MT             LPSYS_CFG_RTC_DR_MT_Msk
-#define LPSYS_CFG_RTC_DR_WD_Pos         (13U)
-#define LPSYS_CFG_RTC_DR_WD_Msk         (0x7UL << LPSYS_CFG_RTC_DR_WD_Pos)
-#define LPSYS_CFG_RTC_DR_WD             LPSYS_CFG_RTC_DR_WD_Msk
-#define LPSYS_CFG_RTC_DR_YU_Pos         (16U)
-#define LPSYS_CFG_RTC_DR_YU_Msk         (0xFUL << LPSYS_CFG_RTC_DR_YU_Pos)
-#define LPSYS_CFG_RTC_DR_YU             LPSYS_CFG_RTC_DR_YU_Msk
-#define LPSYS_CFG_RTC_DR_YT_Pos         (20U)
-#define LPSYS_CFG_RTC_DR_YT_Msk         (0xFUL << LPSYS_CFG_RTC_DR_YT_Pos)
-#define LPSYS_CFG_RTC_DR_YT             LPSYS_CFG_RTC_DR_YT_Msk
-#define LPSYS_CFG_RTC_DR_CB_Pos         (24U)
-#define LPSYS_CFG_RTC_DR_CB_Msk         (0x1UL << LPSYS_CFG_RTC_DR_CB_Pos)
-#define LPSYS_CFG_RTC_DR_CB             LPSYS_CFG_RTC_DR_CB_Msk
-#define LPSYS_CFG_RTC_DR_ERR_Pos        (31U)
-#define LPSYS_CFG_RTC_DR_ERR_Msk        (0x1UL << LPSYS_CFG_RTC_DR_ERR_Pos)
-#define LPSYS_CFG_RTC_DR_ERR            LPSYS_CFG_RTC_DR_ERR_Msk
 
 /**************** Bit definition for LPSYS_CFG_ULPMCR register ****************/
 #define LPSYS_CFG_ULPMCR_RAM_RM_Pos     (0U)
@@ -140,6 +77,9 @@ typedef struct
 #define LPSYS_CFG_MDBGR_PD_ROM_Pos      (3U)
 #define LPSYS_CFG_MDBGR_PD_ROM_Msk      (0x1UL << LPSYS_CFG_MDBGR_PD_ROM_Pos)
 #define LPSYS_CFG_MDBGR_PD_ROM          LPSYS_CFG_MDBGR_PD_ROM_Msk
+#define LPSYS_CFG_MDBGR_DIS_ROM_Pos     (4U)
+#define LPSYS_CFG_MDBGR_DIS_ROM_Msk     (0x1UL << LPSYS_CFG_MDBGR_DIS_ROM_Pos)
+#define LPSYS_CFG_MDBGR_DIS_ROM         LPSYS_CFG_MDBGR_DIS_ROM_Msk
 
 /**************** Bit definition for LPSYS_CFG_BISTCR register ****************/
 #define LPSYS_CFG_BISTCR_BIST_MODE_Pos  (0U)
@@ -164,33 +104,33 @@ typedef struct
 #define LPSYS_CFG_BISTR_BIST_FAIL_RFC   LPSYS_CFG_BISTR_BIST_FAIL_RFC_Msk
 
 /**************** Bit definition for LPSYS_CFG_ROMCR0 register ****************/
-#define LPSYS_CFG_ROMCR0_CMP_Pos        (0U)
-#define LPSYS_CFG_ROMCR0_CMP_Msk        (0xFFFFFFFFUL << LPSYS_CFG_ROMCR0_CMP_Pos)
-#define LPSYS_CFG_ROMCR0_CMP            LPSYS_CFG_ROMCR0_CMP_Msk
+#define LPSYS_CFG_ROMCR0_SIG_Pos        (0U)
+#define LPSYS_CFG_ROMCR0_SIG_Msk        (0xFFFFFFFFUL << LPSYS_CFG_ROMCR0_SIG_Pos)
+#define LPSYS_CFG_ROMCR0_SIG            LPSYS_CFG_ROMCR0_SIG_Msk
 
 /**************** Bit definition for LPSYS_CFG_ROMCR1 register ****************/
-#define LPSYS_CFG_ROMCR1_CMP_Pos        (0U)
-#define LPSYS_CFG_ROMCR1_CMP_Msk        (0xFFFFFFFFUL << LPSYS_CFG_ROMCR1_CMP_Pos)
-#define LPSYS_CFG_ROMCR1_CMP            LPSYS_CFG_ROMCR1_CMP_Msk
+#define LPSYS_CFG_ROMCR1_SIG_Pos        (0U)
+#define LPSYS_CFG_ROMCR1_SIG_Msk        (0xFFFFFFFFUL << LPSYS_CFG_ROMCR1_SIG_Pos)
+#define LPSYS_CFG_ROMCR1_SIG            LPSYS_CFG_ROMCR1_SIG_Msk
 
 /**************** Bit definition for LPSYS_CFG_ROMCR2 register ****************/
-#define LPSYS_CFG_ROMCR2_CMP_Pos        (0U)
-#define LPSYS_CFG_ROMCR2_CMP_Msk        (0xFFFFFFFFUL << LPSYS_CFG_ROMCR2_CMP_Pos)
-#define LPSYS_CFG_ROMCR2_CMP            LPSYS_CFG_ROMCR2_CMP_Msk
+#define LPSYS_CFG_ROMCR2_SIG_Pos        (0U)
+#define LPSYS_CFG_ROMCR2_SIG_Msk        (0xFFFFFFFFUL << LPSYS_CFG_ROMCR2_SIG_Pos)
+#define LPSYS_CFG_ROMCR2_SIG            LPSYS_CFG_ROMCR2_SIG_Msk
 
 /**************** Bit definition for LPSYS_CFG_ROMCR3 register ****************/
-#define LPSYS_CFG_ROMCR3_CMP_Pos        (0U)
-#define LPSYS_CFG_ROMCR3_CMP_Msk        (0xFFFFFFFFUL << LPSYS_CFG_ROMCR3_CMP_Pos)
-#define LPSYS_CFG_ROMCR3_CMP            LPSYS_CFG_ROMCR3_CMP_Msk
+#define LPSYS_CFG_ROMCR3_SIG_Pos        (0U)
+#define LPSYS_CFG_ROMCR3_SIG_Msk        (0xFFFFFFFFUL << LPSYS_CFG_ROMCR3_SIG_Pos)
+#define LPSYS_CFG_ROMCR3_SIG            LPSYS_CFG_ROMCR3_SIG_Msk
 
 /**************** Bit definition for LPSYS_CFG_ROMCR4 register ****************/
-#define LPSYS_CFG_ROMCR4_CMP_Pos        (0U)
-#define LPSYS_CFG_ROMCR4_CMP_Msk        (0xFFFFFFFFUL << LPSYS_CFG_ROMCR4_CMP_Pos)
-#define LPSYS_CFG_ROMCR4_CMP            LPSYS_CFG_ROMCR4_CMP_Msk
+#define LPSYS_CFG_ROMCR4_SIG_Pos        (0U)
+#define LPSYS_CFG_ROMCR4_SIG_Msk        (0xFFFFFFFFUL << LPSYS_CFG_ROMCR4_SIG_Pos)
+#define LPSYS_CFG_ROMCR4_SIG            LPSYS_CFG_ROMCR4_SIG_Msk
 
 /**************** Bit definition for LPSYS_CFG_ROMCR5 register ****************/
-#define LPSYS_CFG_ROMCR5_CMP_Pos        (0U)
-#define LPSYS_CFG_ROMCR5_CMP_Msk        (0xFFFFFFFFUL << LPSYS_CFG_ROMCR5_CMP_Pos)
-#define LPSYS_CFG_ROMCR5_CMP            LPSYS_CFG_ROMCR5_CMP_Msk
+#define LPSYS_CFG_ROMCR5_SIG_Pos        (0U)
+#define LPSYS_CFG_ROMCR5_SIG_Msk        (0xFFFFFFFFUL << LPSYS_CFG_ROMCR5_SIG_Pos)
+#define LPSYS_CFG_ROMCR5_SIG            LPSYS_CFG_ROMCR5_SIG_Msk
 
 #endif

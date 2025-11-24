@@ -228,8 +228,10 @@ void user_pin_cfg()
 #if !defined(SF32LB55X)
                 else
                 {
+#ifdef hwp_pbr
                     HAL_PBR_ConfigMode(g_ext_driver_cfg.pin_cfg[m].pin, true);
                     HAL_PBR_WritePin(g_ext_driver_cfg.pin_cfg[m].pin, g_ext_driver_cfg.pin_cfg[m].level);
+#endif /* hwp_pbr */
                 }
 #endif
             }

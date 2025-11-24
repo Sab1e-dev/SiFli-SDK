@@ -727,6 +727,8 @@ void check_wsr_pin(void)
 
     level = rt_hw_interrupt_disable();
 
+//TODO:
+#ifdef HPSYS_AON_WSR_PIN_ALL
 #ifdef SOC_BF0_HCPU
     status = HAL_HPAON_GET_WSR() & HPSYS_AON_WSR_PIN_ALL;
     pin_wsr = status >> HPSYS_AON_WSR_PIN0_Pos;
@@ -737,7 +739,8 @@ void check_wsr_pin(void)
     pin_wsr = status >> LPSYS_AON_WSR_PIN0_Pos;
     HAL_LPAON_CLEAR_WSR(status);
     wake_pin_num = LPSYS_AON_WSR_PIN_NUM;
-#endif
+#endif /* SOC_BF0_HCPU */
+#endif /* HPSYS_AON_WSR_PIN_ALL */
 
 #ifdef HPSYS_AON_WSR_PBR_PIN_FIRST
     pbr_pin_wsr = (status & LPSYS_AON_WSR_PBR_PIN_ALL) >> LPSYS_AON_WSR_PBR_PIN_FIRST;

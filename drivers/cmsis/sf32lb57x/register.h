@@ -725,12 +725,6 @@ typedef enum IRQn
 #define DMA2_CHANNEL_NUM    (8)
 
 #define HASH_ACC_BASE       (&hwp_aes_acc->HASH_SETTING)
-#ifdef SOC_BF0_HCPU
-#define PBR_BASE            ((uint32_t)&hwp_rtc->PBR0R)
-/** PBR, placeholder for PBR pin, interface is different from GPIO actually  */
-#define hwp_pbr             ((GPIO_TypeDef         *)PBR_BASE)
-#endif /* SOC_BF0_HCPU */
-
 
 //#define PMUC_VER   ()
 

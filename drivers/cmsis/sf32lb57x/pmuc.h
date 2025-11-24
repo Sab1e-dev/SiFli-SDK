@@ -22,6 +22,7 @@ typedef struct
     __IO uint32_t AON_LDO;
     __IO uint32_t BUCK_CR1;
     __IO uint32_t BUCK_CR2;
+    __IO uint32_t BUCK_CR3;
     __IO uint32_t CHG_CR1;
     __IO uint32_t CHG_CR2;
     __IO uint32_t CHG_CR3;
@@ -38,17 +39,29 @@ typedef struct
     __IO uint32_t HXT_CR1;
     __IO uint32_t HXT_CR2;
     __IO uint32_t HXT_CR3;
-    __IO uint32_t HRC_CR;
-    __IO uint32_t DBL96_CR;
-    __IO uint32_t DBL96_CALR;
+    __IO uint32_t HRC_CR1;
+    __IO uint32_t HRC_CR2;
     __IO uint32_t CAU_BGR;
     __IO uint32_t CAU_TR;
     __IO uint32_t CAU_RSVD;
-    __IO uint32_t WKUP_CNT;
     __IO uint32_t PWRKEY_CNT;
     __IO uint32_t HPSYS_VOUT;
     __IO uint32_t LPSYS_VOUT;
     __IO uint32_t BUCK_VOUT;
+    __IO uint32_t WKUP_MODE;
+    __IO uint32_t WKUP_CNT;
+    __IO uint32_t PRSR1;
+    __IO uint32_t PRSR2;
+    __IO uint32_t PRCR1;
+    __IO uint32_t PRCR2;
+    __IO uint32_t PBRCR;
+    __IO uint32_t NULLB8;
+    __IO uint32_t NULLBC;
+    __IO uint32_t NULLC0;
+    __IO uint32_t NULLC4;
+    __IO uint32_t NULLC8;
+    __IO uint32_t NULLCC;
+    __IO uint32_t NULLD0;
 } PMUC_TypeDef;
 
 
@@ -62,93 +75,192 @@ typedef struct
 #define PMUC_CR_REBOOT_Pos              (2U)
 #define PMUC_CR_REBOOT_Msk              (0x1UL << PMUC_CR_REBOOT_Pos)
 #define PMUC_CR_REBOOT                  PMUC_CR_REBOOT_Msk
-#define PMUC_CR_PIN_RET_Pos             (3U)
-#define PMUC_CR_PIN_RET_Msk             (0x1UL << PMUC_CR_PIN_RET_Pos)
-#define PMUC_CR_PIN_RET                 PMUC_CR_PIN_RET_Msk
-#define PMUC_CR_PIN0_MODE_Pos           (4U)
-#define PMUC_CR_PIN0_MODE_Msk           (0x7UL << PMUC_CR_PIN0_MODE_Pos)
-#define PMUC_CR_PIN0_MODE               PMUC_CR_PIN0_MODE_Msk
-#define PMUC_CR_PIN1_MODE_Pos           (7U)
-#define PMUC_CR_PIN1_MODE_Msk           (0x7UL << PMUC_CR_PIN1_MODE_Pos)
-#define PMUC_CR_PIN1_MODE               PMUC_CR_PIN1_MODE_Msk
-#define PMUC_CR_PIN0_SEL_Pos            (10U)
-#define PMUC_CR_PIN0_SEL_Msk            (0x1FUL << PMUC_CR_PIN0_SEL_Pos)
-#define PMUC_CR_PIN0_SEL                PMUC_CR_PIN0_SEL_Msk
-#define PMUC_CR_PIN1_SEL_Pos            (15U)
-#define PMUC_CR_PIN1_SEL_Msk            (0x1FUL << PMUC_CR_PIN1_SEL_Pos)
-#define PMUC_CR_PIN1_SEL                PMUC_CR_PIN1_SEL_Msk
+#define PMUC_CR_LPSYSRST_Pos            (3U)
+#define PMUC_CR_LPSYSRST_Msk            (0x1UL << PMUC_CR_LPSYSRST_Pos)
+#define PMUC_CR_LPSYSRST                PMUC_CR_LPSYSRST_Msk
+#define PMUC_CR_RST_CNT_Pos             (8U)
+#define PMUC_CR_RST_CNT_Msk             (0xFUL << PMUC_CR_RST_CNT_Pos)
+#define PMUC_CR_RST_CNT                 PMUC_CR_RST_CNT_Msk
 
 /******************** Bit definition for PMUC_WER register ********************/
-#define PMUC_WER_RTC_Pos                (0U)
+#define PMUC_WER_PA33_Pos               (0U)
+#define PMUC_WER_PA33_Msk               (0x1UL << PMUC_WER_PA33_Pos)
+#define PMUC_WER_PA33                   PMUC_WER_PA33_Msk
+#define PMUC_WER_PA34_Pos               (1U)
+#define PMUC_WER_PA34_Msk               (0x1UL << PMUC_WER_PA34_Pos)
+#define PMUC_WER_PA34                   PMUC_WER_PA34_Msk
+#define PMUC_WER_PA35_Pos               (2U)
+#define PMUC_WER_PA35_Msk               (0x1UL << PMUC_WER_PA35_Pos)
+#define PMUC_WER_PA35                   PMUC_WER_PA35_Msk
+#define PMUC_WER_PA36_Pos               (3U)
+#define PMUC_WER_PA36_Msk               (0x1UL << PMUC_WER_PA36_Pos)
+#define PMUC_WER_PA36                   PMUC_WER_PA36_Msk
+#define PMUC_WER_PA37_Pos               (4U)
+#define PMUC_WER_PA37_Msk               (0x1UL << PMUC_WER_PA37_Pos)
+#define PMUC_WER_PA37                   PMUC_WER_PA37_Msk
+#define PMUC_WER_PA38_Pos               (5U)
+#define PMUC_WER_PA38_Msk               (0x1UL << PMUC_WER_PA38_Pos)
+#define PMUC_WER_PA38                   PMUC_WER_PA38_Msk
+#define PMUC_WER_PA39_Pos               (6U)
+#define PMUC_WER_PA39_Msk               (0x1UL << PMUC_WER_PA39_Pos)
+#define PMUC_WER_PA39                   PMUC_WER_PA39_Msk
+#define PMUC_WER_PA40_Pos               (7U)
+#define PMUC_WER_PA40_Msk               (0x1UL << PMUC_WER_PA40_Pos)
+#define PMUC_WER_PA40                   PMUC_WER_PA40_Msk
+#define PMUC_WER_PA41_Pos               (8U)
+#define PMUC_WER_PA41_Msk               (0x1UL << PMUC_WER_PA41_Pos)
+#define PMUC_WER_PA41                   PMUC_WER_PA41_Msk
+#define PMUC_WER_PA42_Pos               (9U)
+#define PMUC_WER_PA42_Msk               (0x1UL << PMUC_WER_PA42_Pos)
+#define PMUC_WER_PA42                   PMUC_WER_PA42_Msk
+#define PMUC_WER_PA24_Pos               (10U)
+#define PMUC_WER_PA24_Msk               (0x1UL << PMUC_WER_PA24_Pos)
+#define PMUC_WER_PA24                   PMUC_WER_PA24_Msk
+#define PMUC_WER_PA25_Pos               (11U)
+#define PMUC_WER_PA25_Msk               (0x1UL << PMUC_WER_PA25_Pos)
+#define PMUC_WER_PA25                   PMUC_WER_PA25_Msk
+#define PMUC_WER_PA26_Pos               (12U)
+#define PMUC_WER_PA26_Msk               (0x1UL << PMUC_WER_PA26_Pos)
+#define PMUC_WER_PA26                   PMUC_WER_PA26_Msk
+#define PMUC_WER_PA27_Pos               (13U)
+#define PMUC_WER_PA27_Msk               (0x1UL << PMUC_WER_PA27_Pos)
+#define PMUC_WER_PA27                   PMUC_WER_PA27_Msk
+#define PMUC_WER_RTC_Pos                (16U)
 #define PMUC_WER_RTC_Msk                (0x1UL << PMUC_WER_RTC_Pos)
 #define PMUC_WER_RTC                    PMUC_WER_RTC_Msk
-#define PMUC_WER_WDT1_Pos               (1U)
-#define PMUC_WER_WDT1_Msk               (0x1UL << PMUC_WER_WDT1_Pos)
-#define PMUC_WER_WDT1                   PMUC_WER_WDT1_Msk
-#define PMUC_WER_WDT2_Pos               (2U)
-#define PMUC_WER_WDT2_Msk               (0x1UL << PMUC_WER_WDT2_Pos)
-#define PMUC_WER_WDT2                   PMUC_WER_WDT2_Msk
-#define PMUC_WER_PIN0_Pos               (3U)
-#define PMUC_WER_PIN0_Msk               (0x1UL << PMUC_WER_PIN0_Pos)
-#define PMUC_WER_PIN0                   PMUC_WER_PIN0_Msk
-#define PMUC_WER_PIN1_Pos               (4U)
-#define PMUC_WER_PIN1_Msk               (0x1UL << PMUC_WER_PIN1_Pos)
-#define PMUC_WER_PIN1                   PMUC_WER_PIN1_Msk
-#define PMUC_WER_LOWBAT_Pos             (7U)
-#define PMUC_WER_LOWBAT_Msk             (0x1UL << PMUC_WER_LOWBAT_Pos)
-#define PMUC_WER_LOWBAT                 PMUC_WER_LOWBAT_Msk
-#define PMUC_WER_CHG_Pos                (8U)
+#define PMUC_WER_IWDT_Pos               (17U)
+#define PMUC_WER_IWDT_Msk               (0x1UL << PMUC_WER_IWDT_Pos)
+#define PMUC_WER_IWDT                   PMUC_WER_IWDT_Msk
+#define PMUC_WER_CHG_Pos                (18U)
 #define PMUC_WER_CHG_Msk                (0x1UL << PMUC_WER_CHG_Pos)
 #define PMUC_WER_CHG                    PMUC_WER_CHG_Msk
+#define PMUC_WER_LOWBAT_Pos             (29U)
+#define PMUC_WER_LOWBAT_Msk             (0x1UL << PMUC_WER_LOWBAT_Pos)
+#define PMUC_WER_LOWBAT                 PMUC_WER_LOWBAT_Msk
+#define PMUC_WER_PWRKEY_Pos             (30U)
+#define PMUC_WER_PWRKEY_Msk             (0x1UL << PMUC_WER_PWRKEY_Pos)
+#define PMUC_WER_PWRKEY                 PMUC_WER_PWRKEY_Msk
 
 /******************** Bit definition for PMUC_WSR register ********************/
-#define PMUC_WSR_RTC_Pos                (0U)
+#define PMUC_WSR_PA33_Pos               (0U)
+#define PMUC_WSR_PA33_Msk               (0x1UL << PMUC_WSR_PA33_Pos)
+#define PMUC_WSR_PA33                   PMUC_WSR_PA33_Msk
+#define PMUC_WSR_PA34_Pos               (1U)
+#define PMUC_WSR_PA34_Msk               (0x1UL << PMUC_WSR_PA34_Pos)
+#define PMUC_WSR_PA34                   PMUC_WSR_PA34_Msk
+#define PMUC_WSR_PA35_Pos               (2U)
+#define PMUC_WSR_PA35_Msk               (0x1UL << PMUC_WSR_PA35_Pos)
+#define PMUC_WSR_PA35                   PMUC_WSR_PA35_Msk
+#define PMUC_WSR_PA36_Pos               (3U)
+#define PMUC_WSR_PA36_Msk               (0x1UL << PMUC_WSR_PA36_Pos)
+#define PMUC_WSR_PA36                   PMUC_WSR_PA36_Msk
+#define PMUC_WSR_PA37_Pos               (4U)
+#define PMUC_WSR_PA37_Msk               (0x1UL << PMUC_WSR_PA37_Pos)
+#define PMUC_WSR_PA37                   PMUC_WSR_PA37_Msk
+#define PMUC_WSR_PA38_Pos               (5U)
+#define PMUC_WSR_PA38_Msk               (0x1UL << PMUC_WSR_PA38_Pos)
+#define PMUC_WSR_PA38                   PMUC_WSR_PA38_Msk
+#define PMUC_WSR_PA39_Pos               (6U)
+#define PMUC_WSR_PA39_Msk               (0x1UL << PMUC_WSR_PA39_Pos)
+#define PMUC_WSR_PA39                   PMUC_WSR_PA39_Msk
+#define PMUC_WSR_PA40_Pos               (7U)
+#define PMUC_WSR_PA40_Msk               (0x1UL << PMUC_WSR_PA40_Pos)
+#define PMUC_WSR_PA40                   PMUC_WSR_PA40_Msk
+#define PMUC_WSR_PA41_Pos               (8U)
+#define PMUC_WSR_PA41_Msk               (0x1UL << PMUC_WSR_PA41_Pos)
+#define PMUC_WSR_PA41                   PMUC_WSR_PA41_Msk
+#define PMUC_WSR_PA42_Pos               (9U)
+#define PMUC_WSR_PA42_Msk               (0x1UL << PMUC_WSR_PA42_Pos)
+#define PMUC_WSR_PA42                   PMUC_WSR_PA42_Msk
+#define PMUC_WSR_PA24_Pos               (10U)
+#define PMUC_WSR_PA24_Msk               (0x1UL << PMUC_WSR_PA24_Pos)
+#define PMUC_WSR_PA24                   PMUC_WSR_PA24_Msk
+#define PMUC_WSR_PA25_Pos               (11U)
+#define PMUC_WSR_PA25_Msk               (0x1UL << PMUC_WSR_PA25_Pos)
+#define PMUC_WSR_PA25                   PMUC_WSR_PA25_Msk
+#define PMUC_WSR_PA26_Pos               (12U)
+#define PMUC_WSR_PA26_Msk               (0x1UL << PMUC_WSR_PA26_Pos)
+#define PMUC_WSR_PA26                   PMUC_WSR_PA26_Msk
+#define PMUC_WSR_PA27_Pos               (13U)
+#define PMUC_WSR_PA27_Msk               (0x1UL << PMUC_WSR_PA27_Pos)
+#define PMUC_WSR_PA27                   PMUC_WSR_PA27_Msk
+#define PMUC_WSR_RTC_Pos                (16U)
 #define PMUC_WSR_RTC_Msk                (0x1UL << PMUC_WSR_RTC_Pos)
 #define PMUC_WSR_RTC                    PMUC_WSR_RTC_Msk
-#define PMUC_WSR_WDT1_Pos               (1U)
-#define PMUC_WSR_WDT1_Msk               (0x1UL << PMUC_WSR_WDT1_Pos)
-#define PMUC_WSR_WDT1                   PMUC_WSR_WDT1_Msk
-#define PMUC_WSR_WDT2_Pos               (2U)
-#define PMUC_WSR_WDT2_Msk               (0x1UL << PMUC_WSR_WDT2_Pos)
-#define PMUC_WSR_WDT2                   PMUC_WSR_WDT2_Msk
-#define PMUC_WSR_PIN0_Pos               (3U)
-#define PMUC_WSR_PIN0_Msk               (0x1UL << PMUC_WSR_PIN0_Pos)
-#define PMUC_WSR_PIN0                   PMUC_WSR_PIN0_Msk
-#define PMUC_WSR_PIN1_Pos               (4U)
-#define PMUC_WSR_PIN1_Msk               (0x1UL << PMUC_WSR_PIN1_Pos)
-#define PMUC_WSR_PIN1                   PMUC_WSR_PIN1_Msk
-#define PMUC_WSR_IWDT_Pos               (5U)
+#define PMUC_WSR_IWDT_Pos               (17U)
 #define PMUC_WSR_IWDT_Msk               (0x1UL << PMUC_WSR_IWDT_Pos)
 #define PMUC_WSR_IWDT                   PMUC_WSR_IWDT_Msk
-#define PMUC_WSR_PWRKEY_Pos             (6U)
-#define PMUC_WSR_PWRKEY_Msk             (0x1UL << PMUC_WSR_PWRKEY_Pos)
-#define PMUC_WSR_PWRKEY                 PMUC_WSR_PWRKEY_Msk
-#define PMUC_WSR_LOWBAT_Pos             (7U)
-#define PMUC_WSR_LOWBAT_Msk             (0x1UL << PMUC_WSR_LOWBAT_Pos)
-#define PMUC_WSR_LOWBAT                 PMUC_WSR_LOWBAT_Msk
-#define PMUC_WSR_CHG_Pos                (8U)
+#define PMUC_WSR_CHG_Pos                (18U)
 #define PMUC_WSR_CHG_Msk                (0x1UL << PMUC_WSR_CHG_Pos)
 #define PMUC_WSR_CHG                    PMUC_WSR_CHG_Msk
+#define PMUC_WSR_SYSRSTREQ_Pos          (27U)
+#define PMUC_WSR_SYSRSTREQ_Msk          (0x1UL << PMUC_WSR_SYSRSTREQ_Pos)
+#define PMUC_WSR_SYSRSTREQ              PMUC_WSR_SYSRSTREQ_Msk
+#define PMUC_WSR_IWDTRST_Pos            (28U)
+#define PMUC_WSR_IWDTRST_Msk            (0x1UL << PMUC_WSR_IWDTRST_Pos)
+#define PMUC_WSR_IWDTRST                PMUC_WSR_IWDTRST_Msk
+#define PMUC_WSR_LOWBAT_Pos             (29U)
+#define PMUC_WSR_LOWBAT_Msk             (0x1UL << PMUC_WSR_LOWBAT_Pos)
+#define PMUC_WSR_LOWBAT                 PMUC_WSR_LOWBAT_Msk
+#define PMUC_WSR_PWRKEY_Pos             (30U)
+#define PMUC_WSR_PWRKEY_Msk             (0x1UL << PMUC_WSR_PWRKEY_Pos)
+#define PMUC_WSR_PWRKEY                 PMUC_WSR_PWRKEY_Msk
 
 /******************** Bit definition for PMUC_WCR register ********************/
-#define PMUC_WCR_WDT1_Pos               (1U)
-#define PMUC_WCR_WDT1_Msk               (0x1UL << PMUC_WCR_WDT1_Pos)
-#define PMUC_WCR_WDT1                   PMUC_WCR_WDT1_Msk
-#define PMUC_WCR_WDT2_Pos               (2U)
-#define PMUC_WCR_WDT2_Msk               (0x1UL << PMUC_WCR_WDT2_Pos)
-#define PMUC_WCR_WDT2                   PMUC_WCR_WDT2_Msk
-#define PMUC_WCR_PIN0_Pos               (3U)
-#define PMUC_WCR_PIN0_Msk               (0x1UL << PMUC_WCR_PIN0_Pos)
-#define PMUC_WCR_PIN0                   PMUC_WCR_PIN0_Msk
-#define PMUC_WCR_PIN1_Pos               (4U)
-#define PMUC_WCR_PIN1_Msk               (0x1UL << PMUC_WCR_PIN1_Pos)
-#define PMUC_WCR_PIN1                   PMUC_WCR_PIN1_Msk
-#define PMUC_WCR_PWRKEY_Pos             (6U)
-#define PMUC_WCR_PWRKEY_Msk             (0x1UL << PMUC_WCR_PWRKEY_Pos)
-#define PMUC_WCR_PWRKEY                 PMUC_WCR_PWRKEY_Msk
-#define PMUC_WCR_LOWBAT_Pos             (7U)
+#define PMUC_WCR_PA33_Pos               (0U)
+#define PMUC_WCR_PA33_Msk               (0x1UL << PMUC_WCR_PA33_Pos)
+#define PMUC_WCR_PA33                   PMUC_WCR_PA33_Msk
+#define PMUC_WCR_PA34_Pos               (1U)
+#define PMUC_WCR_PA34_Msk               (0x1UL << PMUC_WCR_PA34_Pos)
+#define PMUC_WCR_PA34                   PMUC_WCR_PA34_Msk
+#define PMUC_WCR_PA35_Pos               (2U)
+#define PMUC_WCR_PA35_Msk               (0x1UL << PMUC_WCR_PA35_Pos)
+#define PMUC_WCR_PA35                   PMUC_WCR_PA35_Msk
+#define PMUC_WCR_PA36_Pos               (3U)
+#define PMUC_WCR_PA36_Msk               (0x1UL << PMUC_WCR_PA36_Pos)
+#define PMUC_WCR_PA36                   PMUC_WCR_PA36_Msk
+#define PMUC_WCR_PA37_Pos               (4U)
+#define PMUC_WCR_PA37_Msk               (0x1UL << PMUC_WCR_PA37_Pos)
+#define PMUC_WCR_PA37                   PMUC_WCR_PA37_Msk
+#define PMUC_WCR_PA38_Pos               (5U)
+#define PMUC_WCR_PA38_Msk               (0x1UL << PMUC_WCR_PA38_Pos)
+#define PMUC_WCR_PA38                   PMUC_WCR_PA38_Msk
+#define PMUC_WCR_PA39_Pos               (6U)
+#define PMUC_WCR_PA39_Msk               (0x1UL << PMUC_WCR_PA39_Pos)
+#define PMUC_WCR_PA39                   PMUC_WCR_PA39_Msk
+#define PMUC_WCR_PA40_Pos               (7U)
+#define PMUC_WCR_PA40_Msk               (0x1UL << PMUC_WCR_PA40_Pos)
+#define PMUC_WCR_PA40                   PMUC_WCR_PA40_Msk
+#define PMUC_WCR_PA41_Pos               (8U)
+#define PMUC_WCR_PA41_Msk               (0x1UL << PMUC_WCR_PA41_Pos)
+#define PMUC_WCR_PA41                   PMUC_WCR_PA41_Msk
+#define PMUC_WCR_PA42_Pos               (9U)
+#define PMUC_WCR_PA42_Msk               (0x1UL << PMUC_WCR_PA42_Pos)
+#define PMUC_WCR_PA42                   PMUC_WCR_PA42_Msk
+#define PMUC_WCR_PA24_Pos               (10U)
+#define PMUC_WCR_PA24_Msk               (0x1UL << PMUC_WCR_PA24_Pos)
+#define PMUC_WCR_PA24                   PMUC_WCR_PA24_Msk
+#define PMUC_WCR_PA25_Pos               (11U)
+#define PMUC_WCR_PA25_Msk               (0x1UL << PMUC_WCR_PA25_Pos)
+#define PMUC_WCR_PA25                   PMUC_WCR_PA25_Msk
+#define PMUC_WCR_PA26_Pos               (12U)
+#define PMUC_WCR_PA26_Msk               (0x1UL << PMUC_WCR_PA26_Pos)
+#define PMUC_WCR_PA26                   PMUC_WCR_PA26_Msk
+#define PMUC_WCR_PA27_Pos               (13U)
+#define PMUC_WCR_PA27_Msk               (0x1UL << PMUC_WCR_PA27_Pos)
+#define PMUC_WCR_PA27                   PMUC_WCR_PA27_Msk
+#define PMUC_WCR_SYSRSTREQ_Pos          (27U)
+#define PMUC_WCR_SYSRSTREQ_Msk          (0x1UL << PMUC_WCR_SYSRSTREQ_Pos)
+#define PMUC_WCR_SYSRSTREQ              PMUC_WCR_SYSRSTREQ_Msk
+#define PMUC_WCR_IWDTRST_Pos            (28U)
+#define PMUC_WCR_IWDTRST_Msk            (0x1UL << PMUC_WCR_IWDTRST_Pos)
+#define PMUC_WCR_IWDTRST                PMUC_WCR_IWDTRST_Msk
+#define PMUC_WCR_LOWBAT_Pos             (29U)
 #define PMUC_WCR_LOWBAT_Msk             (0x1UL << PMUC_WCR_LOWBAT_Pos)
 #define PMUC_WCR_LOWBAT                 PMUC_WCR_LOWBAT_Msk
+#define PMUC_WCR_PWRKEY_Pos             (30U)
+#define PMUC_WCR_PWRKEY_Msk             (0x1UL << PMUC_WCR_PWRKEY_Pos)
+#define PMUC_WCR_PWRKEY                 PMUC_WCR_PWRKEY_Msk
 #define PMUC_WCR_AON_Pos                (31U)
 #define PMUC_WCR_AON_Msk                (0x1UL << PMUC_WCR_AON_Pos)
 #define PMUC_WCR_AON                    PMUC_WCR_AON_Msk
@@ -166,6 +278,9 @@ typedef struct
 #define PMUC_VRTC_CR_BOR_VT_TRIM_Pos    (9U)
 #define PMUC_VRTC_CR_BOR_VT_TRIM_Msk    (0xFUL << PMUC_VRTC_CR_BOR_VT_TRIM_Pos)
 #define PMUC_VRTC_CR_BOR_VT_TRIM        PMUC_VRTC_CR_BOR_VT_TRIM_Msk
+#define PMUC_VRTC_CR_RESERVE_Pos        (13U)
+#define PMUC_VRTC_CR_RESERVE_Msk        (0x7FUL << PMUC_VRTC_CR_RESERVE_Pos)
+#define PMUC_VRTC_CR_RESERVE            PMUC_VRTC_CR_RESERVE_Msk
 
 /****************** Bit definition for PMUC_VRET_CR register ******************/
 #define PMUC_VRET_CR_EN_Pos             (0U)
@@ -206,6 +321,15 @@ typedef struct
 #define PMUC_LRC10_CR_REFRES_Pos        (8U)
 #define PMUC_LRC10_CR_REFRES_Msk        (0x1UL << PMUC_LRC10_CR_REFRES_Pos)
 #define PMUC_LRC10_CR_REFRES            PMUC_LRC10_CR_REFRES_Msk
+#define PMUC_LRC10_CR_LDO_EN_Pos        (9U)
+#define PMUC_LRC10_CR_LDO_EN_Msk        (0x1UL << PMUC_LRC10_CR_LDO_EN_Pos)
+#define PMUC_LRC10_CR_LDO_EN            PMUC_LRC10_CR_LDO_EN_Msk
+#define PMUC_LRC10_CR_LDO_VBIT_Pos      (10U)
+#define PMUC_LRC10_CR_LDO_VBIT_Msk      (0xFUL << PMUC_LRC10_CR_LDO_VBIT_Pos)
+#define PMUC_LRC10_CR_LDO_VBIT          PMUC_LRC10_CR_LDO_VBIT_Msk
+#define PMUC_LRC10_CR_LDO_TRIM_Pos      (14U)
+#define PMUC_LRC10_CR_LDO_TRIM_Msk      (0xFUL << PMUC_LRC10_CR_LDO_TRIM_Pos)
+#define PMUC_LRC10_CR_LDO_TRIM          PMUC_LRC10_CR_LDO_TRIM_Msk
 #define PMUC_LRC10_CR_RDY_Pos           (31U)
 #define PMUC_LRC10_CR_RDY_Msk           (0x1UL << PMUC_LRC10_CR_RDY_Pos)
 #define PMUC_LRC10_CR_RDY               PMUC_LRC10_CR_RDY_Msk
@@ -277,9 +401,33 @@ typedef struct
 #define PMUC_AON_LDO_VBAT_LDO_SET_VOUT_Pos  (0U)
 #define PMUC_AON_LDO_VBAT_LDO_SET_VOUT_Msk  (0xFUL << PMUC_AON_LDO_VBAT_LDO_SET_VOUT_Pos)
 #define PMUC_AON_LDO_VBAT_LDO_SET_VOUT  PMUC_AON_LDO_VBAT_LDO_SET_VOUT_Msk
-#define PMUC_AON_LDO_VBAT_POR_TH_Pos    (4U)
-#define PMUC_AON_LDO_VBAT_POR_TH_Msk    (0x7UL << PMUC_AON_LDO_VBAT_POR_TH_Pos)
-#define PMUC_AON_LDO_VBAT_POR_TH        PMUC_AON_LDO_VBAT_POR_TH_Msk
+#define PMUC_AON_LDO_VBAT_LDO_EN_SS_Pos  (4U)
+#define PMUC_AON_LDO_VBAT_LDO_EN_SS_Msk  (0x1UL << PMUC_AON_LDO_VBAT_LDO_EN_SS_Pos)
+#define PMUC_AON_LDO_VBAT_LDO_EN_SS     PMUC_AON_LDO_VBAT_LDO_EN_SS_Msk
+#define PMUC_AON_LDO_VBAT_LDO_EN_SWMODE_Pos  (5U)
+#define PMUC_AON_LDO_VBAT_LDO_EN_SWMODE_Msk  (0x1UL << PMUC_AON_LDO_VBAT_LDO_EN_SWMODE_Pos)
+#define PMUC_AON_LDO_VBAT_LDO_EN_SWMODE  PMUC_AON_LDO_VBAT_LDO_EN_SWMODE_Msk
+#define PMUC_AON_LDO_VBAT_LDO_SWMODE_Pos  (6U)
+#define PMUC_AON_LDO_VBAT_LDO_SWMODE_Msk  (0x1UL << PMUC_AON_LDO_VBAT_LDO_SWMODE_Pos)
+#define PMUC_AON_LDO_VBAT_LDO_SWMODE    PMUC_AON_LDO_VBAT_LDO_SWMODE_Msk
+#define PMUC_AON_LDO_VBAT_SET_VTHP_Pos  (8U)
+#define PMUC_AON_LDO_VBAT_SET_VTHP_Msk  (0x7UL << PMUC_AON_LDO_VBAT_SET_VTHP_Pos)
+#define PMUC_AON_LDO_VBAT_SET_VTHP      PMUC_AON_LDO_VBAT_SET_VTHP_Msk
+#define PMUC_AON_LDO_VBAT_SET_VTHN_Pos  (11U)
+#define PMUC_AON_LDO_VBAT_SET_VTHN_Msk  (0x7UL << PMUC_AON_LDO_VBAT_SET_VTHN_Pos)
+#define PMUC_AON_LDO_VBAT_SET_VTHN      PMUC_AON_LDO_VBAT_SET_VTHN_Msk
+#define PMUC_AON_LDO_VBAT_RDY_Pos       (14U)
+#define PMUC_AON_LDO_VBAT_RDY_Msk       (0x1UL << PMUC_AON_LDO_VBAT_RDY_Pos)
+#define PMUC_AON_LDO_VBAT_RDY           PMUC_AON_LDO_VBAT_RDY_Msk
+#define PMUC_AON_LDO_VBUS_SET_VTHP_Pos  (16U)
+#define PMUC_AON_LDO_VBUS_SET_VTHP_Msk  (0x7UL << PMUC_AON_LDO_VBUS_SET_VTHP_Pos)
+#define PMUC_AON_LDO_VBUS_SET_VTHP      PMUC_AON_LDO_VBUS_SET_VTHP_Msk
+#define PMUC_AON_LDO_VBUS_SET_VTHN_Pos  (19U)
+#define PMUC_AON_LDO_VBUS_SET_VTHN_Msk  (0x7UL << PMUC_AON_LDO_VBUS_SET_VTHN_Pos)
+#define PMUC_AON_LDO_VBUS_SET_VTHN      PMUC_AON_LDO_VBUS_SET_VTHN_Msk
+#define PMUC_AON_LDO_VBUS_RDY_Pos       (22U)
+#define PMUC_AON_LDO_VBUS_RDY_Msk       (0x1UL << PMUC_AON_LDO_VBUS_RDY_Pos)
+#define PMUC_AON_LDO_VBUS_RDY           PMUC_AON_LDO_VBUS_RDY_Msk
 
 /***************** Bit definition for PMUC_BUCK_CR1 register ******************/
 #define PMUC_BUCK_CR1_EN_Pos            (0U)
@@ -288,6 +436,15 @@ typedef struct
 #define PMUC_BUCK_CR1_CTRL_Pos          (1U)
 #define PMUC_BUCK_CR1_CTRL_Msk          (0x1UL << PMUC_BUCK_CR1_CTRL_Pos)
 #define PMUC_BUCK_CR1_CTRL              PMUC_BUCK_CR1_CTRL_Msk
+#define PMUC_BUCK_CR1_BYPASS_PG_Pos     (2U)
+#define PMUC_BUCK_CR1_BYPASS_PG_Msk     (0x1UL << PMUC_BUCK_CR1_BYPASS_PG_Pos)
+#define PMUC_BUCK_CR1_BYPASS_PG         PMUC_BUCK_CR1_BYPASS_PG_Msk
+#define PMUC_BUCK_CR1_BYPASS_OCP_Pos    (3U)
+#define PMUC_BUCK_CR1_BYPASS_OCP_Msk    (0x1UL << PMUC_BUCK_CR1_BYPASS_OCP_Pos)
+#define PMUC_BUCK_CR1_BYPASS_OCP        PMUC_BUCK_CR1_BYPASS_OCP_Msk
+#define PMUC_BUCK_CR1_BYPASS_UVLO_Pos   (4U)
+#define PMUC_BUCK_CR1_BYPASS_UVLO_Msk   (0x1UL << PMUC_BUCK_CR1_BYPASS_UVLO_Pos)
+#define PMUC_BUCK_CR1_BYPASS_UVLO       PMUC_BUCK_CR1_BYPASS_UVLO_Msk
 #define PMUC_BUCK_CR1_MOT_CTUNE_Pos     (6U)
 #define PMUC_BUCK_CR1_MOT_CTUNE_Msk     (0x7UL << PMUC_BUCK_CR1_MOT_CTUNE_Pos)
 #define PMUC_BUCK_CR1_MOT_CTUNE         PMUC_BUCK_CR1_MOT_CTUNE_Msk
@@ -356,27 +513,29 @@ typedef struct
 #define PMUC_BUCK_CR2_L2M_CNT_Pos       (12U)
 #define PMUC_BUCK_CR2_L2M_CNT_Msk       (0xFUL << PMUC_BUCK_CR2_L2M_CNT_Pos)
 #define PMUC_BUCK_CR2_L2M_CNT           PMUC_BUCK_CR2_L2M_CNT_Msk
-#define PMUC_BUCK_CR2_BYPASS_PG_Pos     (16U)
-#define PMUC_BUCK_CR2_BYPASS_PG_Msk     (0x1UL << PMUC_BUCK_CR2_BYPASS_PG_Pos)
-#define PMUC_BUCK_CR2_BYPASS_PG         PMUC_BUCK_CR2_BYPASS_PG_Msk
-#define PMUC_BUCK_CR2_BYPASS_OCP_Pos    (17U)
-#define PMUC_BUCK_CR2_BYPASS_OCP_Msk    (0x1UL << PMUC_BUCK_CR2_BYPASS_OCP_Pos)
-#define PMUC_BUCK_CR2_BYPASS_OCP        PMUC_BUCK_CR2_BYPASS_OCP_Msk
-#define PMUC_BUCK_CR2_BYPASS_UVLO_Pos   (18U)
-#define PMUC_BUCK_CR2_BYPASS_UVLO_Msk   (0x1UL << PMUC_BUCK_CR2_BYPASS_UVLO_Pos)
-#define PMUC_BUCK_CR2_BYPASS_UVLO       PMUC_BUCK_CR2_BYPASS_UVLO_Msk
-#define PMUC_BUCK_CR2_FORCE_RDY_Pos     (19U)
+#define PMUC_BUCK_CR2_FORCE_RDY_Pos     (17U)
 #define PMUC_BUCK_CR2_FORCE_RDY_Msk     (0x1UL << PMUC_BUCK_CR2_FORCE_RDY_Pos)
 #define PMUC_BUCK_CR2_FORCE_RDY         PMUC_BUCK_CR2_FORCE_RDY_Msk
-#define PMUC_BUCK_CR2_SET_VOUT_M_Pos    (20U)
-#define PMUC_BUCK_CR2_SET_VOUT_M_Msk    (0xFUL << PMUC_BUCK_CR2_SET_VOUT_M_Pos)
+#define PMUC_BUCK_CR2_SET_VOUT_M_Pos    (18U)
+#define PMUC_BUCK_CR2_SET_VOUT_M_Msk    (0x1FUL << PMUC_BUCK_CR2_SET_VOUT_M_Pos)
 #define PMUC_BUCK_CR2_SET_VOUT_M        PMUC_BUCK_CR2_SET_VOUT_M_Msk
-#define PMUC_BUCK_CR2_SET_VOUT_L_Pos    (24U)
-#define PMUC_BUCK_CR2_SET_VOUT_L_Msk    (0xFUL << PMUC_BUCK_CR2_SET_VOUT_L_Pos)
+#define PMUC_BUCK_CR2_SET_VOUT_L_Pos    (23U)
+#define PMUC_BUCK_CR2_SET_VOUT_L_Msk    (0x1FUL << PMUC_BUCK_CR2_SET_VOUT_L_Pos)
 #define PMUC_BUCK_CR2_SET_VOUT_L        PMUC_BUCK_CR2_SET_VOUT_L_Msk
 #define PMUC_BUCK_CR2_TDIS_Pos          (28U)
 #define PMUC_BUCK_CR2_TDIS_Msk          (0xFUL << PMUC_BUCK_CR2_TDIS_Pos)
 #define PMUC_BUCK_CR2_TDIS              PMUC_BUCK_CR2_TDIS_Msk
+
+/***************** Bit definition for PMUC_BUCK_CR3 register ******************/
+#define PMUC_BUCK_CR3_EN_REFTRK_Pos     (0U)
+#define PMUC_BUCK_CR3_EN_REFTRK_Msk     (0x1UL << PMUC_BUCK_CR3_EN_REFTRK_Pos)
+#define PMUC_BUCK_CR3_EN_REFTRK         PMUC_BUCK_CR3_EN_REFTRK_Msk
+#define PMUC_BUCK_CR3_OCP_BM_Pos        (1U)
+#define PMUC_BUCK_CR3_OCP_BM_Msk        (0x7UL << PMUC_BUCK_CR3_OCP_BM_Pos)
+#define PMUC_BUCK_CR3_OCP_BM            PMUC_BUCK_CR3_OCP_BM_Msk
+#define PMUC_BUCK_CR3_PSWDRV_BM_Pos     (4U)
+#define PMUC_BUCK_CR3_PSWDRV_BM_Msk     (0x7UL << PMUC_BUCK_CR3_PSWDRV_BM_Pos)
+#define PMUC_BUCK_CR3_PSWDRV_BM         PMUC_BUCK_CR3_PSWDRV_BM_Msk
 
 /****************** Bit definition for PMUC_CHG_CR1 register ******************/
 #define PMUC_CHG_CR1_EN_Pos             (0U)
@@ -645,30 +804,42 @@ typedef struct
 #define PMUC_PERI_LDO_EN_LDO18_Pos      (0U)
 #define PMUC_PERI_LDO_EN_LDO18_Msk      (0x1UL << PMUC_PERI_LDO_EN_LDO18_Pos)
 #define PMUC_PERI_LDO_EN_LDO18          PMUC_PERI_LDO_EN_LDO18_Msk
-#define PMUC_PERI_LDO_LDO18_VREF_SEL_Pos  (1U)
+#define PMUC_PERI_LDO_LDO18_EN_SS_Pos   (1U)
+#define PMUC_PERI_LDO_LDO18_EN_SS_Msk   (0x1UL << PMUC_PERI_LDO_LDO18_EN_SS_Pos)
+#define PMUC_PERI_LDO_LDO18_EN_SS       PMUC_PERI_LDO_LDO18_EN_SS_Msk
+#define PMUC_PERI_LDO_LDO18_PD_VOUT_Pos  (2U)
+#define PMUC_PERI_LDO_LDO18_PD_VOUT_Msk  (0x1UL << PMUC_PERI_LDO_LDO18_PD_VOUT_Pos)
+#define PMUC_PERI_LDO_LDO18_PD_VOUT     PMUC_PERI_LDO_LDO18_PD_VOUT_Msk
+#define PMUC_PERI_LDO_LDO18_VREF_SEL_Pos  (3U)
 #define PMUC_PERI_LDO_LDO18_VREF_SEL_Msk  (0xFUL << PMUC_PERI_LDO_LDO18_VREF_SEL_Pos)
 #define PMUC_PERI_LDO_LDO18_VREF_SEL    PMUC_PERI_LDO_LDO18_VREF_SEL_Msk
-#define PMUC_PERI_LDO_LDO18_PD_Pos      (5U)
-#define PMUC_PERI_LDO_LDO18_PD_Msk      (0x1UL << PMUC_PERI_LDO_LDO18_PD_Pos)
-#define PMUC_PERI_LDO_LDO18_PD          PMUC_PERI_LDO_LDO18_PD_Msk
+#define PMUC_PERI_LDO_LDO18_RDY_Pos     (7U)
+#define PMUC_PERI_LDO_LDO18_RDY_Msk     (0x1UL << PMUC_PERI_LDO_LDO18_RDY_Pos)
+#define PMUC_PERI_LDO_LDO18_RDY         PMUC_PERI_LDO_LDO18_RDY_Msk
 #define PMUC_PERI_LDO_EN_VDD33_LDO2_Pos  (8U)
 #define PMUC_PERI_LDO_EN_VDD33_LDO2_Msk  (0x1UL << PMUC_PERI_LDO_EN_VDD33_LDO2_Pos)
 #define PMUC_PERI_LDO_EN_VDD33_LDO2     PMUC_PERI_LDO_EN_VDD33_LDO2_Msk
-#define PMUC_PERI_LDO_VDD33_LDO2_SET_VOUT_Pos  (9U)
+#define PMUC_PERI_LDO_VDD33_LDO2_EN_SS_Pos  (9U)
+#define PMUC_PERI_LDO_VDD33_LDO2_EN_SS_Msk  (0x1UL << PMUC_PERI_LDO_VDD33_LDO2_EN_SS_Pos)
+#define PMUC_PERI_LDO_VDD33_LDO2_EN_SS  PMUC_PERI_LDO_VDD33_LDO2_EN_SS_Msk
+#define PMUC_PERI_LDO_VDD33_LDO2_PD_VOUT_Pos  (10U)
+#define PMUC_PERI_LDO_VDD33_LDO2_PD_VOUT_Msk  (0x1UL << PMUC_PERI_LDO_VDD33_LDO2_PD_VOUT_Pos)
+#define PMUC_PERI_LDO_VDD33_LDO2_PD_VOUT  PMUC_PERI_LDO_VDD33_LDO2_PD_VOUT_Msk
+#define PMUC_PERI_LDO_VDD33_LDO2_SET_VOUT_Pos  (11U)
 #define PMUC_PERI_LDO_VDD33_LDO2_SET_VOUT_Msk  (0xFUL << PMUC_PERI_LDO_VDD33_LDO2_SET_VOUT_Pos)
 #define PMUC_PERI_LDO_VDD33_LDO2_SET_VOUT  PMUC_PERI_LDO_VDD33_LDO2_SET_VOUT_Msk
-#define PMUC_PERI_LDO_VDD33_LDO2_PD_Pos  (13U)
-#define PMUC_PERI_LDO_VDD33_LDO2_PD_Msk  (0x1UL << PMUC_PERI_LDO_VDD33_LDO2_PD_Pos)
-#define PMUC_PERI_LDO_VDD33_LDO2_PD     PMUC_PERI_LDO_VDD33_LDO2_PD_Msk
 #define PMUC_PERI_LDO_EN_VDD33_LDO3_Pos  (16U)
 #define PMUC_PERI_LDO_EN_VDD33_LDO3_Msk  (0x1UL << PMUC_PERI_LDO_EN_VDD33_LDO3_Pos)
 #define PMUC_PERI_LDO_EN_VDD33_LDO3     PMUC_PERI_LDO_EN_VDD33_LDO3_Msk
-#define PMUC_PERI_LDO_VDD33_LDO3_SET_VOUT_Pos  (17U)
+#define PMUC_PERI_LDO_VDD33_LDO3_EN_SS_Pos  (17U)
+#define PMUC_PERI_LDO_VDD33_LDO3_EN_SS_Msk  (0x1UL << PMUC_PERI_LDO_VDD33_LDO3_EN_SS_Pos)
+#define PMUC_PERI_LDO_VDD33_LDO3_EN_SS  PMUC_PERI_LDO_VDD33_LDO3_EN_SS_Msk
+#define PMUC_PERI_LDO_VDD33_LDO3_PD_VOUT_Pos  (18U)
+#define PMUC_PERI_LDO_VDD33_LDO3_PD_VOUT_Msk  (0x1UL << PMUC_PERI_LDO_VDD33_LDO3_PD_VOUT_Pos)
+#define PMUC_PERI_LDO_VDD33_LDO3_PD_VOUT  PMUC_PERI_LDO_VDD33_LDO3_PD_VOUT_Msk
+#define PMUC_PERI_LDO_VDD33_LDO3_SET_VOUT_Pos  (19U)
 #define PMUC_PERI_LDO_VDD33_LDO3_SET_VOUT_Msk  (0xFUL << PMUC_PERI_LDO_VDD33_LDO3_SET_VOUT_Pos)
 #define PMUC_PERI_LDO_VDD33_LDO3_SET_VOUT  PMUC_PERI_LDO_VDD33_LDO3_SET_VOUT_Msk
-#define PMUC_PERI_LDO_VDD33_LDO3_PD_Pos  (21U)
-#define PMUC_PERI_LDO_VDD33_LDO3_PD_Msk  (0x1UL << PMUC_PERI_LDO_VDD33_LDO3_PD_Pos)
-#define PMUC_PERI_LDO_VDD33_LDO3_PD     PMUC_PERI_LDO_VDD33_LDO3_PD_Msk
 
 /****************** Bit definition for PMUC_PMU_TR register *******************/
 #define PMUC_PMU_TR_PMU_DC_TR_Pos       (0U)
@@ -788,95 +959,69 @@ typedef struct
 #define PMUC_HXT_CR3_DLY_Msk            (0x3FUL << PMUC_HXT_CR3_DLY_Pos)
 #define PMUC_HXT_CR3_DLY                PMUC_HXT_CR3_DLY_Msk
 
-/****************** Bit definition for PMUC_HRC_CR register *******************/
-#define PMUC_HRC_CR_EN_Pos              (0U)
-#define PMUC_HRC_CR_EN_Msk              (0x1UL << PMUC_HRC_CR_EN_Pos)
-#define PMUC_HRC_CR_EN                  PMUC_HRC_CR_EN_Msk
-#define PMUC_HRC_CR_LDO_VREF_Pos        (1U)
-#define PMUC_HRC_CR_LDO_VREF_Msk        (0xFUL << PMUC_HRC_CR_LDO_VREF_Pos)
-#define PMUC_HRC_CR_LDO_VREF            PMUC_HRC_CR_LDO_VREF_Msk
-#define PMUC_HRC_CR_FREQ_TRIM_Pos       (5U)
-#define PMUC_HRC_CR_FREQ_TRIM_Msk       (0x3FFUL << PMUC_HRC_CR_FREQ_TRIM_Pos)
-#define PMUC_HRC_CR_FREQ_TRIM           PMUC_HRC_CR_FREQ_TRIM_Msk
-#define PMUC_HRC_CR_TEMP_TRIM_Pos       (15U)
-#define PMUC_HRC_CR_TEMP_TRIM_Msk       (0x7UL << PMUC_HRC_CR_TEMP_TRIM_Pos)
-#define PMUC_HRC_CR_TEMP_TRIM           PMUC_HRC_CR_TEMP_TRIM_Msk
-#define PMUC_HRC_CR_CLK96M_EN_Pos       (18U)
-#define PMUC_HRC_CR_CLK96M_EN_Msk       (0x1UL << PMUC_HRC_CR_CLK96M_EN_Pos)
-#define PMUC_HRC_CR_CLK96M_EN           PMUC_HRC_CR_CLK96M_EN_Msk
-#define PMUC_HRC_CR_CLKHP_EN_Pos        (20U)
-#define PMUC_HRC_CR_CLKHP_EN_Msk        (0x1UL << PMUC_HRC_CR_CLKHP_EN_Pos)
-#define PMUC_HRC_CR_CLKHP_EN            PMUC_HRC_CR_CLKHP_EN_Msk
-#define PMUC_HRC_CR_CLKHP_SEL_Pos       (21U)
-#define PMUC_HRC_CR_CLKHP_SEL_Msk       (0x3UL << PMUC_HRC_CR_CLKHP_SEL_Pos)
-#define PMUC_HRC_CR_CLKHP_SEL           PMUC_HRC_CR_CLKHP_SEL_Msk
-#define PMUC_HRC_CR_CLKHP_STR_Pos       (23U)
-#define PMUC_HRC_CR_CLKHP_STR_Msk       (0x3UL << PMUC_HRC_CR_CLKHP_STR_Pos)
-#define PMUC_HRC_CR_CLKHP_STR           PMUC_HRC_CR_CLKHP_STR_Msk
-#define PMUC_HRC_CR_CLKLP_EN_Pos        (25U)
-#define PMUC_HRC_CR_CLKLP_EN_Msk        (0x1UL << PMUC_HRC_CR_CLKLP_EN_Pos)
-#define PMUC_HRC_CR_CLKLP_EN            PMUC_HRC_CR_CLKLP_EN_Msk
-#define PMUC_HRC_CR_CLKLP_SEL_Pos       (26U)
-#define PMUC_HRC_CR_CLKLP_SEL_Msk       (0x3UL << PMUC_HRC_CR_CLKLP_SEL_Pos)
-#define PMUC_HRC_CR_CLKLP_SEL           PMUC_HRC_CR_CLKLP_SEL_Msk
-#define PMUC_HRC_CR_CLKLP_STR_Pos       (28U)
-#define PMUC_HRC_CR_CLKLP_STR_Msk       (0x3UL << PMUC_HRC_CR_CLKLP_STR_Pos)
-#define PMUC_HRC_CR_CLKLP_STR           PMUC_HRC_CR_CLKLP_STR_Msk
-#define PMUC_HRC_CR_DLY_Pos             (31U)
-#define PMUC_HRC_CR_DLY_Msk             (0x1UL << PMUC_HRC_CR_DLY_Pos)
-#define PMUC_HRC_CR_DLY                 PMUC_HRC_CR_DLY_Msk
+/****************** Bit definition for PMUC_HRC_CR1 register ******************/
+#define PMUC_HRC_CR1_EN_Pos             (0U)
+#define PMUC_HRC_CR1_EN_Msk             (0x1UL << PMUC_HRC_CR1_EN_Pos)
+#define PMUC_HRC_CR1_EN                 PMUC_HRC_CR1_EN_Msk
+#define PMUC_HRC_CR1_LDO_VREF_Pos       (1U)
+#define PMUC_HRC_CR1_LDO_VREF_Msk       (0xFUL << PMUC_HRC_CR1_LDO_VREF_Pos)
+#define PMUC_HRC_CR1_LDO_VREF           PMUC_HRC_CR1_LDO_VREF_Msk
+#define PMUC_HRC_CR1_FREQ_TRIM_Pos      (5U)
+#define PMUC_HRC_CR1_FREQ_TRIM_Msk      (0x7FFUL << PMUC_HRC_CR1_FREQ_TRIM_Pos)
+#define PMUC_HRC_CR1_FREQ_TRIM          PMUC_HRC_CR1_FREQ_TRIM_Msk
+#define PMUC_HRC_CR1_TEMP_TRIM_Pos      (16U)
+#define PMUC_HRC_CR1_TEMP_TRIM_Msk      (0x7UL << PMUC_HRC_CR1_TEMP_TRIM_Pos)
+#define PMUC_HRC_CR1_TEMP_TRIM          PMUC_HRC_CR1_TEMP_TRIM_Msk
+#define PMUC_HRC_CR1_CLK96M_EN_Pos      (19U)
+#define PMUC_HRC_CR1_CLK96M_EN_Msk      (0x1UL << PMUC_HRC_CR1_CLK96M_EN_Pos)
+#define PMUC_HRC_CR1_CLK96M_EN          PMUC_HRC_CR1_CLK96M_EN_Msk
+#define PMUC_HRC_CR1_CLKHP_EN_Pos       (20U)
+#define PMUC_HRC_CR1_CLKHP_EN_Msk       (0x1UL << PMUC_HRC_CR1_CLKHP_EN_Pos)
+#define PMUC_HRC_CR1_CLKHP_EN           PMUC_HRC_CR1_CLKHP_EN_Msk
+#define PMUC_HRC_CR1_CLKHP_SEL_Pos      (21U)
+#define PMUC_HRC_CR1_CLKHP_SEL_Msk      (0x3UL << PMUC_HRC_CR1_CLKHP_SEL_Pos)
+#define PMUC_HRC_CR1_CLKHP_SEL          PMUC_HRC_CR1_CLKHP_SEL_Msk
+#define PMUC_HRC_CR1_CLKHP_STR_Pos      (23U)
+#define PMUC_HRC_CR1_CLKHP_STR_Msk      (0x3UL << PMUC_HRC_CR1_CLKHP_STR_Pos)
+#define PMUC_HRC_CR1_CLKHP_STR          PMUC_HRC_CR1_CLKHP_STR_Msk
+#define PMUC_HRC_CR1_CLKLP_EN_Pos       (25U)
+#define PMUC_HRC_CR1_CLKLP_EN_Msk       (0x1UL << PMUC_HRC_CR1_CLKLP_EN_Pos)
+#define PMUC_HRC_CR1_CLKLP_EN           PMUC_HRC_CR1_CLKLP_EN_Msk
+#define PMUC_HRC_CR1_CLKLP_SEL_Pos      (26U)
+#define PMUC_HRC_CR1_CLKLP_SEL_Msk      (0x3UL << PMUC_HRC_CR1_CLKLP_SEL_Pos)
+#define PMUC_HRC_CR1_CLKLP_SEL          PMUC_HRC_CR1_CLKLP_SEL_Msk
+#define PMUC_HRC_CR1_CLKLP_STR_Pos      (28U)
+#define PMUC_HRC_CR1_CLKLP_STR_Msk      (0x3UL << PMUC_HRC_CR1_CLKLP_STR_Pos)
+#define PMUC_HRC_CR1_CLKLP_STR          PMUC_HRC_CR1_CLKLP_STR_Msk
+#define PMUC_HRC_CR1_DLY_Pos            (31U)
+#define PMUC_HRC_CR1_DLY_Msk            (0x1UL << PMUC_HRC_CR1_DLY_Pos)
+#define PMUC_HRC_CR1_DLY                PMUC_HRC_CR1_DLY_Msk
 
-/***************** Bit definition for PMUC_DBL96_CR register ******************/
-#define PMUC_DBL96_CR_EN_Pos            (0U)
-#define PMUC_DBL96_CR_EN_Msk            (0x1UL << PMUC_DBL96_CR_EN_Pos)
-#define PMUC_DBL96_CR_EN                PMUC_DBL96_CR_EN_Msk
-#define PMUC_DBL96_CR_OUT_EN_Pos        (1U)
-#define PMUC_DBL96_CR_OUT_EN_Msk        (0x1UL << PMUC_DBL96_CR_OUT_EN_Pos)
-#define PMUC_DBL96_CR_OUT_EN            PMUC_DBL96_CR_OUT_EN_Msk
-#define PMUC_DBL96_CR_TODIG_EN_Pos      (2U)
-#define PMUC_DBL96_CR_TODIG_EN_Msk      (0x1UL << PMUC_DBL96_CR_TODIG_EN_Pos)
-#define PMUC_DBL96_CR_TODIG_EN          PMUC_DBL96_CR_TODIG_EN_Msk
-#define PMUC_DBL96_CR_TODIG_STR_Pos     (3U)
-#define PMUC_DBL96_CR_TODIG_STR_Msk     (0x3UL << PMUC_DBL96_CR_TODIG_STR_Pos)
-#define PMUC_DBL96_CR_TODIG_STR         PMUC_DBL96_CR_TODIG_STR_Msk
-#define PMUC_DBL96_CR_TORF_EN_Pos       (5U)
-#define PMUC_DBL96_CR_TORF_EN_Msk       (0x1UL << PMUC_DBL96_CR_TORF_EN_Pos)
-#define PMUC_DBL96_CR_TORF_EN           PMUC_DBL96_CR_TORF_EN_Msk
-#define PMUC_DBL96_CR_TOOSLO_EN_Pos     (6U)
-#define PMUC_DBL96_CR_TOOSLO_EN_Msk     (0x1UL << PMUC_DBL96_CR_TOOSLO_EN_Pos)
-#define PMUC_DBL96_CR_TOOSLO_EN         PMUC_DBL96_CR_TOOSLO_EN_Msk
-#define PMUC_DBL96_CR_LOOP_RSTB_Pos     (7U)
-#define PMUC_DBL96_CR_LOOP_RSTB_Msk     (0x1UL << PMUC_DBL96_CR_LOOP_RSTB_Pos)
-#define PMUC_DBL96_CR_LOOP_RSTB         PMUC_DBL96_CR_LOOP_RSTB_Msk
-#define PMUC_DBL96_CR_PH_EN_Pos         (8U)
-#define PMUC_DBL96_CR_PH_EN_Msk         (0xFUL << PMUC_DBL96_CR_PH_EN_Pos)
-#define PMUC_DBL96_CR_PH_EN             PMUC_DBL96_CR_PH_EN_Msk
-#define PMUC_DBL96_CR_DLY_EN_Pos        (12U)
-#define PMUC_DBL96_CR_DLY_EN_Msk        (0xFUL << PMUC_DBL96_CR_DLY_EN_Pos)
-#define PMUC_DBL96_CR_DLY_EN            PMUC_DBL96_CR_DLY_EN_Msk
-#define PMUC_DBL96_CR_DLY_EXT_EN_Pos    (16U)
-#define PMUC_DBL96_CR_DLY_EXT_EN_Msk    (0x1UL << PMUC_DBL96_CR_DLY_EXT_EN_Pos)
-#define PMUC_DBL96_CR_DLY_EXT_EN        PMUC_DBL96_CR_DLY_EXT_EN_Msk
-#define PMUC_DBL96_CR_DLY_SEL_EXT_EN_Pos  (17U)
-#define PMUC_DBL96_CR_DLY_SEL_EXT_EN_Msk  (0x1UL << PMUC_DBL96_CR_DLY_SEL_EXT_EN_Pos)
-#define PMUC_DBL96_CR_DLY_SEL_EXT_EN    PMUC_DBL96_CR_DLY_SEL_EXT_EN_Msk
-#define PMUC_DBL96_CR_DLY_SEL_EXT_Pos   (18U)
-#define PMUC_DBL96_CR_DLY_SEL_EXT_Msk   (0x7FFUL << PMUC_DBL96_CR_DLY_SEL_EXT_Pos)
-#define PMUC_DBL96_CR_DLY_SEL_EXT       PMUC_DBL96_CR_DLY_SEL_EXT_Msk
-
-/**************** Bit definition for PMUC_DBL96_CALR register *****************/
-#define PMUC_DBL96_CALR_CAL_EN_Pos      (0U)
-#define PMUC_DBL96_CALR_CAL_EN_Msk      (0x1UL << PMUC_DBL96_CALR_CAL_EN_Pos)
-#define PMUC_DBL96_CALR_CAL_EN          PMUC_DBL96_CALR_CAL_EN_Msk
-#define PMUC_DBL96_CALR_CAL_CLOSE_EXT_EN_Pos  (1U)
-#define PMUC_DBL96_CALR_CAL_CLOSE_EXT_EN_Msk  (0x1UL << PMUC_DBL96_CALR_CAL_CLOSE_EXT_EN_Pos)
-#define PMUC_DBL96_CALR_CAL_CLOSE_EXT_EN  PMUC_DBL96_CALR_CAL_CLOSE_EXT_EN_Msk
-#define PMUC_DBL96_CALR_CAL_OP_Pos      (2U)
-#define PMUC_DBL96_CALR_CAL_OP_Msk      (0x7FFUL << PMUC_DBL96_CALR_CAL_OP_Pos)
-#define PMUC_DBL96_CALR_CAL_OP          PMUC_DBL96_CALR_CAL_OP_Msk
-#define PMUC_DBL96_CALR_CAL_LOCK_Pos    (13U)
-#define PMUC_DBL96_CALR_CAL_LOCK_Msk    (0x1UL << PMUC_DBL96_CALR_CAL_LOCK_Pos)
-#define PMUC_DBL96_CALR_CAL_LOCK        PMUC_DBL96_CALR_CAL_LOCK_Msk
+/****************** Bit definition for PMUC_HRC_CR2 register ******************/
+#define PMUC_HRC_CR2_CLKX2_EN_Pos       (0U)
+#define PMUC_HRC_CR2_CLKX2_EN_Msk       (0x1UL << PMUC_HRC_CR2_CLKX2_EN_Pos)
+#define PMUC_HRC_CR2_CLKX2_EN           PMUC_HRC_CR2_CLKX2_EN_Msk
+#define PMUC_HRC_CR2_IDWN_SEL_Pos       (1U)
+#define PMUC_HRC_CR2_IDWN_SEL_Msk       (0x3UL << PMUC_HRC_CR2_IDWN_SEL_Pos)
+#define PMUC_HRC_CR2_IDWN_SEL           PMUC_HRC_CR2_IDWN_SEL_Msk
+#define PMUC_HRC_CR2_SS_EN_Pos          (3U)
+#define PMUC_HRC_CR2_SS_EN_Msk          (0x1UL << PMUC_HRC_CR2_SS_EN_Pos)
+#define PMUC_HRC_CR2_SS_EN              PMUC_HRC_CR2_SS_EN_Msk
+#define PMUC_HRC_CR2_SS_CLK_SEL_Pos     (4U)
+#define PMUC_HRC_CR2_SS_CLK_SEL_Msk     (0x3UL << PMUC_HRC_CR2_SS_CLK_SEL_Pos)
+#define PMUC_HRC_CR2_SS_CLK_SEL         PMUC_HRC_CR2_SS_CLK_SEL_Msk
+#define PMUC_HRC_CR2_SS_NSEL_Pos        (6U)
+#define PMUC_HRC_CR2_SS_NSEL_Msk        (0x1UL << PMUC_HRC_CR2_SS_NSEL_Pos)
+#define PMUC_HRC_CR2_SS_NSEL            PMUC_HRC_CR2_SS_NSEL_Msk
+#define PMUC_HRC_CR2_SS_AVG0_EN_Pos     (7U)
+#define PMUC_HRC_CR2_SS_AVG0_EN_Msk     (0x1UL << PMUC_HRC_CR2_SS_AVG0_EN_Pos)
+#define PMUC_HRC_CR2_SS_AVG0_EN         PMUC_HRC_CR2_SS_AVG0_EN_Msk
+#define PMUC_HRC_CR2_SS_FD_SEL_FRC_EN_Pos  (8U)
+#define PMUC_HRC_CR2_SS_FD_SEL_FRC_EN_Msk  (0x1UL << PMUC_HRC_CR2_SS_FD_SEL_FRC_EN_Pos)
+#define PMUC_HRC_CR2_SS_FD_SEL_FRC_EN   PMUC_HRC_CR2_SS_FD_SEL_FRC_EN_Msk
+#define PMUC_HRC_CR2_SS_FD_SEL_Pos      (9U)
+#define PMUC_HRC_CR2_SS_FD_SEL_Msk      (0x7UL << PMUC_HRC_CR2_SS_FD_SEL_Pos)
+#define PMUC_HRC_CR2_SS_FD_SEL          PMUC_HRC_CR2_SS_FD_SEL_Msk
 
 /****************** Bit definition for PMUC_CAU_BGR register ******************/
 #define PMUC_CAU_BGR_HPBG_VDDPSW_EN_Pos  (0U)
@@ -917,14 +1062,6 @@ typedef struct
 #define PMUC_CAU_RSVD_RESERVE2_Msk      (0xFFUL << PMUC_CAU_RSVD_RESERVE2_Pos)
 #define PMUC_CAU_RSVD_RESERVE2          PMUC_CAU_RSVD_RESERVE2_Msk
 
-/***************** Bit definition for PMUC_WKUP_CNT register ******************/
-#define PMUC_WKUP_CNT_PIN0_CNT_Pos      (0U)
-#define PMUC_WKUP_CNT_PIN0_CNT_Msk      (0xFFFFUL << PMUC_WKUP_CNT_PIN0_CNT_Pos)
-#define PMUC_WKUP_CNT_PIN0_CNT          PMUC_WKUP_CNT_PIN0_CNT_Msk
-#define PMUC_WKUP_CNT_PIN1_CNT_Pos      (16U)
-#define PMUC_WKUP_CNT_PIN1_CNT_Msk      (0xFFFFUL << PMUC_WKUP_CNT_PIN1_CNT_Pos)
-#define PMUC_WKUP_CNT_PIN1_CNT          PMUC_WKUP_CNT_PIN1_CNT_Msk
-
 /**************** Bit definition for PMUC_PWRKEY_CNT register *****************/
 #define PMUC_PWRKEY_CNT_RST_CNT_Pos     (4U)
 #define PMUC_PWRKEY_CNT_RST_CNT_Msk     (0xFFFFUL << PMUC_PWRKEY_CNT_RST_CNT_Pos)
@@ -942,7 +1079,434 @@ typedef struct
 
 /***************** Bit definition for PMUC_BUCK_VOUT register *****************/
 #define PMUC_BUCK_VOUT_VOUT_Pos         (0U)
-#define PMUC_BUCK_VOUT_VOUT_Msk         (0xFUL << PMUC_BUCK_VOUT_VOUT_Pos)
+#define PMUC_BUCK_VOUT_VOUT_Msk         (0x1FUL << PMUC_BUCK_VOUT_VOUT_Pos)
 #define PMUC_BUCK_VOUT_VOUT             PMUC_BUCK_VOUT_VOUT_Msk
 
+/***************** Bit definition for PMUC_WKUP_MODE register *****************/
+#define PMUC_WKUP_MODE_PA33_MODE_Pos    (0U)
+#define PMUC_WKUP_MODE_PA33_MODE_Msk    (0x3UL << PMUC_WKUP_MODE_PA33_MODE_Pos)
+#define PMUC_WKUP_MODE_PA33_MODE        PMUC_WKUP_MODE_PA33_MODE_Msk
+#define PMUC_WKUP_MODE_PA34_MODE_Pos    (2U)
+#define PMUC_WKUP_MODE_PA34_MODE_Msk    (0x3UL << PMUC_WKUP_MODE_PA34_MODE_Pos)
+#define PMUC_WKUP_MODE_PA34_MODE        PMUC_WKUP_MODE_PA34_MODE_Msk
+#define PMUC_WKUP_MODE_PA35_MODE_Pos    (4U)
+#define PMUC_WKUP_MODE_PA35_MODE_Msk    (0x3UL << PMUC_WKUP_MODE_PA35_MODE_Pos)
+#define PMUC_WKUP_MODE_PA35_MODE        PMUC_WKUP_MODE_PA35_MODE_Msk
+#define PMUC_WKUP_MODE_PA36_MODE_Pos    (6U)
+#define PMUC_WKUP_MODE_PA36_MODE_Msk    (0x3UL << PMUC_WKUP_MODE_PA36_MODE_Pos)
+#define PMUC_WKUP_MODE_PA36_MODE        PMUC_WKUP_MODE_PA36_MODE_Msk
+#define PMUC_WKUP_MODE_PA37_MODE_Pos    (8U)
+#define PMUC_WKUP_MODE_PA37_MODE_Msk    (0x3UL << PMUC_WKUP_MODE_PA37_MODE_Pos)
+#define PMUC_WKUP_MODE_PA37_MODE        PMUC_WKUP_MODE_PA37_MODE_Msk
+#define PMUC_WKUP_MODE_PA38_MODE_Pos    (10U)
+#define PMUC_WKUP_MODE_PA38_MODE_Msk    (0x3UL << PMUC_WKUP_MODE_PA38_MODE_Pos)
+#define PMUC_WKUP_MODE_PA38_MODE        PMUC_WKUP_MODE_PA38_MODE_Msk
+#define PMUC_WKUP_MODE_PA39_MODE_Pos    (12U)
+#define PMUC_WKUP_MODE_PA39_MODE_Msk    (0x3UL << PMUC_WKUP_MODE_PA39_MODE_Pos)
+#define PMUC_WKUP_MODE_PA39_MODE        PMUC_WKUP_MODE_PA39_MODE_Msk
+#define PMUC_WKUP_MODE_PA40_MODE_Pos    (14U)
+#define PMUC_WKUP_MODE_PA40_MODE_Msk    (0x3UL << PMUC_WKUP_MODE_PA40_MODE_Pos)
+#define PMUC_WKUP_MODE_PA40_MODE        PMUC_WKUP_MODE_PA40_MODE_Msk
+#define PMUC_WKUP_MODE_PA41_MODE_Pos    (16U)
+#define PMUC_WKUP_MODE_PA41_MODE_Msk    (0x3UL << PMUC_WKUP_MODE_PA41_MODE_Pos)
+#define PMUC_WKUP_MODE_PA41_MODE        PMUC_WKUP_MODE_PA41_MODE_Msk
+#define PMUC_WKUP_MODE_PA42_MODE_Pos    (18U)
+#define PMUC_WKUP_MODE_PA42_MODE_Msk    (0x3UL << PMUC_WKUP_MODE_PA42_MODE_Pos)
+#define PMUC_WKUP_MODE_PA42_MODE        PMUC_WKUP_MODE_PA42_MODE_Msk
+#define PMUC_WKUP_MODE_PA24_MODE_Pos    (20U)
+#define PMUC_WKUP_MODE_PA24_MODE_Msk    (0x3UL << PMUC_WKUP_MODE_PA24_MODE_Pos)
+#define PMUC_WKUP_MODE_PA24_MODE        PMUC_WKUP_MODE_PA24_MODE_Msk
+#define PMUC_WKUP_MODE_PA25_MODE_Pos    (22U)
+#define PMUC_WKUP_MODE_PA25_MODE_Msk    (0x3UL << PMUC_WKUP_MODE_PA25_MODE_Pos)
+#define PMUC_WKUP_MODE_PA25_MODE        PMUC_WKUP_MODE_PA25_MODE_Msk
+#define PMUC_WKUP_MODE_PA26_MODE_Pos    (24U)
+#define PMUC_WKUP_MODE_PA26_MODE_Msk    (0x3UL << PMUC_WKUP_MODE_PA26_MODE_Pos)
+#define PMUC_WKUP_MODE_PA26_MODE        PMUC_WKUP_MODE_PA26_MODE_Msk
+#define PMUC_WKUP_MODE_PA27_MODE_Pos    (26U)
+#define PMUC_WKUP_MODE_PA27_MODE_Msk    (0x3UL << PMUC_WKUP_MODE_PA27_MODE_Pos)
+#define PMUC_WKUP_MODE_PA27_MODE        PMUC_WKUP_MODE_PA27_MODE_Msk
+
+/***************** Bit definition for PMUC_WKUP_CNT register ******************/
+#define PMUC_WKUP_CNT_PIN_DLY_Pos       (0U)
+#define PMUC_WKUP_CNT_PIN_DLY_Msk       (0xFFFFUL << PMUC_WKUP_CNT_PIN_DLY_Pos)
+#define PMUC_WKUP_CNT_PIN_DLY           PMUC_WKUP_CNT_PIN_DLY_Msk
+
+/******************* Bit definition for PMUC_PRSR1 register *******************/
+#define PMUC_PRSR1_PA0_Pos              (0U)
+#define PMUC_PRSR1_PA0_Msk              (0x1UL << PMUC_PRSR1_PA0_Pos)
+#define PMUC_PRSR1_PA0                  PMUC_PRSR1_PA0_Msk
+#define PMUC_PRSR1_PA1_Pos              (1U)
+#define PMUC_PRSR1_PA1_Msk              (0x1UL << PMUC_PRSR1_PA1_Pos)
+#define PMUC_PRSR1_PA1                  PMUC_PRSR1_PA1_Msk
+#define PMUC_PRSR1_PA2_Pos              (2U)
+#define PMUC_PRSR1_PA2_Msk              (0x1UL << PMUC_PRSR1_PA2_Pos)
+#define PMUC_PRSR1_PA2                  PMUC_PRSR1_PA2_Msk
+#define PMUC_PRSR1_PA3_Pos              (3U)
+#define PMUC_PRSR1_PA3_Msk              (0x1UL << PMUC_PRSR1_PA3_Pos)
+#define PMUC_PRSR1_PA3                  PMUC_PRSR1_PA3_Msk
+#define PMUC_PRSR1_PA4_Pos              (4U)
+#define PMUC_PRSR1_PA4_Msk              (0x1UL << PMUC_PRSR1_PA4_Pos)
+#define PMUC_PRSR1_PA4                  PMUC_PRSR1_PA4_Msk
+#define PMUC_PRSR1_PA5_Pos              (5U)
+#define PMUC_PRSR1_PA5_Msk              (0x1UL << PMUC_PRSR1_PA5_Pos)
+#define PMUC_PRSR1_PA5                  PMUC_PRSR1_PA5_Msk
+#define PMUC_PRSR1_PA6_Pos              (6U)
+#define PMUC_PRSR1_PA6_Msk              (0x1UL << PMUC_PRSR1_PA6_Pos)
+#define PMUC_PRSR1_PA6                  PMUC_PRSR1_PA6_Msk
+#define PMUC_PRSR1_PA7_Pos              (7U)
+#define PMUC_PRSR1_PA7_Msk              (0x1UL << PMUC_PRSR1_PA7_Pos)
+#define PMUC_PRSR1_PA7                  PMUC_PRSR1_PA7_Msk
+#define PMUC_PRSR1_PA8_Pos              (8U)
+#define PMUC_PRSR1_PA8_Msk              (0x1UL << PMUC_PRSR1_PA8_Pos)
+#define PMUC_PRSR1_PA8                  PMUC_PRSR1_PA8_Msk
+#define PMUC_PRSR1_PA9_Pos              (9U)
+#define PMUC_PRSR1_PA9_Msk              (0x1UL << PMUC_PRSR1_PA9_Pos)
+#define PMUC_PRSR1_PA9                  PMUC_PRSR1_PA9_Msk
+#define PMUC_PRSR1_PA10_Pos             (10U)
+#define PMUC_PRSR1_PA10_Msk             (0x1UL << PMUC_PRSR1_PA10_Pos)
+#define PMUC_PRSR1_PA10                 PMUC_PRSR1_PA10_Msk
+#define PMUC_PRSR1_PA11_Pos             (11U)
+#define PMUC_PRSR1_PA11_Msk             (0x1UL << PMUC_PRSR1_PA11_Pos)
+#define PMUC_PRSR1_PA11                 PMUC_PRSR1_PA11_Msk
+#define PMUC_PRSR1_PA12_Pos             (12U)
+#define PMUC_PRSR1_PA12_Msk             (0x1UL << PMUC_PRSR1_PA12_Pos)
+#define PMUC_PRSR1_PA12                 PMUC_PRSR1_PA12_Msk
+#define PMUC_PRSR1_PA13_Pos             (13U)
+#define PMUC_PRSR1_PA13_Msk             (0x1UL << PMUC_PRSR1_PA13_Pos)
+#define PMUC_PRSR1_PA13                 PMUC_PRSR1_PA13_Msk
+#define PMUC_PRSR1_PA14_Pos             (14U)
+#define PMUC_PRSR1_PA14_Msk             (0x1UL << PMUC_PRSR1_PA14_Pos)
+#define PMUC_PRSR1_PA14                 PMUC_PRSR1_PA14_Msk
+#define PMUC_PRSR1_PA15_Pos             (15U)
+#define PMUC_PRSR1_PA15_Msk             (0x1UL << PMUC_PRSR1_PA15_Pos)
+#define PMUC_PRSR1_PA15                 PMUC_PRSR1_PA15_Msk
+#define PMUC_PRSR1_PA16_Pos             (16U)
+#define PMUC_PRSR1_PA16_Msk             (0x1UL << PMUC_PRSR1_PA16_Pos)
+#define PMUC_PRSR1_PA16                 PMUC_PRSR1_PA16_Msk
+#define PMUC_PRSR1_PA17_Pos             (17U)
+#define PMUC_PRSR1_PA17_Msk             (0x1UL << PMUC_PRSR1_PA17_Pos)
+#define PMUC_PRSR1_PA17                 PMUC_PRSR1_PA17_Msk
+#define PMUC_PRSR1_PA18_Pos             (18U)
+#define PMUC_PRSR1_PA18_Msk             (0x1UL << PMUC_PRSR1_PA18_Pos)
+#define PMUC_PRSR1_PA18                 PMUC_PRSR1_PA18_Msk
+#define PMUC_PRSR1_PA19_Pos             (19U)
+#define PMUC_PRSR1_PA19_Msk             (0x1UL << PMUC_PRSR1_PA19_Pos)
+#define PMUC_PRSR1_PA19                 PMUC_PRSR1_PA19_Msk
+#define PMUC_PRSR1_PA20_Pos             (20U)
+#define PMUC_PRSR1_PA20_Msk             (0x1UL << PMUC_PRSR1_PA20_Pos)
+#define PMUC_PRSR1_PA20                 PMUC_PRSR1_PA20_Msk
+#define PMUC_PRSR1_PA21_Pos             (21U)
+#define PMUC_PRSR1_PA21_Msk             (0x1UL << PMUC_PRSR1_PA21_Pos)
+#define PMUC_PRSR1_PA21                 PMUC_PRSR1_PA21_Msk
+#define PMUC_PRSR1_PA22_Pos             (22U)
+#define PMUC_PRSR1_PA22_Msk             (0x1UL << PMUC_PRSR1_PA22_Pos)
+#define PMUC_PRSR1_PA22                 PMUC_PRSR1_PA22_Msk
+#define PMUC_PRSR1_PA23_Pos             (23U)
+#define PMUC_PRSR1_PA23_Msk             (0x1UL << PMUC_PRSR1_PA23_Pos)
+#define PMUC_PRSR1_PA23                 PMUC_PRSR1_PA23_Msk
+#define PMUC_PRSR1_PA24_Pos             (24U)
+#define PMUC_PRSR1_PA24_Msk             (0x1UL << PMUC_PRSR1_PA24_Pos)
+#define PMUC_PRSR1_PA24                 PMUC_PRSR1_PA24_Msk
+#define PMUC_PRSR1_PA25_Pos             (25U)
+#define PMUC_PRSR1_PA25_Msk             (0x1UL << PMUC_PRSR1_PA25_Pos)
+#define PMUC_PRSR1_PA25                 PMUC_PRSR1_PA25_Msk
+#define PMUC_PRSR1_PA26_Pos             (26U)
+#define PMUC_PRSR1_PA26_Msk             (0x1UL << PMUC_PRSR1_PA26_Pos)
+#define PMUC_PRSR1_PA26                 PMUC_PRSR1_PA26_Msk
+#define PMUC_PRSR1_PA27_Pos             (27U)
+#define PMUC_PRSR1_PA27_Msk             (0x1UL << PMUC_PRSR1_PA27_Pos)
+#define PMUC_PRSR1_PA27                 PMUC_PRSR1_PA27_Msk
+#define PMUC_PRSR1_PA28_Pos             (28U)
+#define PMUC_PRSR1_PA28_Msk             (0x1UL << PMUC_PRSR1_PA28_Pos)
+#define PMUC_PRSR1_PA28                 PMUC_PRSR1_PA28_Msk
+#define PMUC_PRSR1_PA29_Pos             (29U)
+#define PMUC_PRSR1_PA29_Msk             (0x1UL << PMUC_PRSR1_PA29_Pos)
+#define PMUC_PRSR1_PA29                 PMUC_PRSR1_PA29_Msk
+#define PMUC_PRSR1_PA30_Pos             (30U)
+#define PMUC_PRSR1_PA30_Msk             (0x1UL << PMUC_PRSR1_PA30_Pos)
+#define PMUC_PRSR1_PA30                 PMUC_PRSR1_PA30_Msk
+#define PMUC_PRSR1_PA31_Pos             (31U)
+#define PMUC_PRSR1_PA31_Msk             (0x1UL << PMUC_PRSR1_PA31_Pos)
+#define PMUC_PRSR1_PA31                 PMUC_PRSR1_PA31_Msk
+
+/******************* Bit definition for PMUC_PRSR2 register *******************/
+#define PMUC_PRSR2_PA32_Pos             (0U)
+#define PMUC_PRSR2_PA32_Msk             (0x1UL << PMUC_PRSR2_PA32_Pos)
+#define PMUC_PRSR2_PA32                 PMUC_PRSR2_PA32_Msk
+#define PMUC_PRSR2_PA33_Pos             (1U)
+#define PMUC_PRSR2_PA33_Msk             (0x1UL << PMUC_PRSR2_PA33_Pos)
+#define PMUC_PRSR2_PA33                 PMUC_PRSR2_PA33_Msk
+#define PMUC_PRSR2_PA34_Pos             (2U)
+#define PMUC_PRSR2_PA34_Msk             (0x1UL << PMUC_PRSR2_PA34_Pos)
+#define PMUC_PRSR2_PA34                 PMUC_PRSR2_PA34_Msk
+#define PMUC_PRSR2_PA35_Pos             (3U)
+#define PMUC_PRSR2_PA35_Msk             (0x1UL << PMUC_PRSR2_PA35_Pos)
+#define PMUC_PRSR2_PA35                 PMUC_PRSR2_PA35_Msk
+#define PMUC_PRSR2_PA36_Pos             (4U)
+#define PMUC_PRSR2_PA36_Msk             (0x1UL << PMUC_PRSR2_PA36_Pos)
+#define PMUC_PRSR2_PA36                 PMUC_PRSR2_PA36_Msk
+#define PMUC_PRSR2_PA37_Pos             (5U)
+#define PMUC_PRSR2_PA37_Msk             (0x1UL << PMUC_PRSR2_PA37_Pos)
+#define PMUC_PRSR2_PA37                 PMUC_PRSR2_PA37_Msk
+#define PMUC_PRSR2_PA38_Pos             (6U)
+#define PMUC_PRSR2_PA38_Msk             (0x1UL << PMUC_PRSR2_PA38_Pos)
+#define PMUC_PRSR2_PA38                 PMUC_PRSR2_PA38_Msk
+#define PMUC_PRSR2_PA39_Pos             (7U)
+#define PMUC_PRSR2_PA39_Msk             (0x1UL << PMUC_PRSR2_PA39_Pos)
+#define PMUC_PRSR2_PA39                 PMUC_PRSR2_PA39_Msk
+#define PMUC_PRSR2_PA40_Pos             (8U)
+#define PMUC_PRSR2_PA40_Msk             (0x1UL << PMUC_PRSR2_PA40_Pos)
+#define PMUC_PRSR2_PA40                 PMUC_PRSR2_PA40_Msk
+#define PMUC_PRSR2_PA41_Pos             (9U)
+#define PMUC_PRSR2_PA41_Msk             (0x1UL << PMUC_PRSR2_PA41_Pos)
+#define PMUC_PRSR2_PA41                 PMUC_PRSR2_PA41_Msk
+#define PMUC_PRSR2_PA42_Pos             (10U)
+#define PMUC_PRSR2_PA42_Msk             (0x1UL << PMUC_PRSR2_PA42_Pos)
+#define PMUC_PRSR2_PA42                 PMUC_PRSR2_PA42_Msk
+#define PMUC_PRSR2_PA43_Pos             (11U)
+#define PMUC_PRSR2_PA43_Msk             (0x1UL << PMUC_PRSR2_PA43_Pos)
+#define PMUC_PRSR2_PA43                 PMUC_PRSR2_PA43_Msk
+#define PMUC_PRSR2_PA44_Pos             (12U)
+#define PMUC_PRSR2_PA44_Msk             (0x1UL << PMUC_PRSR2_PA44_Pos)
+#define PMUC_PRSR2_PA44                 PMUC_PRSR2_PA44_Msk
+#define PMUC_PRSR2_PA45_Pos             (13U)
+#define PMUC_PRSR2_PA45_Msk             (0x1UL << PMUC_PRSR2_PA45_Pos)
+#define PMUC_PRSR2_PA45                 PMUC_PRSR2_PA45_Msk
+#define PMUC_PRSR2_PA46_Pos             (14U)
+#define PMUC_PRSR2_PA46_Msk             (0x1UL << PMUC_PRSR2_PA46_Pos)
+#define PMUC_PRSR2_PA46                 PMUC_PRSR2_PA46_Msk
+#define PMUC_PRSR2_PA47_Pos             (15U)
+#define PMUC_PRSR2_PA47_Msk             (0x1UL << PMUC_PRSR2_PA47_Pos)
+#define PMUC_PRSR2_PA47                 PMUC_PRSR2_PA47_Msk
+#define PMUC_PRSR2_PA48_Pos             (16U)
+#define PMUC_PRSR2_PA48_Msk             (0x1UL << PMUC_PRSR2_PA48_Pos)
+#define PMUC_PRSR2_PA48                 PMUC_PRSR2_PA48_Msk
+#define PMUC_PRSR2_PA49_Pos             (17U)
+#define PMUC_PRSR2_PA49_Msk             (0x1UL << PMUC_PRSR2_PA49_Pos)
+#define PMUC_PRSR2_PA49                 PMUC_PRSR2_PA49_Msk
+#define PMUC_PRSR2_PA50_Pos             (18U)
+#define PMUC_PRSR2_PA50_Msk             (0x1UL << PMUC_PRSR2_PA50_Pos)
+#define PMUC_PRSR2_PA50                 PMUC_PRSR2_PA50_Msk
+#define PMUC_PRSR2_PA51_Pos             (19U)
+#define PMUC_PRSR2_PA51_Msk             (0x1UL << PMUC_PRSR2_PA51_Pos)
+#define PMUC_PRSR2_PA51                 PMUC_PRSR2_PA51_Msk
+#define PMUC_PRSR2_PA52_Pos             (20U)
+#define PMUC_PRSR2_PA52_Msk             (0x1UL << PMUC_PRSR2_PA52_Pos)
+#define PMUC_PRSR2_PA52                 PMUC_PRSR2_PA52_Msk
+#define PMUC_PRSR2_PA53_Pos             (21U)
+#define PMUC_PRSR2_PA53_Msk             (0x1UL << PMUC_PRSR2_PA53_Pos)
+#define PMUC_PRSR2_PA53                 PMUC_PRSR2_PA53_Msk
+#define PMUC_PRSR2_PA54_Pos             (22U)
+#define PMUC_PRSR2_PA54_Msk             (0x1UL << PMUC_PRSR2_PA54_Pos)
+#define PMUC_PRSR2_PA54                 PMUC_PRSR2_PA54_Msk
+#define PMUC_PRSR2_PA55_Pos             (23U)
+#define PMUC_PRSR2_PA55_Msk             (0x1UL << PMUC_PRSR2_PA55_Pos)
+#define PMUC_PRSR2_PA55                 PMUC_PRSR2_PA55_Msk
+#define PMUC_PRSR2_PA56_Pos             (24U)
+#define PMUC_PRSR2_PA56_Msk             (0x1UL << PMUC_PRSR2_PA56_Pos)
+#define PMUC_PRSR2_PA56                 PMUC_PRSR2_PA56_Msk
+#define PMUC_PRSR2_PA57_Pos             (25U)
+#define PMUC_PRSR2_PA57_Msk             (0x1UL << PMUC_PRSR2_PA57_Pos)
+#define PMUC_PRSR2_PA57                 PMUC_PRSR2_PA57_Msk
+#define PMUC_PRSR2_SB_Pos               (30U)
+#define PMUC_PRSR2_SB_Msk               (0x1UL << PMUC_PRSR2_SB_Pos)
+#define PMUC_PRSR2_SB                   PMUC_PRSR2_SB_Msk
+#define PMUC_PRSR2_SA_Pos               (31U)
+#define PMUC_PRSR2_SA_Msk               (0x1UL << PMUC_PRSR2_SA_Pos)
+#define PMUC_PRSR2_SA                   PMUC_PRSR2_SA_Msk
+
+/******************* Bit definition for PMUC_PRCR1 register *******************/
+#define PMUC_PRCR1_PA0_Pos              (0U)
+#define PMUC_PRCR1_PA0_Msk              (0x1UL << PMUC_PRCR1_PA0_Pos)
+#define PMUC_PRCR1_PA0                  PMUC_PRCR1_PA0_Msk
+#define PMUC_PRCR1_PA1_Pos              (1U)
+#define PMUC_PRCR1_PA1_Msk              (0x1UL << PMUC_PRCR1_PA1_Pos)
+#define PMUC_PRCR1_PA1                  PMUC_PRCR1_PA1_Msk
+#define PMUC_PRCR1_PA2_Pos              (2U)
+#define PMUC_PRCR1_PA2_Msk              (0x1UL << PMUC_PRCR1_PA2_Pos)
+#define PMUC_PRCR1_PA2                  PMUC_PRCR1_PA2_Msk
+#define PMUC_PRCR1_PA3_Pos              (3U)
+#define PMUC_PRCR1_PA3_Msk              (0x1UL << PMUC_PRCR1_PA3_Pos)
+#define PMUC_PRCR1_PA3                  PMUC_PRCR1_PA3_Msk
+#define PMUC_PRCR1_PA4_Pos              (4U)
+#define PMUC_PRCR1_PA4_Msk              (0x1UL << PMUC_PRCR1_PA4_Pos)
+#define PMUC_PRCR1_PA4                  PMUC_PRCR1_PA4_Msk
+#define PMUC_PRCR1_PA5_Pos              (5U)
+#define PMUC_PRCR1_PA5_Msk              (0x1UL << PMUC_PRCR1_PA5_Pos)
+#define PMUC_PRCR1_PA5                  PMUC_PRCR1_PA5_Msk
+#define PMUC_PRCR1_PA6_Pos              (6U)
+#define PMUC_PRCR1_PA6_Msk              (0x1UL << PMUC_PRCR1_PA6_Pos)
+#define PMUC_PRCR1_PA6                  PMUC_PRCR1_PA6_Msk
+#define PMUC_PRCR1_PA7_Pos              (7U)
+#define PMUC_PRCR1_PA7_Msk              (0x1UL << PMUC_PRCR1_PA7_Pos)
+#define PMUC_PRCR1_PA7                  PMUC_PRCR1_PA7_Msk
+#define PMUC_PRCR1_PA8_Pos              (8U)
+#define PMUC_PRCR1_PA8_Msk              (0x1UL << PMUC_PRCR1_PA8_Pos)
+#define PMUC_PRCR1_PA8                  PMUC_PRCR1_PA8_Msk
+#define PMUC_PRCR1_PA9_Pos              (9U)
+#define PMUC_PRCR1_PA9_Msk              (0x1UL << PMUC_PRCR1_PA9_Pos)
+#define PMUC_PRCR1_PA9                  PMUC_PRCR1_PA9_Msk
+#define PMUC_PRCR1_PA10_Pos             (10U)
+#define PMUC_PRCR1_PA10_Msk             (0x1UL << PMUC_PRCR1_PA10_Pos)
+#define PMUC_PRCR1_PA10                 PMUC_PRCR1_PA10_Msk
+#define PMUC_PRCR1_PA11_Pos             (11U)
+#define PMUC_PRCR1_PA11_Msk             (0x1UL << PMUC_PRCR1_PA11_Pos)
+#define PMUC_PRCR1_PA11                 PMUC_PRCR1_PA11_Msk
+#define PMUC_PRCR1_PA12_Pos             (12U)
+#define PMUC_PRCR1_PA12_Msk             (0x1UL << PMUC_PRCR1_PA12_Pos)
+#define PMUC_PRCR1_PA12                 PMUC_PRCR1_PA12_Msk
+#define PMUC_PRCR1_PA13_Pos             (13U)
+#define PMUC_PRCR1_PA13_Msk             (0x1UL << PMUC_PRCR1_PA13_Pos)
+#define PMUC_PRCR1_PA13                 PMUC_PRCR1_PA13_Msk
+#define PMUC_PRCR1_PA14_Pos             (14U)
+#define PMUC_PRCR1_PA14_Msk             (0x1UL << PMUC_PRCR1_PA14_Pos)
+#define PMUC_PRCR1_PA14                 PMUC_PRCR1_PA14_Msk
+#define PMUC_PRCR1_PA15_Pos             (15U)
+#define PMUC_PRCR1_PA15_Msk             (0x1UL << PMUC_PRCR1_PA15_Pos)
+#define PMUC_PRCR1_PA15                 PMUC_PRCR1_PA15_Msk
+#define PMUC_PRCR1_PA16_Pos             (16U)
+#define PMUC_PRCR1_PA16_Msk             (0x1UL << PMUC_PRCR1_PA16_Pos)
+#define PMUC_PRCR1_PA16                 PMUC_PRCR1_PA16_Msk
+#define PMUC_PRCR1_PA17_Pos             (17U)
+#define PMUC_PRCR1_PA17_Msk             (0x1UL << PMUC_PRCR1_PA17_Pos)
+#define PMUC_PRCR1_PA17                 PMUC_PRCR1_PA17_Msk
+#define PMUC_PRCR1_PA18_Pos             (18U)
+#define PMUC_PRCR1_PA18_Msk             (0x1UL << PMUC_PRCR1_PA18_Pos)
+#define PMUC_PRCR1_PA18                 PMUC_PRCR1_PA18_Msk
+#define PMUC_PRCR1_PA19_Pos             (19U)
+#define PMUC_PRCR1_PA19_Msk             (0x1UL << PMUC_PRCR1_PA19_Pos)
+#define PMUC_PRCR1_PA19                 PMUC_PRCR1_PA19_Msk
+#define PMUC_PRCR1_PA20_Pos             (20U)
+#define PMUC_PRCR1_PA20_Msk             (0x1UL << PMUC_PRCR1_PA20_Pos)
+#define PMUC_PRCR1_PA20                 PMUC_PRCR1_PA20_Msk
+#define PMUC_PRCR1_PA21_Pos             (21U)
+#define PMUC_PRCR1_PA21_Msk             (0x1UL << PMUC_PRCR1_PA21_Pos)
+#define PMUC_PRCR1_PA21                 PMUC_PRCR1_PA21_Msk
+#define PMUC_PRCR1_PA22_Pos             (22U)
+#define PMUC_PRCR1_PA22_Msk             (0x1UL << PMUC_PRCR1_PA22_Pos)
+#define PMUC_PRCR1_PA22                 PMUC_PRCR1_PA22_Msk
+#define PMUC_PRCR1_PA23_Pos             (23U)
+#define PMUC_PRCR1_PA23_Msk             (0x1UL << PMUC_PRCR1_PA23_Pos)
+#define PMUC_PRCR1_PA23                 PMUC_PRCR1_PA23_Msk
+#define PMUC_PRCR1_PA24_Pos             (24U)
+#define PMUC_PRCR1_PA24_Msk             (0x1UL << PMUC_PRCR1_PA24_Pos)
+#define PMUC_PRCR1_PA24                 PMUC_PRCR1_PA24_Msk
+#define PMUC_PRCR1_PA25_Pos             (25U)
+#define PMUC_PRCR1_PA25_Msk             (0x1UL << PMUC_PRCR1_PA25_Pos)
+#define PMUC_PRCR1_PA25                 PMUC_PRCR1_PA25_Msk
+#define PMUC_PRCR1_PA26_Pos             (26U)
+#define PMUC_PRCR1_PA26_Msk             (0x1UL << PMUC_PRCR1_PA26_Pos)
+#define PMUC_PRCR1_PA26                 PMUC_PRCR1_PA26_Msk
+#define PMUC_PRCR1_PA27_Pos             (27U)
+#define PMUC_PRCR1_PA27_Msk             (0x1UL << PMUC_PRCR1_PA27_Pos)
+#define PMUC_PRCR1_PA27                 PMUC_PRCR1_PA27_Msk
+#define PMUC_PRCR1_PA28_Pos             (28U)
+#define PMUC_PRCR1_PA28_Msk             (0x1UL << PMUC_PRCR1_PA28_Pos)
+#define PMUC_PRCR1_PA28                 PMUC_PRCR1_PA28_Msk
+#define PMUC_PRCR1_PA29_Pos             (29U)
+#define PMUC_PRCR1_PA29_Msk             (0x1UL << PMUC_PRCR1_PA29_Pos)
+#define PMUC_PRCR1_PA29                 PMUC_PRCR1_PA29_Msk
+#define PMUC_PRCR1_PA30_Pos             (30U)
+#define PMUC_PRCR1_PA30_Msk             (0x1UL << PMUC_PRCR1_PA30_Pos)
+#define PMUC_PRCR1_PA30                 PMUC_PRCR1_PA30_Msk
+#define PMUC_PRCR1_PA31_Pos             (31U)
+#define PMUC_PRCR1_PA31_Msk             (0x1UL << PMUC_PRCR1_PA31_Pos)
+#define PMUC_PRCR1_PA31                 PMUC_PRCR1_PA31_Msk
+
+/******************* Bit definition for PMUC_PRCR2 register *******************/
+#define PMUC_PRCR2_PA32_Pos             (0U)
+#define PMUC_PRCR2_PA32_Msk             (0x1UL << PMUC_PRCR2_PA32_Pos)
+#define PMUC_PRCR2_PA32                 PMUC_PRCR2_PA32_Msk
+#define PMUC_PRCR2_PA33_Pos             (1U)
+#define PMUC_PRCR2_PA33_Msk             (0x1UL << PMUC_PRCR2_PA33_Pos)
+#define PMUC_PRCR2_PA33                 PMUC_PRCR2_PA33_Msk
+#define PMUC_PRCR2_PA34_Pos             (2U)
+#define PMUC_PRCR2_PA34_Msk             (0x1UL << PMUC_PRCR2_PA34_Pos)
+#define PMUC_PRCR2_PA34                 PMUC_PRCR2_PA34_Msk
+#define PMUC_PRCR2_PA35_Pos             (3U)
+#define PMUC_PRCR2_PA35_Msk             (0x1UL << PMUC_PRCR2_PA35_Pos)
+#define PMUC_PRCR2_PA35                 PMUC_PRCR2_PA35_Msk
+#define PMUC_PRCR2_PA36_Pos             (4U)
+#define PMUC_PRCR2_PA36_Msk             (0x1UL << PMUC_PRCR2_PA36_Pos)
+#define PMUC_PRCR2_PA36                 PMUC_PRCR2_PA36_Msk
+#define PMUC_PRCR2_PA37_Pos             (5U)
+#define PMUC_PRCR2_PA37_Msk             (0x1UL << PMUC_PRCR2_PA37_Pos)
+#define PMUC_PRCR2_PA37                 PMUC_PRCR2_PA37_Msk
+#define PMUC_PRCR2_PA38_Pos             (6U)
+#define PMUC_PRCR2_PA38_Msk             (0x1UL << PMUC_PRCR2_PA38_Pos)
+#define PMUC_PRCR2_PA38                 PMUC_PRCR2_PA38_Msk
+#define PMUC_PRCR2_PA39_Pos             (7U)
+#define PMUC_PRCR2_PA39_Msk             (0x1UL << PMUC_PRCR2_PA39_Pos)
+#define PMUC_PRCR2_PA39                 PMUC_PRCR2_PA39_Msk
+#define PMUC_PRCR2_PA40_Pos             (8U)
+#define PMUC_PRCR2_PA40_Msk             (0x1UL << PMUC_PRCR2_PA40_Pos)
+#define PMUC_PRCR2_PA40                 PMUC_PRCR2_PA40_Msk
+#define PMUC_PRCR2_PA41_Pos             (9U)
+#define PMUC_PRCR2_PA41_Msk             (0x1UL << PMUC_PRCR2_PA41_Pos)
+#define PMUC_PRCR2_PA41                 PMUC_PRCR2_PA41_Msk
+#define PMUC_PRCR2_PA42_Pos             (10U)
+#define PMUC_PRCR2_PA42_Msk             (0x1UL << PMUC_PRCR2_PA42_Pos)
+#define PMUC_PRCR2_PA42                 PMUC_PRCR2_PA42_Msk
+#define PMUC_PRCR2_PA43_Pos             (11U)
+#define PMUC_PRCR2_PA43_Msk             (0x1UL << PMUC_PRCR2_PA43_Pos)
+#define PMUC_PRCR2_PA43                 PMUC_PRCR2_PA43_Msk
+#define PMUC_PRCR2_PA44_Pos             (12U)
+#define PMUC_PRCR2_PA44_Msk             (0x1UL << PMUC_PRCR2_PA44_Pos)
+#define PMUC_PRCR2_PA44                 PMUC_PRCR2_PA44_Msk
+#define PMUC_PRCR2_PA45_Pos             (13U)
+#define PMUC_PRCR2_PA45_Msk             (0x1UL << PMUC_PRCR2_PA45_Pos)
+#define PMUC_PRCR2_PA45                 PMUC_PRCR2_PA45_Msk
+#define PMUC_PRCR2_PA46_Pos             (14U)
+#define PMUC_PRCR2_PA46_Msk             (0x1UL << PMUC_PRCR2_PA46_Pos)
+#define PMUC_PRCR2_PA46                 PMUC_PRCR2_PA46_Msk
+#define PMUC_PRCR2_PA47_Pos             (15U)
+#define PMUC_PRCR2_PA47_Msk             (0x1UL << PMUC_PRCR2_PA47_Pos)
+#define PMUC_PRCR2_PA47                 PMUC_PRCR2_PA47_Msk
+#define PMUC_PRCR2_PA48_Pos             (16U)
+#define PMUC_PRCR2_PA48_Msk             (0x1UL << PMUC_PRCR2_PA48_Pos)
+#define PMUC_PRCR2_PA48                 PMUC_PRCR2_PA48_Msk
+#define PMUC_PRCR2_PA49_Pos             (17U)
+#define PMUC_PRCR2_PA49_Msk             (0x1UL << PMUC_PRCR2_PA49_Pos)
+#define PMUC_PRCR2_PA49                 PMUC_PRCR2_PA49_Msk
+#define PMUC_PRCR2_PA50_Pos             (18U)
+#define PMUC_PRCR2_PA50_Msk             (0x1UL << PMUC_PRCR2_PA50_Pos)
+#define PMUC_PRCR2_PA50                 PMUC_PRCR2_PA50_Msk
+#define PMUC_PRCR2_PA51_Pos             (19U)
+#define PMUC_PRCR2_PA51_Msk             (0x1UL << PMUC_PRCR2_PA51_Pos)
+#define PMUC_PRCR2_PA51                 PMUC_PRCR2_PA51_Msk
+#define PMUC_PRCR2_PA52_Pos             (20U)
+#define PMUC_PRCR2_PA52_Msk             (0x1UL << PMUC_PRCR2_PA52_Pos)
+#define PMUC_PRCR2_PA52                 PMUC_PRCR2_PA52_Msk
+#define PMUC_PRCR2_PA53_Pos             (21U)
+#define PMUC_PRCR2_PA53_Msk             (0x1UL << PMUC_PRCR2_PA53_Pos)
+#define PMUC_PRCR2_PA53                 PMUC_PRCR2_PA53_Msk
+#define PMUC_PRCR2_PA54_Pos             (22U)
+#define PMUC_PRCR2_PA54_Msk             (0x1UL << PMUC_PRCR2_PA54_Pos)
+#define PMUC_PRCR2_PA54                 PMUC_PRCR2_PA54_Msk
+#define PMUC_PRCR2_PA55_Pos             (23U)
+#define PMUC_PRCR2_PA55_Msk             (0x1UL << PMUC_PRCR2_PA55_Pos)
+#define PMUC_PRCR2_PA55                 PMUC_PRCR2_PA55_Msk
+#define PMUC_PRCR2_PA56_Pos             (24U)
+#define PMUC_PRCR2_PA56_Msk             (0x1UL << PMUC_PRCR2_PA56_Pos)
+#define PMUC_PRCR2_PA56                 PMUC_PRCR2_PA56_Msk
+#define PMUC_PRCR2_PA57_Pos             (25U)
+#define PMUC_PRCR2_PA57_Msk             (0x1UL << PMUC_PRCR2_PA57_Pos)
+#define PMUC_PRCR2_PA57                 PMUC_PRCR2_PA57_Msk
+#define PMUC_PRCR2_SB_Pos               (30U)
+#define PMUC_PRCR2_SB_Msk               (0x1UL << PMUC_PRCR2_SB_Pos)
+#define PMUC_PRCR2_SB                   PMUC_PRCR2_SB_Msk
+#define PMUC_PRCR2_SA_Pos               (31U)
+#define PMUC_PRCR2_SA_Msk               (0x1UL << PMUC_PRCR2_SA_Pos)
+#define PMUC_PRCR2_SA                   PMUC_PRCR2_SA_Msk
+
+/******************* Bit definition for PMUC_PBRCR register *******************/
+#define PMUC_PBRCR_RTO_Pos              (0U)
+#define PMUC_PBRCR_RTO_Msk              (0x1UL << PMUC_PBRCR_RTO_Pos)
+#define PMUC_PBRCR_RTO                  PMUC_PBRCR_RTO_Msk
+#define PMUC_PBRCR_SNS_Pos              (1U)
+#define PMUC_PBRCR_SNS_Msk              (0x1UL << PMUC_PBRCR_SNS_Pos)
+#define PMUC_PBRCR_SNS                  PMUC_PBRCR_SNS_Msk
+#define PMUC_PBRCR_DBG_SEL_Pos          (4U)
+#define PMUC_PBRCR_DBG_SEL_Msk          (0xFUL << PMUC_PBRCR_DBG_SEL_Pos)
+#define PMUC_PBRCR_DBG_SEL              PMUC_PBRCR_DBG_SEL_Msk
 #endif

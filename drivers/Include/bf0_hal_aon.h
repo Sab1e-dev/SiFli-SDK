@@ -19,6 +19,21 @@ extern "C" {
   * @{
   */
 
+#ifdef SF32LB55X
+#include "bf0_hal_aon_sf32lb55x.h"
+#elif defined(SF32LB56X)
+#include "bf0_hal_aon_sf32lb56x.h"
+#elif defined(SF32LB58X)
+#include "bf0_hal_aon_sf32lb58x.h"
+#elif defined(SF32LB52X)
+#include "bf0_hal_aon_sf32lb52x.h"
+#elif defined(SF32LB57X)
+#include "bf0_hal_aon_sf32lb57x.h"
+#else
+#error "Unsupported chip"
+#endif /* SF32LB55X */
+
+
 /* Exported types ------------------------------------------------------------*/
 /** @defgroup AON_Exported_Types AON Exported Types
  * @{
@@ -35,143 +50,6 @@ typedef enum
     AON_PIN_MODE_NEG_EDGE,  /**< negative edge to trigger pin wakeup */
     AON_PIN_MODE_DOUBLE_EDGE,  /**< positive or negative edge to trigger pin wakeup */
 } AON_PinModeTypeDef;
-
-
-
-/** @brief hpsys wakeup source */
-typedef enum
-{
-    /* First part, keep enum value same as macro definition to simplify implementation */
-    HPAON_WAKEUP_SRC_RTC       = HPSYS_AON_WER_RTC_Pos,   /**< RTC wakeup source */
-    HPAON_WAKEUP_SRC_LPTIM1    = HPSYS_AON_WER_LPTIM1_Pos,    /**< LPTIM1 wakeup source */
-
-    HPAON_WAKEUP_SRC_LP2HP_REQ = HPSYS_AON_WER_LP2HP_REQ_Pos,  /**< LP2HP manual wakeup source */
-    HPAON_WAKEUP_SRC_LP2HP_IRQ = HPSYS_AON_WER_LP2HP_IRQ_Pos,  /**< LP2HP mailbox interrupt wakeup source */
-
-
-#ifndef SF32LB55X
-    HPAON_WAKEUP_SRC_GPIO1     = HPSYS_AON_WER_GPIO1_Pos,    /**< GPIO1 wakeup source */
-#endif /* SF32LB55X */
-
-#ifdef HPSYS_AON_WER_PMUC_Pos
-    HPAON_WAKEUP_SRC_PMUC      = HPSYS_AON_WER_PMUC_Pos,     /**< PMUC wakeup source */
-#endif /* HPSYS_AON_WER_PMUC_Pos */
-
-    /* Second part, PIN wakeup source */
-    /* NOTE:  HPAON_WAKEUP_SRC_PIN0 value must be greater than any non-pin wakeup source */
-    HPAON_WAKEUP_SRC_PIN0 = 16,  /**< PIN0 wakeup source  */
-    HPAON_WAKEUP_SRC_PIN1 = 17,  /**< PIN1 wakeup source  */
-    HPAON_WAKEUP_SRC_PIN2,       /**< PIN2 wakeup source  */
-    HPAON_WAKEUP_SRC_PIN3,       /**< PIN3 wakeup source  */
-#ifndef SF32LB55X
-    HPAON_WAKEUP_SRC_PIN4,
-    HPAON_WAKEUP_SRC_PIN5,
-    HPAON_WAKEUP_SRC_PIN6,
-    HPAON_WAKEUP_SRC_PIN7,
-    HPAON_WAKEUP_SRC_PIN8,
-    HPAON_WAKEUP_SRC_PIN9,
-    HPAON_WAKEUP_SRC_PIN10,
-    HPAON_WAKEUP_SRC_PIN11,
-    HPAON_WAKEUP_SRC_PIN12,
-    HPAON_WAKEUP_SRC_PIN13,
-#ifdef SF32LB58X
-    HPAON_WAKEUP_SRC_PIN14,
-    HPAON_WAKEUP_SRC_PIN15,
-    HPAON_WAKEUP_SRC_PIN16,
-    HPAON_WAKEUP_SRC_PIN17,
-    HPAON_WAKEUP_SRC_PIN_LAST = HPAON_WAKEUP_SRC_PIN17,
-    HPAON_WAKEUP_SRC_PBR_PIN_FIRST = HPAON_WAKEUP_SRC_PIN12,
-
-#elif defined(SF32LB56X)
-    HPAON_WAKEUP_SRC_PIN_LAST = HPAON_WAKEUP_SRC_PIN13,
-    HPAON_WAKEUP_SRC_PBR_PIN_FIRST = HPAON_WAKEUP_SRC_PIN10,
-#else
-    HPAON_WAKEUP_SRC_PIN14,
-    HPAON_WAKEUP_SRC_PIN15,
-    HPAON_WAKEUP_SRC_PIN16,
-    HPAON_WAKEUP_SRC_PIN17,
-    HPAON_WAKEUP_SRC_PIN18,
-    HPAON_WAKEUP_SRC_PIN19,
-    HPAON_WAKEUP_SRC_PIN20,
-    HPAON_WAKEUP_SRC_PIN_LAST = HPAON_WAKEUP_SRC_PIN20,
-    HPAON_WAKEUP_SRC_PBR_PIN_FIRST = HPAON_WAKEUP_SRC_PIN17,
-#endif /* SF32LB58X */
-#else
-    HPAON_WAKEUP_SRC_PIN_LAST = HPAON_WAKEUP_SRC_PIN3,
-#endif /* SF32LB55X */
-} HPAON_WakeupSrcTypeDef;
-
-
-/** @brief lpsys wakeup source */
-typedef enum
-{
-    /* First part, keep enum value same as macro definition to simplify implementation */
-    LPAON_WAKEUP_SRC_RTC       = LPSYS_AON_WER_RTC_Pos,       /**< RTC wakeup source */
-
-    LPAON_WAKEUP_SRC_HP2LP_REQ = LPSYS_AON_WER_HP2LP_REQ_Pos, /**< HP2LP manual wakeup source */
-    LPAON_WAKEUP_SRC_HP2LP_IRQ = LPSYS_AON_WER_HP2LP_IRQ_Pos, /**< HP2LP mailbox interrupt wakeup source */
-
-#ifndef SF32LB55X
-    LPAON_WAKEUP_SRC_GPIO2     = LPSYS_AON_WER_GPIO2_Pos,    /**< GPIO2 wakeup source */
-#endif /* SF32LB55X */
-
-#if defined(SF32LB52X) || defined(SF32LB57X)
-    LPAON_WAKEUP_SRC_LPTIM3    = LPSYS_AON_WER_LPTIM3_Pos,   /**< LPTIM2 wakeup source */
-#else
-    LPAON_WAKEUP_SRC_LPTIM2    = LPSYS_AON_WER_LPTIM2_Pos,   /**< LPTIM2 wakeup source */
-    LPAON_WAKEUP_SRC_LPCOMP1   = LPSYS_AON_WER_LPCOMP1_Pos,  /**< LPCOMP1 wakeup source */
-    LPAON_WAKEUP_SRC_LPCOMP2   = LPSYS_AON_WER_LPCOMP2_Pos,  /**< LPCOMP2 wakeup source */
-#endif /* SF32LB52X || SF32LB57X */
-
-#ifndef SF32LB55X
-    LPAON_WAKEUP_SRC_BT        = LPSYS_AON_WER_BT_Pos,       /**< BT wakeup source */
-#else
-    LPAON_WAKEUP_SRC_BLE       = LPSYS_AON_WER_BLE_Pos,      /**< BLE wakeup source */
-#endif /* SF32LB55X */
-
-    /* Second part, PIN wakeup source */
-    /* NOTE:  HPAON_WAKEUP_SRC_PIN0 value must be greater than any non-pin wakeup source */
-    LPAON_WAKEUP_SRC_PIN0 = 16,     /**< PIN0 wakeup source */
-    LPAON_WAKEUP_SRC_PIN1,          /**< PIN1 wakeup source */
-    LPAON_WAKEUP_SRC_PIN2,          /**< PIN2 wakeup source */
-    LPAON_WAKEUP_SRC_PIN3,          /**< PIN3 wakeup source */
-    LPAON_WAKEUP_SRC_PIN4,          /**< PIN4 wakeup source */
-    LPAON_WAKEUP_SRC_PIN5,          /**< PIN5 wakeup source */
-#ifndef SF32LB55X
-    LPAON_WAKEUP_SRC_PIN6,
-    LPAON_WAKEUP_SRC_PIN7,
-    LPAON_WAKEUP_SRC_PIN8,
-    LPAON_WAKEUP_SRC_PIN9,
-    LPAON_WAKEUP_SRC_PIN10,
-    LPAON_WAKEUP_SRC_PIN11,
-    LPAON_WAKEUP_SRC_PIN12,
-    LPAON_WAKEUP_SRC_PIN13,
-#ifdef SF32LB58X
-    LPAON_WAKEUP_SRC_PIN14,
-    LPAON_WAKEUP_SRC_PIN15,
-    LPAON_WAKEUP_SRC_PIN16,
-    LPAON_WAKEUP_SRC_PIN17,
-    LPAON_WAKEUP_SRC_PIN_LAST = LPAON_WAKEUP_SRC_PIN17,
-    LPAON_WAKEUP_SRC_PBR_PIN_FIRST = LPAON_WAKEUP_SRC_PIN12,
-#elif defined(SF32LB56X)
-    LPAON_WAKEUP_SRC_PIN_LAST = LPAON_WAKEUP_SRC_PIN13,
-    LPAON_WAKEUP_SRC_PBR_PIN_FIRST = LPAON_WAKEUP_SRC_PIN10,
-#else
-    LPAON_WAKEUP_SRC_PIN14,
-    LPAON_WAKEUP_SRC_PIN15,
-    LPAON_WAKEUP_SRC_PIN16,
-    LPAON_WAKEUP_SRC_PIN17,
-    LPAON_WAKEUP_SRC_PIN18,
-    LPAON_WAKEUP_SRC_PIN19,
-    LPAON_WAKEUP_SRC_PIN20,
-    LPAON_WAKEUP_SRC_PIN_LAST = LPAON_WAKEUP_SRC_PIN20,
-    LPAON_WAKEUP_SRC_PBR_PIN_FIRST = LPAON_WAKEUP_SRC_PIN17,
-#endif /* SF32LB58X */
-#else
-    LPAON_WAKEUP_SRC_PIN_LAST = LPAON_WAKEUP_SRC_PIN5,
-#endif /* SF32LB55X */
-
-} LPAON_WakeupSrcTypeDef;
 
 
 /** AON wakeup pin type */
@@ -306,6 +184,9 @@ extern uint8_t g_hal_hpaon_lcpu_wakeup_ref_cnt;
  */
 #ifdef HPSYS_AON_ANACR_PA_ISO
 #define HAL_HPAON_DISABLE_PAD()       (hwp_hpsys_aon->ANACR |= (HPSYS_AON_ANACR_PA_ISO))
+#elif defined(HPSYS_AON_ANACR_AUTO_ISO)
+//TODO:
+#define HAL_HPAON_DISABLE_PAD()       (hwp_hpsys_aon->ANACR |= (HPSYS_AON_ANACR_AUTO_ISO))
 #else
 #define HAL_HPAON_DISABLE_PAD()       (hwp_pmuc->CR |= (PMUC_CR_PA_RET))
 #endif /* HPSYS_AON_ANACR_PA_ISO */
@@ -323,6 +204,9 @@ extern uint8_t g_hal_hpaon_lcpu_wakeup_ref_cnt;
  */
 #ifdef HPSYS_AON_ANACR_PA_ISO
 #define HAL_HPAON_ENABLE_PAD()       (hwp_hpsys_aon->ANACR &= ~(HPSYS_AON_ANACR_PA_ISO))
+#elif defined(HPSYS_AON_ANACR_AUTO_ISO)
+//TODO:
+#define HAL_HPAON_ENABLE_PAD()       (hwp_hpsys_aon->ANACR &= ~(HPSYS_AON_ANACR_AUTO_ISO))
 #else
 #define HAL_HPAON_ENABLE_PAD()       (hwp_pmuc->CR &= ~(PMUC_CR_PA_RET))
 #endif

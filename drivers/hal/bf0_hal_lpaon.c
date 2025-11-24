@@ -194,7 +194,6 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LPAON_EnterStandby(uint32_t sbcr)
  * @retval status
  */
 __HAL_ROM_USED HAL_StatusTypeDef HAL_LPAON_EnableWakeupSrc(LPAON_WakeupSrcTypeDef src, AON_PinModeTypeDef mode)
-
 {
     uint32_t mask;
     uint32_t val;
@@ -202,6 +201,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LPAON_EnableWakeupSrc(LPAON_WakeupSrcTypeDe
     uint32_t wer_en;
     __IO uint32_t *cr;
 
+#ifdef LPSYS_AON_WER_PIN0
     if ((src >= LPAON_WAKEUP_SRC_PIN0) && (src <= LPAON_WAKEUP_SRC_PIN_LAST))
     {
         wer_en = (LPSYS_AON_WER_PIN0 << (src - LPAON_WAKEUP_SRC_PIN0));
@@ -250,6 +250,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LPAON_EnableWakeupSrc(LPAON_WakeupSrcTypeDe
         hwp_lpsys_aon->WER |= wer_en;
     }
     else
+#endif /* LPSYS_AON_WER_PIN0 */
     {
 
         hwp_lpsys_aon->WER |= (1UL << src);
@@ -267,11 +268,13 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LPAON_DisableWakeupSrc(LPAON_WakeupSrcTypeD
 {
     uint32_t wer_en;
 
+#ifdef LPSYS_AON_WER_PIN0
     if ((src >= LPAON_WAKEUP_SRC_PIN0) && (src <= LPAON_WAKEUP_SRC_PIN_LAST))
     {
         wer_en = (LPSYS_AON_WER_PIN0 << (src - LPAON_WAKEUP_SRC_PIN0));
     }
     else
+#endif /* LPSYS_AON_WER_PIN0 */
     {
         wer_en = (1UL << src);
     }
@@ -336,6 +339,7 @@ __HAL_ROM_USED GPIO_TypeDef *HAL_LPAON_QueryWakeupGpioPin(uint8_t wakeup_pin, ui
 }
 #endif /* SF32LB52X */
 
+#ifndef SF32LB57X
 __HAL_ROM_USED  HAL_StatusTypeDef HAL_LPAON_GetWakeupPinMode(uint8_t wakeup_pin, AON_PinModeTypeDef *mode)
 {
     uint32_t mask;
@@ -386,6 +390,8 @@ __HAL_ROM_USED  HAL_StatusTypeDef HAL_LPAON_GetWakeupPinMode(uint8_t wakeup_pin,
 
     return HAL_OK;
 }
+#endif /* SF32LB57X */
+
 
 #ifdef SOC_BF0_HCPU
     __weak
