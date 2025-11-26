@@ -131,6 +131,16 @@ void dbg_busmon_psram(uint32_t address, uint32_t count, uint8_t access);
 #endif
 
 /**
+ * @brief  Malloc a SRAM memory which is accessible by DMA controller
+ *
+ * @param  n Size of memory to allocate
+ *
+ * @return Pointer to allocated memory
+ */
+void *malloc_dma_friendly_sram(rt_size_t n);
+void free_dma_friendly_sram(void *ptr);
+
+/**
  * @brief  Called at the beginning of rt_hw_board_init
  *
  * By default it's implemented as a weak funtion which is an empty funciton, user could implement a new one.

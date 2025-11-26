@@ -1386,6 +1386,18 @@ static HAL_StatusTypeDef LayerUpdate(LCDC_HandleTypeDef *lcdc)
         lcdc->Instance->CANVAS_BR_POS = (lcdc->roi.x1 << LCD_IF_CANVAS_BR_POS_X1_Pos) | (lcdc->roi.y1 << LCD_IF_CANVAS_BR_POS_Y1_Pos);
     }
 
+#ifdef LCDC_SUPPORT_EXTENAL_LINEBUF
+    if ((0 == lcdc->sram_line_buf0) || (0 == lcdc->sram_line_buf1))
+    {
+        lcdc->Instance->CANVAS_BG |= LCD_IF_CANVAS_BG_LB_BYPASS;
+    }
+    else
+    {
+        lcdc->Instance->LINE_BUF0 = (uint32_t) lcdc->sram_line_buf0;
+        lcdc->Instance->LINE_BUF1 = (uint32_t) lcdc->sram_line_buf1;
+        lcdc->Instance->CANVAS_BG &= ~LCD_IF_CANVAS_BG_LB_BYPASS;
+    }
+#endif /* LCDC_SUPPORT_EXTENAL_LINEBUF */
 
 
     /*** 2. setup layer ***/
@@ -1785,24 +1797,6 @@ static HAL_StatusTypeDef _SendLayerData(LCDC_HandleTypeDef *lcdc, LCDC_AsyncMode
         }
     }
 #endif /* LCDC_SUPPORT_TE_WINDOW */
-#ifdef LCD_IF_CANVAS_BG_LB_BYPASS
-    if (0)
-    {
-
-    }
-#ifdef LCDC_SUPPORT_EXTENAL_LINEBUF
-    else if ((0 == lcdc->sram_line_buf0) && (0 == lcdc->sram_line_buf1))
-    {
-        lcdc->Instance->LINE_BUF0 = (uint32_t) lcdc->sram_line_buf0;
-        lcdc->Instance->LINE_BUF1 = (uint32_t) lcdc->sram_line_buf1;
-        lcdc->Instance->CANVAS_BG |= LCD_IF_CANVAS_BG_LB_BYPASS;
-    }
-#endif /* LCDC_SUPPORT_EXTENAL_LINEBUF */
-    else
-    {
-        lcdc->Instance->CANVAS_BG &= ~LCD_IF_CANVAS_BG_LB_BYPASS;
-    }
-#endif /* LCD_IF_CANVAS_BG_LB_BYPASS */
 
     g_LCDC_CpltCallback = LCDC_TransCpltCallback;
     if (LCDC_ASYNC_MODE == async_mode)  lcdc->debug_cnt1++;

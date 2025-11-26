@@ -1397,6 +1397,73 @@ void HAL_RCC_MspInit(void)
 
 #endif /* BSP_NOT_DISABLE_UNUSED_MODULE */
 
+
+
+/**
+ * @brief  Malloc a SRAM memory which is accessible by DMA controller
+ *
+ * @param  n Size of memory to allocate
+ *
+ * @return Pointer to allocated memory
+ */
+void *malloc_dma_friendly_sram(rt_size_t n)
+{
+#define list_max 1024
+
+#if defined(SF32LB55X) || defined(SF32LB56X) || defined(SF32LB58X)
+    //Retension memory is not accessible
+#define IS_DMA_FRIENDLY_SRAM(addr)    ((((addr) >= HPSYS_RETM_BASE) && ((addr) < HPSYS_RETM_END)) ? false : HCPU_IS_SRAM_ADDR(addr))
+#else
+#define IS_DMA_FRIENDLY_SRAM(addr)    HCPU_IS_SRAM_ADDR(addr)
+#endif
+#define IS_DMA_FRIENDLY_SRAM_RANGE(p, len)        (IS_DMA_FRIENDLY_SRAM((uint32_t)p) && IS_DMA_FRIENDLY_SRAM(((uint32_t)p) + (len)))
+
+    uint8_t *ret_p = rt_malloc(n);
+    if (!ret_p) return NULL;
+
+    if (!IS_DMA_FRIENDLY_SRAM_RANGE(ret_p, n))
+    {
+        uint8_t **malloc_list = (uint8_t **)rt_malloc(sizeof(uint8_t *) * list_max);
+        if (!malloc_list)
+        {
+            rt_free(ret_p);
+            return NULL;
+        }
+        malloc_list[0] = ret_p;
+        ret_p = NULL;
+
+        uint32_t malloc_cnt = 1;
+        while (malloc_cnt < list_max)
+        {
+            ret_p = (uint8_t *)rt_malloc(n);
+            if (!ret_p) break;
+            malloc_list[malloc_cnt++] = ret_p;
+
+            if (IS_DMA_FRIENDLY_SRAM_RANGE(ret_p, n))
+                break;
+            else
+                ret_p = NULL;
+        }
+
+        //Free all malloced memory except 'ret_p'
+        while (malloc_cnt > 0)
+        {
+            if (malloc_list[malloc_cnt - 1] != ret_p)
+                rt_free(malloc_list[malloc_cnt - 1]);
+            malloc_cnt--;
+        }
+        rt_free(malloc_list);
+
+    }
+
+    return (void *)ret_p;
+}
+
+
+void free_dma_friendly_sram(void *p)
+{
+    rt_free(p);
+}
 /// @} drv_common
 /// @} bsp_driver
 /// @} file
