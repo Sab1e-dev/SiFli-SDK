@@ -171,6 +171,9 @@ typedef struct
 #define HPSYS_AON_WSR_PIN_Msk           (0x1UL << HPSYS_AON_WSR_PIN_Pos)
 #define HPSYS_AON_WSR_PIN               HPSYS_AON_WSR_PIN_Msk
 
+#define HPSYS_AON_WSR_PIN_ALL           (0UL)
+#define HPSYS_AON_WSR_PIN_NUM           PMUC_WSR_PIN_NUM
+
 /***************** Bit definition for HPSYS_AON_WCR register ******************/
 #define HPSYS_AON_WCR_AON_Pos           (31U)
 #define HPSYS_AON_WCR_AON_Msk           (0x1UL << HPSYS_AON_WCR_AON_Pos)

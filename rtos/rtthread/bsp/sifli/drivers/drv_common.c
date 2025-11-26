@@ -197,27 +197,23 @@ void SysTick_Handler(void)
 
     /* Trigger GPIO callback manually as GPIO edge detection interrupt may get lost
        and WSR.PIN status is not cleared */
-#ifdef HPSYS_AON_WSR_PIN_ALL
 #ifdef SOC_BF0_HCPU
-    status = HAL_HPAON_GET_WSR() & HPSYS_AON_WSR_PIN_ALL;
+    status = HAL_HPAON_GET_WSR_PIN();
     if (status)
     {
-        pin_wsr = status >> HPSYS_AON_WSR_PIN0_Pos;
 #ifdef RT_USING_PIN
         drv_pin_irq_from_wsr(pin_wsr);
 #endif /* RT_USING_PIN */
     }
-#else
-    status = HAL_LPAON_GET_WSR() & LPSYS_AON_WSR_PIN_ALL;
+#elif defined(HAL_LPAON_GET_WSR_PIN)
+    status = HAL_LPAON_GET_WSR_PIN();
     if (status)
     {
-        pin_wsr = status >> LPSYS_AON_WSR_PIN0_Pos;
 #ifdef RT_USING_PIN
         drv_pin_irq_from_wsr(pin_wsr);
 #endif /* RT_USING_PIN */
     }
 #endif /* SOC_BF0_HCPU */
-#endif /* HPSYS_AON_WSR_PIN_ALL */
 
 #ifdef RT_USING_PIN
     drv_pin_check();

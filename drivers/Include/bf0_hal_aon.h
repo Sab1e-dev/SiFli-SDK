@@ -13,11 +13,19 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "bf0_hal_def.h"
+#include "bf0_pin_const.h"
 
 /** @addtogroup AON AON
   * @ingroup BF0_HAL_Driver
   * @{
   */
+
+/* Feature list, define supported feature macro in chip specific aon header file, such as bf0_hal_aon_sf32lb52x */
+/* PMUC and HPSYS_AON share the same pin wakeup source register */
+//#define AON_PMUC_WSR_PIN_COMBINED_SUPPORT
+/* Reference count is used by HAL_HPAON_WakeCore and HAL_HPAON_CANCEL_LP_ACTIVE_REQUEST */
+//#define AON_LCPU_ACTIVE_REQUEST_REF_COUNT_SUPPORT
+
 
 #ifdef SF32LB55X
 #include "bf0_hal_aon_sf32lb55x.h"
@@ -88,12 +96,24 @@ typedef struct
  */
 #define HAL_HPAON_GET_WSR()        (hwp_hpsys_aon->WSR)
 
+#ifdef AON_PMUC_WSR_PIN_COMBINED_SUPPORT
+#define HAL_HPAON_GET_WSR_PIN()        HAL_PMU_GET_WSR_PIN()
+#define HPSYS_AON_WSR_PIN_FIRST_POS    PMUC_WSR_PA33_Pos
+#else
+#define HAL_HPAON_GET_WSR_PIN()        (hwp_hpsys_aon->WSR & HPSYS_AON_WSR_PIN_ALL)
+#define HPSYS_AON_WSR_PIN_FIRST_POS    HPSYS_AON_WSR_PIN0_Pos
+#endif /* AON_PMUC_WSR_PIN_COMBINED_SUPPORT */
+
 /**
  * @brief  Clear hpsys wakeup source register
  * @param[in] wsr
  * @retval wsr wakeup source register value
  */
+#ifdef AON_PMUC_WSR_PIN_COMBINED_SUPPORT
+#define HAL_HPAON_CLEAR_WSR(wsr)   HAL_PMU_CLEAR_WSR(wsr)
+#else
 #define HAL_HPAON_CLEAR_WSR(wsr)   (hwp_hpsys_aon->WCR = ((wsr)|HPSYS_AON_WCR_AON))
+#endif /* AON_PMUC_WSR_PIN_COMBINED_SUPPORT */
 
 /**
  * @brief  Get HPSYS power mode
@@ -130,7 +150,7 @@ typedef struct
  * @brief  Cancel the LP active request
  * @retval void
  */
-#if defined(SF32LB52X) || defined(SF32LB57X)
+#ifdef AON_LCPU_ACTIVE_REQUEST_REF_COUNT_SUPPORT
 extern uint8_t g_hal_hpaon_lcpu_wakeup_ref_cnt;
 #define HAL_HPAON_CANCEL_LP_ACTIVE_REQUEST()                     \
     do                                                           \
@@ -149,7 +169,7 @@ extern uint8_t g_hal_hpaon_lcpu_wakeup_ref_cnt;
 
 #else
 #define HAL_HPAON_CANCEL_LP_ACTIVE_REQUEST()   (hwp_hpsys_aon->ISSR &= ~HPSYS_AON_ISSR_HP2LP_REQ)
-#endif /* SF32LB52X || SF32LB57x */
+#endif /* AON_LCPU_ACTIVE_REQUEST_REF_COUNT_SUPPORT */
 
 /**
  * @brief  Check whether HP2LP_REQ is active
@@ -184,11 +204,10 @@ extern uint8_t g_hal_hpaon_lcpu_wakeup_ref_cnt;
  */
 #ifdef HPSYS_AON_ANACR_PA_ISO
 #define HAL_HPAON_DISABLE_PAD()       (hwp_hpsys_aon->ANACR |= (HPSYS_AON_ANACR_PA_ISO))
-#elif defined(HPSYS_AON_ANACR_AUTO_ISO)
-//TODO:
-#define HAL_HPAON_DISABLE_PAD()       (hwp_hpsys_aon->ANACR |= (HPSYS_AON_ANACR_AUTO_ISO))
-#else
+#elif defined(PMUC_CR_PA_RET)
 #define HAL_HPAON_DISABLE_PAD()       (hwp_pmuc->CR |= (PMUC_CR_PA_RET))
+#else
+#define HAL_HPAON_DISABLE_PAD()
 #endif /* HPSYS_AON_ANACR_PA_ISO */
 
 /**
@@ -204,12 +223,11 @@ extern uint8_t g_hal_hpaon_lcpu_wakeup_ref_cnt;
  */
 #ifdef HPSYS_AON_ANACR_PA_ISO
 #define HAL_HPAON_ENABLE_PAD()       (hwp_hpsys_aon->ANACR &= ~(HPSYS_AON_ANACR_PA_ISO))
-#elif defined(HPSYS_AON_ANACR_AUTO_ISO)
-//TODO:
-#define HAL_HPAON_ENABLE_PAD()       (hwp_hpsys_aon->ANACR &= ~(HPSYS_AON_ANACR_AUTO_ISO))
-#else
+#elif defined(PMUC_CR_PA_RET)
 #define HAL_HPAON_ENABLE_PAD()       (hwp_pmuc->CR &= ~(PMUC_CR_PA_RET))
-#endif
+#else
+#define HAL_HPAON_ENABLE_PAD()
+#endif /* HPSYS_AON_ANACR_PA_ISO */
 
 /**
  * @brief  Enable VHP in HPSYS
@@ -238,6 +256,10 @@ extern uint8_t g_hal_hpaon_lcpu_wakeup_ref_cnt;
  * @retval wsr wakeup source register value
  */
 #define HAL_LPAON_GET_WSR()        (hwp_lpsys_aon->WSR)
+
+#ifdef LPSYS_AON_WSR_PIN_ALL
+#define HAL_LPAON_GET_WSR_PIN()        (hwp_lpsys_aon->WSR & LPSYS_AON_WSR_PIN_ALL)
+#endif /* LPSYS_AON_WSR_PIN_ALL */
 
 
 /**
@@ -454,11 +476,35 @@ HAL_StatusTypeDef HAL_HPAON_EnableWakeupSrc(HPAON_WakeupSrcTypeDef src, AON_PinM
  */
 HAL_StatusTypeDef HAL_HPAON_DisableWakeupSrc(HPAON_WakeupSrcTypeDef src);
 
+//TODO:
+/**
+ * @brief  Enable HPSYS pin wakeup source
+ * @param  pad pad
+ * @param  mode pin mode
+ * @retval status
+ */
+HAL_StatusTypeDef HAL_HPAON_EnablePinWakeup(pin_pad pad, AON_PinModeTypeDef mode);
+
+/**
+ * @brief  Disable HPSYS pin wakeup source
+ * @param  pad pad
+ * @retval status
+ */
+HAL_StatusTypeDef HAL_HPAON_DisablePinWakeup(pin_pad pad);
+
+
 /**
  * @brief  Query wakeup pin bound with corresponding gpio pin
  * @param  gpio GPIO instance, e.g. hwp_gpio1
- * @param  gpio_pin gpio pin, start from 1
- * @retval wakeup pin, valid range: 0~5 (Z0), 0~3 (A0), invalid: -1
+ * @param  gpio_pin gpio pin, start from 0, 0 is the first pin of the gpio instance
+ * @return wakeup pin number, its range varies with different chips
+ * @retval -1 invalid
+ * @retval 0~3 for sf32lb55x, PA77~PA80
+ * @retval 0~17 for sf32lb58x, PB54~PB59, PA64~PA69, PBR0~PBR5
+ * @retval 0~13 for sf32lb56x, PB32~PB36, PA50~PA54, PBR0~PBR3
+ * @retval 0~20 for sf32lb52x, PA24~PA44
+ * @retval 0~13 for sf32lb57x, PA33~PA42, PA24~PA27
+ *
  */
 int8_t HAL_HPAON_QueryWakeupPin(GPIO_TypeDef *gpio, uint16_t gpio_pin);
 
@@ -544,8 +590,10 @@ HAL_StatusTypeDef HAL_HPAON_StopGTimer(void);
 
 #ifdef SOC_BF0_LCPU
 #define HAL_GTIMER_READ() HAL_LPAON_READ_GTIMER()
+#ifdef LPSYS_AON_WSR_PIN_NUM
 #define HAL_AON_GetWakePinMode(pin, mode)  HAL_LPAON_GetWakeupPinMode((pin), (mode))
 #define HAL_AON_QueryWakeupGpioPin(wakeup_pin, gpio_pin)  HAL_LPAON_QueryWakeupGpioPin((wakeup_pin), (gpio_pin))
+#endif /* LPSYS_AON_WSR_PIN_NUM */
 #ifdef SF32LB55X
 #define HAL_GTIMER_ENABLE() (hwp_lpsys_aon->CR |= LPSYS_AON_CR_GTIM_EN)
 #define HAL_GTIMER_IS_ENABLED() (hwp_lpsys_aon->CR&LPSYS_AON_CR_GTIM_EN)

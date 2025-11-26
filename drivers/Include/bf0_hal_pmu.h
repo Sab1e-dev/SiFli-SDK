@@ -11,8 +11,10 @@
 extern "C" {
 #endif
 
+
 /* Includes ------------------------------------------------------------------*/
 #include "bf0_hal_def.h"
+#include "bf0_pin_const.h"
 
 /** @addtogroup PMU PMU
   * @ingroup BF0_HAL_Driver
@@ -144,13 +146,6 @@ typedef enum
 
 #define HAL_PMU_DISABLE_LPSYS_LDO()     do {hwp_pmuc->LDO_CR &= ~PMUC_LDO_CR_LPSYS_LDO_EN;} while (0)
 
-
-#ifndef SF32LB55X
-#define PMUC_WSR_PIN_ALL                (PMUC_WSR_PIN0 | PMUC_WSR_PIN1)
-#else
-#define PMUC_WSR_PIN_ALL                (PMUC_WSR_PIN0 | PMUC_WSR_PIN1 | PMUC_WSR_PIN2 \
-                                             | PMUC_WSR_PIN3 | PMUC_WSR_PIN4 | PMUC_WSR_PIN5)
-#endif /* SF32LB55X */
 
 /** @defgroup PMU_LPSYS_PSW PMU_LPSYS_PSW
  * @{
@@ -385,12 +380,15 @@ typedef enum
  */
 #define HAL_PMU_CLEAR_WSR(wsr)   (hwp_pmuc->WCR = (wsr))
 
-
 /**
  * @brief  Get wakeup source
  * @retval wsr wakeup source register value
  */
 #define HAL_PMU_GET_WSR()   (hwp_pmuc->WSR)
+
+
+#define HAL_PMU_GET_WSR_PIN()        (hwp_pmuc->WSR & PMUC_WSR_PIN_ALL)
+
 
 #ifdef SF32LB58X
 
@@ -508,7 +506,7 @@ HAL_StatusTypeDef HAL_PMU_EnablePinWakeup2(pin_pad pad, uint8_t mode);
  * @param  pad pad
  * @retval status
  */
-HAL_StatusTypeDef HAL_PMU_DisablePinWakeup2(pin_pad pin);
+HAL_StatusTypeDef HAL_PMU_DisablePinWakeup2(pin_pad pad);
 
 
 /**

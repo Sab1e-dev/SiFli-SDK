@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#define AON_LCPU_ACTIVE_REQUEST_REF_COUNT_SUPPORT
+
 /** @brief hpsys wakeup source */
 typedef enum
 {

@@ -727,20 +727,17 @@ void check_wsr_pin(void)
 
     level = rt_hw_interrupt_disable();
 
-//TODO:
-#ifdef HPSYS_AON_WSR_PIN_ALL
 #ifdef SOC_BF0_HCPU
-    status = HAL_HPAON_GET_WSR() & HPSYS_AON_WSR_PIN_ALL;
-    pin_wsr = status >> HPSYS_AON_WSR_PIN0_Pos;
+    status = HAL_HPAON_GET_WSR_PIN();
+    pin_wsr = status >> HPSYS_AON_WSR_PIN_FIRST_POS;
     HAL_HPAON_CLEAR_WSR(status);
     wake_pin_num = HPSYS_AON_WSR_PIN_NUM;
-#else
-    status = HAL_LPAON_GET_WSR() & LPSYS_AON_WSR_PIN_ALL;
+#elif defined(HAL_LPAON_GET_WSR_PIN)
+    status = HAL_LPAON_GET_WSR_PIN();
     pin_wsr = status >> LPSYS_AON_WSR_PIN0_Pos;
     HAL_LPAON_CLEAR_WSR(status);
     wake_pin_num = LPSYS_AON_WSR_PIN_NUM;
 #endif /* SOC_BF0_HCPU */
-#endif /* HPSYS_AON_WSR_PIN_ALL */
 
 #ifdef HPSYS_AON_WSR_PBR_PIN_FIRST
     pbr_pin_wsr = (status & LPSYS_AON_WSR_PBR_PIN_ALL) >> LPSYS_AON_WSR_PBR_PIN_FIRST;
@@ -761,6 +758,8 @@ void check_wsr_pin(void)
 
     rt_hw_interrupt_enable(level);
 
+
+#ifdef HAL_AON_GetWakePinMode
     for (i = 0; (i < wake_pin_num) && pin_wsr; i++)
     {
         if (pin_wsr & 1)
@@ -788,6 +787,7 @@ void check_wsr_pin(void)
         }
         pin_wsr >>= 1;
     }
+#endif /* HAL_AON_GetWakePinMode */
 
 #ifdef PAD_PBR_PRESENT
     /* handle pending pbr pin callback detected by drv_pin_check */

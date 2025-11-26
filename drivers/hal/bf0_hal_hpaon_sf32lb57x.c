@@ -19,17 +19,84 @@
 
 __HAL_ROM_USED int8_t HAL_HPAON_QueryWakeupPin(GPIO_TypeDef *gpio, uint16_t gpio_pin)
 {
+    int8_t wakeup_pin = -1;
+    if (gpio != hwp_gpio1)
+    {
+        return wakeup_pin;
+    }
+
+    if ((gpio_pin >= HPAON_WAKEUP_PIN_PART0_FIRST) && (gpio_pin <= HPAON_WAKEUP_PIN_PART0_LAST))
+    {
+        wakeup_pin = gpio_pin - HPAON_WAKEUP_PIN_PART0_FIRST;
+    }
+    else if ((gpio_pin >= HPAON_WAKEUP_PIN_PART1_FIRST) && (gpio_pin <= HPAON_WAKEUP_PIN_PART1_LAST))
+    {
+        wakeup_pin = gpio_pin - HPAON_WAKEUP_PIN_PART1_FIRST + HPAON_WAKEUP_PIN_PART0_SIZE;
+    }
+    else
+    {
+        /* do nothing */
+    }
+
     return -1;
+
 }
 
 __HAL_ROM_USED GPIO_TypeDef *HAL_HPAON_QueryWakeupGpioPin(uint8_t wakeup_pin, uint16_t *gpio_pin)
 {
-    return NULL;
+    GPIO_TypeDef *gpio;
+
+    if (!gpio_pin)
+    {
+        return NULL;
+    }
+
+    if (wakeup_pin >= HPAON_WAKEUP_PIN_NUM)
+    {
+        return NULL;
+    }
+
+    if (wakeup_pin < HPAON_WAKEUP_PIN_PART0_SIZE)
+    {
+        /* PA33 ~ PA42 */
+        *gpio_pin = HPAON_WAKEUP_PIN_PART0_FIRST + wakeup_pin;
+    }
+    else
+    {
+        /* PA24 ~ PA27 */
+        wakeup_pin -= HPAON_WAKEUP_PIN_PART0_SIZE;
+        *gpio_pin = HPAON_WAKEUP_PIN_PART1_FIRST + wakeup_pin;
+    }
+    gpio = hwp_gpio1;
+
+    return gpio;
 }
 
 HAL_StatusTypeDef HAL_HPAON_GetWakeupPinMode(uint8_t wakeup_pin, AON_PinModeTypeDef *mode)
 {
-    return HAL_ERROR;
+    uint32_t mask;
+    uint32_t pos;
+    __IO uint32_t *wkup_mode;
+
+    if (!mode)
+    {
+        return HAL_ERROR;
+    }
+
+    if (wakeup_pin >= HPAON_WAKEUP_PIN_NUM)
+    {
+        return HAL_ERROR;
+
+    }
+
+    wkup_mode = &hwp_pmuc->WKUP_MODE;
+    pos = PMUC_WKUP_MODE_PA33_MODE_Pos + wakeup_pin * (PMUC_WKUP_MODE_PA34_MODE_Pos - PMUC_WKUP_MODE_PA33_MODE_Pos);
+    mask = (PMUC_WKUP_MODE_PA33_MODE_Msk << (pos - PMUC_WKUP_MODE_PA33_MODE_Pos));
+    *mode = GET_REG_VAL(*wkup_mode, mask, pos);
+
+    //rt_kprintf("pos:%d,%d,%x\n", pos, mask,*cr);
+
+    return HAL_OK;
 }
 
 

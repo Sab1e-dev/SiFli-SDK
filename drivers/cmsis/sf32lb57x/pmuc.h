@@ -205,6 +205,12 @@ typedef struct
 #define PMUC_WSR_PWRKEY_Pos             (30U)
 #define PMUC_WSR_PWRKEY_Msk             (0x1UL << PMUC_WSR_PWRKEY_Pos)
 #define PMUC_WSR_PWRKEY                 PMUC_WSR_PWRKEY_Msk
+#define PMUC_WSR_PIN_ALL                (PMUC_WSR_PA33 | PMUC_WSR_PA34 | PMUC_WSR_PA35 | PMUC_WSR_PA36      \
+                                         | PMUC_WSR_PA37 | PMUC_WSR_PA38 | PMUC_WSR_PA39 | PMUC_WSR_PA40    \
+                                         | PMUC_WSR_PA41 | PMUC_WSR_PA42                                    \
+                                         | PMUC_WSR_PA24 | PMUC_WSR_PA25 | PMUC_WSR_PA26 | PMUC_WSR_PA27)
+
+#define PMUC_WSR_PIN_NUM                (14)
 
 /******************** Bit definition for PMUC_WCR register ********************/
 #define PMUC_WCR_PA33_Pos               (0U)
