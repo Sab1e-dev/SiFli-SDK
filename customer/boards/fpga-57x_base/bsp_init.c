@@ -138,7 +138,7 @@ void HAL_PreInit(void)
 
     mpi1_div = 1;   // for OPI Psram driver alway set 1, for QSPI PSRAM depend on this setting, for flash depend on flash request, 2 or 3
     mpi2_div = 2;
-    mpi3_div = 2;
+    mpi3_div = 1;
 
     /* Init the low level hardware */
     HAL_MspInit();

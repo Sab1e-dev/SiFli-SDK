@@ -36,6 +36,7 @@ extern "C" {
 // #define HAL_EPICTL_ENABLED
 #define EPIC_SUPPORT_L4
 #define EPIC_SUPPORT_GREYSCALE
+#define EPIC_SUPPORT_OUTPUT_A8
 #define EPIC_SUPPORT_TRANS_MATRIX
 #endif /* SF32LB52X */
 #endif /* SF32LB56X */
@@ -115,6 +116,13 @@ extern "C" {
 #define EPIC_COLOR_FLEX_FLAG                 (0x400)           /**< Flex color format flag, supported after 57x*/
 #define EPIC_COLOR_F2_332                    (0x401)           /**< Flex 2bit color format */
 
+#define EPIC_IS_EZIP_COLOR_MODE(c)       (EPIC_COLOR_EZIP_FLAG == (EPIC_COLOR_EZIP_FLAG&(c)))
+#define EPIC_IS_YUV_COLOR_MODE(c)       (EPIC_COLOR_YUV_FLAG == (EPIC_COLOR_YUV_FLAG&(c)))
+#define EPIC_IS_LUT_COLOR_MODE(c)       ((EPIC_COLOR_L8 == (c))||(EPIC_COLOR_L4 == (c))||(EPIC_COLOR_L4_SWAP == (c)))
+#define EPIC_IS_GRAY_COLOR_MODE(c)      ((EPIC_COLOR_GRAY8 == ((c) & ~EPIC_COLOR_SWAP_FLAG)) || \
+                                         (EPIC_COLOR_GRAY4 == ((c) & ~EPIC_COLOR_SWAP_FLAG)) || \
+                                         (EPIC_COLOR_GRAY2 == ((c) & ~EPIC_COLOR_SWAP_FLAG)))
+#define EPIC_IS_MASK_COLOR_MODE(c)   ((EPIC_COLOR_A8 == (c)) || (EPIC_COLOR_A4 == ((c))) || (EPIC_COLOR_A4_SWAP == ((c))))
 
 /** @defgroup EPIC_Output_Color_Mode EPIC Output Color Mode
   * @{
@@ -188,8 +196,6 @@ extern "C" {
 #define EPIC_LOOKUP_TABLES   2
 #endif /* SF32LB52X */
 #endif /* SF32LB55X */
-#define EPIC_IS_EZIP_COLOR_MODE(c)       (EPIC_COLOR_EZIP_FLAG == (EPIC_COLOR_EZIP_FLAG&(c)))
-#define EPIC_IS_YUV_COLOR_MODE(c)       (EPIC_COLOR_YUV_FLAG == (EPIC_COLOR_YUV_FLAG&(c)))
 
 
 

@@ -92,6 +92,13 @@
 #define EPIC_DEBUG_PRINT_AREA_INFO(area, area_name) \
                     EPIC_PRINTF("area %s,area[x0y0(%d,%d),x1y1(%d,%d)]\n", \
                                 area_name, (area)->x0, (area)->y0, (area)->x1, (area)->y1);
+
+//return true if layer_a in layer_b's area, or false.
+#define EPIC_IS_LAYER_A_IN_B(layer_a, layer_b) (((layer_b)->x_offset <= (layer_a)->x_offset)    \
+                        && ((layer_b)->x_offset + (layer_b)->width >= (layer_a)->x_offset + (layer_a)->width) \
+                        && ((layer_b)->y_offset <= (layer_a)->y_offset)                 \
+                        && ((layer_b)->y_offset + (layer_b)->height >= (layer_a)->y_offset + (layer_a)->height))
+
 #ifdef EPIC_SUPPORT_TRANS_MATRIX
 static void EPIC_DEBUG_PRINT_FLOAT_MATRIX(const char *s, const sifli_matrix_3x3_t *mat)
 {
@@ -114,7 +121,8 @@ static void EPIC_DEBUG_PRINT_FLOAT_MATRIX(const char *s, const sifli_matrix_3x3_
                                     || (EPIC_COLOR_A4 == (c)) || (EPIC_COLOR_A4_SWAP == (c)) \
                                     || (EPIC_COLOR_A8 == (c)) || (EPIC_COLOR_MONO == (c)))
 #define IS_YUV_COLOR_MODE(c)       (EPIC_COLOR_YUV_FLAG == (EPIC_COLOR_YUV_FLAG&(c)))
-#define IS_NO_ALPHA_COLOR_MODE(c)  ((EPIC_COLOR_RGB565 == (c)) || (EPIC_COLOR_RGB565_SWAP == (c)) || (EPIC_COLOR_RGB888 == (c)) || IS_YUV_COLOR_MODE(c) || (EPIC_COLOR_MONO == (c)))
+#define IS_NO_ALPHA_COLOR_MODE(c)  ((EPIC_COLOR_RGB565 == (c)) || (EPIC_COLOR_RGB565_SWAP == (c)) || (EPIC_COLOR_RGB888 == (c)) || IS_YUV_COLOR_MODE(c) \
+                                    || (EPIC_COLOR_MONO == (c)) || EPIC_IS_GRAY_COLOR_MODE(c))
 #define IS_EZIP_COLOR_MODE(c)       (EPIC_COLOR_EZIP_FLAG == (EPIC_COLOR_EZIP_FLAG&(c)))
 #define IS_JPEG_COLOR_MODE(c)       (EPIC_COLOR_JPEG_FLAG == (EPIC_COLOR_JPEG_FLAG&(c)))
 #define IS_SWAPPED_COLOR_MODE(c)    (EPIC_COLOR_SWAP_FLAG == (EPIC_COLOR_SWAP_FLAG&(c)))
@@ -749,6 +757,12 @@ static uint32_t EPIC_GetOutputColorFormat(uint32_t color_mode)
         ouput_color_format = EPIC_AHB_CTRL_O_FMT_GRAY2;
     }
 #endif /* EPIC_SUPPORT_GREYSCALE*/
+#ifdef EPIC_SUPPORT_OUTPUT_A8
+    else if (EPIC_COLOR_A8 == color_mode)
+    {
+        ouput_color_format = EPIC_AHB_CTRL_O_FMT_A8;
+    }
+#endif /* EPIC_SUPPORT_OUTPUT_A8 */
     else
     {
         HAL_ASSERT(0);
@@ -1718,7 +1732,7 @@ static HAL_StatusTypeDef EPIC_ConfigLayer(EPIC_HandleTypeDef *hepic, EPIC_LAYER_
     }
 
 #ifndef SF32LB55X
-    if (EPIC_COLOR_L8 == config->color_mode)
+    if (EPIC_IS_LUT_COLOR_MODE(config->color_mode))
     {
         uint32_t tab_id = EPIC_Allocate_L8Table(hepic->Instance);
 
@@ -2937,7 +2951,7 @@ static HAL_StatusTypeDef EPIC_ConfigVideoLayer(EPIC_HandleTypeDef *epic_handle,
                MAKE_REG_VAL(trans_result->scale_init_y, EPIC_VL_SCALE_INIT_CFG2_Y_VAL_Msk, EPIC_VL_SCALE_INIT_CFG2_Y_VAL_Pos));
 
 
-    if (EPIC_COLOR_L8 == config->color_mode)
+    if (EPIC_IS_LUT_COLOR_MODE(config->color_mode))
     {
         uint32_t tab_id = EPIC_Allocate_L8Table(epic);
 
@@ -3757,7 +3771,7 @@ static HAL_StatusTypeDef EPIC_ConfigMatrixTransLayer(EPIC_HandleTypeDef *hepic,
     }
 
 #ifndef SF32LB55X
-    if (EPIC_COLOR_L8 == config->color_mode)
+    if (EPIC_IS_LUT_COLOR_MODE(config->color_mode))
     {
         uint32_t tab_id = EPIC_Allocate_L8Table(hepic->Instance);
 
@@ -5912,11 +5926,7 @@ static HAL_StatusTypeDef EPIC_ConfigRotation(EPIC_HandleTypeDef *epic,
 
         if ((alpha == EPIC_LAYER_OPAQUE) && (0 == rot_cfg->angle))
             if (IS_NO_ALPHA_COLOR_MODE(fg->color_mode))
-                if ((fg->x_offset <= dst->x_offset)
-                        && (fg->x_offset + fg->width >= dst->x_offset + dst->width)
-                        && (fg->y_offset <= dst->y_offset)
-                        && (fg->y_offset + fg->height >= dst->y_offset + dst->height)
-                   )
+                if (EPIC_IS_LAYER_A_IN_B(dst, fg))
                 {
                     dst_coverd_by_fg = true;
                 }
@@ -6065,11 +6075,7 @@ HAL_StatusTypeDef EPIC_ConfigBlend(EPIC_HandleTypeDef *epic,
         bool dst_in_fg; //dst area in fg area
 
 
-        if ((fg->x_offset <= dst->x_offset)
-                && (fg->x_offset + fg->width >= dst->x_offset + dst->width)
-                && (fg->y_offset <= dst->y_offset)
-                && (fg->y_offset + fg->height >= dst->y_offset + dst->height)
-           )
+        if (EPIC_IS_LAYER_A_IN_B(dst, fg))
             dst_in_fg = true;
         else
             dst_in_fg = false;
@@ -6369,8 +6375,34 @@ static HAL_StatusTypeDef EPIC_ConfigBlendEx(EPIC_HandleTypeDef *epic,
         EPIC_MakeAllLayerCoordValidEx(input, input_layer_num + 1); //+1 for output layer
     }
 
-    //3.Config EPIC layer
-    for (i = 0; i < input_layer_num; i++)
+    //3.Skip invisible bg layer in a most common case
+    i = 0;
+    if (2 == input_layer_num)
+    {
+        if ((alpha[1] >= EPIC_LAYER_OPAQUE) && (0 == transform_cfg[1].angle)
+                && IS_NO_ALPHA_COLOR_MODE(input[1].color_mode)
+                && EPIC_IS_LAYER_A_IN_B(output, &input[1])
+           )
+        {
+            i = 1; //Skip bg layer
+
+            //Use bg's EPIC layer(L0 in general) if it is suitable for fg
+            if ((EPIC_LAYER_IDX_VL == epic_layer[1]
+#ifndef SF32LB55X
+                    || (EPIC_LAYER_IDX_2 == epic_layer[1])
+#endif /* SF32LB55X */
+                )
+                    && (!IS_NEED_TRANSFROM_LAYER(&input[1], &transform_cfg[1]))
+               )
+            {
+                epic_layer[1] = epic_layer[0];
+            }
+        }
+    }
+
+
+    //4.Config EPIC layer
+    for (; i < input_layer_num; i++)
     {
         if (!EPIC_CalcIntersectArea(&input[i], output, NULL))
         {
