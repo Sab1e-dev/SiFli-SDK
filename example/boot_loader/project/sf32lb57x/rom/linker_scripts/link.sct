@@ -12,7 +12,10 @@ LR_IROM1 BOOTLOADER_CODE_START_ADDR BOOTLOADER_CODE_SIZE {    ; load region size
    *(InRoot$$Sections)
    .ANY (+RO)
   }
-  RW_IRAM1 BOOTLOADER_RAM_DATA_START_ADDR  {  ; 0x20000000 to 0x0x20001020 could be overwritten when wake up from Standby and before Jump to RAM code.
+
+  ; 0x20000000 to 0x0x20001020 will be overwritten when wake up from Standby and before Jump to RAM code.
+  ; so do not put retained data in this region if using standby mode
+  RW_IRAM1 BOOTLOADER_RAM_DATA_START_ADDR  {  
      efuse.o(.bss.sifli_hw_efuse_read_bank.data)
      .ANY (STACK)
   }

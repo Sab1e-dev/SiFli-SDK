@@ -162,6 +162,8 @@ int board_boot_from(void)
     if (BOOT_SIP_NONE == pid)
         board_pinmux_mpi1_none();
 
+    //TODO: efuse is not ready yet
+    pid = BOOT_PSRAM_APS_64P;
     if (pid == BOOT_SIP_PUYA)
         r = BOOT_FROM_SIP_PUYA;
     else if (pid == BOOT_SIP_GD)
@@ -178,6 +180,8 @@ int board_boot_from(void)
         int ext_bond = HAL_GPIO_ReadPin(hwp_gpio1, 17);      // A17,  MPI2_DIO3
         ext_bond |= (HAL_GPIO_ReadPin(hwp_gpio1, 13) << 1);  // A13,  MPI2_DIO1
 
+        //TODO: bonding pin is not ready yet
+        ext_bond = 0;
         if (ext_bond == 0)
         {
             r = BOOT_FROM_NOR;
