@@ -190,7 +190,7 @@ extern "C" {
 #define EPIC_MAX_LOOKUP_TABLE_CNT        (256)    /*!< Maximum lookup table color numbers */
 #define EPIC_LOOKUP_TABLE_SIZE          (EPIC_MAX_LOOKUP_TABLE_CNT*4)    /*!< In bytes */
 #ifndef SF32LB55X
-#ifdef SF32LB52X
+#if defined(SF32LB52X) || defined(SF32LB57X)
 #define EPIC_LOOKUP_TABLES   1
 #else
 #define EPIC_LOOKUP_TABLES   2
