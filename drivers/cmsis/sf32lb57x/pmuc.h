@@ -131,7 +131,7 @@ typedef struct
 #define PMUC_WER_IWDT_Pos               (17U)
 #define PMUC_WER_IWDT_Msk               (0x1UL << PMUC_WER_IWDT_Pos)
 #define PMUC_WER_IWDT                   PMUC_WER_IWDT_Msk
-#define PMUC_WER_CHG_Pos                (18U)
+#define PMUC_WER_CHG_Pos                (25U)
 #define PMUC_WER_CHG_Msk                (0x1UL << PMUC_WER_CHG_Pos)
 #define PMUC_WER_CHG                    PMUC_WER_CHG_Msk
 #define PMUC_WER_LOWBAT_Pos             (29U)
@@ -190,7 +190,7 @@ typedef struct
 #define PMUC_WSR_IWDT_Pos               (17U)
 #define PMUC_WSR_IWDT_Msk               (0x1UL << PMUC_WSR_IWDT_Pos)
 #define PMUC_WSR_IWDT                   PMUC_WSR_IWDT_Msk
-#define PMUC_WSR_CHG_Pos                (18U)
+#define PMUC_WSR_CHG_Pos                (25U)
 #define PMUC_WSR_CHG_Msk                (0x1UL << PMUC_WSR_CHG_Pos)
 #define PMUC_WSR_CHG                    PMUC_WSR_CHG_Msk
 #define PMUC_WSR_SYSRSTREQ_Pos          (27U)
@@ -209,7 +209,6 @@ typedef struct
                                          | PMUC_WSR_PA37 | PMUC_WSR_PA38 | PMUC_WSR_PA39 | PMUC_WSR_PA40    \
                                          | PMUC_WSR_PA41 | PMUC_WSR_PA42                                    \
                                          | PMUC_WSR_PA24 | PMUC_WSR_PA25 | PMUC_WSR_PA26 | PMUC_WSR_PA27)
-
 #define PMUC_WSR_PIN_NUM                (14)
 
 /******************** Bit definition for PMUC_WCR register ********************/
@@ -267,9 +266,6 @@ typedef struct
 #define PMUC_WCR_PWRKEY_Pos             (30U)
 #define PMUC_WCR_PWRKEY_Msk             (0x1UL << PMUC_WCR_PWRKEY_Pos)
 #define PMUC_WCR_PWRKEY                 PMUC_WCR_PWRKEY_Msk
-#define PMUC_WCR_AON_Pos                (31U)
-#define PMUC_WCR_AON_Msk                (0x1UL << PMUC_WCR_AON_Pos)
-#define PMUC_WCR_AON                    PMUC_WCR_AON_Msk
 
 /****************** Bit definition for PMUC_VRTC_CR register ******************/
 #define PMUC_VRTC_CR_VRTC_VBIT_Pos      (0U)
@@ -1064,9 +1060,6 @@ typedef struct
 #define PMUC_CAU_RSVD_RESERVE1_Pos      (8U)
 #define PMUC_CAU_RSVD_RESERVE1_Msk      (0xFFUL << PMUC_CAU_RSVD_RESERVE1_Pos)
 #define PMUC_CAU_RSVD_RESERVE1          PMUC_CAU_RSVD_RESERVE1_Msk
-#define PMUC_CAU_RSVD_RESERVE2_Pos      (16U)
-#define PMUC_CAU_RSVD_RESERVE2_Msk      (0xFFUL << PMUC_CAU_RSVD_RESERVE2_Pos)
-#define PMUC_CAU_RSVD_RESERVE2          PMUC_CAU_RSVD_RESERVE2_Msk
 
 /**************** Bit definition for PMUC_PWRKEY_CNT register *****************/
 #define PMUC_PWRKEY_CNT_RST_CNT_Pos     (4U)
@@ -1515,4 +1508,5 @@ typedef struct
 #define PMUC_PBRCR_DBG_SEL_Pos          (4U)
 #define PMUC_PBRCR_DBG_SEL_Msk          (0xFUL << PMUC_PBRCR_DBG_SEL_Pos)
 #define PMUC_PBRCR_DBG_SEL              PMUC_PBRCR_DBG_SEL_Msk
+
 #endif

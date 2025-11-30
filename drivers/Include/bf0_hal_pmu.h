@@ -44,6 +44,15 @@ typedef enum
     PMU_LPCLK_RC32,   /** RC32 as LP clock */
 } PMU_LpClockTypeDef;
 
+/**  PMU pin wakeup mode, should be consistent with AON_PinModeTypeDef */
+typedef enum
+{
+    PMU_PIN_MODE_HIGH,   /**< high level to trigger pin wakeup */
+    PMU_PIN_MODE_LOW,    /**< low level to trigger pin wakeup */
+    PMU_PIN_MODE_POS_EDGE,  /**< postive edge to trigger pin wakeup */
+    PMU_PIN_MODE_NEG_EDGE,  /**< negative edge to trigger pin wakeup */
+} PMU_PinModeTypeDef;
+
 #ifdef SF32LB56X
 /** HPSYS LDO voltage type */
 typedef enum

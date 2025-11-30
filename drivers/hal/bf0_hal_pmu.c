@@ -27,11 +27,8 @@
 
 #endif /* SF32LB52X */
 
-#ifdef SF32LB55X
-    #define PMU_WAKEUP_PIN_NUM  LPSYS_AON_WSR_PIN_NUM
-#else
-    #define PMU_WAKEUP_PIN_NUM  (2)
-#endif /* SF32LB55X */
+
+#define PMU_WAKEUP_PIN_NUM  PMUC_WSR_PIN_NUM
 
 #ifdef SF32LB58X
     #define PMU_WAKEUP_PIN_SEL_NUM (16)

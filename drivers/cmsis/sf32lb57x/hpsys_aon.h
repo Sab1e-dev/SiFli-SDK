@@ -111,65 +111,59 @@ typedef struct
 #define HPSYS_AON_SBCR_PD_RAM2          HPSYS_AON_SBCR_PD_RAM2_Msk
 
 /***************** Bit definition for HPSYS_AON_WER register ******************/
-#define HPSYS_AON_WER_RTC_Pos           (0U)
+#define HPSYS_AON_WER_RTC_Pos           (16U)
 #define HPSYS_AON_WER_RTC_Msk           (0x1UL << HPSYS_AON_WER_RTC_Pos)
 #define HPSYS_AON_WER_RTC               HPSYS_AON_WER_RTC_Msk
-#define HPSYS_AON_WER_IWDT_Pos          (1U)
+#define HPSYS_AON_WER_IWDT_Pos          (17U)
 #define HPSYS_AON_WER_IWDT_Msk          (0x1UL << HPSYS_AON_WER_IWDT_Pos)
 #define HPSYS_AON_WER_IWDT              HPSYS_AON_WER_IWDT_Msk
-#define HPSYS_AON_WER_GPIO1_Pos         (2U)
+#define HPSYS_AON_WER_GPIO1_Pos         (18U)
 #define HPSYS_AON_WER_GPIO1_Msk         (0x1UL << HPSYS_AON_WER_GPIO1_Pos)
 #define HPSYS_AON_WER_GPIO1             HPSYS_AON_WER_GPIO1_Msk
-#define HPSYS_AON_WER_LPTIM1_Pos        (3U)
+#define HPSYS_AON_WER_LPTIM1_Pos        (19U)
 #define HPSYS_AON_WER_LPTIM1_Msk        (0x1UL << HPSYS_AON_WER_LPTIM1_Pos)
 #define HPSYS_AON_WER_LPTIM1            HPSYS_AON_WER_LPTIM1_Msk
-#define HPSYS_AON_WER_LPTIM1OUT_Pos     (4U)
+#define HPSYS_AON_WER_LPTIM1OUT_Pos     (20U)
 #define HPSYS_AON_WER_LPTIM1OUT_Msk     (0x1UL << HPSYS_AON_WER_LPTIM1OUT_Pos)
 #define HPSYS_AON_WER_LPTIM1OUT         HPSYS_AON_WER_LPTIM1OUT_Msk
-#define HPSYS_AON_WER_LP2HP_WDT_Pos     (5U)
+#define HPSYS_AON_WER_LP2HP_WDT_Pos     (21U)
 #define HPSYS_AON_WER_LP2HP_WDT_Msk     (0x1UL << HPSYS_AON_WER_LP2HP_WDT_Pos)
 #define HPSYS_AON_WER_LP2HP_WDT         HPSYS_AON_WER_LP2HP_WDT_Msk
-#define HPSYS_AON_WER_LP2HP_REQ_Pos     (6U)
+#define HPSYS_AON_WER_LP2HP_REQ_Pos     (22U)
 #define HPSYS_AON_WER_LP2HP_REQ_Msk     (0x1UL << HPSYS_AON_WER_LP2HP_REQ_Pos)
 #define HPSYS_AON_WER_LP2HP_REQ         HPSYS_AON_WER_LP2HP_REQ_Msk
-#define HPSYS_AON_WER_LP2HP_IRQ_Pos     (7U)
+#define HPSYS_AON_WER_LP2HP_IRQ_Pos     (23U)
 #define HPSYS_AON_WER_LP2HP_IRQ_Msk     (0x1UL << HPSYS_AON_WER_LP2HP_IRQ_Pos)
 #define HPSYS_AON_WER_LP2HP_IRQ         HPSYS_AON_WER_LP2HP_IRQ_Msk
-#define HPSYS_AON_WER_PMUC_Pos          (8U)
-#define HPSYS_AON_WER_PMUC_Msk          (0x1UL << HPSYS_AON_WER_PMUC_Pos)
-#define HPSYS_AON_WER_PMUC              HPSYS_AON_WER_PMUC_Msk
-#define HPSYS_AON_WER_PIN_Pos           (9U)
-#define HPSYS_AON_WER_PIN_Msk           (0x1UL << HPSYS_AON_WER_PIN_Pos)
-#define HPSYS_AON_WER_PIN               HPSYS_AON_WER_PIN_Msk
+#define HPSYS_AON_WER_CHG_Pos           (25U)
+#define HPSYS_AON_WER_CHG_Msk           (0x1UL << HPSYS_AON_WER_CHG_Pos)
+#define HPSYS_AON_WER_CHG               HPSYS_AON_WER_CHG_Msk
 
 /***************** Bit definition for HPSYS_AON_WSR register ******************/
-#define HPSYS_AON_WSR_RTC_Pos           (0U)
+#define HPSYS_AON_WSR_RTC_Pos           (16U)
 #define HPSYS_AON_WSR_RTC_Msk           (0x1UL << HPSYS_AON_WSR_RTC_Pos)
 #define HPSYS_AON_WSR_RTC               HPSYS_AON_WSR_RTC_Msk
-#define HPSYS_AON_WSR_IWDT_Pos          (1U)
+#define HPSYS_AON_WSR_IWDT_Pos          (17U)
 #define HPSYS_AON_WSR_IWDT_Msk          (0x1UL << HPSYS_AON_WSR_IWDT_Pos)
 #define HPSYS_AON_WSR_IWDT              HPSYS_AON_WSR_IWDT_Msk
-#define HPSYS_AON_WSR_GPIO1_Pos         (2U)
+#define HPSYS_AON_WSR_GPIO1_Pos         (18U)
 #define HPSYS_AON_WSR_GPIO1_Msk         (0x1UL << HPSYS_AON_WSR_GPIO1_Pos)
 #define HPSYS_AON_WSR_GPIO1             HPSYS_AON_WSR_GPIO1_Msk
-#define HPSYS_AON_WSR_LPTIM1_Pos        (3U)
+#define HPSYS_AON_WSR_LPTIM1_Pos        (19U)
 #define HPSYS_AON_WSR_LPTIM1_Msk        (0x1UL << HPSYS_AON_WSR_LPTIM1_Pos)
 #define HPSYS_AON_WSR_LPTIM1            HPSYS_AON_WSR_LPTIM1_Msk
-#define HPSYS_AON_WSR_LP2HP_WDT_Pos     (5U)
+#define HPSYS_AON_WSR_LP2HP_WDT_Pos     (21U)
 #define HPSYS_AON_WSR_LP2HP_WDT_Msk     (0x1UL << HPSYS_AON_WSR_LP2HP_WDT_Pos)
 #define HPSYS_AON_WSR_LP2HP_WDT         HPSYS_AON_WSR_LP2HP_WDT_Msk
-#define HPSYS_AON_WSR_LP2HP_REQ_Pos     (6U)
+#define HPSYS_AON_WSR_LP2HP_REQ_Pos     (22U)
 #define HPSYS_AON_WSR_LP2HP_REQ_Msk     (0x1UL << HPSYS_AON_WSR_LP2HP_REQ_Pos)
 #define HPSYS_AON_WSR_LP2HP_REQ         HPSYS_AON_WSR_LP2HP_REQ_Msk
-#define HPSYS_AON_WSR_LP2HP_IRQ_Pos     (7U)
+#define HPSYS_AON_WSR_LP2HP_IRQ_Pos     (23U)
 #define HPSYS_AON_WSR_LP2HP_IRQ_Msk     (0x1UL << HPSYS_AON_WSR_LP2HP_IRQ_Pos)
 #define HPSYS_AON_WSR_LP2HP_IRQ         HPSYS_AON_WSR_LP2HP_IRQ_Msk
-#define HPSYS_AON_WSR_PMUC_Pos          (8U)
-#define HPSYS_AON_WSR_PMUC_Msk          (0x1UL << HPSYS_AON_WSR_PMUC_Pos)
-#define HPSYS_AON_WSR_PMUC              HPSYS_AON_WSR_PMUC_Msk
-#define HPSYS_AON_WSR_PIN_Pos           (9U)
-#define HPSYS_AON_WSR_PIN_Msk           (0x1UL << HPSYS_AON_WSR_PIN_Pos)
-#define HPSYS_AON_WSR_PIN               HPSYS_AON_WSR_PIN_Msk
+#define HPSYS_AON_WSR_CHG_Pos           (25U)
+#define HPSYS_AON_WSR_CHG_Msk           (0x1UL << HPSYS_AON_WSR_CHG_Pos)
+#define HPSYS_AON_WSR_CHG               HPSYS_AON_WSR_CHG_Msk
 
 #define HPSYS_AON_WSR_PIN_ALL           (0UL)
 #define HPSYS_AON_WSR_PIN_NUM           PMUC_WSR_PIN_NUM
@@ -197,9 +191,6 @@ typedef struct
 #define HPSYS_AON_ANACR_VHP_ISO_Pos     (0U)
 #define HPSYS_AON_ANACR_VHP_ISO_Msk     (0x1UL << HPSYS_AON_ANACR_VHP_ISO_Pos)
 #define HPSYS_AON_ANACR_VHP_ISO         HPSYS_AON_ANACR_VHP_ISO_Msk
-#define HPSYS_AON_ANACR_AUTO_ISO_Pos    (1U)
-#define HPSYS_AON_ANACR_AUTO_ISO_Msk    (0x1UL << HPSYS_AON_ANACR_AUTO_ISO_Pos)
-#define HPSYS_AON_ANACR_AUTO_ISO        HPSYS_AON_ANACR_AUTO_ISO_Msk
 
 /**************** Bit definition for HPSYS_AON_GTIMR register *****************/
 #define HPSYS_AON_GTIMR_CNT_Pos         (0U)

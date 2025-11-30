@@ -49,7 +49,9 @@ extern "C" {
  * @brief AON export types
  */
 
-/** Pin wakeup mode */
+
+
+/** AON Pin wakeup mode, should be consistent with PMU_PinModeTypeDef */
 typedef enum
 {
     AON_PIN_MODE_HIGH,   /**< high level to trigger pin wakeup */

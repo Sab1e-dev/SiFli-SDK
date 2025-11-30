@@ -4,13 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef __BF0_HAL_AON_SF32LB58_H
-#define __BF0_HAL_AON_SF32LB58_H
+#ifndef __BF0_HAL_AON_SF32LB58X_H
+#define __BF0_HAL_AON_SF32LB58X_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#ifndef __BF0_HAL_AON_H
+#error "Not include this file directly, include bf0_hal_aon.h"
+#endif /* __BF0_HAL_AON_H */
 
 /** @brief hpsys wakeup source */
 typedef enum
@@ -93,4 +96,4 @@ typedef enum
 }
 #endif
 
-#endif /* __BF0_HAL_AON_SF32LB58_H */
+#endif /* __BF0_HAL_AON_SF32LB58X_H */

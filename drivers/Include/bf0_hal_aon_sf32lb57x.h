@@ -4,12 +4,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef __BF0_HAL_AON_SF32LB57_H
-#define __BF0_HAL_AON_SF32LB57_H
+#ifndef __BF0_HAL_AON_SF32LB57X_H
+#define __BF0_HAL_AON_SF32LB57X_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#ifndef __BF0_HAL_AON_H
+#error "Not include this file directly, include bf0_hal_aon.h"
+#endif /* __BF0_HAL_AON_H */
 
 /* PMUC and HPSYS_AON share the same wakeup source pin register */
 #define AON_PMUC_WSR_PIN_COMBINED_SUPPORT
@@ -36,10 +40,10 @@ typedef enum
     HPAON_WAKEUP_SRC_LP2HP_REQ = HPSYS_AON_WER_LP2HP_REQ_Pos,  /**< LP2HP manual wakeup source */
     HPAON_WAKEUP_SRC_LP2HP_IRQ = HPSYS_AON_WER_LP2HP_IRQ_Pos,  /**< LP2HP mailbox interrupt wakeup source */
     HPAON_WAKEUP_SRC_GPIO1     = HPSYS_AON_WER_GPIO1_Pos,    /**< GPIO1 wakeup source */
-    HPAON_WAKEUP_SRC_PMUC      = HPSYS_AON_WER_PMUC_Pos,     /**< PMUC wakeup source */
+    HPAON_WAKEUP_SRC_CHG       = HPSYS_AON_WER_CHG_Pos,     /**< PMUC wakeup source */
 
-    HPAON_WAKEUP_SRC_PA33 = 16,  /**< PA33 wakeup source  */
-    HPAON_WAKEUP_SRC_PA34 = 17,  /**< PA34 wakeup source  */
+    HPAON_WAKEUP_SRC_PA33 = 0,   /**< PA33 wakeup source  */
+    HPAON_WAKEUP_SRC_PA34 = 1,   /**< PA34 wakeup source  */
     HPAON_WAKEUP_SRC_PA35,       /**< PA35 wakeup source  */
     HPAON_WAKEUP_SRC_PA36,       /**< PA36 wakeup source  */
     HPAON_WAKEUP_SRC_PA37,
@@ -52,8 +56,8 @@ typedef enum
     HPAON_WAKEUP_SRC_PA25,
     HPAON_WAKEUP_SRC_PA26,
     HPAON_WAKEUP_SRC_PA27,
-    HPAON_WAKEUP_SRC_PIN0 = 16,  /**< PA33 wakeup source  */
-    HPAON_WAKEUP_SRC_PIN1 = 17,  /**< PA34 wakeup source  */
+    HPAON_WAKEUP_SRC_PIN0 = 0,   /**< PA33 wakeup source  */
+    HPAON_WAKEUP_SRC_PIN1 = 1,   /**< PA34 wakeup source  */
     HPAON_WAKEUP_SRC_PIN2,       /**< PA35 wakeup source  */
     HPAON_WAKEUP_SRC_PIN3,       /**< PA36 wakeup source  */
     HPAON_WAKEUP_SRC_PIN4,       /**< PA37 wakeup source  */
@@ -84,4 +88,4 @@ typedef enum
 }
 #endif
 
-#endif /* __BF0_HAL_AON_SF32LB57_H */
+#endif /* __BF0_HAL_AON_SF32LB57X_H */

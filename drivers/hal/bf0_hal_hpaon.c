@@ -151,7 +151,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_WakeCore(uint8_t core_id)
     HAL_StatusTypeDef ret = HAL_OK;
     if (core_id == CORE_ID_LCPU)
     {
-#if defined(SF32LB52X) || defined(SF32LB57X)
+#if defined(AON_LCPU_ACTIVE_REQUEST_REF_COUNT_SUPPORT)
         uint32_t mask;
 #endif /* SF32LB52X */
         hwp_hpsys_aon->ISSR |= HPSYS_AON_ISSR_HP2LP_REQ;
@@ -223,6 +223,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_EnterStandby(uint32_t sbcr)
  * @param  mode pin mode
  * @retval status
  */
+#ifndef AON_PMUC_WSR_PIN_COMBINED_SUPPORT
 __HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_EnableWakeupSrc(HPAON_WakeupSrcTypeDef src, AON_PinModeTypeDef mode)
 
 {
@@ -232,7 +233,6 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_EnableWakeupSrc(HPAON_WakeupSrcTypeDe
     uint32_t wer_en;
     __IO uint32_t *cr;
 
-#ifdef HPSYS_AON_WER_PIN0
     if ((src >= HPAON_WAKEUP_SRC_PIN0) && (src <= HPAON_WAKEUP_SRC_PIN_LAST))
     {
         wer_en = (HPSYS_AON_WER_PIN0 << (src - HPAON_WAKEUP_SRC_PIN0));
@@ -283,7 +283,6 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_EnableWakeupSrc(HPAON_WakeupSrcTypeDe
         hwp_hpsys_aon->WER |= wer_en;
     }
     else
-#endif /* HPSYS_AON_WER_PIN0 */
     {
         hwp_hpsys_aon->WER |= (1UL << src);
     }
@@ -315,6 +314,8 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_DisableWakeupSrc(HPAON_WakeupSrcTypeD
 
     return HAL_OK;
 }
+#endif /* AON_PMUC_WSR_PIN_COMBINED_SUPPORT */
+
 
 #if defined(SF32LB52X)
 __HAL_ROM_USED int8_t HAL_HPAON_QueryWakeupPin(GPIO_TypeDef *gpio, uint16_t gpio_pin)

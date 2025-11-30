@@ -16,7 +16,6 @@
   */
 
 #ifdef HAL_AON_MODULE_ENABLED
-
 __HAL_ROM_USED int8_t HAL_HPAON_QueryWakeupPin(GPIO_TypeDef *gpio, uint16_t gpio_pin)
 {
     int8_t wakeup_pin = -1;
@@ -99,6 +98,43 @@ HAL_StatusTypeDef HAL_HPAON_GetWakeupPinMode(uint8_t wakeup_pin, AON_PinModeType
     return HAL_OK;
 }
 
+__HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_EnableWakeupSrc(HPAON_WakeupSrcTypeDef src, AON_PinModeTypeDef mode)
+{
+    uint32_t mask;
+    uint32_t val;
+    uint32_t pos;
+    uint32_t wer_en;
+    __IO uint32_t *cr;
+    HAL_StatusTypeDef ret;
+
+    if ((src >= HPAON_WAKEUP_SRC_PIN0) && (src <= HPAON_WAKEUP_SRC_PIN_LAST))
+    {
+        ret = HAL_PMU_EnablePinWakeup(src - HPAON_WAKEUP_SRC_PIN0, mode);
+    }
+    else
+    {
+        hwp_hpsys_aon->WER |= (1UL << src);
+        ret = HAL_OK;
+    }
+
+    return ret;
+}
+
+__HAL_ROM_USED HAL_StatusTypeDef HAL_HPAON_DisableWakeupSrc(HPAON_WakeupSrcTypeDef src)
+{
+    HAL_StatusTypeDef ret;
+
+    if ((src >= HPAON_WAKEUP_SRC_PIN0) && (src <= HPAON_WAKEUP_SRC_PIN_LAST))
+    {
+        ret = HAL_PMU_DisablePinWakeup(src - HPAON_WAKEUP_SRC_PIN0);
+    }
+    else
+    {
+        hwp_hpsys_aon->WER &= ~(1UL << src);
+    }
+
+    return ret;
+}
 
 #endif /* HAL_AON_MODULE_ENABLED */
 /**

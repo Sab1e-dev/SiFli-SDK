@@ -21,6 +21,8 @@
 
 #ifdef HAL_PMU_MODULE_ENABLED
 
+#define PMU_WAKEUP_PIN_NUM  PMUC_WSR_PIN_NUM
+
 //TODO:
 HAL_StatusTypeDef HAL_PMU_EnablePinWakeup2(pin_pad pad, uint8_t mode)
 {
@@ -32,6 +34,47 @@ HAL_StatusTypeDef HAL_PMU_DisablePinWakeup2(pin_pad pin)
 {
     return HAL_ERROR;
 }
+
+__HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_EnablePinWakeup(uint8_t pin, uint8_t mode)
+{
+    uint32_t mask;
+    uint32_t pos;
+    uint32_t val;
+
+    if ((pin >= PMU_WAKEUP_PIN_NUM) || (mode > 4))
+    {
+        return HAL_ERROR;
+    }
+
+    /* workaround: clear pin status as it could be set before WER is set to 1 */
+    HAL_PMU_CLEAR_WSR(1UL << (PMUC_WCR_PA33_Pos + pin));
+
+    pos = PMUC_WKUP_MODE_PA33_MODE_Pos + pin * (PMUC_WKUP_MODE_PA34_MODE_Pos - PMUC_WKUP_MODE_PA33_MODE_Pos);
+    mask = (PMUC_WKUP_MODE_PA33_MODE_Msk << (pos - PMUC_WKUP_MODE_PA33_MODE_Pos));
+    val = MAKE_REG_VAL(mode, mask, pos);
+
+    MODIFY_REG(hwp_pmuc->WKUP_MODE, mask, val);
+    mask = PMUC_WER_PA33 << pin;
+    hwp_pmuc->WER |= mask;
+
+    return HAL_OK;
+}
+
+__HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_DisablePinWakeup(uint8_t pin)
+{
+    uint32_t mask;
+
+    if (pin >= PMU_WAKEUP_PIN_NUM)
+    {
+        return HAL_ERROR;
+    }
+
+    mask = PMUC_WER_PA33 << pin;
+    hwp_pmuc->WER &= ~mask;
+
+    return HAL_OK;
+}
+
 
 HAL_RAM_RET_CODE_SECT(HAL_PMU_ConfigPeriLdo, HAL_StatusTypeDef HAL_PMU_ConfigPeriLdo(PMU_PeriLdoTypeDef ldo, bool en, bool wait))
 {

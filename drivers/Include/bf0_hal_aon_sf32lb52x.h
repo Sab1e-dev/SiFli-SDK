@@ -4,12 +4,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#ifndef __BF0_HAL_AON_SF32LB52_H
-#define __BF0_HAL_AON_SF32LB52_H
+#ifndef __BF0_HAL_AON_SF32LB52X_H
+#define __BF0_HAL_AON_SF32LB52X_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#ifndef __BF0_HAL_AON_H
+#error "Not include this file directly, include bf0_hal_aon.h"
+#endif /* __BF0_HAL_AON_H */
+
 
 #define AON_LCPU_ACTIVE_REQUEST_REF_COUNT_SUPPORT
 
@@ -94,4 +99,4 @@ typedef enum
 }
 #endif
 
-#endif /* __BF0_HAL_AON_SF32LB52_H */
+#endif /* __BF0_HAL_AON_SF32LB52X_H */
