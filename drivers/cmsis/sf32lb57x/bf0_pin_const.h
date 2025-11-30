@@ -15,7 +15,7 @@ typedef enum
 {
     PIN_FUNC_UNDEF,
 
-    /*  Arbitrary function, enum value must be set same as chip spec */
+    /* Arbitrary function, enum value must be same as chip spec */
     PIN_ARBITRARY_FUNC_START = 16,
     /** I2C1_SCL */
     I2C1_SCL          = 16,
@@ -80,18 +80,13 @@ typedef enum
     CAN1_TXD           = 44,
     /** CAN1_RXD */
     CAN1_RXD,
-
-    /** PDM1_CLK */
-    PDM1_CLK           = 46,
-    /** PDM1_DATA */
-    PDM1_DATA,
-    /** PDM2_CLK */
-    PDM2_CLK,
-    /** PDM2_DATA */
-    PDM2_DATA,
+    /** CAN2_TXD */
+    CAN2_TXD,
+    /** CAN2_RXD */
+    CAN2_RXD,
 
     /** BT_ACTIVE */
-    BT_ACTIVE          = 50,
+    BT_ACTIVE          = 48,
     /** BT_PRIORITY */
     BT_PRIORITY,
     /** BT_COLLISION */
@@ -102,7 +97,7 @@ typedef enum
     BT_RX,
 
     /** GPTIM1_CH1 */
-    GPTIM1_CH1         = 56,
+    GPTIM1_CH1         = 54,
     /** GPTIM1_CH2 */
     GPTIM1_CH2,
     /** GPTIM1_CH3 */
@@ -123,7 +118,7 @@ typedef enum
     GPTIM2_ETR,
 
     /** LPTIM1_IN */
-    LPTIM1_IN         = 66,
+    LPTIM1_IN         = 64,
     /** LPTIM1_OUT */
     LPTIM1_OUT,
     /** LPTIM1_ETR */
@@ -136,7 +131,7 @@ typedef enum
     LPTIM2_ETR,
 
     /** ATIM1_CH1 */
-    ATIM1_CH1         = 72,
+    ATIM1_CH1         = 70,
     /** ATIM1_CH2 */
     ATIM1_CH2,
     /** ATIM1_CH3 */
@@ -156,14 +151,14 @@ typedef enum
     /** ATIM1_BKIN2 */
     ATIM1_BKIN2,
 
-    PWM1_CH1         = 82,
+    PWM1_CH1         = 80,
     PWM1_CH2,
     PWM1_CH3,
     PWM1_CH4,
     PWM1_CH5,
 
     /** I2S1_MCLK */
-    I2S1_MCLK        = 87,
+    I2S1_MCLK        = 85,
     /** I2S1_SDO */
     I2S1_SDO,
     /** I2S1_SDI */
@@ -183,7 +178,7 @@ typedef enum
     /** I2S2_LRCK */
     I2S2_LRCK,
 
-    PTM1_CH0         = 97,
+    PTM1_CH0         = 95,
     PTM1_CH1,
     PTM1_CH2,
     PTM1_CH3,
@@ -200,9 +195,41 @@ typedef enum
     PTM1_CH14,
     PTM1_CH15,
 
-    DCMI_CLK         = 144,
+    /** PDM1_CLK */
+    PDM1_CLK           = 141,
+    /** PDM1_DATA */
+    PDM1_DATA,
+    /** PDM1_DATA2 */
+    PDM1_DATA2,
+    /** PDM2_CLK */
+    PDM2_CLK,
+    /** PDM2_DATA */
+    PDM2_DATA,
+    /** PDM2_DATA2 */
+    PDM2_DATA2,
+
+    DCMI_CLK         = 147,
+    DCMI_HSYNC,
+    DCMI_VSYNC,
+    DCMI_DI0,
+    DCMI_DI1,
+    DCMI_DI2,
+    DCMI_DI3,
+    DCMI_DI4,
+    DCMI_DI5,
+    DCMI_DI6,
+    DCMI_DI7,
+    DCMI_DI8,
+    DCMI_DI9,
+    DCMI_DI10,
+    DCMI_DI11,
+    DCMI_DI12,
+    DCMI_DI13,
+    DCMI_DI14,
+    DCMI_DI15,
     PIN_ARBITRARY_FUNC_END = 255,
 
+    /* Dedicated pin function, enum value starts from 256 */
     /** MPI1_CLK */
     MPI1_CLK,
     /** MPI1_CLKB */
