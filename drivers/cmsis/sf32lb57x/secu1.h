@@ -46,6 +46,7 @@ typedef struct
     __IO uint32_t RAM2_PRIV_CFG1;
     __IO uint32_t RAM2_SEC_CFG0;
     __IO uint32_t RAM2_SEC_CFG1;
+    __IO uint32_t ACPU;
 } SECU1_TypeDef;
 
 
@@ -604,5 +605,22 @@ typedef struct
 #define SECU1_RAM2_SEC_CFG1_END_ADDR_Pos  (10U)
 #define SECU1_RAM2_SEC_CFG1_END_ADDR_Msk  (0x3FFFFFUL << SECU1_RAM2_SEC_CFG1_END_ADDR_Pos)
 #define SECU1_RAM2_SEC_CFG1_END_ADDR    SECU1_RAM2_SEC_CFG1_END_ADDR_Msk
+
+/******************* Bit definition for SECU1_ACPU register *******************/
+#define SECU1_ACPU_WAIT_Pos             (0U)
+#define SECU1_ACPU_WAIT_Msk             (0x1UL << SECU1_ACPU_WAIT_Pos)
+#define SECU1_ACPU_WAIT                 SECU1_ACPU_WAIT_Msk
+#define SECU1_ACPU_LOCKNSVTOR_Pos       (1U)
+#define SECU1_ACPU_LOCKNSVTOR_Msk       (0x1UL << SECU1_ACPU_LOCKNSVTOR_Pos)
+#define SECU1_ACPU_LOCKNSVTOR           SECU1_ACPU_LOCKNSVTOR_Msk
+#define SECU1_ACPU_RSTR_Pos             (2U)
+#define SECU1_ACPU_RSTR_Msk             (0x1UL << SECU1_ACPU_RSTR_Pos)
+#define SECU1_ACPU_RSTR                 SECU1_ACPU_RSTR_Msk
+#define SECU1_ACPU_ENR_Pos              (3U)
+#define SECU1_ACPU_ENR_Msk              (0x1UL << SECU1_ACPU_ENR_Pos)
+#define SECU1_ACPU_ENR                  SECU1_ACPU_ENR_Msk
+#define SECU1_ACPU_VTOR_Pos             (7U)
+#define SECU1_ACPU_VTOR_Msk             (0x1FFFFFFUL << SECU1_ACPU_VTOR_Pos)
+#define SECU1_ACPU_VTOR                 SECU1_ACPU_VTOR_Msk
 
 #endif

@@ -516,612 +516,7 @@ static inline __IO uint32_t *RCC_GetModuleMask(RCC_MODULE_TYPE module, uint32_t 
 
     return base_rcc;
 }
-#elif defined(SF32LB52X)
-//TODO: need optimize, replaced by macro
-static inline __IO uint32_t *RCC_GetModuleMask(RCC_MODULE_TYPE module, uint32_t *group, uint32_t *mask)
-{
-    __IO uint32_t *base_rcc = 0;
-    if ((!mask) || (!group))
-    {
-        return NULL;
-    }
-    base_rcc = NULL;
-    switch (module)
-    {
-#if (CORE_ID_CURRENT == CORE_ID_HCPU)
-    case RCC_MOD_DMAC1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_DMAC1;
-        break;
-    case RCC_MOD_MAILBOX1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_MAILBOX1;
-        break;
-    case RCC_MOD_PINMUX1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_PINMUX1;
-        break;
-    case RCC_MOD_USART2:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_USART2;
-        break;
-    case RCC_MOD_EZIP:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_EZIP1;
-        break;
-    case RCC_MOD_EPIC:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_EPIC;
-        break;
-    case RCC_MOD_LCDC1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_LCDC1;
-        break;
-    case RCC_MOD_I2S1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_I2S1;
-        break;
-    case RCC_MOD_SYSCFG1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_SYSCFG1;
-        break;
-    case RCC_MOD_EFUSEC:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_EFUSEC;
-        break;
-    case RCC_MOD_AES:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_AES;
-        break;
-    case RCC_MOD_CRC1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_CRC1;
-        break;
-    case RCC_MOD_CRC2:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 1;
-        *mask = LPSYS_RCC_ENR1_CRC2;
-        break;
-    case RCC_MOD_TRNG:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_TRNG;
-        break;
-    case RCC_MOD_GPTIM1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_GPTIM1;
-        break;
-    case RCC_MOD_GPTIM2:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_GPTIM2;
-        break;
-    case RCC_MOD_BTIM1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_BTIM1;
-        break;
-    case RCC_MOD_BTIM2:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_BTIM2;
-        break;
-    case RCC_MOD_SPI1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_SPI1;
-        break;
-    case RCC_MOD_SPI2:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_SPI2;
-        break;
-    case RCC_MOD_EXTDMA:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_EXTDMA;
-        break;
-    case RCC_MOD_PDM1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_PDM1;
-        break;
-    case RCC_MOD_I2C1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_I2C1;
-        break;
-    case RCC_MOD_I2C2:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_I2C2;
-        break;
-    case RCC_MOD_PTC1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_PTC1;
-        break;
-
-    case RCC_MOD_GPIO1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_GPIO1;
-        break;
-    case RCC_MOD_MPI1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_MPI1;
-        break;
-    case RCC_MOD_MPI2:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_MPI2;
-        break;
-    case RCC_MOD_SDMMC1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_SDMMC1;
-        break;
-    case RCC_MOD_USBC:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_USBC;
-        break;
-    case RCC_MOD_I2C3:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_I2C3;
-        break;
-    case RCC_MOD_ATIM1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_ATIM1;
-        break;
-    case RCC_MOD_USART3:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_USART3;
-        break;
-    case RCC_MOD_AUDCODEC_HP:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_AUDCODEC;
-        break;
-    case RCC_MOD_AUDPRC:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_AUDPRC;
-        break;
-    case RCC_MOD_I2C4:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_I2C4;
-        break;
-    case RCC_MOD_TSEN:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_TSEN;
-        break;
-    case RCC_MOD_AUDCODEC_LP:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_AUDCODEC;
-        break;
-    case RCC_MOD_GPADC:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_GPADC;
-        break;
-    case RCC_MOD_SECU1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_SECU1;
-        break;
-    case RCC_MOD_AUDCODEC:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_AUDCODEC;
-        break;
-#endif
-#if 1//(CORE_ID_CURRENT == CORE_ID_LCPU)
-    case RCC_MOD_PTC2:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_PTC2;
-        break;
-    case RCC_MOD_BTIM4:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_BTIM4;
-        break;
-    case RCC_MOD_BTIM3:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_BTIM3;
-        break;
-    case RCC_MOD_SYSCFG2:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_SYSCFG2;
-        break;
-    case RCC_MOD_USART5:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_USART5;
-        break;
-    case RCC_MOD_USART4:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_USART4;
-        break;
-    case RCC_MOD_PATCH:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_PATCH;
-        break;
-    case RCC_MOD_PINMUX2:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_PINMUX2;
-        break;
-    case RCC_MOD_MAILBOX2:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_MAILBOX2;
-        break;
-    case RCC_MOD_DMAC2:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_DMAC2;
-        break;
-    case RCC_MOD_MAC:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_MAC;
-        break;
-    case RCC_MOD_PHY:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_PHY;
-        break;
-    case RCC_MOD_RFC:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_RFC;
-        break;
-    case RCC_MOD_GPIO2:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_GPIO2;
-        break;
-    case RCC_MOD_SECU2:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_SECU2;
-        break;
-
-#endif
-    default:
-        HAL_ASSERT(0);
-        break;
-
-    }
-
-    return base_rcc;
-}
-#elif defined(SF32LB57X)
-static inline __IO uint32_t *RCC_GetModuleMask(RCC_MODULE_TYPE module, uint32_t *group, uint32_t *mask)
-{
-    __IO uint32_t *base_rcc = 0;
-    if ((!mask) || (!group))
-    {
-        return NULL;
-    }
-    base_rcc = NULL;
-    switch (module)
-    {
-#if (CORE_ID_CURRENT == CORE_ID_HCPU)
-    case RCC_MOD_DMAC1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_DMAC1;
-        break;
-    case RCC_MOD_MAILBOX1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_MAILBOX1;
-        break;
-    case RCC_MOD_PINMUX1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_PINMUX1;
-        break;
-    case RCC_MOD_USART2:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_USART2;
-        break;
-    case RCC_MOD_EZIP:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_EZIP1;
-        break;
-    case RCC_MOD_EPIC:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_EPIC;
-        break;
-    case RCC_MOD_LCDC1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_LCDC1;
-        break;
-    case RCC_MOD_I2S1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_I2S1;
-        break;
-    case RCC_MOD_SYSCFG1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_SYSCFG1;
-        break;
-    case RCC_MOD_EFUSEC:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_EFUSEC;
-        break;
-    case RCC_MOD_AES:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_AES;
-        break;
-    case RCC_MOD_CRC1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_CRC1;
-        break;
-    case RCC_MOD_CRC2:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 1;
-        *mask = LPSYS_RCC_ENR1_CRC2;
-        break;
-    case RCC_MOD_TRNG:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_TRNG;
-        break;
-    case RCC_MOD_GPTIM1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_GPTIM1;
-        break;
-    case RCC_MOD_GPTIM2:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_GPTIM2;
-        break;
-    case RCC_MOD_BTIM1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_BTIM1;
-        break;
-    case RCC_MOD_BTIM2:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_BTIM2;
-        break;
-    case RCC_MOD_SPI1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_SPI1;
-        break;
-    case RCC_MOD_SPI2:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_SPI2;
-        break;
-    case RCC_MOD_PDM1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_PDM1;
-        break;
-    case RCC_MOD_I2C1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_I2C1;
-        break;
-    case RCC_MOD_I2C2:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_I2C2;
-        break;
-    case RCC_MOD_PTC1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_PTC1;
-        break;
-
-    case RCC_MOD_GPIO1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_GPIO1;
-        break;
-    case RCC_MOD_MPI1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_MPI1;
-        break;
-    case RCC_MOD_MPI2:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_MPI2;
-        break;
-    case RCC_MOD_SDMMC1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_SDMMC1;
-        break;
-    case RCC_MOD_USBC:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_USBC;
-        break;
-    case RCC_MOD_I2C3:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_I2C3;
-        break;
-    case RCC_MOD_ATIM1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_ATIM1;
-        break;
-    case RCC_MOD_USART3:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_USART3;
-        break;
-    case RCC_MOD_AUDCODEC_HP:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_AUDCODEC;
-        break;
-    case RCC_MOD_AUDPRC:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_AUDPRC;
-        break;
-    case RCC_MOD_I2C4:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_I2C4;
-        break;
-    case RCC_MOD_TSEN:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_TSEN;
-        break;
-    case RCC_MOD_AUDCODEC_LP:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_AUDCODEC;
-        break;
-    case RCC_MOD_GPADC:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_GPADC;
-        break;
-    case RCC_MOD_SECU1:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 0;
-        *mask = HPSYS_RCC_ENR1_SECU1;
-        break;
-    case RCC_MOD_AUDCODEC:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_AUDCODEC;
-        break;
-    case RCC_MOD_DCMI:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_DCMI;
-        break;
-    case RCC_MOD_JPEGD:
-        base_rcc = (uint32_t *)hwp_hpsys_rcc;
-        *group = 1;
-        *mask = HPSYS_RCC_ENR2_JPEGD;
-        break;
-#endif
-#if 1//(CORE_ID_CURRENT == CORE_ID_LCPU)
-    case RCC_MOD_PTC2:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_PTC2;
-        break;
-    case RCC_MOD_BTIM4:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_BTIM4;
-        break;
-    case RCC_MOD_BTIM3:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_BTIM3;
-        break;
-    case RCC_MOD_SYSCFG2:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_SYSCFG2;
-        break;
-    case RCC_MOD_USART5:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_USART5;
-        break;
-    case RCC_MOD_PATCH:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_PATCH;
-        break;
-    case RCC_MOD_MAILBOX2:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_MAILBOX2;
-        break;
-    case RCC_MOD_DMAC2:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_DMAC2;
-        break;
-    case RCC_MOD_MAC:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_MAC;
-        break;
-    case RCC_MOD_PHY:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_PHY;
-        break;
-    case RCC_MOD_RFC:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_RFC;
-        break;
-    case RCC_MOD_GPIO2:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_GPIO2;
-        break;
-    case RCC_MOD_SECU2:
-        base_rcc = (uint32_t *)hwp_lpsys_rcc;
-        *group = 0;
-        *mask = LPSYS_RCC_ENR1_SECU2;
-        break;
-
-#endif
-    default:
-        HAL_ASSERT(0);
-        break;
-
-    }
-
-    return base_rcc;
-}
+#elif defined(SF32LB52X) || defined(SF32LB57X)
 
 #else
 static inline __IO uint32_t *RCC_GetModuleMask(RCC_MODULE_TYPE module, uint32_t *group, uint32_t *mask)
@@ -2348,11 +1743,12 @@ __HAL_ROM_USED void HAL_RCC_SetMacFreq(void)
                (mac_div << LPSYS_RCC_CFGR_MACDIV_Pos) | (0x08 << LPSYS_RCC_CFGR_MACFREQ_Pos));
 }
 
-
+#if !defined(SF32LB52X) && !defined(SF32LB57X)
 __HAL_ROM_USED void HAL_RCC_ResetModule(RCC_MODULE_TYPE module)
 {
     __IO uint32_t *base_rcc, *rstr;
     uint32_t mask, group;
+    uint32_t level;
 
     base_rcc = RCC_GetModuleMask(module, &group, &mask);
 
@@ -2372,12 +1768,12 @@ __HAL_ROM_USED void HAL_RCC_ResetModule(RCC_MODULE_TYPE module)
         return;
     }
 
+    level = HAL_RCC_DisableInterrupt();
     /*Rest module*/
     *rstr |= mask;
     *rstr &= ~mask;
+    HAL_RCC_EnableInterrupt(level);
 }
-
-
 
 __HAL_ROM_USED void HAL_RCC_EnableModule(RCC_MODULE_TYPE module)
 {
@@ -2437,6 +1833,186 @@ __HAL_ROM_USED void HAL_RCC_DisableModule(RCC_MODULE_TYPE module)
     HAL_RCC_EnableInterrupt(level);
 }
 
+__HAL_ROM_USED bool HAL_RCC_IsModuleEnabled(RCC_MODULE_TYPE module)
+{
+    __IO uint32_t *base_rcc, *enr;
+    uint32_t mask, group;
+    uint32_t level;
+
+    base_rcc = RCC_GetModuleMask(module, &group, &mask);
+
+    if (((uint32_t *)hwp_hpsys_rcc == base_rcc) && (0 == group))
+        enr = (uint32_t *)&hwp_hpsys_rcc->ENR1;
+    else if (((uint32_t *)hwp_hpsys_rcc == base_rcc) && (1 == group))
+        enr = (uint32_t *)&hwp_hpsys_rcc->ENR2;
+    else if (((uint32_t *)hwp_lpsys_rcc == base_rcc) && (0 == group))
+        enr = (uint32_t *)&hwp_lpsys_rcc->ENR1;
+#if !defined(SF32LB52X) && !defined(SF32LB57X)
+    else if (((uint32_t *)hwp_lpsys_rcc == base_rcc) && (1 == group))
+        enr = (uint32_t *)&hwp_lpsys_rcc->ENR2;
+#endif
+    else
+    {
+        HAL_ASSERT(0);
+        return false;
+    }
+
+    if (*enr & mask)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
+#else
+__HAL_ROM_USED void HAL_RCC_ResetModule(RCC_MODULE_TYPE module)
+{
+    __IO uint32_t *rstr;
+    uint8_t subsys;
+    uint8_t group;
+    uint16_t offset;
+    uint32_t mask;
+    uint32_t level;
+
+    if (RCC_MOD_INVALID == module)
+    {
+        return;
+    }
+
+    subsys = RCC_GET_SUBSYS_FROM_MOD_TYPE(module);
+    group = RCC_GET_GROUP_FROM_MOD_TYPE(module);
+    offset = RCC_GET_OFF_FROM_MOD_TYPE(module);
+    HAL_ASSERT(offset < 32);
+    if (RCC_MOD_TYPE_HPSYS == subsys)
+    {
+        rstr = &hwp_hpsys_rcc->RSTR1 + group;
+    }
+    else if (RCC_MOD_TYPE_LPSYS == subsys)
+    {
+        rstr = &hwp_lpsys_rcc->RSTR1 + group;
+    }
+    else
+    {
+        HAL_ASSERT(0);
+    }
+
+    mask = (1UL << offset);
+    level = HAL_RCC_DisableInterrupt();
+    /*Rest module*/
+    *rstr |= mask;
+    *rstr &= ~mask;
+    HAL_RCC_EnableInterrupt(level);
+}
+
+__HAL_ROM_USED void HAL_RCC_EnableModule(RCC_MODULE_TYPE module)
+{
+    __IO uint32_t *esr;
+    uint8_t subsys;
+    uint8_t group;
+    uint16_t offset;
+
+    if (RCC_MOD_INVALID == module)
+    {
+        return;
+    }
+
+    subsys = RCC_GET_SUBSYS_FROM_MOD_TYPE(module);
+    group = RCC_GET_GROUP_FROM_MOD_TYPE(module);
+    offset = RCC_GET_OFF_FROM_MOD_TYPE(module);
+    HAL_ASSERT(offset < 32);
+    if (RCC_MOD_TYPE_HPSYS == subsys)
+    {
+        esr = &hwp_hpsys_rcc->ESR1 + group;
+    }
+    else if (RCC_MOD_TYPE_LPSYS == subsys)
+    {
+        esr = &hwp_lpsys_rcc->ESR1 + group;
+    }
+    else
+    {
+        HAL_ASSERT(0);
+    }
+
+    *esr = (1UL << offset);
+}
+
+__HAL_ROM_USED void HAL_RCC_DisableModule(RCC_MODULE_TYPE module)
+{
+    __IO uint32_t *ecr;
+    uint8_t subsys;
+    uint8_t group;
+    uint16_t offset;
+
+    if (RCC_MOD_INVALID == module)
+    {
+        return;
+    }
+
+    subsys = RCC_GET_SUBSYS_FROM_MOD_TYPE(module);
+    group = RCC_GET_GROUP_FROM_MOD_TYPE(module);
+    offset = RCC_GET_OFF_FROM_MOD_TYPE(module);
+    HAL_ASSERT(offset < 32);
+    if (RCC_MOD_TYPE_HPSYS == subsys)
+    {
+        ecr = &hwp_hpsys_rcc->ECR1 + group;
+    }
+    else if (RCC_MOD_TYPE_LPSYS == subsys)
+    {
+        ecr = &hwp_lpsys_rcc->ECR1 + group;
+    }
+    else
+    {
+        HAL_ASSERT(0);
+    }
+
+    *ecr = (1UL << offset);
+}
+
+__HAL_ROM_USED bool HAL_RCC_IsModuleEnabled(RCC_MODULE_TYPE module)
+{
+    __IO uint32_t *enr;
+    uint8_t subsys;
+    uint8_t group;
+    uint16_t offset;
+
+    if (RCC_MOD_INVALID == module)
+    {
+        return false;
+    }
+
+    subsys = RCC_GET_SUBSYS_FROM_MOD_TYPE(module);
+    group = RCC_GET_GROUP_FROM_MOD_TYPE(module);
+    offset = RCC_GET_OFF_FROM_MOD_TYPE(module);
+    HAL_ASSERT(offset < 32);
+    if (RCC_MOD_TYPE_HPSYS == subsys)
+    {
+        enr = &hwp_hpsys_rcc->ENR1 + group;
+    }
+    else if (RCC_MOD_TYPE_LPSYS == subsys)
+    {
+        enr = &hwp_lpsys_rcc->ENR1 + group;
+    }
+    else
+    {
+        HAL_ASSERT(0);
+    }
+
+    if (*enr & (1UL << offset))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
+#endif /* !SF32LB52X && !SF32LB57 */
 
 __HAL_ROM_USED HAL_StatusTypeDef HAL_RCC_SetModuleFreq(RCC_MODULE_TYPE module, uint32_t freq)
 {

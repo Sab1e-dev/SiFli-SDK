@@ -26,6 +26,34 @@ extern "C" {
   * @brief  RCC System, lock configuration definition
   */
 
+#define RCC_MOD_TYPE_HPSYS                  (0U)
+#define RCC_MOD_TYPE_LPSYS                  (1U)
+#define RCC_MOD_TYPE_OFF_POS                (0U)
+#define RCC_MOD_TYPE_OFF_MSK                (0xFFUL << RCC_MOD_TYPE_OFF_POS)
+#define RCC_MOD_TYPE_GROUP_POS              (8U)
+#define RCC_MOD_TYPE_GROUP_MSK              (3UL << RCC_MOD_TYPE_GROUP_POS)
+#define RCC_MOD_TYPE_SUBSYS_POS             (10)
+#define RCC_MOD_TYPE_SUBSYS_MSK             (3UL << RCC_MOD_TYPE_SUBSYS_POS)
+#define RCC_MAKE_MOD_TYPE(subsys, group, off)     (((subsys) << RCC_MOD_TYPE_SUBSYS_POS) | ((group) << RCC_MOD_TYPE_GROUP_POS) | (off))
+#define RCC_GET_OFF_FROM_MOD_TYPE(type)           GET_REG_VAL(type, RCC_MOD_TYPE_OFF_MSK, RCC_MOD_TYPE_OFF_POS)
+#define RCC_GET_GROUP_FROM_MOD_TYPE(type)         GET_REG_VAL(type, RCC_MOD_TYPE_GROUP_MSK, RCC_MOD_TYPE_GROUP_POS)
+#define RCC_GET_SUBSYS_FROM_MOD_TYPE(type)        GET_REG_VAL(type, RCC_MOD_TYPE_SUBSYS_MSK, RCC_MOD_TYPE_SUBSYS_POS)
+
+#ifdef SF32LB55X
+#include "bf0_hal_rcc_sf32lb55x.h"
+#elif defined(SF32LB56X)
+#include "bf0_hal_rcc_sf32lb56x.h"
+#elif defined(SF32LB58X)
+#include "bf0_hal_rcc_sf32lb58x.h"
+#elif defined(SF32LB52X)
+#include "bf0_hal_rcc_sf32lb52x.h"
+#elif defined(SF32LB57X)
+#include "bf0_hal_rcc_sf32lb57x.h"
+#else
+#error "Unsupported chip"
+#endif /* SF32LB55X */
+
+
 // Core ID
 #define CORE_ID_DEFAULT 0
 /** HCPU */
@@ -235,8 +263,9 @@ typedef enum
     RCC_MOD_MAC,
     RCC_MOD_PHY,
     RCC_MOD_RFC,
+    RCC_MOD_INVALID = UINT32_MAX,
 } RCC_MODULE_TYPE;
-#else
+#elif !defined(SF32LB52X) && !defined(SF32LB57X)
 typedef enum
 {
     RCC_MOD_DMAC1,
@@ -339,28 +368,13 @@ typedef enum
     RCC_MOD_AUDCODEC,
     RCC_MOD_JPEGD,
     RCC_MOD_DCMI,
+    RCC_MOD_INVALID = UINT32_MAX,
 } RCC_MODULE_TYPE;
-#endif
+#endif /* SF32LB55X */
 
 #define RCC_MOD_I2S_ALL     RCC_MOD_I2S1
 
-#if defined(SF32LB52X) || defined(SF32LB57X)
-typedef enum
-{
-    HPSYS_DVFS_MODE_D0,
-    HPSYS_DVFS_MODE_D1,
-    HPSYS_DVFS_MODE_S0,
-    HPSYS_DVFS_MODE_S1,
-    HPSYS_DVFS_MODE_NUM,
-} HPSYS_DvfsModeTypeDef;
 
-typedef enum
-{
-    LPSYS_DVFS_MODE_D,
-    LPSYS_DVFS_MODE_S,
-    LPSYS_DVFS_MODE_NUM,
-} LPSYS_DvfsModeTypeDef;
-#endif /* SF32LB52X */
 
 ///@} RCC_Exported_Types
 
@@ -742,6 +756,16 @@ void HAL_RCC_EnableModule(RCC_MODULE_TYPE module);
  * @retval void
  */
 void HAL_RCC_DisableModule(RCC_MODULE_TYPE module);
+
+/**
+ * @brief  Check if module is enabled
+ *
+ * @param  module module name
+ * @return whether module is enabled
+ * @retval true module is enabled
+ * @retval false module is not enabled
+ */
+bool HAL_RCC_IsModuleEnabled(RCC_MODULE_TYPE module);
 
 /**
  * @brief  Calibrate RC48

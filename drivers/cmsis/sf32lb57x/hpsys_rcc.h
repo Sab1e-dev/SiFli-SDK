@@ -23,10 +23,9 @@ typedef struct
     __IO uint32_t DWCFGR;
     __IO uint32_t SR1;
     __IO uint32_t SR2;
-    __IO uint32_t ACPU;
     __IO uint32_t RC10CAL1;
     __IO uint32_t RC10CAL2;
-    __IO uint32_t RSVD1[8];
+    __IO uint32_t RSVD1[9];
     __IO uint32_t TESTR;
 } HPSYS_RCC_TypeDef;
 
@@ -110,9 +109,9 @@ typedef struct
 #define HPSYS_RCC_RSTR1_I2C2_Pos        (28U)
 #define HPSYS_RCC_RSTR1_I2C2_Msk        (0x1UL << HPSYS_RCC_RSTR1_I2C2_Pos)
 #define HPSYS_RCC_RSTR1_I2C2            HPSYS_RCC_RSTR1_I2C2_Msk
-#define HPSYS_RCC_RSTR1_PTC1_Pos        (31U)
-#define HPSYS_RCC_RSTR1_PTC1_Msk        (0x1UL << HPSYS_RCC_RSTR1_PTC1_Pos)
-#define HPSYS_RCC_RSTR1_PTC1            HPSYS_RCC_RSTR1_PTC1_Msk
+#define HPSYS_RCC_RSTR1_PTM1_Pos        (31U)
+#define HPSYS_RCC_RSTR1_PTM1_Msk        (0x1UL << HPSYS_RCC_RSTR1_PTM1_Pos)
+#define HPSYS_RCC_RSTR1_PTM1            HPSYS_RCC_RSTR1_PTM1_Msk
 
 /**************** Bit definition for HPSYS_RCC_RSTR2 register *****************/
 #define HPSYS_RCC_RSTR2_GPIO1_Pos       (0U)
@@ -252,9 +251,9 @@ typedef struct
 #define HPSYS_RCC_ENR1_I2C2_Pos         (28U)
 #define HPSYS_RCC_ENR1_I2C2_Msk         (0x1UL << HPSYS_RCC_ENR1_I2C2_Pos)
 #define HPSYS_RCC_ENR1_I2C2             HPSYS_RCC_ENR1_I2C2_Msk
-#define HPSYS_RCC_ENR1_PTC1_Pos         (31U)
-#define HPSYS_RCC_ENR1_PTC1_Msk         (0x1UL << HPSYS_RCC_ENR1_PTC1_Pos)
-#define HPSYS_RCC_ENR1_PTC1             HPSYS_RCC_ENR1_PTC1_Msk
+#define HPSYS_RCC_ENR1_PTM1_Pos         (31U)
+#define HPSYS_RCC_ENR1_PTM1_Msk         (0x1UL << HPSYS_RCC_ENR1_PTM1_Pos)
+#define HPSYS_RCC_ENR1_PTM1             HPSYS_RCC_ENR1_PTM1_Msk
 
 /***************** Bit definition for HPSYS_RCC_ENR2 register *****************/
 #define HPSYS_RCC_ENR2_GPIO1_Pos        (0U)
@@ -394,9 +393,9 @@ typedef struct
 #define HPSYS_RCC_ESR1_I2C2_Pos         (28U)
 #define HPSYS_RCC_ESR1_I2C2_Msk         (0x1UL << HPSYS_RCC_ESR1_I2C2_Pos)
 #define HPSYS_RCC_ESR1_I2C2             HPSYS_RCC_ESR1_I2C2_Msk
-#define HPSYS_RCC_ESR1_PTC1_Pos         (31U)
-#define HPSYS_RCC_ESR1_PTC1_Msk         (0x1UL << HPSYS_RCC_ESR1_PTC1_Pos)
-#define HPSYS_RCC_ESR1_PTC1             HPSYS_RCC_ESR1_PTC1_Msk
+#define HPSYS_RCC_ESR1_PTM1_Pos         (31U)
+#define HPSYS_RCC_ESR1_PTM1_Msk         (0x1UL << HPSYS_RCC_ESR1_PTM1_Pos)
+#define HPSYS_RCC_ESR1_PTM1             HPSYS_RCC_ESR1_PTM1_Msk
 
 /***************** Bit definition for HPSYS_RCC_ESR2 register *****************/
 #define HPSYS_RCC_ESR2_GPIO1_Pos        (0U)
@@ -536,9 +535,9 @@ typedef struct
 #define HPSYS_RCC_ECR1_I2C2_Pos         (28U)
 #define HPSYS_RCC_ECR1_I2C2_Msk         (0x1UL << HPSYS_RCC_ECR1_I2C2_Pos)
 #define HPSYS_RCC_ECR1_I2C2             HPSYS_RCC_ECR1_I2C2_Msk
-#define HPSYS_RCC_ECR1_PTC1_Pos         (31U)
-#define HPSYS_RCC_ECR1_PTC1_Msk         (0x1UL << HPSYS_RCC_ECR1_PTC1_Pos)
-#define HPSYS_RCC_ECR1_PTC1             HPSYS_RCC_ECR1_PTC1_Msk
+#define HPSYS_RCC_ECR1_PTM1_Pos         (31U)
+#define HPSYS_RCC_ECR1_PTM1_Msk         (0x1UL << HPSYS_RCC_ECR1_PTM1_Pos)
+#define HPSYS_RCC_ECR1_PTM1             HPSYS_RCC_ECR1_PTM1_Msk
 
 /***************** Bit definition for HPSYS_RCC_ECR2 register *****************/
 #define HPSYS_RCC_ECR2_GPIO1_Pos        (0U)
@@ -890,12 +889,9 @@ typedef struct
 #define HPSYS_RCC_SR1_DMAC1_Pos         (0U)
 #define HPSYS_RCC_SR1_DMAC1_Msk         (0x1UL << HPSYS_RCC_SR1_DMAC1_Pos)
 #define HPSYS_RCC_SR1_DMAC1             HPSYS_RCC_SR1_DMAC1_Msk
-#define HPSYS_RCC_SR1_MAILBOX1_Pos      (1U)
-#define HPSYS_RCC_SR1_MAILBOX1_Msk      (0x1UL << HPSYS_RCC_SR1_MAILBOX1_Pos)
-#define HPSYS_RCC_SR1_MAILBOX1          HPSYS_RCC_SR1_MAILBOX1_Msk
-#define HPSYS_RCC_SR1_PINMUX1_Pos       (2U)
-#define HPSYS_RCC_SR1_PINMUX1_Msk       (0x1UL << HPSYS_RCC_SR1_PINMUX1_Pos)
-#define HPSYS_RCC_SR1_PINMUX1           HPSYS_RCC_SR1_PINMUX1_Msk
+#define HPSYS_RCC_SR1_USART1_Pos        (3U)
+#define HPSYS_RCC_SR1_USART1_Msk        (0x1UL << HPSYS_RCC_SR1_USART1_Pos)
+#define HPSYS_RCC_SR1_USART1            HPSYS_RCC_SR1_USART1_Msk
 #define HPSYS_RCC_SR1_USART2_Pos        (4U)
 #define HPSYS_RCC_SR1_USART2_Msk        (0x1UL << HPSYS_RCC_SR1_USART2_Pos)
 #define HPSYS_RCC_SR1_USART2            HPSYS_RCC_SR1_USART2_Msk
@@ -914,21 +910,9 @@ typedef struct
 #define HPSYS_RCC_SR1_I2S2_Pos          (9U)
 #define HPSYS_RCC_SR1_I2S2_Msk          (0x1UL << HPSYS_RCC_SR1_I2S2_Pos)
 #define HPSYS_RCC_SR1_I2S2              HPSYS_RCC_SR1_I2S2_Msk
-#define HPSYS_RCC_SR1_SYSCFG1_Pos       (10U)
-#define HPSYS_RCC_SR1_SYSCFG1_Msk       (0x1UL << HPSYS_RCC_SR1_SYSCFG1_Pos)
-#define HPSYS_RCC_SR1_SYSCFG1           HPSYS_RCC_SR1_SYSCFG1_Msk
-#define HPSYS_RCC_SR1_EFUSEC_Pos        (11U)
-#define HPSYS_RCC_SR1_EFUSEC_Msk        (0x1UL << HPSYS_RCC_SR1_EFUSEC_Pos)
-#define HPSYS_RCC_SR1_EFUSEC            HPSYS_RCC_SR1_EFUSEC_Msk
 #define HPSYS_RCC_SR1_AES_Pos           (12U)
 #define HPSYS_RCC_SR1_AES_Msk           (0x1UL << HPSYS_RCC_SR1_AES_Pos)
 #define HPSYS_RCC_SR1_AES               HPSYS_RCC_SR1_AES_Msk
-#define HPSYS_RCC_SR1_CRC1_Pos          (13U)
-#define HPSYS_RCC_SR1_CRC1_Msk          (0x1UL << HPSYS_RCC_SR1_CRC1_Pos)
-#define HPSYS_RCC_SR1_CRC1              HPSYS_RCC_SR1_CRC1_Msk
-#define HPSYS_RCC_SR1_TRNG_Pos          (14U)
-#define HPSYS_RCC_SR1_TRNG_Msk          (0x1UL << HPSYS_RCC_SR1_TRNG_Pos)
-#define HPSYS_RCC_SR1_TRNG              HPSYS_RCC_SR1_TRNG_Msk
 #define HPSYS_RCC_SR1_GPTIM1_Pos        (15U)
 #define HPSYS_RCC_SR1_GPTIM1_Msk        (0x1UL << HPSYS_RCC_SR1_GPTIM1_Pos)
 #define HPSYS_RCC_SR1_GPTIM1            HPSYS_RCC_SR1_GPTIM1_Msk
@@ -950,9 +934,6 @@ typedef struct
 #define HPSYS_RCC_SR1_SPI2_Pos          (21U)
 #define HPSYS_RCC_SR1_SPI2_Msk          (0x1UL << HPSYS_RCC_SR1_SPI2_Pos)
 #define HPSYS_RCC_SR1_SPI2              HPSYS_RCC_SR1_SPI2_Msk
-#define HPSYS_RCC_SR1_SECU1_Pos         (23U)
-#define HPSYS_RCC_SR1_SECU1_Msk         (0x1UL << HPSYS_RCC_SR1_SECU1_Pos)
-#define HPSYS_RCC_SR1_SECU1             HPSYS_RCC_SR1_SECU1_Msk
 #define HPSYS_RCC_SR1_PDM1_Pos          (25U)
 #define HPSYS_RCC_SR1_PDM1_Msk          (0x1UL << HPSYS_RCC_SR1_PDM1_Pos)
 #define HPSYS_RCC_SR1_PDM1              HPSYS_RCC_SR1_PDM1_Msk
@@ -965,14 +946,11 @@ typedef struct
 #define HPSYS_RCC_SR1_I2C2_Pos          (28U)
 #define HPSYS_RCC_SR1_I2C2_Msk          (0x1UL << HPSYS_RCC_SR1_I2C2_Pos)
 #define HPSYS_RCC_SR1_I2C2              HPSYS_RCC_SR1_I2C2_Msk
-#define HPSYS_RCC_SR1_PTC1_Pos          (31U)
-#define HPSYS_RCC_SR1_PTC1_Msk          (0x1UL << HPSYS_RCC_SR1_PTC1_Pos)
-#define HPSYS_RCC_SR1_PTC1              HPSYS_RCC_SR1_PTC1_Msk
+#define HPSYS_RCC_SR1_PTM1_Pos          (31U)
+#define HPSYS_RCC_SR1_PTM1_Msk          (0x1UL << HPSYS_RCC_SR1_PTM1_Pos)
+#define HPSYS_RCC_SR1_PTM1              HPSYS_RCC_SR1_PTM1_Msk
 
 /***************** Bit definition for HPSYS_RCC_SR2 register ******************/
-#define HPSYS_RCC_SR2_GPIO1_Pos         (0U)
-#define HPSYS_RCC_SR2_GPIO1_Msk         (0x1UL << HPSYS_RCC_SR2_GPIO1_Pos)
-#define HPSYS_RCC_SR2_GPIO1             HPSYS_RCC_SR2_GPIO1_Msk
 #define HPSYS_RCC_SR2_MPI1_Pos          (1U)
 #define HPSYS_RCC_SR2_MPI1_Msk          (0x1UL << HPSYS_RCC_SR2_MPI1_Pos)
 #define HPSYS_RCC_SR2_MPI1              HPSYS_RCC_SR2_MPI1_Msk
@@ -1033,23 +1011,6 @@ typedef struct
 #define HPSYS_RCC_SR2_ACPU_Pos          (31U)
 #define HPSYS_RCC_SR2_ACPU_Msk          (0x1UL << HPSYS_RCC_SR2_ACPU_Pos)
 #define HPSYS_RCC_SR2_ACPU              HPSYS_RCC_SR2_ACPU_Msk
-
-/***************** Bit definition for HPSYS_RCC_ACPU register *****************/
-#define HPSYS_RCC_ACPU_WAIT_Pos         (0U)
-#define HPSYS_RCC_ACPU_WAIT_Msk         (0x1UL << HPSYS_RCC_ACPU_WAIT_Pos)
-#define HPSYS_RCC_ACPU_WAIT             HPSYS_RCC_ACPU_WAIT_Msk
-#define HPSYS_RCC_ACPU_LOCKNSVTOR_Pos   (1U)
-#define HPSYS_RCC_ACPU_LOCKNSVTOR_Msk   (0x1UL << HPSYS_RCC_ACPU_LOCKNSVTOR_Pos)
-#define HPSYS_RCC_ACPU_LOCKNSVTOR       HPSYS_RCC_ACPU_LOCKNSVTOR_Msk
-#define HPSYS_RCC_ACPU_RSTR_Pos         (2U)
-#define HPSYS_RCC_ACPU_RSTR_Msk         (0x1UL << HPSYS_RCC_ACPU_RSTR_Pos)
-#define HPSYS_RCC_ACPU_RSTR             HPSYS_RCC_ACPU_RSTR_Msk
-#define HPSYS_RCC_ACPU_ENR_Pos          (3U)
-#define HPSYS_RCC_ACPU_ENR_Msk          (0x1UL << HPSYS_RCC_ACPU_ENR_Pos)
-#define HPSYS_RCC_ACPU_ENR              HPSYS_RCC_ACPU_ENR_Msk
-#define HPSYS_RCC_ACPU_VTOR_Pos         (7U)
-#define HPSYS_RCC_ACPU_VTOR_Msk         (0x1FFFFFFUL << HPSYS_RCC_ACPU_VTOR_Pos)
-#define HPSYS_RCC_ACPU_VTOR             HPSYS_RCC_ACPU_VTOR_Msk
 
 /*************** Bit definition for HPSYS_RCC_RC10CAL1 register ***************/
 #define HPSYS_RCC_RC10CAL1_CAL_LENGTH_Pos  (0U)

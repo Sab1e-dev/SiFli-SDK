@@ -2545,10 +2545,23 @@ static void SPI_Sequence(LCDC_HandleTypeDef *lcdc, bool end)
 static HAL_StatusTypeDef LCDC_HW_Init(LCDC_HandleTypeDef *lcdc)
 {
     LCDC_InitTypeDef *init;
+    RCC_MODULE_TYPE mod = RCC_MOD_INVALID;
 
     HAL_LCDC_ASSERT(lcdc);
-    HAL_RCC_EnableModule((lcdc->Instance == hwp_lcdc1) ? RCC_MOD_LCDC1 : RCC_MOD_LCDC2);
-    HAL_RCC_ResetModule((lcdc->Instance == hwp_lcdc1) ? RCC_MOD_LCDC1 : RCC_MOD_LCDC2);
+    if (lcdc->Instance == hwp_lcdc1)
+    {
+        mod = RCC_MOD_LCDC1;
+    }
+    else
+    {
+#ifdef hwp_lcdc2
+        mod = RCC_MOD_LCDC2;
+#else
+        HAL_LCDC_ASSERT(0);
+#endif /* hwp_lcdc2 */
+    }
+    HAL_RCC_EnableModule(mod);
+    HAL_RCC_ResetModule(mod);
 
     init = &lcdc->Init;
 
@@ -3497,7 +3510,11 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_SendLayerData2Reg(LCDC_HandleTypeDef *
 
 static void SPI_AUX_RST_HW_FSM(void)
 {
+#ifdef hwp_ptc1
     HAL_RCC_ResetModule(RCC_MOD_PTC1);
+#else
+    HAL_RCC_ResetModule(RCC_MOD_PTM1);
+#endif /* hwp_ptc1 */
     //stop PTC, clear btim2/dmac1/ptc1
     PTC_btim->CR1 &= ~BTIM_CR1_CEN;
     p_DMACH0->CCR &= ~DMAC_CCR1_EN;
@@ -6079,8 +6096,22 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_Resume(LCDC_HandleTypeDef *lcdc)
     {
         //Re-initialize LCDC regs(DSI regs too)
         LCDC_InitTypeDef *init;
+        RCC_MODULE_TYPE mod = RCC_MOD_INVALID;
 
-        HAL_RCC_ResetModule((lcdc->Instance == hwp_lcdc1) ? RCC_MOD_LCDC1 : RCC_MOD_LCDC2);
+        if (lcdc->Instance == hwp_lcdc1)
+        {
+            mod = RCC_MOD_LCDC1;
+        }
+        else
+        {
+#ifdef hwp_lcdc2
+            mod = RCC_MOD_LCDC2;
+#else
+            HAL_LCDC_ASSERT(0);
+#endif /* hwp_lcdc2 */
+        }
+
+        HAL_RCC_ResetModule(mod);
 
         init = &lcdc->Init;
 
