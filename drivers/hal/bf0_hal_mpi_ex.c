@@ -157,6 +157,9 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_Init(QSPI_FLASH_CTX_T *ctx, qspi_conf
             HAL_FLASH_RELEASE_DPD(hflash);
             HAL_Delay_us(0);
             HAL_Delay_us(50);   // change to 50us to meet boya request, others with 8,20, 30 us can be cover
+
+            /* reset flash to exit 4byte address mode */
+            HAL_QSPIEX_FLASH_RESET(hflash);
         }
     }
 #ifdef HAL_USE_NAND
@@ -173,7 +176,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_Init(QSPI_FLASH_CTX_T *ctx, qspi_conf
 #endif
     // get device id, then get table,
     if (HAL_IS_ID_VALID(mid) == 0)
-        ctx->dev_id = HAL_QSPI_READ_ID(hflash);
+        ctx->dev_id = HAL_QSPI_READ_ID(hflash);  /* for nand: read without dummy cycle and address  */
     else
         ctx->dev_id = mid;
 
@@ -194,6 +197,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_Init(QSPI_FLASH_CTX_T *ctx, qspi_conf
 #ifdef HAL_USE_NAND
         if (hflash->isNand) // for nand, try another timing to read id
         {
+            /* read with 8 dummy cycle and no address */
             ctx->dev_id = nand_read_id(hflash, 8);
             fid = (uint8_t)ctx->dev_id & 0xff;
             mtype = (uint8_t)((ctx->dev_id >> 8) & 0xff);
@@ -202,6 +206,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_Init(QSPI_FLASH_CTX_T *ctx, qspi_conf
             hflash->ctable = spi_nand_get_cmd_by_id(fid, did, mtype);
             if (hflash->ctable == NULL)   // try to output fix level or addr for dummy bits
             {
+                /* read with no dummy cycle and address=0  */
                 ctx->dev_id = nand_read_id(hflash, 0xf);
                 fid = (uint8_t)ctx->dev_id & 0xff;
                 mtype = (uint8_t)((ctx->dev_id >> 8) & 0xff);
@@ -224,6 +229,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_Init(QSPI_FLASH_CTX_T *ctx, qspi_conf
             return HAL_ERROR;
         }
     }
+    //TODO: for ROM??
 #ifdef HAL_USE_NAND
     if (hflash->isNand)
     {
@@ -2398,13 +2404,18 @@ __HAL_ROM_USED void HAL_QSPIEX_FLASH_RESET(FLASH_HandleTypeDef *hflash)
     if (hflash == NULL)
         return ;
 
+    // send RST_EN
     HAL_FLASH_MANUAL_CMD(hflash, 0, 0, 0, 0, 0, 0, 0, 1);
     HAL_FLASH_SET_CMD(hflash, 0x66, 0);
 
     HAL_Delay_us(300);
-    // add a delay?
+
+    // send RST
     HAL_FLASH_MANUAL_CMD(hflash, 0, 0, 0, 0, 0, 0, 0, 1);
     HAL_FLASH_SET_CMD(hflash, 0x99, 0);
+
+    /* although some flash need max 12ms to recover from erase, we don't consider this case */
+    HAL_Delay_us(500);    // delay 500us
 
     return ;
 }
