@@ -832,7 +832,7 @@ typedef enum
 #define IS_LCPU(id)  ((*id)&1)
 
 /* Peripheral_timer_clk */
-#define FIXED_GPTBTIM_SRC_CLK   (48000000)
+#define FIXED_GPTBTIM_SRC_CLK   (24000000)
 
 #if defined (USE_HAL_DRIVER)
 #include "bf0_hal.h"
