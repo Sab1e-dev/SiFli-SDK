@@ -195,6 +195,38 @@ typedef enum
     PTM1_CH14,
     PTM1_CH15,
 
+    LCDC_IF0     = 111,
+    LCDC_IF1,
+    LCDC_IF2,
+    LCDC_IF3,
+    LCDC_IF4,
+    LCDC_IF5,
+    LCDC_IF6,
+    LCDC_IF7,
+    LCDC_IF8,
+    LCDC_IF9,
+    LCDC_IF10,
+    LCDC_IF11,
+    LCDC_IF12,
+    LCDC_IF13,
+    LCDC_IF14,
+    LCDC_IF15,
+    LCDC_IF16,
+    LCDC_IF17,
+    LCDC_IF18,
+    LCDC_IF19,
+    LCDC_IF20,
+    LCDC_IF21,
+    LCDC_IF22,
+    LCDC_IF23,
+    LCDC_IF24,
+    LCDC_IF25,
+    LCDC_IF26,
+    LCDC_IF27,
+    LCDC_IF28,
+    LCDC_IF29,
+
+
     /** PDM1_CLK */
     PDM1_CLK           = 141,
     /** PDM1_DATA */
@@ -1967,6 +1999,28 @@ typedef enum
     PAD_PA45,
     /** PAD_PA46 */
     PAD_PA46,
+    /** PAD_PA47 */
+    PAD_PA47,
+    /** PAD_PA48 */
+    PAD_PA48,
+    /** PAD_PA49 */
+    PAD_PA49,
+    /** PAD_PA50 */
+    PAD_PA50,
+    /** PAD_PA51 */
+    PAD_PA51,
+    /** PAD_PA52 */
+    PAD_PA52,
+    /** PAD_PA53 */
+    PAD_PA53,
+    /** PAD_PA54 */
+    PAD_PA54,
+    /** PAD_PA55 */
+    PAD_PA55,
+    /** PAD_PA56 */
+    PAD_PA56,
+    /** PAD_PA57 */
+    PAD_PA57,
     PIN_PAD_MAX_H,
 
     PIN_PAD_UNDEF_L,

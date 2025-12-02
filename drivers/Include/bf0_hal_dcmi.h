@@ -519,8 +519,8 @@ typedef void (*pDCMI_CallbackTypeDef)(DCMI_HandleTypeDef *hdcmi);
   * @retval None
   */
 #define __HAL_DCMI_SPI_CLKEG(__HANDLE__, CLKEG)     do {                                                                                    \
-                                                        (__HANDLE__)->Instance->CR &= ~(DCMI_CR_SPI_CLKEG);                                 \
-                                                        (__HANDLE__)->Instance->CR |= ((CLKEG) << DCMI_CR_SPI_CLKEG_Pos);                   \
+                                                        (__HANDLE__)->Instance->CR &= ~(DCMI_CR_PCKPOL_Msk);                                 \
+                                                        (__HANDLE__)->Instance->CR |= ((CLKEG) << DCMI_CR_PCKPOL_Pos);                   \
                                                     } while(0)
 
 /**

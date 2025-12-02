@@ -111,6 +111,7 @@ HAL_StatusTypeDef HAL_DCMI_Init(DCMI_HandleTypeDef *hdcmi)
     }
 
     HAL_RCC_EnableModule(RCC_MOD_DCMI);
+    HAL_RCC_ResetModule(RCC_MOD_DCMI);
 
     /* Check function parameters */
     HAL_ASSERT(IS_DCMI_PCKPOLARITY(hdcmi->Init.PCKPolarity));

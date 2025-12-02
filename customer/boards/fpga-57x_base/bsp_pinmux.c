@@ -109,6 +109,7 @@ void BSP_PIN_Init(void)
     uint32_t pid = (hwp_hpsys_cfg->IDR & HPSYS_CFG_IDR_PID_Msk) >> HPSYS_CFG_IDR_PID_Pos;
 
     pid &= 7;
+    pid = 3;
     if (pid == 0)   // Puya flash
     {
         HAL_PIN_Set(PAD_SA01, MPI1_CS,   PIN_NOPULL, 1);
@@ -251,9 +252,29 @@ void BSP_PIN_Init(void)
     HAL_PIN_Set(PAD_PA35, GPIO_A35, PIN_NOPULL, 0);
 
     // I2C2
-    HAL_PIN_Set(PAD_PA42, I2C2_SCL, PIN_PULLUP, 1);
-    HAL_PIN_Set(PAD_PA41, I2C2_SDA, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA47, I2C2_SDA, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA48, I2C2_SCL, PIN_PULLUP, 1);
 
+    // I2C1
+    HAL_PIN_Set(PAD_PA45, I2C1_SDA, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA46, I2C1_SCL, PIN_PULLUP, 1);
+
+#ifdef BSP_USING_DCMI
+    // Digital Camera Interface
+    HAL_PIN_Set(PAD_PA30, GPTIM2_CH1, PIN_PULLUP, 1); // mclk output
+
+    HAL_PIN_Set(PAD_PA49, DCMI_CLK, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA31, DCMI_VSYNC, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA32, DCMI_HSYNC, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA50, DCMI_DI0, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA51, DCMI_DI1, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA52, DCMI_DI2, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA53, DCMI_DI3, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA54, DCMI_DI4, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA55, DCMI_DI5, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA56, DCMI_DI6, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA57, DCMI_DI7, PIN_NOPULL, 1);
+#endif
 
 #endif
 

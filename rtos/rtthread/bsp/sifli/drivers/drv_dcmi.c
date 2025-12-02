@@ -67,6 +67,61 @@ struct rt_dcmi_device *rt_get_dcmi_device(void)
 {
     return &rt_dcmi;
 }
+#ifdef DMA_SUPPORT_DYN_CHANNEL_ALLOC
+static void DCMI_DMAXferCpltHalf(DMA_HandleTypeDef *hdma)
+{
+    if (rt_dcmi.parent.rx_indicate)
+        rt_dcmi.parent.rx_indicate((rt_device_t)&rt_dcmi, rt_dcmi.buffer_size / 2);
+}
+
+static void DCMI_DMAXferCplt(DMA_HandleTypeDef *hdma)
+{
+    if (rt_dcmi.parent.rx_indicate)
+        rt_dcmi.parent.rx_indicate((rt_device_t)&rt_dcmi, rt_dcmi.buffer_size);
+}
+
+static void DCMI_DMAXferAbort(DMA_HandleTypeDef *hdma)
+{
+    LOG_E("dcmi dma abort");
+    if (rt_dcmi.parent.rx_indicate)
+        rt_dcmi.parent.rx_indicate((rt_device_t)&rt_dcmi, 0);
+}
+
+static void DCMI_DMAXferError(DMA_HandleTypeDef *hdma)
+{
+    LOG_E("dcmi dma error");
+    if (rt_dcmi.parent.rx_indicate)
+        rt_dcmi.parent.rx_indicate((rt_device_t)&rt_dcmi, 0);
+}
+#else /*DMA_SUPPORT_DYN_CHANNEL_ALLOC*/
+
+void DCMI_DMA_IRQHandler(void)
+{
+    /* enter interrupt */
+    rt_interrupt_enter();
+
+    if (__HAL_DMA_GET_FLAG(&rt_dcmi.hdma, DCMI_DMA_TC) != RESET)
+    {
+        __HAL_DMA_CLEAR_FLAG(&rt_dcmi.hdma, DCMI_DMA_TC);
+        if (rt_dcmi.parent.rx_indicate)
+            rt_dcmi.parent.rx_indicate((rt_device_t)&rt_dcmi, rt_dcmi.buffer_size);
+    }
+    else if (__HAL_DMA_GET_FLAG(&rt_dcmi.hdma, DCMI_DMA_HT) != RESET)
+    {
+        __HAL_DMA_CLEAR_FLAG(&rt_dcmi.hdma, DCMI_DMA_HT);
+        if (rt_dcmi.parent.rx_indicate)
+            rt_dcmi.parent.rx_indicate((rt_device_t)&rt_dcmi, rt_dcmi.buffer_size / 2);
+    }
+    else
+    {
+        // Check DMA interrupt flag
+        RT_ASSERT(0);
+    }
+
+    /* leave interrupt */
+    rt_interrupt_leave();
+}
+#endif /* !DMA_SUPPORT_DYN_CHANNEL_ALLOC */
 
 static void rt_hw_dcmi_dma_init(rt_device_t dev)
 {
@@ -86,7 +141,7 @@ static void rt_hw_dcmi_dma_init(rt_device_t dev)
     dcmi->hdma.Init.Mode                = DMA_CIRCULAR;//DMA_CIRCULAR;DMA_NORMAL
     dcmi->hdma.Init.BurstSize           = 0x3; //burst 16 words
 
-    HAL_DMA_DeInit(&dcmi->hdma);
+
     HAL_DMA_Init(&dcmi->hdma);
     __HAL_LINKDMA(&dcmi->handle, DMA_Handle, dcmi->hdma);
     HAL_NVIC_SetPriority(dcmi_config.dma_irq, 0x00, 0x00);
@@ -99,11 +154,19 @@ void rt_hw_dcmi_dma_start(rt_device_t dev)
     RT_ASSERT(dcmi->frame_buffer != RT_NULL);
 
     __HAL_UNLOCK(&dcmi->handle);
+
+#ifdef DMA_SUPPORT_DYN_CHANNEL_ALLOC
+    dcmi->hdma.XferHalfCpltCallback    = DCMI_DMAXferCpltHalf;
+    dcmi->hdma.XferCpltCallback        = DCMI_DMAXferCplt;
+    dcmi->hdma.XferAbortCallback       = DCMI_DMAXferAbort;
+    dcmi->hdma.XferErrorCallback       = DCMI_DMAXferError;
+#endif /* DMA_SUPPORT_DYN_CHANNEL_ALLOC */
+
+
+
     //__HAL_DCMI_DMA_NUM(&dcmi->handle, 0x10);//carry words num of one dma request
-    HAL_DMA_Start(&dcmi->hdma, (rt_uint32_t)&dcmi->handle.Instance->DR, (rt_uint32_t)dcmi->frame_buffer, (rt_uint32_t)(dcmi->buffer_size >> 2));
-    dcmi->parent.user_data = (void *)dcmi->frame_buffer;
-    __HAL_DMA_ENABLE_IT(&dcmi->hdma, DMA_IT_TC | DMA_IT_HT);
-    __HAL_DMA_ENABLE(&dcmi->hdma);
+    HAL_StatusTypeDef status = HAL_DMA_Start_IT(&dcmi->hdma, (rt_uint32_t)&dcmi->handle.Instance->DR, (rt_uint32_t)dcmi->frame_buffer, (rt_uint32_t)(dcmi->buffer_size >> 2));
+    RT_ASSERT(status == HAL_OK);
 }
 
 void rt_hw_dcmi_spi_config(rt_device_t dev, struct dcmi_spi_cfg *spi_cfg)
@@ -141,6 +204,7 @@ static rt_err_t rt_hw_dcmi_init(rt_device_t dev)
     __HAL_DCMI_TRS_IF(&dcmi->handle, DCMI_IF_DVP); //0: DVP interface; 1:spi interface
     __HAL_DCMI_CAP_MODE(&dcmi->handle, DCMI_CPT_CON); //0: continous mode 1: single shot snap
     __HAL_DCMI_ENABLE_IT(&dcmi->handle, DCMI_IE_FRAME_IE | DCMI_IE_OVR_IE | DCMI_IE_FSM_ERR_IE | DCMI_IE_PACK_SIZE_ERR_IE | DCMI_IE_VSYNC_IE);
+    __HAL_DCMI_DISABLE_IT(&dcmi->handle, DCMI_IE_LINE_IE);
     HAL_NVIC_EnableIRQ(dcmi->dcmi_irq);
     __HAL_DCMI_ENABLE(&dcmi->handle);
 
@@ -177,9 +241,6 @@ void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi)
 /* Capture a frame of the image */
 void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
 {
-    /* enter interrupt */
-    rt_interrupt_enter();
-
     if (rt_dcmi.parent.rx_indicate)
     {
         if (__HAL_DCMI_GET_FLAG(hdcmi, DCMI_MIS_INDEX | DCMI_IE_PACK_SIZE_ERR_IE) != RESET)
@@ -205,39 +266,8 @@ void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
         rt_dcmi.parent.rx_indicate((rt_device_t)&rt_dcmi, 0);
     }
     __HAL_DCMI_ENABLE_IT(&rt_dcmi.handle, DCMI_IE_FRAME_IE | DCMI_IE_OVR_IE | DCMI_IE_FSM_ERR_IE | DCMI_IE_PACK_SIZE_ERR_IE);
-    /* leave interrupt */
-    rt_interrupt_leave();
 }
 
-#ifndef DMA_SUPPORT_DYN_CHANNEL_ALLOC
-//TODO:
-void DCMI_DMA_IRQHandler(void)
-{
-    /* enter interrupt */
-    rt_interrupt_enter();
-
-    if (__HAL_DMA_GET_FLAG(&rt_dcmi.hdma, DCMI_DMA_TC) != RESET)
-    {
-        __HAL_DMA_CLEAR_FLAG(&rt_dcmi.hdma, DCMI_DMA_TC);
-        if (rt_dcmi.parent.rx_indicate)
-            rt_dcmi.parent.rx_indicate((rt_device_t)&rt_dcmi, rt_dcmi.buffer_size);
-    }
-    else if (__HAL_DMA_GET_FLAG(&rt_dcmi.hdma, DCMI_DMA_HT) != RESET)
-    {
-        __HAL_DMA_CLEAR_FLAG(&rt_dcmi.hdma, DCMI_DMA_HT);
-        if (rt_dcmi.parent.rx_indicate)
-            rt_dcmi.parent.rx_indicate((rt_device_t)&rt_dcmi, rt_dcmi.buffer_size / 2);
-    }
-    else
-    {
-        // Check DMA interrupt flag
-        RT_ASSERT(0);
-    }
-
-    /* leave interrupt */
-    rt_interrupt_leave();
-}
-#endif /* !DMA_SUPPORT_DYN_CHANNEL_ALLOC */
 
 
 static rt_err_t rt_dcmi_init(rt_device_t dev)
@@ -344,6 +374,7 @@ static rt_err_t rt_dcmi_config(rt_device_t dev, struct rt_dcmi_config *cfg)
 
 static rt_err_t rt_dcmi_start(rt_device_t dev)
 {
+    LOG_I("rt_dcmi_start");
     struct rt_dcmi_device *dcmi = (struct rt_dcmi_device *)dev;
     RT_ASSERT(dev != RT_NULL);
 
@@ -351,12 +382,11 @@ static rt_err_t rt_dcmi_start(rt_device_t dev)
     rt_pm_request(PM_SLEEP_MODE_IDLE);
     rt_pm_hw_device_start();
 #endif  /* RT_USING_PM */
-    dcmi->handle.Instance->CR &= ~(DCMI_CR_RSTB_Msk);
-    rt_thread_mdelay(1);
     dcmi->handle.Instance->CR |= (DCMI_CR_RSTB_Msk);
+    while ((dcmi->handle.Instance->CR & DCMI_CR_RSTB_S_Msk) == 0);
     rt_hw_dcmi_dma_start(dev);
     __HAL_DCMI_CAPTURE_START(&dcmi->handle);
-
+    LOG_I("rt_dcmi_start done");
     return RT_EOK;
 }
 
@@ -366,8 +396,7 @@ static rt_err_t rt_dcmi_stop(rt_device_t dev)
     RT_ASSERT(dev != RT_NULL);
 
     __HAL_DCMI_CAPTURE_STOP(&dcmi->handle);
-    __HAL_DMA_DISABLE_IT(&dcmi->hdma, DMA_IT_TC | DMA_IT_HT);
-    __HAL_DMA_DISABLE(&dcmi->hdma);
+    HAL_DMA_Abort_IT(&dcmi->hdma);
 #ifdef RT_USING_PM
     rt_pm_release(PM_SLEEP_MODE_IDLE);
     rt_pm_hw_device_stop();
@@ -397,6 +426,11 @@ static rt_err_t rt_dcmi_control(rt_device_t dev, int cmd, void *args)
         rt_dcmi_config(dev, (struct rt_dcmi_config *)args);
         break;
     default:
+        LOG_I("SR:%x, RIS:%x, dcmi_err:%x, DMA_CNT:%x",
+              dcmi->handle.Instance->SR,
+              dcmi->handle.Instance->RIS,
+              dcmi->error,
+              dcmi->hdma.Instance->CNDTR);
         break;
     }
 

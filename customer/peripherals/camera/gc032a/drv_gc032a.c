@@ -23,7 +23,7 @@
 #include <drv_log.h>
 
 #define DEV_ADDRESS      (0x42 >> 1) /* GC032A address */
-#define I2C_NAME        "i2c1"
+#define I2C_NAME        CAMERA_I2C_DEVICE_NAME
 
 static struct rt_i2c_bus_device *i2c_bus  = RT_NULL;
 
@@ -793,7 +793,7 @@ void gc032a_8bit_dvp_drv(void)
     write_reg(i2c_bus, 0xf3, 0xff);
     write_reg(i2c_bus, 0xf5, 0x06);
     write_reg(i2c_bus, 0xf7, 0x01);
-    write_reg(i2c_bus, 0xf8, 0x03);
+    write_reg(i2c_bus, 0xf8, 0x03); //0x03 - MCLK * 1, 0x06 - MCLK * 2
     write_reg(i2c_bus, 0xf9, 0xce);
     write_reg(i2c_bus, 0xfa, 0x00);
     write_reg(i2c_bus, 0xfc, 0x02);
@@ -1123,14 +1123,12 @@ void gc032a_8bit_dvp_drv(void)
     write_reg(i2c_bus, 0xfe, 0x00);
 }
 
-int gc0320_mclk_output(void)
+static int gc0320_mclk_output(bool enable)
 {
     struct rt_device_pwm *device = RT_NULL;
     int pwm_channel = 1;
-    uint32_t period = 150, pulse = 75;
+    uint32_t period = 500; // 2MHz
 
-    extern void board_pwm_pinmux_set(int pad, char *pwm, int channel);
-    board_pwm_pinmux_set(PAD_PA30, "pwm3", pwm_channel);
     device = (struct rt_device_pwm *)rt_device_find("pwm3");
     if (!device)
     {
@@ -1138,9 +1136,15 @@ int gc0320_mclk_output(void)
         return -1;
     }
 
-    rt_pwm_set(device, pwm_channel, period, pulse);
-    rt_pwm_enable(device, pwm_channel);
-
+    if (!enable)
+    {
+        rt_pwm_disable(device, pwm_channel);
+    }
+    else
+    {
+        rt_pwm_set(device, pwm_channel, period, period / 2); // 50% duty cycle
+        rt_pwm_enable(device, pwm_channel);
+    }
     return 0;
 }
 
@@ -1172,7 +1176,7 @@ int rt_gc032a_init(uint8_t interface)
     };
     rt_i2c_configure(i2c_bus, &configuration);
 
-    gc0320_mclk_output();
+    gc0320_mclk_output(true);
     if (interface == 0)
     {
         gc032a_8bit_dvp_drv();
@@ -1184,6 +1188,15 @@ int rt_gc032a_init(uint8_t interface)
 
     rt_i2c_close(i2c_bus);
 
+    LOG_I("Wait for gc032a power on...");
+    rt_thread_mdelay(2000); //Wait for stable
+    LOG_I("rt_gc032a_init done");
+    return RT_EOK;
+}
+
+int rt_gc032a_deinit(void)
+{
+    gc0320_mclk_output(false);
     return RT_EOK;
 }
 

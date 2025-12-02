@@ -10,3 +10,6 @@ config LCD_BACKLIGHT_CONTROL_PIN
     int
     default 70
     
+config CAMERA_I2C_DEVICE_NAME
+    string
+    default "i2c2"

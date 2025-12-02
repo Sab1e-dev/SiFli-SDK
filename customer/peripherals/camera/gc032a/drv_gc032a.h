@@ -16,7 +16,7 @@ extern "C" {
 #endif
 #include <board.h>
 int rt_gc032a_init(uint8_t interface);
-
+int rt_gc032a_deinit(void);
 #ifdef __cplusplus
 }
 #endif
