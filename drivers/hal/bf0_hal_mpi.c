@@ -34,9 +34,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_QSPI_Init(FLASH_HandleTypeDef *hflash, qspi
     hflash->base = cfg->base;
     hflash->size = cfg->msize * 0x100000;
 
-//TODO: disable timeout for now as it results in read error
-    // hflash->Instance->TIMR = 0xFF;
-    hflash->Instance->TIMR = 0;
+    hflash->Instance->TIMR = 0xFF;
 
     hflash->Instance->CIR = 0x50005000;
     hflash->Instance->ABR1 = 0xFF;
@@ -61,9 +59,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_PreInit(FLASH_HandleTypeDef *hflash)
     //hflash->base = cfg->base;
     //hflash->size = cfg->msize * 0x100000;
 
-//TODO: disable timeout for now as it results in read error
-    // hflash->Instance->TIMR = 0xFF;
-    hflash->Instance->TIMR = 0;
+    hflash->Instance->TIMR = 0xFF;
 
     hflash->Instance->CIR = 0x50005000;
     hflash->Instance->ABR1 = 0xFF;
