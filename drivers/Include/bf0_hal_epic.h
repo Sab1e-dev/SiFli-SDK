@@ -32,7 +32,7 @@ extern "C" {
 #define EPIC_SUPPORT_JPEGD
 #define EPIC_SUPPORT_DECOMP
 #define EPIC_SUPPORT_COMP
-//#define EPIC_SUPPORT_COLOR_MATRIX
+#define EPIC_SUPPORT_COLOR_MATRIX
 // #define HAL_EPICTL_ENABLED
 #define EPIC_SUPPORT_L4
 #define EPIC_SUPPORT_GREYSCALE
@@ -403,8 +403,22 @@ typedef struct
     EPIC_YUVCfgTypeDef  yuv;  /**< YUV data*/
 
     uint16_t lookup_table_size;  /**< Lookup table color numbers*/
-    /** 3x4 color matrix (3 rows, 4 columns), only valid for output layer, data format of column 0~2 is Q3.9, column 3 is Q11.9 */
-    uint32_t *color_matrix;
+    /** 4x5 color matrix (4 rows, 5 columns) :
+     *
+     *  | Ra    Rb    Rc   Rd   Re|
+     *  | Ga    Gb    Gc   Gd   Ge|
+     *  | Ba    Bb    Bc   Bd   Be|
+     *  | Aa    Ab    Ac   Ad   Ae|
+     *
+     *  Color transform formula:
+     *  R' = Ra*R + Rb*G + Rc*B + Rd*A + Re
+     *  G' = Ga*R + Gb*G + Gc*B + Gd*A + Ge
+     *  B' = Ba*R + Bb*G + Bc*B + Bd*A + Be
+     *  A' = Aa*R + Ab*G + Ac*B + Ad*A + Ae
+     *
+     *  Only valid for input layer
+    */
+    float *color_matrix;
 } EPIC_BlendingDataType;
 
 typedef struct
@@ -450,8 +464,22 @@ typedef struct
     EPIC_YUVCfgTypeDef  yuv;  /**< YUV data*/
 
     uint16_t lookup_table_size;  /**< Lookup table color numbers, maximum is 'EPIC_MAX_LOOKUP_TABLE_CNT' */
-    /** 3x4 color matrix (3 rows, 4 columns), only valid for output layer, data format of column 0~2 is Q3.9, column 3 is Q11.9 */
-    uint32_t *color_matrix;
+    /** 4x5 color matrix (4 rows, 5 columns) :
+     *
+     *  | Ra    Rb    Rc   Rd   Re|
+     *  | Ga    Gb    Gc   Gd   Ge|
+     *  | Ba    Bb    Bc   Bd   Be|
+     *  | Aa    Ab    Ac   Ad   Ae|
+     *
+     *  Color transform formula:
+     *  R' = Ra*R + Rb*G + Rc*B + Rd*A + Re
+     *  G' = Ga*R + Gb*G + Gc*B + Gd*A + Ge
+     *  B' = Ba*R + Bb*G + Bc*B + Bd*A + Be
+     *  A' = Aa*R + Ab*G + Ac*B + Ad*A + Ae
+     *
+     *  Only valid for input layer
+    */
+    float *color_matrix;
     /****** Keep above members as same as struct 'EPIC_BlendingDataType'  *************/
 
     uint8_t alpha;              /**< Layer global alpha*/

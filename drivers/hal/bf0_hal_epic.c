@@ -1549,6 +1549,16 @@ static HAL_StatusTypeDef EPIC_Disable_Func_on_layer(EPIC_TypeDef *epic, EPIC_LAY
     }
 #endif /* EPIC_SUPPORT_MASK */
 
+#ifdef EPIC_SUPPORT_COLOR_MATRIX
+    if (epic->COENG_CFG & EPIC_COENG_CFG_CM_EN)
+    {
+        if (LayerIdx2CH(layer_idx) == GET_REG_VAL2(epic->COENG_CFG, EPIC_COENG_CFG_CM_CH_SEL))
+        {
+            epic->COENG_CFG &= ~EPIC_COENG_CFG_CM_EN;
+        }
+    }
+#endif /* EPIC_SUPPORT_COLOR_MATRIX */
+
     return HAL_OK;
 }
 
@@ -1600,6 +1610,69 @@ static void EPIC_EnableCoengJpeg(EPIC_TypeDef *epic,
     epic->COENG_CFG |= EPIC_COENG_CFG_JPEG_EN;
 }
 #endif /* EPIC_SUPPORT_JPEGD */
+
+#ifdef EPIC_SUPPORT_COLOR_MATRIX
+
+/* round scaled value (x * 256) to nearest integer (ties away from zero) */
+#define _F2S8_ROUND(x) ( (((float)(x)) * 256.0f) >= 0.0f ? (int32_t)(((float)(x)) * 256.0f + 0.5f) : (int32_t)(((float)(x)) * 256.0f - 0.5f) )
+
+/* S2.8 : total bits = 2 + 8 = 10
+   signed range: -512 .. +511
+   mask: 10 bits -> 0x3FF
+*/
+#define FLOAT_TO_S2_8_U32(x) \
+( \
+    (uint32_t)( \
+        (_F2S8_ROUND(x) >  511) ?  511 : \
+        (_F2S8_ROUND(x) < -512) ? -512 : \
+        (_F2S8_ROUND(x)) \
+    ) & 0x3FFu \
+)
+
+/* S10.8 : total bits = 10 + 8 = 18
+   signed range: -131072 .. +131071
+   mask: 18 bits -> 0x3FFFF
+*/
+#define FLOAT_TO_S10_8_U32(x) \
+( \
+    (uint32_t)( \
+        (_F2S8_ROUND(x) >  131071) ?  131071 : \
+        (_F2S8_ROUND(x) < -131072) ? -131072 : \
+        (_F2S8_ROUND(x)) \
+    ) & 0x3FFFFu \
+)
+
+static void EPIC_EnableCoengColorMatrix(EPIC_TypeDef *epic, EPIC_LAYER_IDX layer_idx, float *color_matrix)
+{
+    uint32_t i;
+    __IO uint32_t *reg_conf;
+    /*
+        The color matrix is defined as:
+        data format of column 0~3 is s2.8, column 4 is s10.8
+       | Aa    Ab    Ac   Ad   Ae|
+       | Ra    Rb    Rc   Rd   Re|
+       | Ga    Gb    Gc   Gd   Ge|
+       | Ba    Bb    Bc   Bd   Be|
+     */
+
+    reg_conf = &epic->CM_ENG_CONF0;
+    for (i = 0; i < 4; i++)
+    {
+        reg_conf[0] =   MAKE_REG_VAL2(FLOAT_TO_S2_8_U32(color_matrix[0]), EPIC_CM_ENG_CONF0_COEF_A0)
+                        | MAKE_REG_VAL2(FLOAT_TO_S2_8_U32(color_matrix[1]), EPIC_CM_ENG_CONF0_COEF_B0)
+                        | MAKE_REG_VAL2(FLOAT_TO_S2_8_U32(color_matrix[2]), EPIC_CM_ENG_CONF0_COEF_C0);
+        reg_conf[1] =   MAKE_REG_VAL2(FLOAT_TO_S2_8_U32(color_matrix[3]), EPIC_CM_ENG_CONF1_COEF_D0)
+                        | MAKE_REG_VAL2(FLOAT_TO_S10_8_U32(color_matrix[4]), EPIC_CM_ENG_CONF1_COEF_E0);
+
+        reg_conf += 2;
+        color_matrix += 5;
+    }
+
+    epic->COENG_CFG &= ~EPIC_COENG_CFG_CM_CH_SEL_Msk;
+    epic->COENG_CFG |= MAKE_REG_VAL2(LayerIdx2CH(layer_idx), EPIC_COENG_CFG_CM_CH_SEL)
+                       | EPIC_COENG_CFG_CM_EN;
+}
+#endif /* EPIC_SUPPORT_COLOR_MATRIX */
 
 /**
  * @brief  Enable and configure normal layer
@@ -1711,6 +1784,13 @@ static HAL_StatusTypeDef EPIC_ConfigLayer(EPIC_HandleTypeDef *hepic, EPIC_LAYER_
         EPIC_EnableCoengJpeg(epic, layer_idx);
     }
 #endif /* EPIC_SUPPORT_JPEGD */
+
+#ifdef EPIC_SUPPORT_COLOR_MATRIX
+    if (config->color_matrix)
+    {
+        EPIC_EnableCoengColorMatrix(epic, layer_idx, config->color_matrix);
+    }
+#endif /* EPIC_SUPPORT_COLOR_MATRIX */
 
     if (IS_Ax_COLOR_MODE(config->color_mode))
     {
@@ -1912,34 +1992,11 @@ static HAL_StatusTypeDef EPIC_DisableVideoLayer(EPIC_TypeDef *epic)
     return HAL_OK;
 }
 
-static inline void EPIC_DisableCoeng(EPIC_TypeDef *epic)
-{
-#if defined(EPIC_SUPPORT_YUV)
-    epic->COENG_CFG &= ~EPIC_COENG_CFG_YUV_EN;
-#endif /* EPIC_SUPPORT_YUV */
-
-#ifdef EPIC_COENG_CFG_EZIP_EN
-    epic->COENG_CFG &= ~EPIC_COENG_CFG_EZIP_EN;
-#else
-    MODIFY_REG(epic->VL_CFG, EPIC_VL_CFG_EZIP_EN_Msk, 0);
-#endif /* EPIC_COENG_CFG_EZIP_EN */
-
-#if defined(EPIC_SUPPORT_JPEGD)
-    epic->COENG_CFG &= ~EPIC_COENG_CFG_JPEG_EN;
-#endif /* EPIC_SUPPORT_JPEGD */
-
-#ifdef EPIC_SUPPORT_MASK
-    epic->MASK_CFG &= ~EPIC_MASK_CFG_ACTIVE;
-#endif /* EPIC_SUPPORT_MASK */
-}
 
 
 static inline void EPIC_DisableOutputLayer(EPIC_TypeDef *epic)
 {
     epic->CANVAS_BG = 0;
-#ifdef EPIC_SUPPORT_COLOR_MATRIX
-    epic->CM_ENG_CONF0 &= ~EPIC_CM_ENG_CONF0_ENABLE;
-#endif /* EPIC_SUPPORT_COLOR_MATRIX */
 
 #ifdef EPIC_SUPPORT_DITHER
 #ifdef EPIC_DITHER_CONF_FSD_EN
@@ -1952,31 +2009,6 @@ static inline void EPIC_DisableOutputLayer(EPIC_TypeDef *epic)
 #endif /* EPIC_SUPPORT_DITHER */
 }
 
-#ifdef EPIC_SUPPORT_COLOR_MATRIX
-static void EPIC_ConfigColorMatrix(EPIC_TypeDef *epic, uint32_t *color_matrix)
-{
-    uint32_t i;
-    __IO uint32_t *reg_conf;
-    /*  Color matrix:
-     *  | Ra    Rb    Rc   Rd  |
-     *  | Ga    Gb    Gc   Gd  |
-     *  | Ba    Bb    Bc   Bd  |
-     */
-
-    reg_conf = &epic->CM_ENG_CONF0;
-    for (i = 0; i < 3; i++)
-    {
-        reg_conf[0] = MAKE_REG_VAL(color_matrix[0], EPIC_CM_ENG_CONF0_COEF_A0_Msk, EPIC_CM_ENG_CONF0_COEF_A0_Pos)
-                      | MAKE_REG_VAL(color_matrix[1], EPIC_CM_ENG_CONF0_COEF_B0_Msk, EPIC_CM_ENG_CONF0_COEF_B0_Pos);
-        reg_conf[1] = MAKE_REG_VAL(color_matrix[2], EPIC_CM_ENG_CONF1_COEF_C0_Msk, EPIC_CM_ENG_CONF1_COEF_C0_Pos)
-                      | MAKE_REG_VAL(color_matrix[3], EPIC_CM_ENG_CONF1_COEF_D0_Msk, EPIC_CM_ENG_CONF1_COEF_D0_Pos);
-
-        reg_conf += 2;
-        color_matrix += 4;
-    }
-    epic->CM_ENG_CONF0 |= EPIC_CM_ENG_CONF0_ENABLE;
-}
-#endif /* EPIC_SUPPORT_COLOR_MATRIX */
 
 /**
  *  Clip the output layer according to the p_clip_area and setup the registers.
@@ -2050,12 +2082,6 @@ static HAL_StatusTypeDef EPIC_ClipAndSetupOutputLayer(EPIC_TypeDef *epic,
             return HAL_ERROR;
         }
 
-#ifdef EPIC_SUPPORT_COLOR_MATRIX
-        if (output->color_matrix)
-        {
-            EPIC_ConfigColorMatrix(epic, output->color_matrix);
-        }
-#endif /* EPIC_SUPPORT_COLOR_MATRIX */
 
         epic->CANVAS_TL_POS = MAKE_REG_VAL(x0, EPIC_CANVAS_TL_POS_X0_Msk, EPIC_CANVAS_TL_POS_X0_Pos)
                               | MAKE_REG_VAL(y0, EPIC_CANVAS_TL_POS_Y0_Msk, EPIC_CANVAS_TL_POS_Y0_Pos);
@@ -2828,6 +2854,13 @@ static HAL_StatusTypeDef EPIC_ConfigVideoLayer(EPIC_HandleTypeDef *epic_handle,
             EPIC_EnableCoengJpeg(epic, layer_idx);
         }
 #endif /* EPIC_SUPPORT_JPEGD */
+
+#ifdef EPIC_SUPPORT_COLOR_MATRIX
+        if (config->color_matrix)
+        {
+            EPIC_EnableCoengColorMatrix(epic, layer_idx, config->color_matrix);
+        }
+#endif /* EPIC_SUPPORT_COLOR_MATRIX */
 
         if ((EPIC_LAYER_OPAQUE != alpha) || (EPIC_COLOR_MONO == config->color_mode))
         {
@@ -6182,6 +6215,9 @@ static HAL_StatusTypeDef EPIC_ChooseLayer(EPIC_BlendingDataType *input,
 #ifdef EPIC_SUPPORT_JPEGD
     uint8_t jpeg_num = 0;
 #endif /* EPIC_SUPPORT_JPEGD */
+#ifdef EPIC_SUPPORT_COLOR_MATRIX
+    uint8_t color_matrix_num = 0;
+#endif /* EPIC_SUPPORT_COLOR_MATRIX */
 
 #if defined(SF32LB56X) || defined(SF32LB58X) || defined(SF32LB55X)
     cur_fix_depth_layer = (int8_t)EPIC_LAYER_IDX_2;
@@ -6300,6 +6336,16 @@ static HAL_StatusTypeDef EPIC_ChooseLayer(EPIC_BlendingDataType *input,
 #else
             return HAL_ERROR;
 #endif /* EPIC_SUPPORT_JPEGD */
+        }
+
+        if (input[i].color_matrix)
+        {
+#ifdef EPIC_SUPPORT_COLOR_MATRIX
+            if (++color_matrix_num > 1) return HAL_ERROR;
+#else
+            return HAL_ERROR;
+#endif /* EPIC_SUPPORT_COLOR_MATRIX */
+
         }
 
     }

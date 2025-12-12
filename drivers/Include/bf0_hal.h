@@ -14,7 +14,9 @@ extern "C" {
 #include "stdint.h"
 
 #define MAKE_REG_VAL(val, mask, offset)        ((((uint32_t)(val)) << (offset)) & (mask))
+#define MAKE_REG_VAL2(val, bits_name)        ((((uint32_t)(val)) << (bits_name##_Pos)) & (bits_name##_Msk))
 #define GET_REG_VAL(reg, mask, offset)        ((((uint32_t)(reg)) & (mask)) >> (offset))
+#define GET_REG_VAL2(reg, bits_name)        ((((uint32_t)(reg)) & (bits_name##_Msk)) >> (bits_name##_Pos))
 
 //#define HAL_DEBUG_ENABLED
 //#define TARMAC
