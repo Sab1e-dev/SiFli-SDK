@@ -6,11 +6,10 @@ typedef struct
     __IO uint32_t CFG0;
     __IO uint32_t CFG1;
     __IO uint32_t SINC_CFG;
-    __IO uint32_t RSVD2[2];
+    __IO uint32_t COMP_FLT_CFG;
     __IO uint32_t HPF_CFG;
     __IO uint32_t PGA_CFG;
-    __IO uint32_t RSVD1[6];
-    __IO uint32_t LPF_CFG6;
+    __IO uint32_t HBF_CFG;
     __IO uint32_t FIFO_CFG;
     __IO uint32_t DATA_L;
     __IO uint32_t DATA_R;
@@ -29,29 +28,38 @@ typedef struct
 #define PDM_CFG0_CLK_SEL_Msk            (0x1UL << PDM_CFG0_CLK_SEL_Pos)
 #define PDM_CFG0_CLK_SEL                PDM_CFG0_CLK_SEL_Msk
 #define PDM_CFG0_CLK_DIV_Pos            (2U)
-#define PDM_CFG0_CLK_DIV_Msk            (0x3FUL << PDM_CFG0_CLK_DIV_Pos)
+#define PDM_CFG0_CLK_DIV_Msk            (0x7FUL << PDM_CFG0_CLK_DIV_Pos)
 #define PDM_CFG0_CLK_DIV                PDM_CFG0_CLK_DIV_Msk
-#define PDM_CFG0_LEFT_EN_Pos            (8U)
+#define PDM_CFG0_LEFT_EN_Pos            (9U)
 #define PDM_CFG0_LEFT_EN_Msk            (0x1UL << PDM_CFG0_LEFT_EN_Pos)
 #define PDM_CFG0_LEFT_EN                PDM_CFG0_LEFT_EN_Msk
-#define PDM_CFG0_RIGHT_EN_Pos           (9U)
+#define PDM_CFG0_RIGHT_EN_Pos           (10U)
 #define PDM_CFG0_RIGHT_EN_Msk           (0x1UL << PDM_CFG0_RIGHT_EN_Pos)
 #define PDM_CFG0_RIGHT_EN               PDM_CFG0_RIGHT_EN_Msk
-#define PDM_CFG0_STEREO_EN_Pos          (10U)
+#define PDM_CFG0_STEREO_EN_Pos          (11U)
 #define PDM_CFG0_STEREO_EN_Msk          (0x1UL << PDM_CFG0_STEREO_EN_Pos)
 #define PDM_CFG0_STEREO_EN              PDM_CFG0_STEREO_EN_Msk
-#define PDM_CFG0_SWAP_EN_Pos            (11U)
+#define PDM_CFG0_SWAP_EN_Pos            (12U)
 #define PDM_CFG0_SWAP_EN_Msk            (0x1UL << PDM_CFG0_SWAP_EN_Pos)
 #define PDM_CFG0_SWAP_EN                PDM_CFG0_SWAP_EN_Msk
+#define PDM_CFG0_SAME_EDGE_EN_Pos       (13U)
+#define PDM_CFG0_SAME_EDGE_EN_Msk       (0x1UL << PDM_CFG0_SAME_EDGE_EN_Pos)
+#define PDM_CFG0_SAME_EDGE_EN           PDM_CFG0_SAME_EDGE_EN_Msk
+#define PDM_CFG0_SYNERGY_EN_Pos         (14U)
+#define PDM_CFG0_SYNERGY_EN_Msk         (0x1UL << PDM_CFG0_SYNERGY_EN_Pos)
+#define PDM_CFG0_SYNERGY_EN             PDM_CFG0_SYNERGY_EN_Msk
 
 /******************** Bit definition for PDM_CFG1 register ********************/
-#define PDM_CFG1_BUF_DLY_Pos            (0U)
-#define PDM_CFG1_BUF_DLY_Msk            (0x1FUL << PDM_CFG1_BUF_DLY_Pos)
-#define PDM_CFG1_BUF_DLY                PDM_CFG1_BUF_DLY_Msk
-#define PDM_CFG1_SAMPLE_DLY_L_Pos       (5U)
+#define PDM_CFG1_BUF_DLY0_Pos           (0U)
+#define PDM_CFG1_BUF_DLY0_Msk           (0x1FUL << PDM_CFG1_BUF_DLY0_Pos)
+#define PDM_CFG1_BUF_DLY0               PDM_CFG1_BUF_DLY0_Msk
+#define PDM_CFG1_BUF_DLY1_Pos           (5U)
+#define PDM_CFG1_BUF_DLY1_Msk           (0x1FUL << PDM_CFG1_BUF_DLY1_Pos)
+#define PDM_CFG1_BUF_DLY1               PDM_CFG1_BUF_DLY1_Msk
+#define PDM_CFG1_SAMPLE_DLY_L_Pos       (10U)
 #define PDM_CFG1_SAMPLE_DLY_L_Msk       (0x7UL << PDM_CFG1_SAMPLE_DLY_L_Pos)
 #define PDM_CFG1_SAMPLE_DLY_L           PDM_CFG1_SAMPLE_DLY_L_Msk
-#define PDM_CFG1_SAMPLE_DLY_R_Pos       (8U)
+#define PDM_CFG1_SAMPLE_DLY_R_Pos       (13U)
 #define PDM_CFG1_SAMPLE_DLY_R_Msk       (0x7UL << PDM_CFG1_SAMPLE_DLY_R_Pos)
 #define PDM_CFG1_SAMPLE_DLY_R           PDM_CFG1_SAMPLE_DLY_R_Msk
 
@@ -65,6 +73,17 @@ typedef struct
 #define PDM_SINC_CFG_SINC_DIFF_SEL_Pos  (9U)
 #define PDM_SINC_CFG_SINC_DIFF_SEL_Msk  (0x1UL << PDM_SINC_CFG_SINC_DIFF_SEL_Pos)
 #define PDM_SINC_CFG_SINC_DIFF_SEL      PDM_SINC_CFG_SINC_DIFF_SEL_Msk
+#define PDM_SINC_CFG_SINC_SHIFT_Pos     (10U)
+#define PDM_SINC_CFG_SINC_SHIFT_Msk     (0x7UL << PDM_SINC_CFG_SINC_SHIFT_Pos)
+#define PDM_SINC_CFG_SINC_SHIFT         PDM_SINC_CFG_SINC_SHIFT_Msk
+
+/**************** Bit definition for PDM_COMP_FLT_CFG register ****************/
+#define PDM_COMP_FLT_CFG_COEFF_SEL_Pos  (0U)
+#define PDM_COMP_FLT_CFG_COEFF_SEL_Msk  (0x1UL << PDM_COMP_FLT_CFG_COEFF_SEL_Pos)
+#define PDM_COMP_FLT_CFG_COEFF_SEL      PDM_COMP_FLT_CFG_COEFF_SEL_Msk
+#define PDM_COMP_FLT_CFG_COMP_BYPASS_Pos  (1U)
+#define PDM_COMP_FLT_CFG_COMP_BYPASS_Msk  (0x1UL << PDM_COMP_FLT_CFG_COMP_BYPASS_Pos)
+#define PDM_COMP_FLT_CFG_COMP_BYPASS    PDM_COMP_FLT_CFG_COMP_BYPASS_Msk
 
 /****************** Bit definition for PDM_HPF_CFG register *******************/
 #define PDM_HPF_CFG_HPF_COEFF_Pos       (0U)
@@ -85,13 +104,19 @@ typedef struct
 #define PDM_PGA_CFG_PGA_GAIN_R_Msk      (0x7FUL << PDM_PGA_CFG_PGA_GAIN_R_Pos)
 #define PDM_PGA_CFG_PGA_GAIN_R          PDM_PGA_CFG_PGA_GAIN_R_Msk
 
-/****************** Bit definition for PDM_LPF_CFG6 register ******************/
-#define PDM_LPF_CFG6_LPF_DS_Pos         (12U)
-#define PDM_LPF_CFG6_LPF_DS_Msk         (0x1UL << PDM_LPF_CFG6_LPF_DS_Pos)
-#define PDM_LPF_CFG6_LPF_DS             PDM_LPF_CFG6_LPF_DS_Msk
-#define PDM_LPF_CFG6_LPF_BYPASS_Pos     (13U)
-#define PDM_LPF_CFG6_LPF_BYPASS_Msk     (0x1UL << PDM_LPF_CFG6_LPF_BYPASS_Pos)
-#define PDM_LPF_CFG6_LPF_BYPASS         PDM_LPF_CFG6_LPF_BYPASS_Msk
+/****************** Bit definition for PDM_HBF_CFG register *******************/
+#define PDM_HBF_CFG_HBF1_GAIN_EN_Pos    (0U)
+#define PDM_HBF_CFG_HBF1_GAIN_EN_Msk    (0x1UL << PDM_HBF_CFG_HBF1_GAIN_EN_Pos)
+#define PDM_HBF_CFG_HBF1_GAIN_EN        PDM_HBF_CFG_HBF1_GAIN_EN_Msk
+#define PDM_HBF_CFG_HBF1_BYPASS_Pos     (1U)
+#define PDM_HBF_CFG_HBF1_BYPASS_Msk     (0x1UL << PDM_HBF_CFG_HBF1_BYPASS_Pos)
+#define PDM_HBF_CFG_HBF1_BYPASS         PDM_HBF_CFG_HBF1_BYPASS_Msk
+#define PDM_HBF_CFG_HBF2_GAIN_EN_Pos    (2U)
+#define PDM_HBF_CFG_HBF2_GAIN_EN_Msk    (0x1UL << PDM_HBF_CFG_HBF2_GAIN_EN_Pos)
+#define PDM_HBF_CFG_HBF2_GAIN_EN        PDM_HBF_CFG_HBF2_GAIN_EN_Msk
+#define PDM_HBF_CFG_HBF2_BYPASS_Pos     (3U)
+#define PDM_HBF_CFG_HBF2_BYPASS_Msk     (0x1UL << PDM_HBF_CFG_HBF2_BYPASS_Pos)
+#define PDM_HBF_CFG_HBF2_BYPASS         PDM_HBF_CFG_HBF2_BYPASS_Msk
 
 /****************** Bit definition for PDM_FIFO_CFG register ******************/
 #define PDM_FIFO_CFG_BYTE_CON_Pos       (0U)
@@ -100,9 +125,6 @@ typedef struct
 #define PDM_FIFO_CFG_BYTE_TRUNC_Pos     (1U)
 #define PDM_FIFO_CFG_BYTE_TRUNC_Msk     (0x3UL << PDM_FIFO_CFG_BYTE_TRUNC_Pos)
 #define PDM_FIFO_CFG_BYTE_TRUNC         PDM_FIFO_CFG_BYTE_TRUNC_Msk
-#define PDM_FIFO_CFG_PDM_SHIFT_Pos      (3U)
-#define PDM_FIFO_CFG_PDM_SHIFT_Msk      (0x7UL << PDM_FIFO_CFG_PDM_SHIFT_Pos)
-#define PDM_FIFO_CFG_PDM_SHIFT          PDM_FIFO_CFG_PDM_SHIFT_Msk
 #define PDM_FIFO_CFG_RX_DMA_MSK_R_Pos   (6U)
 #define PDM_FIFO_CFG_RX_DMA_MSK_R_Msk   (0x1UL << PDM_FIFO_CFG_RX_DMA_MSK_R_Pos)
 #define PDM_FIFO_CFG_RX_DMA_MSK_R       PDM_FIFO_CFG_RX_DMA_MSK_R_Msk

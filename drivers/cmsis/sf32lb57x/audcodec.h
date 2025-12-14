@@ -406,6 +406,9 @@ typedef struct
 #define AUDCODEC_BG_CFG0_SEL_VB_Pos     (28U)
 #define AUDCODEC_BG_CFG0_SEL_VB_Msk     (0x3UL << AUDCODEC_BG_CFG0_SEL_VB_Pos)
 #define AUDCODEC_BG_CFG0_SEL_VB         AUDCODEC_BG_CFG0_SEL_VB_Msk
+#define AUDCODEC_BG_CFG0_CMPOUT_Pos     (30U)
+#define AUDCODEC_BG_CFG0_CMPOUT_Msk     (0x1UL << AUDCODEC_BG_CFG0_CMPOUT_Pos)
+#define AUDCODEC_BG_CFG0_CMPOUT         AUDCODEC_BG_CFG0_CMPOUT_Msk
 
 /**************** Bit definition for AUDCODEC_BG_CFG1 register ****************/
 #define AUDCODEC_BG_CFG1_SAMPCLK_HI_Pos  (0U)

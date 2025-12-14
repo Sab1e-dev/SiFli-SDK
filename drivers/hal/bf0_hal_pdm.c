@@ -102,8 +102,10 @@ HAL_StatusTypeDef HAL_PDM_Init(PDM_HandleTypeDef *hpdm)
     hpdm->Instance->LPF_CFG6 |= (0x791 << PDM_LPF_CFG6_LPF_COEFF12_Pos);
 #endif
 
+//TODO:
+#ifdef PDM_LPF_CFG6_LPF_BYPASS
     hpdm->Instance->LPF_CFG6 &= ~PDM_LPF_CFG6_LPF_BYPASS;
-
+#endif /* PDM_LPF_CFG6_LPF_BYPASS */
 
 
     hpdm->ErrorCode = PDM_ERROR_NONE;
@@ -457,7 +459,10 @@ static HAL_StatusTypeDef PDM_Config(PDM_HandleTypeDef *hpdm, PDM_ConfigureTypeDe
     cfg0_value = hpdm->Instance->CFG0;
     cfg_fifo   = hpdm->Instance->FIFO_CFG;
 
+//TODO:
+#ifdef PDM_FIFO_CFG_PDM_SHIFT_Msk
     cfg_fifo &= ~PDM_FIFO_CFG_PDM_SHIFT_Msk;
+#endif
 
     if (type & PDM_CFG_CHANNEL)
     {
@@ -502,13 +507,24 @@ static HAL_StatusTypeDef PDM_Config(PDM_HandleTypeDef *hpdm, PDM_ConfigureTypeDe
         /*
             Sample rate = clk_source / clk_div / sinc_rate / down_sample
         */
+//TODO:
+#ifdef PDM_LPF_CFG6_LPF_DS
         lpf_cfg = hpdm->Instance->LPF_CFG6;
+#else
+        lpf_cfg = 0;
+#endif
         sinc_cfg = hpdm->Instance->SINC_CFG;
 
+//TODO:
+#ifdef PDM_LPF_CFG6_LPF_DS
         lpf_cfg &= ~PDM_LPF_CFG6_LPF_DS;       /*0: down_sample=2   1: down_sample=4*/
+#endif
         sinc_cfg &= ~PDM_SINC_CFG_SINC_ORDER_SEL; /*0: sinc_order=3   1: sinc_order=4*/
         sinc_cfg &= ~PDM_SINC_CFG_SINC_RATE;
+//TODO：
+#ifdef PDM_FIFO_CFG_PDM_SHIFT
         cfg_fifo &= ~(PDM_FIFO_CFG_PDM_SHIFT);
+#endif
         switch (hpdm->Init.SampleRate)
         {
         case PDM_SAMPLE_8KHZ:
@@ -518,7 +534,10 @@ static HAL_StatusTypeDef PDM_Config(PDM_HandleTypeDef *hpdm, PDM_ConfigureTypeDe
                 cfg0_value &= ~PDM_CFG0_CLK_DIV;
                 cfg0_value |= (4 << PDM_CFG0_CLK_DIV_Pos);
                 sinc_cfg |= (75 << PDM_SINC_CFG_SINC_RATE_Pos);
+//TODO:
+#ifdef PDM_LPF_CFG6_LPF_DS
                 lpf_cfg |= PDM_LPF_CFG6_LPF_DS;
+#endif
                 //cfg_fifo |= (0x2 << PDM_FIFO_CFG_PDM_SHIFT_Pos); //Align to 24bit
             }
             else  if (hpdm->Init.clkSrc == 3072000)
@@ -592,7 +611,10 @@ static HAL_StatusTypeDef PDM_Config(PDM_HandleTypeDef *hpdm, PDM_ConfigureTypeDe
             cfg0_value |= (1 << PDM_CFG0_CLK_DIV_Pos);
             sinc_cfg |= (8 << PDM_SINC_CFG_SINC_RATE_Pos);
             sinc_cfg |= PDM_SINC_CFG_SINC_ORDER_SEL;
+//TODO:
+#ifdef PDM_LPF_CFG6_LPF_DS
             lpf_cfg |= PDM_LPF_CFG6_LPF_DS;
+#endif
             /* reg_pga_gain = 0x72,  pdm_shift = 0 */
             // cfg_fifo |= (0x8 << PDM_FIFO_CFG_PDM_SHIFT_Pos);
             hpdm->Instance->PGA_CFG &= ~PDM_PGA_CFG_PGA_GAIN_L;
@@ -607,7 +629,10 @@ static HAL_StatusTypeDef PDM_Config(PDM_HandleTypeDef *hpdm, PDM_ConfigureTypeDe
             break;
         }
         hpdm->Instance->SINC_CFG = sinc_cfg;
+//TODO:
+#ifdef PDM_LPF_CFG6_LPF_DS
         hpdm->Instance->LPF_CFG6 = lpf_cfg;
+#endif
     }
 
     if (type & PDM_CFG_DEPTH)
