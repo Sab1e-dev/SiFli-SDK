@@ -3,6 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
 #include "bf0_hal_def.h"
 #include "bf0_pin_const.h"
 
@@ -10,7 +11,7 @@
 const pin_fsel_function_t pad_sa00_fsel_func_tbl[] =
 {
     {1, MPI1_DM},
-    {4, MPI1_CS},
+    {4, MPI2_CS},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -18,7 +19,7 @@ const pin_fsel_function_t pad_sa00_fsel_func_tbl[] =
 const pin_fsel_function_t pad_sa01_fsel_func_tbl[] =
 {
     {1, MPI1_DIO0},
-    {4, MPI1_DIO2},
+    {4, MPI2_DIO2},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -26,7 +27,7 @@ const pin_fsel_function_t pad_sa01_fsel_func_tbl[] =
 const pin_fsel_function_t pad_sa02_fsel_func_tbl[] =
 {
     {1, MPI1_DIO1},
-    {4, MPI1_DIO1},
+    {4, MPI2_DIO1},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -34,7 +35,7 @@ const pin_fsel_function_t pad_sa02_fsel_func_tbl[] =
 const pin_fsel_function_t pad_sa03_fsel_func_tbl[] =
 {
     {1, MPI1_DIO2},
-    {4, MPI1_CS},
+    {4, MPI2_CS},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -42,7 +43,7 @@ const pin_fsel_function_t pad_sa03_fsel_func_tbl[] =
 const pin_fsel_function_t pad_sa04_fsel_func_tbl[] =
 {
     {1, MPI1_DIO3},
-    {4, MPI1_DIO2},
+    {4, MPI2_DIO2},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -75,7 +76,6 @@ const pin_fsel_function_t pad_sa08_fsel_func_tbl[] =
 {
     {1, MPI1_DIO4},
     {3, MPI1_DIO7},
-    {4, MPI1_DIO0},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -84,7 +84,7 @@ const pin_fsel_function_t pad_sa09_fsel_func_tbl[] =
 {
     {1, MPI1_DIO5},
     {3, MPI1_DQSDM},
-    {4, MPI1_DIO3},
+    {4, MPI2_DIO3},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -92,8 +92,7 @@ const pin_fsel_function_t pad_sa09_fsel_func_tbl[] =
 const pin_fsel_function_t pad_sa10_fsel_func_tbl[] =
 {
     {1, MPI1_DIO6},
-    {3, MPI1_CLK},
-    {4, MPI1_CLK},
+    {4, MPI2_CLK},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -101,8 +100,8 @@ const pin_fsel_function_t pad_sa10_fsel_func_tbl[] =
 const pin_fsel_function_t pad_sa11_fsel_func_tbl[] =
 {
     {1, MPI1_DIO7},
-    {3, MPI1_CS},
-    {4, MPI1_DIO3},
+    {3, MPI1_CLK},
+    {4, MPI2_DIO3},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -111,7 +110,8 @@ const pin_fsel_function_t pad_sa12_fsel_func_tbl[] =
 {
     {1, MPI1_DQS},
     {2, MPI1_DQSDM},
-    {4, MPI1_DIO0},
+    {3, MPI1_CS},
+    {4, MPI2_DIO0},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -231,7 +231,7 @@ const pin_fsel_function_t pad_pa00_fsel_func_tbl[] =
 {
     {0, GPIO_A0},
     {1, LCDC1_SPI_RSTB},
-    {7, LCDC1_8080_RSTB},
+    {3, SD2_DIO2},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -239,6 +239,7 @@ const pin_fsel_function_t pad_pa00_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa01_fsel_func_tbl[] =
 {
     {0, GPIO_A1},
+    {3, SD2_DIO3},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -247,11 +248,8 @@ const pin_fsel_function_t pad_pa02_fsel_func_tbl[] =
 {
     {0, GPIO_A2},
     {1, LCDC1_SPI_TE},
-    {3, I2S1_MCLK},
-    {6, LCDC1_JDI_B2},
-    {7, LCDC1_8080_TE},
-    {9, DBG_DO0},
-    {11, EDT_CHANNEL_IN0},
+    {3, SD2_CLK},
+    {7, DBG_DO0},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -260,11 +258,8 @@ const pin_fsel_function_t pad_pa03_fsel_func_tbl[] =
 {
     {0, GPIO_A3},
     {1, LCDC1_SPI_CS},
-    {3, I2S1_SDO},
-    {6, LCDC1_JDI_B1},
-    {7, LCDC1_8080_CS},
-    {9, DBG_DO1},
-    {11, EDT_CHANNEL_IN1},
+    {3, SD2_CMD},
+    {7, DBG_DO1},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -273,11 +268,8 @@ const pin_fsel_function_t pad_pa04_fsel_func_tbl[] =
 {
     {0, GPIO_A4},
     {1, LCDC1_SPI_CLK},
-    {3, I2S1_SDI},
-    {6, LCDC1_JDI_G1},
-    {7, LCDC1_8080_WR},
-    {9, DBG_DO2},
-    {11, EDT_CHANNEL_IN2},
+    {3, SD2_DIO0},
+    {7, DBG_DO2},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -286,11 +278,8 @@ const pin_fsel_function_t pad_pa05_fsel_func_tbl[] =
 {
     {0, GPIO_A5},
     {1, LCDC1_SPI_DIO0},
-    {3, I2S1_BCK},
-    {6, LCDC1_JDI_R1},
-    {7, LCDC1_8080_RD},
-    {9, DBG_DO3},
-    {11, EDT_CHANNEL_IN3},
+    {3, SD2_DIO1},
+    {7, DBG_DO3},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -299,11 +288,8 @@ const pin_fsel_function_t pad_pa06_fsel_func_tbl[] =
 {
     {0, GPIO_A6},
     {1, LCDC1_SPI_DIO1},
-    {3, I2S1_LRCK},
-    {6, LCDC1_JDI_HST},
-    {7, LCDC1_8080_DC},
-    {9, DBG_DO4},
-    {11, EDT_CHANNEL_IN4},
+    {2, SD1_DIO2},
+    {7, DBG_DO4},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -312,11 +298,8 @@ const pin_fsel_function_t pad_pa07_fsel_func_tbl[] =
 {
     {0, GPIO_A7},
     {1, LCDC1_SPI_DIO2},
-    {3, PDM1_CLK},
-    {6, LCDC1_JDI_ENB},
-    {7, LCDC1_8080_DIO0},
-    {9, DBG_DO5},
-    {11, EDT_CHANNEL_IN5},
+    {2, SD1_DIO3},
+    {7, DBG_DO5},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -325,11 +308,8 @@ const pin_fsel_function_t pad_pa08_fsel_func_tbl[] =
 {
     {0, GPIO_A8},
     {1, LCDC1_SPI_DIO3},
-    {3, PDM1_DATA},
-    {6, LCDC1_JDI_VST},
-    {7, LCDC1_8080_DIO1},
-    {9, DBG_DO6},
-    {10, BIST_DONE},
+    {2, SD1_CLK},
+    {7, DBG_DO6},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -337,8 +317,8 @@ const pin_fsel_function_t pad_pa08_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa09_fsel_func_tbl[] =
 {
     {0, GPIO_A9},
-    {9, DBG_DO7},
-    {10, BIST_FAIL},
+    {2, SD1_CMD},
+    {7, DBG_DO7},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -346,6 +326,7 @@ const pin_fsel_function_t pad_pa09_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa10_fsel_func_tbl[] =
 {
     {0, GPIO_A10},
+    {2, SD1_DIO0},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -353,9 +334,9 @@ const pin_fsel_function_t pad_pa10_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa11_fsel_func_tbl[] =
 {
     {0, GPIO_A11},
-    {9, AUD_CLK_EXT},
-    {10, BIST_CLK},
-    {11, SCAN_CLK},
+    {1, MPI3_CS2},
+    {2, SD1_DIO1},
+    {7, AUD_CLK_EXT},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -365,8 +346,6 @@ const pin_fsel_function_t pad_pa12_fsel_func_tbl[] =
     {0, GPIO_A12},
     {1, MPI3_CS},
     {2, SD1_DIO2},
-    {10, BIST_RST},
-    {11, SCAN_RSTB},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -376,7 +355,6 @@ const pin_fsel_function_t pad_pa13_fsel_func_tbl[] =
     {0, GPIO_A13},
     {1, MPI3_DIO1},
     {2, SD1_DIO3},
-    {11, SCAN_EN},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -386,7 +364,6 @@ const pin_fsel_function_t pad_pa14_fsel_func_tbl[] =
     {0, GPIO_A14},
     {1, MPI3_DIO2},
     {2, SD1_CLK},
-    {11, EDT_CLK},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -396,7 +373,6 @@ const pin_fsel_function_t pad_pa15_fsel_func_tbl[] =
     {0, GPIO_A15},
     {1, MPI3_DIO0},
     {2, SD1_CMD},
-    {11, EDT_UPDATE},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -406,7 +382,6 @@ const pin_fsel_function_t pad_pa16_fsel_func_tbl[] =
     {0, GPIO_A16},
     {1, MPI3_CLK},
     {2, SD1_DIO0},
-    {11, EDT_BYPASS},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -423,7 +398,7 @@ const pin_fsel_function_t pad_pa17_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa18_fsel_func_tbl[] =
 {
     {0, GPIO_A18},
-    {2, SWDIO},
+    {1, SWDIO},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -431,7 +406,7 @@ const pin_fsel_function_t pad_pa18_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa19_fsel_func_tbl[] =
 {
     {0, GPIO_A19},
-    {2, SWCLK},
+    {1, SWCLK},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -439,7 +414,8 @@ const pin_fsel_function_t pad_pa19_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa20_fsel_func_tbl[] =
 {
     {0, GPIO_A20},
-    {9, DBG_CLK},
+    {1, SWO},
+    {7, DBG_CLK},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -454,7 +430,8 @@ const pin_fsel_function_t pad_pa21_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa22_fsel_func_tbl[] =
 {
     {0, GPIO_A22},
-    {3, PDM1_CLK},
+    {2, SD1_DIO2},
+    {3, SD2_DIO2},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -462,7 +439,8 @@ const pin_fsel_function_t pad_pa22_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa23_fsel_func_tbl[] =
 {
     {0, GPIO_A23},
-    {3, PDM1_DATA},
+    {2, SD1_DIO3},
+    {3, SD2_DIO3},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -470,8 +448,9 @@ const pin_fsel_function_t pad_pa23_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa24_fsel_func_tbl[] =
 {
     {0, GPIO_A24},
-    {2, SPI1_DIO},
-    {3, I2S1_MCLK},
+    {1, SPI1_DIO},
+    {2, SD1_CLK},
+    {3, SD2_CLK},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -479,8 +458,9 @@ const pin_fsel_function_t pad_pa24_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa25_fsel_func_tbl[] =
 {
     {0, GPIO_A25},
-    {2, SPI1_DI},
-    {3, I2S1_SDO},
+    {1, SPI1_DI},
+    {2, SD1_CMD},
+    {3, SD2_CMD},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -488,6 +468,8 @@ const pin_fsel_function_t pad_pa25_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa26_fsel_func_tbl[] =
 {
     {0, GPIO_A26},
+    {2, SD1_DIO0},
+    {3, SD2_DIO0},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -495,6 +477,8 @@ const pin_fsel_function_t pad_pa26_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa27_fsel_func_tbl[] =
 {
     {0, GPIO_A27},
+    {2, SD1_DIO1},
+    {3, SD2_DIO1},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -502,8 +486,8 @@ const pin_fsel_function_t pad_pa27_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa28_fsel_func_tbl[] =
 {
     {0, GPIO_A28},
-    {2, SPI1_CLK},
-    {3, I2S1_SDI},
+    {1, SPI1_CLK},
+    {3, SD2_DIO2},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -511,8 +495,8 @@ const pin_fsel_function_t pad_pa28_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa29_fsel_func_tbl[] =
 {
     {0, GPIO_A29},
-    {2, SPI1_CS},
-    {3, I2S1_BCK},
+    {1, SPI1_CS},
+    {3, SD2_DIO3},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -520,7 +504,7 @@ const pin_fsel_function_t pad_pa29_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa30_fsel_func_tbl[] =
 {
     {0, GPIO_A30},
-    {3, I2S1_LRCK},
+    {3, SD2_CLK},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -528,7 +512,8 @@ const pin_fsel_function_t pad_pa30_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa31_fsel_func_tbl[] =
 {
     {0, GPIO_A31},
-    {9, DBG_DO8},
+    {3, SD2_CMD},
+    {7, DBG_DO8},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -536,6 +521,7 @@ const pin_fsel_function_t pad_pa31_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa32_fsel_func_tbl[] =
 {
     {0, GPIO_A32},
+    {3, SD2_DIO0},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -543,6 +529,7 @@ const pin_fsel_function_t pad_pa32_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa33_fsel_func_tbl[] =
 {
     {0, GPIO_A33},
+    {3, SD2_DIO1},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -571,9 +558,9 @@ const pin_fsel_function_t pad_pa36_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa37_fsel_func_tbl[] =
 {
     {0, GPIO_A37},
-    {2, SPI2_DIO},
-    {7, LCDC1_8080_DIO2},
-    {9, DBG_DO9},
+    {1, SPI2_DIO},
+    {2, SD1_DIO2},
+    {7, DBG_DO9},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -581,7 +568,8 @@ const pin_fsel_function_t pad_pa37_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa38_fsel_func_tbl[] =
 {
     {0, GPIO_A38},
-    {2, SPI2_DI},
+    {1, SPI2_DI},
+    {2, SD1_DIO3},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -589,11 +577,9 @@ const pin_fsel_function_t pad_pa38_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa39_fsel_func_tbl[] =
 {
     {0, GPIO_A39},
-    {2, SPI2_CLK},
-    {6, LCDC1_JDI_VCK},
-    {7, LCDC1_8080_DIO3},
-    {9, DBG_DO10},
-    {11, EDT_CHANNEL_OUT0},
+    {1, SPI2_CLK},
+    {2, SD1_CLK},
+    {7, DBG_DO10},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -601,11 +587,9 @@ const pin_fsel_function_t pad_pa39_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa40_fsel_func_tbl[] =
 {
     {0, GPIO_A40},
-    {2, SPI2_CS},
-    {6, LCDC1_JDI_XRST},
-    {7, LCDC1_8080_DIO4},
-    {9, DBG_DO11},
-    {11, EDT_CHANNEL_OUT1},
+    {1, SPI2_CS},
+    {2, SD1_CMD},
+    {7, DBG_DO11},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -613,10 +597,8 @@ const pin_fsel_function_t pad_pa40_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa41_fsel_func_tbl[] =
 {
     {0, GPIO_A41},
-    {6, LCDC1_JDI_HCK},
-    {7, LCDC1_8080_DIO5},
-    {9, DBG_DO12},
-    {11, EDT_CHANNEL_OUT2},
+    {2, SD1_DIO0},
+    {7, DBG_DO12},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -624,10 +606,8 @@ const pin_fsel_function_t pad_pa41_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa42_fsel_func_tbl[] =
 {
     {0, GPIO_A42},
-    {6, LCDC1_JDI_R2},
-    {7, LCDC1_8080_DIO6},
-    {9, DBG_DO13},
-    {11, EDT_CHANNEL_OUT3},
+    {2, SD1_DIO1},
+    {7, DBG_DO13},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -635,10 +615,8 @@ const pin_fsel_function_t pad_pa42_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa43_fsel_func_tbl[] =
 {
     {0, GPIO_A43},
-    {6, LCDC1_JDI_G2},
-    {7, LCDC1_8080_DIO7},
-    {9, DBG_DO14},
-    {11, EDT_CHANNEL_OUT4},
+    {1, SWDIO},
+    {7, DBG_DO14},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -646,8 +624,8 @@ const pin_fsel_function_t pad_pa43_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa44_fsel_func_tbl[] =
 {
     {0, GPIO_A44},
-    {9, DBG_DO15},
-    {11, EDT_CHANNEL_OUT5},
+    {1, SWCLK},
+    {7, DBG_DO15},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -655,6 +633,7 @@ const pin_fsel_function_t pad_pa44_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa45_fsel_func_tbl[] =
 {
     {0, GPIO_A45},
+    {3, SD2_DIO2},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -662,6 +641,7 @@ const pin_fsel_function_t pad_pa45_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa46_fsel_func_tbl[] =
 {
     {0, GPIO_A46},
+    {3, SD2_DIO3},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -669,6 +649,7 @@ const pin_fsel_function_t pad_pa46_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa47_fsel_func_tbl[] =
 {
     {0, GPIO_A47},
+    {3, SD2_CLK},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -676,6 +657,7 @@ const pin_fsel_function_t pad_pa47_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa48_fsel_func_tbl[] =
 {
     {0, GPIO_A48},
+    {3, SD2_CMD},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -683,6 +665,7 @@ const pin_fsel_function_t pad_pa48_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa49_fsel_func_tbl[] =
 {
     {0, GPIO_A49},
+    {3, SD2_DIO0},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -690,6 +673,7 @@ const pin_fsel_function_t pad_pa49_fsel_func_tbl[] =
 const pin_fsel_function_t pad_pa50_fsel_func_tbl[] =
 {
     {0, GPIO_A50},
+    {3, SD2_DIO1},
     {0, PIN_FUNC_UNDEF},
 };
 
@@ -829,4 +813,3 @@ const pin_fsel_function_t *const pad_fsel_func_tbls[HPSYS_PAD_NUM] =
     pad_pa56_fsel_func_tbl,
     pad_pa57_fsel_func_tbl,
 };
-

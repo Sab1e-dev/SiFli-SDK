@@ -45,6 +45,8 @@ enum
 /* APS 128p*/
 void board_pinmux_psram_func0()
 {
+    //TODO:
+#if 0
     HAL_PIN_CompileTimeSet(PAD_SA01, MPI1_DIO0, PIN_PULLDOWN, 1);
     HAL_PIN_CompileTimeSet(PAD_SA02, MPI1_DIO1, PIN_PULLDOWN, 1);
     HAL_PIN_CompileTimeSet(PAD_SA03, MPI1_DIO2, PIN_PULLDOWN, 1);
@@ -58,6 +60,7 @@ void board_pinmux_psram_func0()
     HAL_PIN_CompileTimeSet(PAD_SA11, MPI1_CS,   PIN_NOPULL, 1);
     HAL_PIN_Set_Analog(PAD_SA00, 1);
     HAL_PIN_Set_Analog(PAD_SA12, 1);
+#endif
 }
 
 /* APS 1:64p 2:32P, 4:Winbond 32/64/128p*/
