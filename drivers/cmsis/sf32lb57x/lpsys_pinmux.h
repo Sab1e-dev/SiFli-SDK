@@ -3,11 +3,13 @@
 
 typedef struct
 {
-__IO uint32_t PAD_PB00;
-__IO uint32_t PAD_PB01;
-__IO uint32_t PAD_PB02;
-__IO uint32_t PAD_PB03;
+    __IO uint32_t PAD_PB00;
+    __IO uint32_t PAD_PB01;
+    __IO uint32_t PAD_PB02;
+    __IO uint32_t PAD_PB03;
 } LPSYS_PINMUX_TypeDef;
+
+#define LPSYS_PAD_NUM   (0)
 
 
 /************* Bit definition for LPSYS_PINMUX_PAD_PB00 register **************/

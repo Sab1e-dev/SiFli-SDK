@@ -152,6 +152,8 @@ typedef struct
 #define LPSYS_AON_WSR_HP2LP_IRQ_Msk     (0x1UL << LPSYS_AON_WSR_HP2LP_IRQ_Pos)
 #define LPSYS_AON_WSR_HP2LP_IRQ         LPSYS_AON_WSR_HP2LP_IRQ_Msk
 
+#define LPSYS_AON_WSR_PIN_ALL           (0UL)
+
 /***************** Bit definition for LPSYS_AON_WCR register ******************/
 #define LPSYS_AON_WCR_AON_Pos           (31U)
 #define LPSYS_AON_WCR_AON_Msk           (0x1UL << LPSYS_AON_WCR_AON_Pos)
