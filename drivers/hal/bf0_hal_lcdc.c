@@ -412,6 +412,37 @@ static HAL_StatusTypeDef SelectIntf(LCDC_HandleTypeDef *lcdc, HAL_LCDC_IF_TypeDe
                                         (init->cfg.dpi.VS_polarity         << LCD_IF_DPI_IF_CONF5_VSPOL_Pos) |
                                         (init->cfg.dpi.HS_polarity         << LCD_IF_DPI_IF_CONF5_HSPOL_Pos);
     }
+#ifdef LCDC_SUPPORT_EPD_INTERFACE
+    else if (HAL_LCDC_IS_EPD_IF(intf))
+    {
+        uint32_t format_val = (LCDC_INTF_EPD_8BIT == intf) ? 0 : 1;
+
+        lcdc->Instance->LCD_CONF |= 8 << LCD_IF_LCD_CONF_LCD_INTF_SEL_Pos;
+
+        reg_v = lcdc->Instance->TCON_IF_CONF1;
+        reg_v &= LCD_IF_TCON_IF_CONF1_CLK_DIV_Msk; //Clear all bits except clock divider
+        reg_v |= MAKE_REG_VAL2(format_val, LCD_IF_TCON_IF_CONF1_FORMAT);
+        reg_v |= MAKE_REG_VAL2(init->cfg.epd.SDMODE, LCD_IF_TCON_IF_CONF1_SMODE);
+        reg_v |= MAKE_REG_VAL2(init->cfg.epd.SDCLK_polarity, LCD_IF_TCON_IF_CONF1_SDCLK_POL);
+        reg_v |= MAKE_REG_VAL2(init->cfg.epd.GDCLK_polarity, LCD_IF_TCON_IF_CONF1_GDCLK_POL);
+        reg_v |= MAKE_REG_VAL2(init->cfg.epd.GDSP_polarity, LCD_IF_TCON_IF_CONF1_GDSP_POL);
+        lcdc->Instance->TCON_IF_CONF1 = reg_v;
+
+
+        lcdc->Instance->TCON_IF_CONF2 = MAKE_REG_VAL2(init->cfg.epd.GSTA, LCD_IF_TCON_IF_CONF2_GSTA)
+                                        | MAKE_REG_VAL2(init->cfg.epd.LEL, LCD_IF_TCON_IF_CONF2_LEL)
+                                        | MAKE_REG_VAL2(init->cfg.epd.LBL, LCD_IF_TCON_IF_CONF2_LBL)
+                                        | MAKE_REG_VAL2(init->cfg.epd.LSL, LCD_IF_TCON_IF_CONF2_LSL);
+
+        lcdc->Instance->TCON_IF_CONF3 = MAKE_REG_VAL2(init->cfg.epd.LDL, LCD_IF_TCON_IF_CONF3_LDL)
+                                        | MAKE_REG_VAL2(init->cfg.epd.LDL, LCD_IF_TCON_IF_CONF3_GDH);
+
+        lcdc->Instance->TCON_IF_CONF4 = MAKE_REG_VAL2(init->cfg.epd.FEL, LCD_IF_TCON_IF_CONF4_FEL)
+                                        | MAKE_REG_VAL2(init->cfg.epd.FBL, LCD_IF_TCON_IF_CONF4_FBL)
+                                        | MAKE_REG_VAL2(init->cfg.epd.FSL, LCD_IF_TCON_IF_CONF4_FSL)
+                                        | MAKE_REG_VAL2(init->cfg.epd.FDL, LCD_IF_TCON_IF_CONF4_FDL);
+    }
+#endif /* LCDC_SUPPORT_EPD_INTERFACE */
     else
     {
         HAL_LCDC_ASSERT(0);//Not support now
@@ -661,6 +692,17 @@ static HAL_StatusTypeDef SetFreq(LCDC_HandleTypeDef *lcdc, uint32_t freq)
         lcdc->Instance->DPI_IF_CONF5 &= ~LCD_IF_DPI_IF_CONF5_PCLK_DIV_Msk;
         lcdc->Instance->DPI_IF_CONF5 |= reg_v << LCD_IF_DPI_IF_CONF5_PCLK_DIV_Pos;
     }
+#ifdef LCDC_SUPPORT_EPD_INTERFACE
+    else if (HAL_LCDC_IS_EPD_IF(lcdc->Init.lcd_itf))
+    {
+        reg_v = (lcdc_clk + (freq - 1)) / freq;
+
+        HAL_LCDC_ASSERT(reg_v >= 2); //The minimal value is 2
+
+        lcdc->Instance->TCON_IF_CONF1 &= ~LCD_IF_TCON_IF_CONF1_CLK_DIV_Msk;
+        lcdc->Instance->TCON_IF_CONF1 |= reg_v << LCD_IF_TCON_IF_CONF1_CLK_DIV_Pos;
+    }
+#endif /* LCDC_SUPPORT_EPD_INTERFACE */
     else
     {
         HAL_LCDC_ASSERT(0);//Not support now
@@ -749,6 +791,21 @@ static HAL_StatusTypeDef SetOutFormat(LCDC_HandleTypeDef *lcdc, HAL_LCDC_PixelFo
 
         reg_v |= LCD_IF_LCD_CONF_LCD_FORMAT_RGB332;                   //DBI
         break;
+
+#ifdef LCD_IF_FLEX_SEL_L_BIT0
+    case LCDC_PIXEL_FORMAT_F2:
+        //F2 is composed of FLEX_SEL_H_BIT7 & FLEX_SEL_H_BIT6
+        lcdc->Instance->FLEX_SEL_H = MAKE_REG_VAL2(1, LCD_IF_FLEX_SEL_H_BIT7);
+        lcdc->Instance->CONV_CFG = MAKE_REG_VAL2(6, LCD_IF_CONV_CFG_FORMAT);
+        break;
+
+    case LCDC_PIXEL_FORMAT_F2_SWAP:
+        //F2 is composed of FLEX_SEL_H_BIT7 & FLEX_SEL_H_BIT6
+        lcdc->Instance->FLEX_SEL_H = MAKE_REG_VAL2(1, LCD_IF_FLEX_SEL_H_BIT7);
+        lcdc->Instance->CONV_CFG = MAKE_REG_VAL2(6, LCD_IF_CONV_CFG_FORMAT);
+        lcdc->Instance->GREY_CONV |= LCD_IF_GREY_CONV_ORDER;
+        break;
+#endif
 
     default:
         //unknow color format
@@ -1447,11 +1504,11 @@ static HAL_StatusTypeDef LayerUpdate(LCDC_HandleTypeDef *lcdc)
             reg |= LCD_IF_LAYER0_CONFIG_FORMAT_A8;
             break;
 
-#ifndef SF32LB52X //Not support L8 on 54x
+#ifdef LCDC_SUPPORT_L8
         case LCDC_PIXEL_FORMAT_L8:
             reg |= LCD_IF_LAYER0_CONFIG_FORMAT_L8;
             break;
-#endif /* SF32LB52X */
+#endif /* LCDC_SUPPORT_L8 */
 
         case LCDC_PIXEL_FORMAT_RGB565_SWAP:
             reg |= LCD_IF_LAYER0_CONFIG_FORMAT_RGB565;
@@ -1664,6 +1721,15 @@ static HAL_StatusTypeDef LayerUpdate(LCDC_HandleTypeDef *lcdc)
         //if ((HAL_LCDC_IS_JDI_PARALLEL_IF(lcdc->Init.lcd_itf))&&(HAL_LCDC_LAYER_0 == layeridx))
         //pHwLayerx->FILL |= LCD_IF_LAYER0_FILL_BG_MODE; //Skip line buffer
 #endif /* SF32LB55X */
+
+#ifdef LCDC_SUPPORT_L8
+        if (LCDC_PIXEL_FORMAT_L8 == cfg->data_format)
+        {
+            //Setup lookup table
+            HAL_LCDC_ASSERT(NULL != cfg->lookup_table);
+            memcpy(HAL_LCDC_LOOKUP_TABLE_HEAD(lcdc->Instance), cfg->lookup_table, HAL_LCDC_LOOKUP_TABLE_SIZE);
+        }
+#endif /*LCDC_SUPPORT_L8*/
     }
 
     return HAL_OK;
@@ -3159,13 +3225,6 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_LayerSetLTab(LCDC_HandleTypeDef *lcdc,
 {
     __HAL_LCDC_LOCK(lcdc);
 
-    if (HAL_TIMEOUT == WaitBusy(lcdc))
-    {
-        __HAL_LCDC_UNLOCK(lcdc);
-        return HAL_TIMEOUT;
-    }
-
-    memcpy(HAL_LCDC_LOOKUP_TABLE_HEAD(lcdc->Instance), pLTab, HAL_LCDC_LOOKUP_TABLE_SIZE);
     lcdc->Layer[layeridx].lookup_table = pLTab;
 
     __HAL_LCDC_UNLOCK(lcdc);

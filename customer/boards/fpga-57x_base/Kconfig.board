@@ -13,3 +13,7 @@ config LCD_BACKLIGHT_CONTROL_PIN
 config CAMERA_I2C_DEVICE_NAME
     string
     default "i2c2"
+
+config EPD_TPS_I2C_DEVICE_NAME
+    string
+    default "i2c1"

@@ -4,6 +4,7 @@
 //#define LCD_VIO_EN                        // NO pin
 
 #define LCD_RESET_PIN           (0)         // GPIO_A00
+#define EPD_GMODE_PIN           (5)         // GPIO_A05
 
 //#define TP_VCC_EN                     // NO pin
 //#define TP_VIO_EN                     // NO pin
@@ -30,6 +31,10 @@ void BSP_LCD_PowerUp(void)
 }
 
 
+void BSP_LCD_GMODE_Set(uint8_t high1_low0)
+{
+    BSP_GPIO_Set(EPD_GMODE_PIN, high1_low0, 1);
+}
 
 
 void BSP_TP_PowerUp(void)

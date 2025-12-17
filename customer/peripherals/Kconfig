@@ -251,6 +251,9 @@ config LCD_USING_GC9107
     bool
     default n
 
+config LCD_USING_EPD_OPM060DA
+    bool
+    default n
 
 
 # LCD interfaces
@@ -282,7 +285,9 @@ config BSP_LCDC_USING_JDI_PARALLEL
     def_bool n
 config BSP_LCDC_USING_EPD_8BIT
     def_bool n
-
+config BSP_LCDC_USING_EPD_16BIT
+    def_bool n
+    
 # LCD backlight
 config LCD_USING_PWM_AS_BACKLIGHT
     def_bool n
