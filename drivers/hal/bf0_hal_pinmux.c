@@ -1696,9 +1696,11 @@ __HAL_ROM_USED int HAL_PIN_Get(int pad, pin_function *p_func, PIN_ModeTypeDef *p
 
     }
 
+    fsel = GET_REG_VAL(val, HPSYS_PINMUX_PAD_PA00_FSEL_Msk, HPSYS_PINMUX_PAD_PA00_FSEL_Pos);
+    r = fsel;
+
     if (p_func)
     {
-        fsel = GET_REG_VAL(val, HPSYS_PINMUX_PAD_PA00_FSEL_Msk, HPSYS_PINMUX_PAD_PA00_FSEL_Pos);
         if (fsel < PIN_ARBITRARY_FUNC_START)
         {
             if (idx < sizeof(pad_fsel_func_tbls) / sizeof(pad_fsel_func_tbls[0]))

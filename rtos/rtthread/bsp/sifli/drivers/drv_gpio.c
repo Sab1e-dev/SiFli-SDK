@@ -1109,21 +1109,43 @@ static void print_pin_state(int pin)
     }
 }
 
+static rt_err_t get_pad(int pin, int *pad, int *hcpu)
+{
+    if (pin < PIN1_MAX_HANDLE)
+    {
+        *pad = (int)pin + PAD_PA_00;
+        *hcpu = 1;
+    }
+    else
+    {
+#ifdef hwp_pinmux2
+        *pad = (int)pin - PIN1_MAX_HANDLE + PAD_PB_00;
+        *hcpu = 0;
+#else
+        return (-RT_EIO);
+#endif /* hwp_pinmux2 */
+    }
+
+    return RT_EOK;
+}
+
 __ROM_USED int cmd_pin(int argc, char **argv)
 {
     rt_device_t device ;
     if (argc <= 2)
     {
-        LOG_I("usage: pin <mode|read|write|mux|status> pin# <value>");
-        LOG_I("        example:                               ");
-        LOG_I("             pin mode  #pin <PIN MODE VALUES>  ");
-        LOG_I("             pin write #pin 1         ");
-        LOG_I("             pin read  #pin           ");
-        LOG_I("             pin mux   #pin 0         ");
-        LOG_I("             pin status #pin          ");
-        LOG_I("             pin mux   #pin ?         ");
-        LOG_I("             pin status all           ");
-        LOG_I("\n    PIN MODE VALUES:                ");
+        LOG_I("usage: pin <mode|read|write|mux|status|test> #pin <value>");
+        LOG_I("  EXAMPLE                                DESCRIPTION     ");
+        LOG_I("  pin test #pin 1                  -    Use gpio output 1 for testing");
+        LOG_I("  pin mode #pin <PIN MODE VALUES>  -    Change gpio input/output mode");
+        LOG_I("  pin write #pin 1                 -    Change gpio output value     ");
+        LOG_I("  pin read  #pin                   -    Read gpio input value        ");
+        LOG_I("  pin mux   #pin 0                 -    Change pinmux value          ");
+        LOG_I("  pin status #pin                  -    Print pin information        ");
+        LOG_I("  pin mux   #pin ?                 -    Print pinmux value           ");
+        LOG_I("  pin status all                   -    Print all pin pinmux        ");
+        LOG_I("                                       ");
+        LOG_I("    <PIN MODE VALUES>:                ");
         LOG_I("        PIN_MODE_OUTPUT         0x00  ");
         LOG_I("        PIN_MODE_INPUT          0x01  ");
         LOG_I("        PIN_MODE_INPUT_PULLUP   0x02  ");
@@ -1169,20 +1191,10 @@ __ROM_USED int cmd_pin(int argc, char **argv)
 
             int pad, hcpu;
 
-            if (pin < PIN1_MAX_HANDLE)
+            if (RT_EOK != get_pad(pin, &pad, &hcpu))
             {
-                pad = (int)pin + PAD_PA_00;
-                hcpu = 1;
-            }
-            else
-            {
-#ifdef hwp_pinmux2
-                pad = (int)pin - PIN1_MAX_HANDLE + PAD_PB_00;
-                hcpu = 0;
-#else
                 LOG_I("invalid pin: %d", pin);
                 return (-RT_EIO);
-#endif /* hwp_pinmux2 */
             }
 
             if (strcmp(argv[3], "?") == 0)//Get pin mux
@@ -1195,6 +1207,32 @@ __ROM_USED int cmd_pin(int argc, char **argv)
                 HAL_PIN_Select(pad, func, hcpu);
             }
 
+        }
+        else if (strcmp(argv[1], "test") == 0)
+        {
+            int32_t pin = atoi(argv[2]);
+
+
+            //1. Set pin mux to GPIO
+            int pad, hcpu;
+            if (RT_EOK != get_pad(pin, &pad, &hcpu))
+            {
+                LOG_I("invalid pin: %d", pin);
+                return (-RT_EIO);
+            }
+            HAL_PIN_Select(pad, 0, hcpu);
+
+            //2. Set GPIO output mode
+            struct rt_device_pin_mode m;
+            m.pin = pin;
+            m.mode = PIN_MODE_OUTPUT;
+            rt_device_control(device, 0, &m);
+
+            //3. Set output value
+            struct rt_device_pin_status st;
+            st.pin = pin;
+            st.status = atoi(argv[3]);
+            rt_device_write(device, 0, &st, sizeof(struct rt_device_pin_status));
         }
         else
         {
