@@ -100,6 +100,14 @@ static void board_pinmux_mpi1_none(void)
 }
 #endif
 
+/* i2s pinmux set */
+void i2s_pinmux_set(int idx)
+{
+    HAL_PIN_Set(PAD_PA41, I2S1_LRCK, PIN_NOPULL, 1); /* A1 */
+    HAL_PIN_Set(PAD_PA42, I2S1_BCK, PIN_NOPULL, 1);  /* A2 */
+    HAL_PIN_Set(PAD_PA38, I2S1_SDI, PIN_PULLDOWN, 1); /* A4 */
+    HAL_PIN_Set(PAD_PA37, I2S1_SDO, PIN_NOPULL, 1);  /* A5 */
+}
 
 void BSP_PIN_Init(void)
 {
@@ -240,11 +248,10 @@ void BSP_PIN_Init(void)
     HAL_PIN_Set(PAD_PA22, PDM1_CLK, PIN_NOPULL, 1);
     HAL_PIN_Set(PAD_PA23, PDM1_DATA, PIN_PULLDOWN, 1);
     //I2S1
-    HAL_PIN_Set(PAD_PA30, I2S1_LRCK, PIN_NOPULL, 1);
-    HAL_PIN_Set(PAD_PA29, I2S1_BCK, PIN_NOPULL, 1);
-    HAL_PIN_Set(PAD_PA28, I2S1_SDI, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_PA25, I2S1_SDO, PIN_NOPULL, 1);
-
+    HAL_PIN_Set(PAD_PA41, I2S1_LRCK, PIN_NOPULL, 1); /* A1 */
+    HAL_PIN_Set(PAD_PA42, I2S1_BCK, PIN_NOPULL, 1);  /* A2 */
+    HAL_PIN_Set(PAD_PA38, I2S1_SDI, PIN_PULLDOWN, 1); /* A4 */
+    HAL_PIN_Set(PAD_PA37, I2S1_SDO, PIN_NOPULL, 1);  /* A5 */
 
     // UART2
     HAL_PIN_Set(PAD_PA27, USART2_TXD, PIN_PULLUP, 1);

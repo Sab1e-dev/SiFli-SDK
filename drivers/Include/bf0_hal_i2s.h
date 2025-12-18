@@ -34,7 +34,7 @@ extern "C" {
   */
 #ifdef I2S_TX_INTF_CONV_EN /*!< i2s use in sf57x */
 #define I2S_TDM_MODE_SUPPORT /*!< i2s support tdm mode use in sf57x */
-#define I2S_RX_TX_SEPARATE  /*!< i2s rx clock do not depend on tx clock */
+//#define I2S_RX_TX_SEPARATE  /*!< i2s rx clock do not depend on tx clock */
 #endif
 /**
   * @}
