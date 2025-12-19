@@ -2899,15 +2899,15 @@ static uint32_t I2C_ConfigDmaXferTask(I2C_HandleTypeDef *hi2c, I2C_RtxRequestTyp
         xfer_desc++;
 
         /* node for i2c transmission */
-        /* always use dma channel for rx */
-        memcpy((void *)&xfer_desc->Init, (void *)&hi2c->hdmarx->Init, sizeof(xfer_desc->Init));
         if (Request->IsRead)
         {
+            memcpy((void *)&xfer_desc->Init, (void *)&hi2c->hdmarx->Init, sizeof(xfer_desc->Init));
             xfer_desc->SrcAddress = (uint32_t)&hi2c->Instance->FIFO;
             xfer_desc->DstAddress = (uint32_t)Request->pData;
         }
         else
         {
+            memcpy((void *)&xfer_desc->Init, (void *)&hi2c->hdmatx->Init, sizeof(xfer_desc->Init));
             xfer_desc->SrcAddress = (uint32_t)Request->pData;
             xfer_desc->DstAddress = (uint32_t)&hi2c->Instance->FIFO;
         }
