@@ -314,12 +314,12 @@ typedef enum
 
     /** PDM1_CLK */
     PDM1_CLK           = 151,
+    /** PDM2_CLK */
+    PDM2_CLK,
     /** PDM1_DATA */
     PDM1_DATA,
     /** PDM1_DATA2 */
     PDM1_DATA2,
-    /** PDM2_CLK */
-    PDM2_CLK,
     /** PDM2_DATA */
     PDM2_DATA,
     /** PDM2_DATA2 */
