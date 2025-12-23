@@ -129,7 +129,8 @@ typedef enum IRQn
     DMAC1_CH6_IRQn                =  55,
     DMAC1_CH7_IRQn                =  56,
     DMAC1_CH8_IRQn                =  57,
-    LCPU2HCPU_IRQn                =  58, //TODO: for ACPU it's LCPU2ACPU
+    LCPU2HCPU_IRQn                =  58,
+    LCPU2ACPU_IRQHandler          =  58,
     USART1_IRQn                   =  59,
     SPI1_IRQn                     =  60,
     I2C1_IRQn                     =  61,
@@ -151,7 +152,8 @@ typedef enum IRQn
     Interrupt77_IRQn              =  77,
     I2C4_IRQn                     =  78,
     SDMMC1_IRQn                   =  79,
-    ACPU2HCPU_IRQn                =  80, //TODO: for ACPU it's HCPU2ACPU
+    ACPU2HCPU_IRQn                =  80,
+    HCPU2ACPU_IRQn                =  80,
     SDMMC2_IRQn                   =  81,
     PDM1_IRQn                     =  82,
     CAN1_IRQn                     =  83,
@@ -650,17 +652,16 @@ typedef enum IRQn
 #define FLASH2        hwp_qspi2
 #define FLASH3        hwp_qspi3
 
-#define SDIO1          hwp_sdmmc1
+#define SDIO1         hwp_sdmmc1
+#define SDIO2         hwp_sdmmc2
 
 #define SPI1          hwp_spi1
 #define SPI2          hwp_spi2
 
 #define GPTIM1        hwp_gptim1
 #define GPTIM2        hwp_gptim2
-#define GPTIM3        hwp_gptim3
-#define GPTIM4        hwp_gptim4
-#define GPTIM5        hwp_gptim5
 #define ATIM1         hwp_atim1
+#define ATIM2         hwp_atim2
 #define BTIM1         hwp_btim1
 #define BTIM2         hwp_btim2
 #define BTIM3         hwp_btim3
@@ -677,6 +678,12 @@ typedef enum IRQn
 
 /** HCPU2LCPU mailbox instance */
 #define H2L_MAILBOX   ((MAILBOX_CH_TypeDef *)HMAILBOX_BASE)
+/** ACPU2LCPU mailbox instance */
+#define A2L_MAILBOX   ((MAILBOX_CH_TypeDef *)HMAILBOX_BASE + 1)
+/** HCPU2ACPU mailbox instance */
+#define H2A_MAILBOX   ((MAILBOX_CH_TypeDef *)HMAILBOX_BASE + 2)
+/** ACPU2HCPU mailbox instance */
+#define A2H_MAILBOX   ((MAILBOX_CH_TypeDef *)HMAILBOX_BASE + 3)
 
 /** HCPU mutex instance channel1 */
 #define HMUTEX_CH1    ((MUTEX_CH_TypeDef *)&hwp_hmailbox->C1IER)
@@ -685,6 +692,8 @@ typedef enum IRQn
 
 /** LCPU2HCPU mailbox instance */
 #define L2H_MAILBOX   ((MAILBOX_CH_TypeDef *)LMAILBOX_BASE)
+/** LCPU2ACPU mailbox instance */
+#define L2A_MAILBOX   ((MAILBOX_CH_TypeDef *)LMAILBOX_BASE + 1)
 /** LCPU mutex instance channel1 */
 #define LMUTEX_CH1    ((MUTEX_CH_TypeDef *)&hwp_lmailbox->C1IER)
 /** LCPU mutex instance channel2 */
@@ -834,7 +843,7 @@ typedef enum
 #define IS_LCPU(id)  ((*id)&1)
 
 /* Peripheral_timer_clk */
-#define FIXED_GPTBTIM_SRC_CLK   (24000000)
+#define FIXED_GPTBTIM_SRC_CLK   (48000000)
 
 #if defined (USE_HAL_DRIVER)
 #include "bf0_hal.h"
