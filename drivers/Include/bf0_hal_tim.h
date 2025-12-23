@@ -350,7 +350,7 @@ typedef struct
 #define GPT_OCMODE_INACTIVE                 (GPT_CCMR1_OC1M_1)
 #define GPT_OCMODE_TOGGLE                   (GPT_CCMR1_OC1M_0 | GPT_CCMR1_OC1M_1)
 #define GPT_OCMODE_PWM1                     (GPT_CCMR1_OC1M_1 | GPT_CCMR1_OC1M_2)
-#define GPT_OCMODE_PWM2                     (GPT_CCMR1_OC1M)
+#define GPT_OCMODE_PWM2                     (GPT_CCMR1_OC1M_0 | GPT_CCMR1_OC1M_1 | GPT_CCMR1_OC1M_2)
 #define GPT_OCMODE_FORCED_ACTIVE            (GPT_CCMR1_OC1M_0 | GPT_CCMR1_OC1M_2)
 #define GPT_OCMODE_FORCED_INACTIVE          (GPT_CCMR1_OC1M_2)
 

@@ -201,7 +201,7 @@ extern "C" {
 #define GPTIM3_CC2_DMA_REQUEST                 DMA_REQUEST_11
 #define GPTIM3_CC3_DMA_REQUEST                 DMA_REQUEST_12
 #define GPTIM3_CC4_DMA_REQUEST                 DMA_REQUEST_13
-#define PWM4_CC4_DMA_REQUEST                   DMA_REQUEST_13//GTIM3_CH4
+#define PWMT3_CC4_DMA_REQUEST                   DMA_REQUEST_13//GTIM3_CH4
 #define GPTIM5_UPDATE_DMA_REQUEST              DMA_REQUEST_14
 #define GPTIM5_TRIGGER_DMA_REQUEST             DMA_REQUEST_15
 #define SPI3_TX_DMA_REQUEST                    DMA_REQUEST_16
@@ -214,7 +214,7 @@ extern "C" {
 #define I2C7_DMA_REQUEST                       DMA_REQUEST_23
 #define GPTIM4_UPDATE_DMA_REQUEST              DMA_REQUEST_24
 #define GPTIM4_TRIGGER_DMA_REQUEST             DMA_REQUEST_25
-#define PWM5_CC1_DMA_REQUEST                   DMA_REQUEST_26
+#define PWMT4_CC1_DMA_REQUEST                   DMA_REQUEST_26
 #define GPTIM4_CC1_DMA_REQUEST                 DMA_REQUEST_26
 #define GPTIM4_CC2_DMA_REQUEST                 DMA_REQUEST_27
 #define GPTIM4_CC3_DMA_REQUEST                 DMA_REQUEST_28
@@ -230,30 +230,30 @@ extern "C" {
 #endif
 /* DMA2 channel1  */
 
-#if defined(BSP_PWM4_UPDATE_USING_DMA) && !defined(PWM4_UPDATE_DMA_INSTANCE)
-#define PWM4_UPDATE_DMA_IRQHandler              DMAC2_CH1_IRQHandler
-#define PWM4_UPDATE_DMA_IRQ_PRIO                1
-#define PWM4_UPDATE_DMA_INSTANCE                DMA2_Channel1
-#define PWM4_UPDATE_DMA_IRQ                     DMAC2_CH1_IRQn
-#define PWM4_UPDATE_DMA_PDATAALIGN                       DMA_PDATAALIGN_HALFWORD
-#define PWM4_UPDATE_DMA_MDATAALIGN                       DMA_MDATAALIGN_HALFWORD
+#if defined(BSP_PWMT3_UPDATE_USING_DMA) && !defined(PWMT3_UPDATE_DMA_INSTANCE)
+#define PWMT3_UPDATE_DMA_IRQHandler              DMAC2_CH1_IRQHandler
+#define PWMT3_UPDATE_DMA_IRQ_PRIO                1
+#define PWMT3_UPDATE_DMA_INSTANCE                DMA2_Channel1
+#define PWMT3_UPDATE_DMA_IRQ                     DMAC2_CH1_IRQn
+#define PWMT3_UPDATE_DMA_PDATAALIGN                       DMA_PDATAALIGN_HALFWORD
+#define PWMT3_UPDATE_DMA_MDATAALIGN                       DMA_MDATAALIGN_HALFWORD
 #endif
 
-#if defined(BSP_PWM4_CC4_USING_DMA) && !defined(PWM4_CC4_DMA_INSTANCE)//GTIM3_CH4
-#define PWM4_CC4_DMA_IRQHandler              DMAC2_CH1_IRQHandler
-#define PWM4_CC4_DMA_IRQ_PRIO                1
-#define PWM4_CC4_DMA_INSTANCE                DMA2_Channel1
-#define PWM4_CC4_DMA_IRQ                     DMAC2_CH1_IRQn
-#define PWM4_CC4_DMA_PDATAALIGN                       DMA_PDATAALIGN_HALFWORD
-#define PWM4_CC4_DMA_MDATAALIGN                       DMA_MDATAALIGN_HALFWORD
+#if defined(BSP_PWMT3_CC4_USING_DMA) && !defined(PWMT3_CC4_DMA_INSTANCE)//GTIM3_CH4
+#define PWMT3_CC4_DMA_IRQHandler              DMAC2_CH1_IRQHandler
+#define PWMT3_CC4_DMA_IRQ_PRIO                1
+#define PWMT3_CC4_DMA_INSTANCE                DMA2_Channel1
+#define PWMT3_CC4_DMA_IRQ                     DMAC2_CH1_IRQn
+#define PWMT3_CC4_DMA_PDATAALIGN                       DMA_PDATAALIGN_HALFWORD
+#define PWMT3_CC4_DMA_MDATAALIGN                       DMA_MDATAALIGN_HALFWORD
 #endif//lcd
-#if defined(BSP_PWM5_CC1_USING_DMA) && !defined(PWM5_CC1_DMA_INSTANCE)//GTIM4_CH1
-#define PWM5_CC1_DMA_IRQHandler              DMAC2_CH1_IRQHandler
-#define PWM5_CC1_DMA_IRQ_PRIO                1
-#define PWM5_CC1_DMA_INSTANCE                DMA2_Channel1
-#define PWM5_CC1_DMA_IRQ                     DMAC2_CH1_IRQn
-#define PWM5_CC1_DMA_PDATAALIGN                       DMA_PDATAALIGN_HALFWORD
-#define PWM5_CC1_DMA_MDATAALIGN                       DMA_MDATAALIGN_HALFWORD
+#if defined(BSP_PWMT4_CC1_USING_DMA) && !defined(PWMT4_CC1_DMA_INSTANCE)//GTIM4_CH1
+#define PWMT4_CC1_DMA_IRQHandler              DMAC2_CH1_IRQHandler
+#define PWMT4_CC1_DMA_IRQ_PRIO                1
+#define PWMT4_CC1_DMA_INSTANCE                DMA2_Channel1
+#define PWMT4_CC1_DMA_IRQ                     DMAC2_CH1_IRQn
+#define PWMT4_CC1_DMA_PDATAALIGN                       DMA_PDATAALIGN_HALFWORD
+#define PWMT4_CC1_DMA_MDATAALIGN                       DMA_MDATAALIGN_HALFWORD
 #endif//rgbled
 
 /* DMA2 channel2  */

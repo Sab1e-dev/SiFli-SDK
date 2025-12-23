@@ -27,7 +27,7 @@ extern "C" {
 #define GPTIM1_TRIGGER_DMA_REQUEST             DMA_REQUEST_9
 #define GPTIM1_CC1_DMA_REQUEST                 DMA_REQUEST_10
 #define GPTIM1_CC2_DMA_REQUEST                 DMA_REQUEST_11
-#define PWM2_CC2_DMA_REQUEST                   DMA_REQUEST_11
+#define PWMT1_CC2_DMA_REQUEST                   DMA_REQUEST_11
 #define GPTIM1_CC3_DMA_REQUEST                 DMA_REQUEST_12
 #define GPTIM1_CC4_DMA_REQUEST                 DMA_REQUEST_13
 #define BTIM1_DMA_REQUEST                      DMA_REQUEST_14
@@ -71,12 +71,12 @@ extern "C" {
 #define I2C4_DMA_INSTANCE                DMA1_Channel2
 #define I2C4_DMA_IRQ                     DMAC1_CH2_IRQn
 
-#define PWM2_CC2_DMA_IRQHandler              DMAC1_CH2_IRQHandler
-#define PWM2_CC2_DMA_IRQ_PRIO                1
-#define PWM2_CC2_DMA_INSTANCE                DMA1_Channel3
-#define PWM2_CC2_DMA_IRQ                     DMAC1_CH2_IRQn
-#define PWM2_CC2_DMA_PDATAALIGN                       DMA_PDATAALIGN_HALFWORD
-#define PWM2_CC2_DMA_MDATAALIGN                       DMA_MDATAALIGN_HALFWORD
+#define PWMT1_CC2_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define PWMT1_CC2_DMA_IRQ_PRIO                1
+#define PWMT1_CC2_DMA_INSTANCE                DMA1_Channel3
+#define PWMT1_CC2_DMA_IRQ                     DMAC1_CH2_IRQn
+#define PWMT1_CC2_DMA_PDATAALIGN                       DMA_PDATAALIGN_HALFWORD
+#define PWMT1_CC2_DMA_MDATAALIGN                       DMA_MDATAALIGN_HALFWORD
 
 /* DMA1 channel3 */
 #define FLASH3_IRQHandler              DMAC1_CH3_IRQHandler
@@ -377,7 +377,7 @@ extern "C" {
 #define GPTIM3_CC2_DMA_REQUEST                 DMA_REQUEST_11
 #define GPTIM3_CC3_DMA_REQUEST                 DMA_REQUEST_12
 #define GPTIM3_CC4_DMA_REQUEST                 DMA_REQUEST_13
-#define PWM4_CC4_DMA_REQUEST                   DMA_REQUEST_13//gtim3_cc4
+#define PWMT3_CC4_DMA_REQUEST                   DMA_REQUEST_13//gtim3_cc4
 #define GPTIM5_UPDATE_DMA_REQUEST              DMA_REQUEST_14
 #define GPTIM5_TRIGGER_DMA_REQUEST             DMA_REQUEST_15
 #define SPI3_TX_DMA_REQUEST                    DMA_REQUEST_16
@@ -425,22 +425,22 @@ extern "C" {
 #define SPI3_RX_DMA_IRQ                DMAC3_CH3_IRQn
 #endif
 
-#if defined(BSP_PWM4_UPDATE_USING_DMA) && !defined(PWM4_UPDATE_DMA_INSTANCE)
-#define PWM4_UPDATE_DMA_IRQHandler              DMAC3_CH3_IRQHandler
-#define PWM4_UPDATE_DMA_IRQ_PRIO                1
-#define PWM4_UPDATE_DMA_INSTANCE                DMA3_Channel3
-#define PWM4_UPDATE_DMA_IRQ                     DMAC3_CH3_IRQn
-#define PWM4_UPDATE_DMA_PDATAALIGN                       DMA_PDATAALIGN_HALFWORD
-#define PWM4_UPDATE_DMA_MDATAALIGN                       DMA_MDATAALIGN_HALFWORD
+#if defined(BSP_PWMT3_UPDATE_USING_DMA) && !defined(PWMT3_UPDATE_DMA_INSTANCE)
+#define PWMT3_UPDATE_DMA_IRQHandler              DMAC3_CH3_IRQHandler
+#define PWMT3_UPDATE_DMA_IRQ_PRIO                1
+#define PWMT3_UPDATE_DMA_INSTANCE                DMA3_Channel3
+#define PWMT3_UPDATE_DMA_IRQ                     DMAC3_CH3_IRQn
+#define PWMT3_UPDATE_DMA_PDATAALIGN                       DMA_PDATAALIGN_HALFWORD
+#define PWMT3_UPDATE_DMA_MDATAALIGN                       DMA_MDATAALIGN_HALFWORD
 #endif
 
-#if defined(BSP_PWM4_CC4_USING_DMA) && !defined(PWM4_CC4_DMA_INSTANCE)
-#define PWM4_CC4_DMA_IRQHandler              DMAC3_CH3_IRQHandler
-#define PWM4_CC4_DMA_IRQ_PRIO                1
-#define PWM4_CC4_DMA_INSTANCE                DMA3_Channel3
-#define PWM4_CC4_DMA_IRQ                     DMAC3_CH3_IRQn
-#define PWM4_CC4_DMA_PDATAALIGN                       DMA_PDATAALIGN_HALFWORD
-#define PWM4_CC4_DMA_MDATAALIGN                       DMA_MDATAALIGN_HALFWORD
+#if defined(BSP_PWMT3_CC4_USING_DMA) && !defined(PWMT3_CC4_DMA_INSTANCE)
+#define PWMT3_CC4_DMA_IRQHandler              DMAC3_CH3_IRQHandler
+#define PWMT3_CC4_DMA_IRQ_PRIO                1
+#define PWMT3_CC4_DMA_INSTANCE                DMA3_Channel3
+#define PWMT3_CC4_DMA_IRQ                     DMAC3_CH3_IRQn
+#define PWMT3_CC4_DMA_PDATAALIGN                       DMA_PDATAALIGN_HALFWORD
+#define PWMT3_CC4_DMA_MDATAALIGN                       DMA_MDATAALIGN_HALFWORD
 #endif
 
 /* DMA3 channel4  */

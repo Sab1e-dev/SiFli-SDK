@@ -13,61 +13,61 @@
 extern "C" {
 #endif
 
-#define PWM2_CORE CORE_ID_HCPU
-#define PWM3_CORE CORE_ID_HCPU
-#define PWM4_CORE CORE_ID_LCPU
-#define PWM5_CORE CORE_ID_LCPU
-#define PWM6_CORE CORE_ID_LCPU
+#define PWMT1_CORE CORE_ID_HCPU
+#define PWMT2_CORE CORE_ID_HCPU
+#define PWMT3_CORE CORE_ID_LCPU
+#define PWMT4_CORE CORE_ID_LCPU
+#define PWMT5_CORE CORE_ID_LCPU
 
-#ifdef BSP_USING_PWM2
-#define PWM2_CONFIG                             \
+#ifdef BSP_USING_PWMT1
+#define PWMT1_CONFIG                             \
     {                                           \
        .tim_handle.Instance     = GPTIM1,       \
-       .tim_handle.core         = PWM2_CORE,    \
-       .name                    = "pwm2",       \
+       .tim_handle.core         = PWMT1_CORE,    \
+       .name                    = "pwmt1",       \
        .channel                 = 0             \
     }
-#endif /* BSP_USING_PWM2 */
+#endif /* BSP_USING_PWMT1 */
 
-#ifdef BSP_USING_PWM3
-#define PWM3_CONFIG                             \
+#ifdef BSP_USING_PWMT2
+#define PWMT2_CONFIG                             \
     {                                           \
        .tim_handle.Instance     = GPTIM2,         \
-       .tim_handle.core         = PWM3_CORE,    \
-       .name                    = "pwm3",       \
+       .tim_handle.core         = PWMT2_CORE,    \
+       .name                    = "pwmt2",       \
        .channel                 = 0             \
     }
-#endif /* BSP_USING_PWM3 */
+#endif /* BSP_USING_PWMT2 */
 
-#ifdef BSP_USING_PWM4
-#define PWM4_CONFIG                             \
+#ifdef BSP_USING_PWMT3
+#define PWMT3_CONFIG                             \
     {                                           \
        .tim_handle.Instance     = GPTIM3,         \
-       .tim_handle.core         = PWM4_CORE,    \
-       .name                    = "pwm4",       \
+       .tim_handle.core         = PWMT3_CORE,    \
+       .name                    = "pwmt3",       \
        .channel                 = 0             \
     }
-#endif /* BSP_USING_PWM4 */
+#endif /* BSP_USING_PWMT3 */
 
-#ifdef BSP_USING_PWM5
-#define PWM5_CONFIG                             \
+#ifdef BSP_USING_PWMT4
+#define PWMT4_CONFIG                             \
     {                                           \
        .tim_handle.Instance     = GPTIM4,         \
-       .tim_handle.core         = PWM5_CORE,    \
-       .name                    = "pwm5",       \
+       .tim_handle.core         = PWMT4_CORE,    \
+       .name                    = "pwmt4",       \
        .channel                 = 0             \
     }
-#endif /* BSP_USING_PWM5 */
+#endif /* BSP_USING_PWMT4 */
 
-#ifdef BSP_USING_PWM6
-#define PWM6_CONFIG                             \
+#ifdef BSP_USING_PWMT5
+#define PWMT5_CONFIG                             \
     {                                           \
        .tim_handle.Instance     = GPTIM5,         \
-       .tim_handle.core         = PWM6_CORE,    \
-       .name                    = "pwm6",       \
+       .tim_handle.core         = PWMT5_CORE,    \
+       .name                    = "pwmt5",       \
        .channel                 = 0             \
     }
-#endif /* BSP_USING_PWM5 */
+#endif /* BSP_USING_PWMT4 */
 
 #ifdef BSP_USING_PWMA1
 #define PWMA1_CONFIG                             \

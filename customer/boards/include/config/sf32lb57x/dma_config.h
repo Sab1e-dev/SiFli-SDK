@@ -98,7 +98,7 @@ extern "C" {
 #define AUDCODEC_DAC1_DMA_REQUEST              DMA_REQUEST_42
 #define GPTIM2_UPDATE_DMA_REQUEST              DMA_REQUEST_43
 #define GPTIM2_TRIGGER_DMA_REQUEST             DMA_REQUEST_44
-#define PWM3_CC1_DMA_REQUEST                   DMA_REQUEST_45//GTIM2_CH1
+#define PWMT2_CC1_DMA_REQUEST                   DMA_REQUEST_45//GTIM2_CH1
 #define GPTIM2_CC1_DMA_REQUEST                 DMA_REQUEST_45
 #define AUDPRC_TX_OUT1_DMA_REQUEST             DMA_REQUEST_46
 #define AUDPRC_TX_OUT0_DMA_REQUEST             DMA_REQUEST_47
@@ -151,6 +151,7 @@ extern "C" {
 #define AUDPRC_RX1_DMA_IRQ                     DMAC1_CH1_IRQn
 
 #define SPI1_DMA_TX_IRQHandler         DMAC1_CH1_IRQHandler
+#define SPI1_TX_DMA_IRQ_PRIO           0
 #define SPI1_TX_DMA_RCC                0
 #define SPI1_TX_DMA_INSTANCE           DMA1_Channel1
 #define SPI1_TX_DMA_REQUEST            DMA_REQUEST_28
@@ -239,6 +240,7 @@ extern "C" {
 #define AUDCODEC_ADC0_DMA_REQUEST                 DMA_REQUEST_39
 
 #define SPI1_DMA_RX_IRQHandler         DMAC1_CH4_IRQHandler
+#define SPI1_RX_DMA_IRQ_PRIO           0
 #define SPI1_RX_DMA_RCC                0
 #define SPI1_RX_DMA_INSTANCE           DMA1_Channel4
 #define SPI1_RX_DMA_REQUEST            DMA_REQUEST_29
