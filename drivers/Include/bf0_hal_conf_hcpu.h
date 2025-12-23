@@ -67,6 +67,9 @@ You can just include register.h which includes bf0_hal.h also"
 #define HAL_TSEN_MODULE_ENABLED
 #define HAL_UART_MODULE_ENABLED
 #define HAL_WDT_MODULE_ENABLED
+#ifdef PWM1_BASE
+#define HAL_PWM_MODULE_ENABLED
+#endif /* PWM1_BASE */
 
 //TODO:
 #ifdef SECU1_BASE
@@ -516,6 +519,10 @@ in voltage and temperature.  */
 
 #ifdef HAL_LPTIM_MODULE_ENABLED
 #include "bf0_hal_lptim.h"
+#endif
+
+#ifdef HAL_PWM_MODULE_ENABLED
+#include "bf0_hal_pwm.h"
 #endif
 
 #ifdef __cplusplus

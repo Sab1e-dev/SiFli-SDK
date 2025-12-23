@@ -22,6 +22,7 @@ if GetDepend(['RT_USING_HWTIMER']):
 if GetDepend(['RT_USING_PWM']):
     src += ['drv_pwm_tim.c']
     src += ['drv_pwm_lptim.c']
+    src += ['drv_pwm.c']
 if GetDepend(['BSP_USING_RGBLED']):
     src += ['drv_rgbled.c']
 if GetDepend(['RT_USING_SPI']):
