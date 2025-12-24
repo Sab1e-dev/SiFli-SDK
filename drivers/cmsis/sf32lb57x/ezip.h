@@ -126,6 +126,12 @@ typedef struct
 #define EZIP_INT_EN_AEZIP_INT_EN_Pos    (5U)
 #define EZIP_INT_EN_AEZIP_INT_EN_Msk    (0x1UL << EZIP_INT_EN_AEZIP_INT_EN_Pos)
 #define EZIP_INT_EN_AEZIP_INT_EN        EZIP_INT_EN_AEZIP_INT_EN_Msk
+#define EZIP_INT_EN_FTYPE_ERR_EN_Pos    (6U)
+#define EZIP_INT_EN_FTYPE_ERR_EN_Msk    (0x1UL << EZIP_INT_EN_FTYPE_ERR_EN_Pos)
+#define EZIP_INT_EN_FTYPE_ERR_EN        EZIP_INT_EN_FTYPE_ERR_EN_Msk
+#define EZIP_INT_EN_WIND_ERR_EN_Pos     (7U)
+#define EZIP_INT_EN_WIND_ERR_EN_Msk     (0x1UL << EZIP_INT_EN_WIND_ERR_EN_Pos)
+#define EZIP_INT_EN_WIND_ERR_EN         EZIP_INT_EN_WIND_ERR_EN_Msk
 
 /****************** Bit definition for EZIP_INT_STA register ******************/
 #define EZIP_INT_STA_END_INT_STA_Pos    (0U)
@@ -146,6 +152,12 @@ typedef struct
 #define EZIP_INT_STA_AEZIP_INT_STA_Pos  (5U)
 #define EZIP_INT_STA_AEZIP_INT_STA_Msk  (0x1UL << EZIP_INT_STA_AEZIP_INT_STA_Pos)
 #define EZIP_INT_STA_AEZIP_INT_STA      EZIP_INT_STA_AEZIP_INT_STA_Msk
+#define EZIP_INT_STA_FTYPE_ERR_STA_Pos  (6U)
+#define EZIP_INT_STA_FTYPE_ERR_STA_Msk  (0x1UL << EZIP_INT_STA_FTYPE_ERR_STA_Pos)
+#define EZIP_INT_STA_FTYPE_ERR_STA      EZIP_INT_STA_FTYPE_ERR_STA_Msk
+#define EZIP_INT_STA_WIND_ERR_STA_Pos   (7U)
+#define EZIP_INT_STA_WIND_ERR_STA_Msk   (0x1UL << EZIP_INT_STA_WIND_ERR_STA_Pos)
+#define EZIP_INT_STA_WIND_ERR_STA       EZIP_INT_STA_WIND_ERR_STA_Msk
 
 /***************** Bit definition for EZIP_INT_MASK register ******************/
 #define EZIP_INT_MASK_END_INT_MASK_Pos  (0U)
@@ -166,6 +178,12 @@ typedef struct
 #define EZIP_INT_MASK_AEZIP_INT_MASK_Pos  (5U)
 #define EZIP_INT_MASK_AEZIP_INT_MASK_Msk  (0x1UL << EZIP_INT_MASK_AEZIP_INT_MASK_Pos)
 #define EZIP_INT_MASK_AEZIP_INT_MASK    EZIP_INT_MASK_AEZIP_INT_MASK_Msk
+#define EZIP_INT_MASK_FTYPE_ERR_MASK_Pos  (6U)
+#define EZIP_INT_MASK_FTYPE_ERR_MASK_Msk  (0x1UL << EZIP_INT_MASK_FTYPE_ERR_MASK_Pos)
+#define EZIP_INT_MASK_FTYPE_ERR_MASK    EZIP_INT_MASK_FTYPE_ERR_MASK_Msk
+#define EZIP_INT_MASK_WIND_ERR_MASK_Pos  (7U)
+#define EZIP_INT_MASK_WIND_ERR_MASK_Msk  (0x1UL << EZIP_INT_MASK_WIND_ERR_MASK_Pos)
+#define EZIP_INT_MASK_WIND_ERR_MASK     EZIP_INT_MASK_WIND_ERR_MASK_Msk
 
 /***************** Bit definition for EZIP_GZIP_CTRL register *****************/
 #define EZIP_GZIP_CTRL_GZIP_CTRL_Pos    (0U)
