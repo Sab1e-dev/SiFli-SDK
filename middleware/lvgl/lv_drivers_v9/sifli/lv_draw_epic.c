@@ -112,8 +112,8 @@ void lv_draw_epic_deinit(void)
 
 static inline bool cf_supported(lv_color_format_t cf, uint32_t flags)
 {
-    //Ezip images
-    if ((LV_COLOR_FORMAT_RAW == cf || LV_COLOR_FORMAT_RAW_ALPHA == cf) && (0 != (flags & LV_IMAGE_FLAGS_EZIP)))
+    //Ezip/Jpeg images
+    if ((LV_COLOR_FORMAT_RAW == cf || LV_COLOR_FORMAT_RAW_ALPHA == cf) && (0 != (flags & (LV_IMAGE_FLAGS_EZIP | LV_IMAGE_FLAGS_JPEG))))
         return true;
     //Normal images
     if (LV_COLOR_FORMAT_RGB565 == cf || LV_COLOR_FORMAT_ARGB8565 == cf ||
@@ -247,18 +247,17 @@ static int32_t evaluate(lv_draw_unit_t *draw_unit, lv_draw_task_t *t)
     case LV_DRAW_TASK_TYPE_IMAGE:
     {
         lv_draw_image_dsc_t *draw_dsc = (lv_draw_image_dsc_t *) t->draw_dsc;
-        const lv_image_dsc_t *img_dsc = draw_dsc->src;
 
         bool has_recolor = (draw_dsc->recolor_opa != LV_OPA_TRANSP);
         bool has_transform = (draw_dsc->rotation != 0 || draw_dsc->scale_x != LV_SCALE_NONE ||
                               draw_dsc->scale_y != LV_SCALE_NONE);
 
         if (has_recolor
-                || (!cf_supported(img_dsc->header.cf, img_dsc->header.flags))
+                || (!cf_supported(draw_dsc->header.cf, draw_dsc->header.flags))
            )
             return 0;
 
-        if ((LV_COLOR_FORMAT_RGB565A8 == img_dsc->header.cf) && has_transform)
+        if ((LV_COLOR_FORMAT_RGB565A8 == draw_dsc->header.cf) && has_transform)
             return 0;
 
         if (t->preference_score > 80)
