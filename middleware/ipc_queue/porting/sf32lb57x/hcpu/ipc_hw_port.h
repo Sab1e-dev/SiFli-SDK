@@ -63,7 +63,7 @@
 extern "C" {
 #endif
 
-#define IPC_HW_CH_NUM      (1)
+#define IPC_HW_CH_NUM      (2)
 #define IPC_HW_QUEUE_NUM   (8)
 
 #define IPC_HL_HW_QUEUE_0  (0)
@@ -74,6 +74,15 @@ extern "C" {
 #define IPC_HL_HW_QUEUE_5  (5)
 #define IPC_HL_HW_QUEUE_6  (6)
 #define IPC_HL_HW_QUEUE_7  (7)
+
+#define IPC_HA_HW_QUEUE_0  (IPC_HW_QUEUE_NUM + 0)
+#define IPC_HA_HW_QUEUE_1  (IPC_HW_QUEUE_NUM + 1)
+#define IPC_HA_HW_QUEUE_2  (IPC_HW_QUEUE_NUM + 2)
+#define IPC_HA_HW_QUEUE_3  (IPC_HW_QUEUE_NUM + 3)
+#define IPC_HA_HW_QUEUE_4  (IPC_HW_QUEUE_NUM + 4)
+#define IPC_HA_HW_QUEUE_5  (IPC_HW_QUEUE_NUM + 5)
+#define IPC_HA_HW_QUEUE_6  (IPC_HW_QUEUE_NUM + 6)
+#define IPC_HA_HW_QUEUE_7  (IPC_HW_QUEUE_NUM + 7)
 
 /// @}  file
 

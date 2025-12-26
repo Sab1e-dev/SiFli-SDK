@@ -70,67 +70,75 @@ static void mpu_clear_region(void)
     }
 }
 
-#define DCACHE_SIZE 16384
-#define ICACHE_SIZE (DCACHE_SIZE<<1)
-
-#ifdef PSRAM_CACHE_WB
-__WEAK int mpu_dcache_clean(void *data, uint32_t size)
-{
-    int r = 0;
-    if (IS_DCACHED_RAM(data))
-    {
-        if (size > DCACHE_SIZE)
-        {
-            SCB_CleanDCache();
-            r = 1;
-        }
-        else
-            SCB_CleanDCache_by_Addr(data, size);
-    }
-    return r;
-}
-
-#endif
-
-__WEAK int mpu_dcache_invalidate(void *data, uint32_t size)
-{
-    int r = 0;
-    if (IS_DCACHED_RAM(data))
-    {
-        if (size > DCACHE_SIZE)
-        {
-            SCB_InvalidateDCache();
-            r = 1;
-        }
-        else
-            SCB_InvalidateDCache_by_Addr(data, size);
-    }
-    return r;
-}
-
-__WEAK int mpu_icache_invalidate(void *data, uint32_t size)
-{
-    int r = 0;
-    if (IS_DCACHED_RAM(data))
-    {
-        if (size > ICACHE_SIZE)
-        {
-            SCB_InvalidateICache();
-            r = 1;
-        }
-        else
-            SCB_InvalidateICache_by_Addr(data, size);
-    }
-    return r;
-}
-
-
-#if defined(SOC_BF0_HCPU)
+#ifdef SOC_BF0_ACPU
+#define DCACHE_SIZE 8192
+#define ICACHE_SIZE 16384
 __WEAK void mpu_config(void)
 {
-//#if defined (__DCACHE_PRESENT) && (__DCACHE_PRESENT == 1U)
     uint32_t rnr, rbar, rlar;
 
+    SCB_DisableDCache();
+    SCB_DisableICache();
+
+    ARM_MPU_Disable();
+
+    mpu_clear_region();
+
+    ARM_MPU_SetMemAttr(ATTR_CODE_IDX, ATTR_CODE);
+    ARM_MPU_SetMemAttr(ATTR_RAM_IDX, ATTR_RAM);
+    ARM_MPU_SetMemAttr(ATTR_DEVICE_IDX, ATTR_DEVICE);
+    ARM_MPU_SetMemAttr(ATTR_PSRAM_WB_IDX, ATTR_PSRAM_WB);
+    ARM_MPU_SetMemAttr(ATTR_PSRAM_WT_IDX, ATTR_PSRAM_WT);
+
+    rnr = 0;
+
+    //  flash1, region 1
+    rbar = ARM_MPU_RBAR(0x10000000, ARM_MPU_SH_NON, 1, 1, 0); //Non-shareable,RO,any privilege,executable
+    rlar = ARM_MPU_RLAR(0x1fffffff, ATTR_CODE_IDX);
+    ARM_MPU_SetRegion(rnr++, rbar, rlar);
+
+    // nand3
+    rbar = ARM_MPU_RBAR(0x64000000, ARM_MPU_SH_NON, 1, 1, 0); //Non-shareable,RO,any privilege,executable
+    rlar = ARM_MPU_RLAR(0x6FFFFFFF, ATTR_RAM_IDX);
+    ARM_MPU_SetRegion(rnr++, rbar, rlar);
+
+    // hpsys ram, disable sram cache
+    rbar = ARM_MPU_RBAR(0x20000000, ARM_MPU_SH_OUTER, 0, 1, 0); //Non-shareable,RW,any privilege,executable
+    rlar = ARM_MPU_RLAR(0x2007ffff, ATTR_RAM_IDX);
+    ARM_MPU_SetRegion(rnr++, rbar, rlar);
+
+    // peripheral
+    rbar = ARM_MPU_RBAR(0x40000000, ARM_MPU_SH_NON, 0, 1, 1); //Non-shareable,RW,any privilege,non-executable
+    rlar = ARM_MPU_RLAR(0x5fffffff, ATTR_DEVICE_IDX);
+    ARM_MPU_SetRegion(rnr++, rbar, rlar);
+
+    // psram
+    rbar = ARM_MPU_RBAR(0x60000000, ARM_MPU_SH_NON, 0, 1, 0); //Non-shareable,RW,any privilege,executable
+#ifdef PSRAM_CACHE_WB
+    rlar = ARM_MPU_RLAR(0x61ffffff, ATTR_PSRAM_WB_IDX);
+#else
+    rlar = ARM_MPU_RLAR(0x61ffffff, ATTR_PSRAM_WT_IDX);
+#endif
+
+    ARM_MPU_SetRegion(rnr++, rbar, rlar);
+
+    // lpsys ram
+    rbar = ARM_MPU_RBAR(0x20400000, ARM_MPU_SH_NON, 0, 1, 0); //Non-shareable,RW,any privilege,executable
+    rlar = ARM_MPU_RLAR(0x20413fff, ATTR_RAM_IDX);
+    ARM_MPU_SetRegion(rnr++, rbar, rlar);
+
+    HAL_ASSERT(rnr <= MPU_REGION_NUM);
+    ARM_MPU_Enable(MPU_CTRL_HFNMIENA_Msk);
+
+    SCB_EnableDCache();
+    SCB_EnableICache();
+}
+#elif defined(SOC_BF0_HCPU)
+#define DCACHE_SIZE 16384
+#define ICACHE_SIZE (DCACHE_SIZE<<1)
+__WEAK void mpu_config(void)
+{
+    uint32_t rnr, rbar, rlar;
 
     SCB_DisableDCache();
     SCB_DisableICache();
@@ -152,14 +160,14 @@ __WEAK void mpu_config(void)
     rlar = ARM_MPU_RLAR(0x0000ffff, ATTR_CODE_IDX);
     ARM_MPU_SetRegion(rnr++, rbar, rlar);
 
-    // hpsys RETM/ITCM ram disable sram cache
-    rbar = ARM_MPU_RBAR(0x00010000, ARM_MPU_SH_NON, 0, 1, 0); //Non-shareable,RW,any privilege,executable
-    rlar = ARM_MPU_RLAR(0x0002ffff, ATTR_RAM_IDX);
-    ARM_MPU_SetRegion(rnr++, rbar, rlar);
-
     //  flash1, region 1
     rbar = ARM_MPU_RBAR(0x10000000, ARM_MPU_SH_NON, 1, 1, 0); //Non-shareable,RO,any privilege,executable
     rlar = ARM_MPU_RLAR(0x1fffffff, ATTR_CODE_IDX);
+    ARM_MPU_SetRegion(rnr++, rbar, rlar);
+
+    // nand
+    rbar = ARM_MPU_RBAR(0x64000000, ARM_MPU_SH_NON, 1, 1, 0); //Non-shareable,RO,any privilege,executable
+    rlar = ARM_MPU_RLAR(0x6FFFFFFF, ATTR_RAM_IDX);
     ARM_MPU_SetRegion(rnr++, rbar, rlar);
 
     // hpsys ram, disable sram cache
@@ -183,13 +191,8 @@ __WEAK void mpu_config(void)
     ARM_MPU_SetRegion(rnr++, rbar, rlar);
 
     // lpsys ram
-    rbar = ARM_MPU_RBAR(0x203fc000, ARM_MPU_SH_NON, 0, 1, 0); //Non-shareable,RW,any privilege,executable
-    rlar = ARM_MPU_RLAR(0x204fffff, ATTR_RAM_IDX);
-    ARM_MPU_SetRegion(rnr++, rbar, rlar);
-
-    // lpsys ITCM and CBUS
-    rbar = ARM_MPU_RBAR(0x20bfc000, ARM_MPU_SH_NON, 0, 1, 0); //Non-shareable,RW,any privilege,executable
-    rlar = ARM_MPU_RLAR(0x20cbffff, ATTR_RAM_IDX);
+    rbar = ARM_MPU_RBAR(0x20400000, ARM_MPU_SH_NON, 0, 1, 0); //Non-shareable,RW,any privilege,executable
+    rlar = ARM_MPU_RLAR(0x20413fff, ATTR_RAM_IDX);
     ARM_MPU_SetRegion(rnr++, rbar, rlar);
 
     // ble rom
@@ -197,16 +200,8 @@ __WEAK void mpu_config(void)
     rlar = ARM_MPU_RLAR(0x208fffff, ATTR_CODE_IDX);
     ARM_MPU_SetRegion(rnr++, rbar, rlar);
 
-
-    // qspi3
-    rbar = ARM_MPU_RBAR(0x64000000, ARM_MPU_SH_NON, 1, 1, 0); //Non-shareable,RO,any privilege,executable
-    rlar = ARM_MPU_RLAR(0x6FFFFFFF, ATTR_RAM_IDX);
-    ARM_MPU_SetRegion(rnr++, rbar, rlar);
-
-
     HAL_ASSERT(rnr <= MPU_REGION_NUM);
     ARM_MPU_Enable(MPU_CTRL_HFNMIENA_Msk);
-//#endif
 
     SCB_EnableDCache();
     SCB_EnableICache();
@@ -262,6 +257,58 @@ __WEAK void mpu_config(void)
 }
 #endif
 
+
+
+#ifdef PSRAM_CACHE_WB
+__WEAK int mpu_dcache_clean(void *data, uint32_t size)
+{
+    int r = 0;
+    if (IS_DCACHED_RAM(data))
+    {
+        if (size > DCACHE_SIZE)
+        {
+            SCB_CleanDCache();
+            r = 1;
+        }
+        else
+            SCB_CleanDCache_by_Addr(data, size);
+    }
+    return r;
+}
+
+#endif
+
+__WEAK int mpu_dcache_invalidate(void *data, uint32_t size)
+{
+    int r = 0;
+    if (IS_DCACHED_RAM(data))
+    {
+        if (size > DCACHE_SIZE)
+        {
+            SCB_InvalidateDCache();
+            r = 1;
+        }
+        else
+            SCB_InvalidateDCache_by_Addr(data, size);
+    }
+    return r;
+}
+
+__WEAK int mpu_icache_invalidate(void *data, uint32_t size)
+{
+    int r = 0;
+    if (IS_DCACHED_RAM(data))
+    {
+        if (size > ICACHE_SIZE)
+        {
+            SCB_InvalidateICache();
+            r = 1;
+        }
+        else
+            SCB_InvalidateICache_by_Addr(data, size);
+    }
+    return r;
+}
 
 __WEAK void cache_enable(void)
 {

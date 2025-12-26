@@ -522,7 +522,7 @@ def FsBuild(target, source, env):
             offset = int(region['offset'], 0)
             max_size = int(region['max_size'], 0)
             start_addr = mem_base + offset
-            if "FS_REGION" in region['tags']:
+            if 'tags' in region and "FS_REGION" in region['tags']:
                 found=1
                 break
         if (found==1):

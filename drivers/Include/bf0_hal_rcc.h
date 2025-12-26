@@ -28,6 +28,7 @@ extern "C" {
 
 #define RCC_MOD_TYPE_HPSYS                  (0U)
 #define RCC_MOD_TYPE_LPSYS                  (1U)
+#define RCC_MOD_TYPE_SECU1                  (2U)
 #define RCC_MOD_TYPE_OFF_POS                (0U)
 #define RCC_MOD_TYPE_OFF_MSK                (0xFFUL << RCC_MOD_TYPE_OFF_POS)
 #define RCC_MOD_TYPE_GROUP_POS              (8U)
@@ -60,10 +61,10 @@ extern "C" {
 #define CORE_ID_HCPU    1
 /** LCPU */
 #define CORE_ID_LCPU    2
-#ifdef SF32LB58X
+#if defined(SF32LB58X) || defined(SF32LB57X)
 /** ACPU */
 #define CORE_ID_ACPU    3
-#endif /* SF32LB58X */
+#endif /* SF32LB58X || SF32LB57X */
 
 #ifdef SOC_BF0_HCPU
 #define CORE_ID_CURRENT CORE_ID_HCPU
@@ -813,6 +814,21 @@ void HAL_RCC_ReleaseACPU(void);
  * @retval void
  */
 void HAL_RCC_ResetACPU(void);
+
+#elif defined(SF32LB57X) && defined(SOC_BF0_HCPU)
+
+/**
+ * @brief  Release ACPU
+ * @retval void
+ */
+void HAL_RCC_ReleaseACPU(uint32_t vtor);
+
+/**
+ * @brief  Reset ACPU, ACPU would be reset and halted
+ * @retval void
+ */
+void HAL_RCC_ResetACPU(void);
+
 #endif /* SF32LB58X && SOC_BF0_HCPU */
 
 #ifndef SF32LB55X

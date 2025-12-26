@@ -331,7 +331,11 @@ int main(void)
 void acpu_power_on(void)
 {
     HAL_RCC_ResetACPU();
+#ifdef SF32LB58X
     HAL_RCC_ReleaseACPU();
+#else
+    HAL_RCC_ReleaseACPU(APP_ACPU_CODE_START_ADDR);
+#endif /* SF32LB58X */
 }
 
 void acpu_power_off(void)

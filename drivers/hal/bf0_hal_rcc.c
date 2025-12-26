@@ -1715,7 +1715,19 @@ void HAL_RCC_ResetACPU(void)
 {
     hwp_hpsys_rcc->RSTR2 |= HPSYS_RCC_RSTR2_ACPU;
 }
+#elif defined(SF32LB57X) && defined(SOC_BF0_HCPU)
+void HAL_RCC_ReleaseACPU(uint32_t vtor)
+{
+    hwp_secu1->ACPU = (vtor & SECU1_ACPU_VTOR_Msk);
+}
+
+void HAL_RCC_ResetACPU(void)
+{
+    hwp_secu1->ACPU |= SECU1_ACPU_RSTR;
+}
 #endif /* SF32LB58X && SOC_BF0_HCPU */
+
+
 
 
 __HAL_ROM_USED void HAL_RCC_SetMacFreq(void)
@@ -1932,6 +1944,13 @@ __HAL_ROM_USED void HAL_RCC_EnableModule(RCC_MODULE_TYPE module)
     {
         esr = &hwp_lpsys_rcc->ESR1 + group;
     }
+#ifdef SECU1_ACPU_ENR
+    else if (RCC_MOD_TYPE_SECU1 == subsys)
+    {
+        hwp_secu1->ACPU |= (1UL << offset);
+        return;
+    }
+#endif /* SECU1_ACPU_ENR */
     else
     {
         HAL_ASSERT(0);

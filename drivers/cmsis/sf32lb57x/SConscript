@@ -14,11 +14,17 @@ try:
          AddDepend('BF0_LCPU')
     elif rtconfig.CORE=='HCPU':
          AddDepend('BF0_HCPU')
+    elif rtconfig.CORE=='ACPU':
+         AddDepend('BF0_ACPU')
+         AddDepend('BF0_HCPU')
+         
 except:
     if GetDepend("BF0_HCPU"):
         rtconfig.CORE='HCPU'
     elif GetDepend("BF0_LCPU"):
         rtconfig.CORE='LCPU'
+    elif GetDepend("BF0_ACPU"):
+        rtconfig.CORE='ACPU'
     else:
         print('Warning: Rtconfig.core not defined')
 
@@ -51,9 +57,15 @@ elif GetDepend(['BF0_HCPU']):
     if  rtconfig.PLATFORM != 'gcc':
         ASFLAGS = ' --cpreproc'
     if rtconfig.PLATFORM == 'gcc':
-        src += ['Templates/gcc/startup_bf0_hcpu.S']
+        if not GetDepend('BF0_ACPU'):
+            src += ['Templates/gcc/startup_bf0_hcpu.S']
+        else:
+            src += ['Templates/gcc/startup_bf0_acpu.S']
     elif rtconfig.PLATFORM == 'armcc':
-        src += ['Templates/arm/startup_bf0_hcpu.S']
+        if not GetDepend('BF0_ACPU'):
+            src += ['Templates/arm/startup_bf0_hcpu.S']
+        else:
+            src += ['Templates/arm/startup_bf0_acpu.S']
     elif rtconfig.PLATFORM == 'iar':
         src += ['Templates/iar/startup_bf0_hcpu.S']
 
