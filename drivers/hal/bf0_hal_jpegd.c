@@ -393,21 +393,20 @@ HAL_StatusTypeDef HAL_JPEGD_GetOutputSize(JPEGD_HandleTypeDef *hdl, JPEGD_Decode
 {
     HAL_StatusTypeDef r = HAL_OK;
     int size;
+    int32_t width;
+    int32_t height;
 
-    /*
-     * HW always write 4 bytes aligned data even if valid data size is not the multiple of 4 bytes,
-     * e.g. valid data size is 1 byte, HW would write 4 bytes but only the first byte is valid data
-     */
-    size = config->width * config->height;
+    /* padding to 16x16 pixels */
+    width = ((config->width + 15) >> 4) << 4;
+    height = ((config->height + 15) >> 4) << 4;
+
+    size = width * height;
     if (y_size)
-        *y_size = ((size + 3) >> 2) << 2;
-    /* U/V components are 2 pixels aligned.
-     */
-    size = ((config->width + 1) >> 1) * ((config->height + 1) >> 1);
+        *y_size = size;
     if (u_size)
-        *u_size = ((size + 3) >> 2) << 2;
+        *u_size = size >> 2;
     if (v_size)
-        *v_size = ((size + 3) >> 2) << 2;
+        *v_size = size >> 2;
     return r;
 }
 
