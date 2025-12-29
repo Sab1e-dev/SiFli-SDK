@@ -314,6 +314,12 @@ HAL_StatusTypeDef HAL_HCD_DeInit(HCD_HandleTypeDef *hhcd)
 __weak void  HAL_HCD_MspInit(HCD_HandleTypeDef *hhcd)
 {
     HAL_RCC_EnableModule(RCC_MOD_USBC);
+
+#ifdef SF32LB57X
+    /* switch to 48MHz */
+    hwp_usbc->mode_48m |= 2;
+#endif /* SF32LB57X */
+
 #ifdef SF32LB58X
     //hwp_usbc->utmicfg12 = hwp_usbc->utmicfg12 | 0x3; //set xo_clk_sel
     hwp_usbc->utmicfg23 = 0xd8;
