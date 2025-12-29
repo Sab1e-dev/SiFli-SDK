@@ -165,7 +165,7 @@ typedef struct
 #define HPSYS_AON_WSR_CHG_Msk           (0x1UL << HPSYS_AON_WSR_CHG_Pos)
 #define HPSYS_AON_WSR_CHG               HPSYS_AON_WSR_CHG_Msk
 
-#define HPSYS_AON_WSR_PIN_ALL           (0UL)
+#define HPSYS_AON_WSR_PIN_ALL           PMUC_WSR_PIN_ALL
 #define HPSYS_AON_WSR_PIN_NUM           PMUC_WSR_PIN_NUM
 
 /***************** Bit definition for HPSYS_AON_WCR register ******************/

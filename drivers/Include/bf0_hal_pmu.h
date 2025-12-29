@@ -399,6 +399,13 @@ typedef enum
 #define HAL_PMU_GET_WSR_PIN()        (hwp_pmuc->WSR & PMUC_WSR_PIN_ALL)
 
 
+/**
+ * @brief  Get wakeup enable
+ * @return wakeup enable register value
+ */
+#define HAL_PMU_GET_WER()   (hwp_pmuc->WER)
+
+
 #ifdef SF32LB58X
 
 /**

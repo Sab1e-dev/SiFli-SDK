@@ -79,6 +79,48 @@ typedef struct
 ///@} AON_Exported_Types
 
 
+
+#ifdef AON_PMUC_WSR_PIN_COMBINED_SUPPORT
+
+/**
+ * @brief  Set hpsys wakeup enable register
+ * @param  wer wakeup enable register value
+ * @retval void
+ */
+#define HAL_HPAON_SET_WER(wer)     (hwp_hpsys_aon->WER = (wer))
+
+
+/**
+ * @brief  Get hpsys wakeup enable register
+ * @retval wakeup enable register
+ */
+#define HAL_HPAON_GET_WER()     (hwp_hpsys_aon->WER | (HAL_PMU_GET_WER() & PMUC_WSR_PIN_ALL))
+
+/**
+ * @brief  Get hpsys wakeup source register
+ * @retval wsr wakeup source register value
+ */
+#define HAL_HPAON_GET_WSR()        (hwp_hpsys_aon->WSR | (HAL_PMU_GET_WSR() & PMUC_WSR_PIN_ALL))
+
+#define HAL_HPAON_GET_WSR_PIN()        HAL_PMU_GET_WSR_PIN()
+#define HPSYS_AON_WSR_PIN_FIRST_POS    PMUC_WSR_PA33_Pos
+
+/**
+ * @brief  Clear hpsys wakeup source register
+ * @param[in] wsr
+ * @retval wsr wakeup source register value
+ */
+#define HAL_HPAON_CLEAR_WSR(wsr)                        \
+   do                                                   \
+   {                                                    \
+      HAL_PMU_CLEAR_WSR(wsr & PMUC_WSR_PIN_ALL);        \
+      hwp_hpsys_aon->WCR = ((wsr)|HPSYS_AON_WCR_AON);   \
+   }                                                    \
+   while(0)
+
+
+#else
+
 /**
  * @brief  Set hpsys wakeup enable register
  * @param  wer wakeup enable register value
@@ -98,22 +140,15 @@ typedef struct
  */
 #define HAL_HPAON_GET_WSR()        (hwp_hpsys_aon->WSR)
 
-#ifdef AON_PMUC_WSR_PIN_COMBINED_SUPPORT
-#define HAL_HPAON_GET_WSR_PIN()        HAL_PMU_GET_WSR_PIN()
-#define HPSYS_AON_WSR_PIN_FIRST_POS    PMUC_WSR_PA33_Pos
-#else
+
 #define HAL_HPAON_GET_WSR_PIN()        (hwp_hpsys_aon->WSR & HPSYS_AON_WSR_PIN_ALL)
 #define HPSYS_AON_WSR_PIN_FIRST_POS    HPSYS_AON_WSR_PIN0_Pos
-#endif /* AON_PMUC_WSR_PIN_COMBINED_SUPPORT */
 
 /**
  * @brief  Clear hpsys wakeup source register
  * @param[in] wsr
  * @retval wsr wakeup source register value
  */
-#ifdef AON_PMUC_WSR_PIN_COMBINED_SUPPORT
-#define HAL_HPAON_CLEAR_WSR(wsr)   HAL_PMU_CLEAR_WSR(wsr)
-#else
 #define HAL_HPAON_CLEAR_WSR(wsr)   (hwp_hpsys_aon->WCR = ((wsr)|HPSYS_AON_WCR_AON))
 #endif /* AON_PMUC_WSR_PIN_COMBINED_SUPPORT */
 
