@@ -175,6 +175,13 @@ HAL_StatusTypeDef HAL_SECU_SetAttr(SECU_MODULE_TYPE module, uint32_t role, uint3
 
         *p_reg = tmp;
 
+        //Apply immediately
+        if (p_reg == &(hwp_secu1->HPMST_ATTR_CFG))
+            hwp_secu1->SECU_CTRL = SECU1_SECU_CTRL_HPMST_ATTR_UPDATE;
+        else if (p_reg == &(hwp_secu2->LPMST_ATTR_CFG))
+            hwp_secu2->SECU_CTRL = SECU2_SECU_CTRL_LPMST_ATTR_UPDATE;
+        else
+            HAL_ASSERT(0);
     }
 
 
@@ -322,7 +329,7 @@ HAL_StatusTypeDef HAL_SECU_SetMemoryAttr(SECU_MEM_TYPE memory_type, const SECU_M
 }
 
 
-HAL_StatusTypeDef HAL_SECU_ApplyAndLock(SECU_GROUP_TYPE group)
+HAL_StatusTypeDef HAL_SECU_Lock(SECU_GROUP_TYPE group)
 {
     switch (group)
     {
@@ -357,27 +364,6 @@ HAL_StatusTypeDef HAL_SECU_ApplyAndLock(SECU_GROUP_TYPE group)
 
     return HAL_OK;
 }
-
-
-HAL_StatusTypeDef HAL_SECU_Apply(SECU_GROUP_TYPE group)
-{
-    switch (group)
-    {
-    case SECU_GROUP_HPMST:
-        hwp_secu1->SECU_CTRL = SECU1_SECU_CTRL_HPMST_ATTR_UPDATE;
-        break;
-
-    case SECU_GROUP_LPMST:
-        hwp_secu2->SECU_CTRL = SECU2_SECU_CTRL_LPMST_ATTR_UPDATE;
-        break;
-
-    default:
-        return HAL_ERROR;
-    }
-
-    return HAL_OK;
-}
-
 
 
 #endif /* HAL_SECU_MODULE_ENABLED */
