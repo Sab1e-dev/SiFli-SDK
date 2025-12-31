@@ -388,6 +388,10 @@ void init_clock()
     HAL_HPAON_EnableXT48();
     HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_SYS, RCC_SYSCLK_HXT48);
     HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_HP_PERI, RCC_CLK_PERI_HXT48);
+	
+	  BSP_SetFlash1DIV(1);
+	  BSP_SetFlash2DIV(1);
+	  BSP_SetFlash3DIV(1);
     
     /* not use DLL on FPGA for now */
     return;
