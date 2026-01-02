@@ -31,7 +31,7 @@
     #ifdef SDMMC2_DMA_INSTANCE
         #define SDIO_USING_DMA          (1)
     #endif  //SDMMC2_DMA_INSTANCE
-#endif  //SOC_SF32LB52X
+#endif  //SOC_SF32LB52X || defined(SF32LB57X)
 #ifndef SDIO_USING_DMA
     #error "SDIO_USING_DMA must be defined,the DMA function of sdio must be enabled"
 #endif
@@ -227,10 +227,13 @@ static void rthw_sdio_wait_completed(struct rthw_sdio *sdio)
     }
 
     rci = HAL_SDMMC_GET_RCI(hw_sdio);
+
     if ((resp_type(cmd) == RESP_R1) || (resp_type(cmd) == RESP_R1B))
     {
         while (rci != cmd->cmd_code)
+        {
             rci = HAL_SDMMC_GET_RCI(hw_sdio);
+        }
     }
 
     //cmd->resp[0] = hw_sdio->resp1;
@@ -717,9 +720,17 @@ static int rthw_sdio_set_clk(struct rt_mmcsd_host *host, uint32_t clk)
     }
 
     if (clk != 0)
+    {
         div = clk_src / clk;
+    }
     else
-        div = 1;
+    {
+        div = 2;
+    }
+    if (div < 2)
+    {
+        div = 2;
+    }
 
     if (clk / 10 > HAL_SDMMC_DEFAULT_TIMEOUT)
         sdio->cmd_to = clk / 10;
@@ -1173,6 +1184,8 @@ static int rt_sdio_get_offset(int part_id)
 
     return offset;
 }
+
+#ifdef HPSYS_CFG_SYSCR_SDNAND
 int rt_sdio_enable_ahb(uint32_t enable_sd_ahb)
 {
     HAL_StatusTypeDef res;
@@ -1229,6 +1242,7 @@ int rt_sdio_enable_ahb(uint32_t enable_sd_ahb)
 
     return 0;
 }
+#endif /* HPSYS_CFG_SYSCR_SDNAND */
 
 #ifdef RT_USING_PM
 

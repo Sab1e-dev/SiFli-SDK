@@ -1614,7 +1614,7 @@ menu "On-chip Peripheral RTOS Drivers"
             config BSP_USING_SDHCI
                 bool "Enable SD Host Control Interface"
                 default n
-                depends on !SOC_SF32LB52X
+                depends on SOC_SF32LB55X || SOC_SF32LB56X || SOC_SF32LB58X
                 if BSP_USING_SDHCI
                     config SD_MMC_DDR_SUPPORT
                     bool "MMC card use DDR mode"
@@ -1655,7 +1655,7 @@ menu "On-chip Peripheral RTOS Drivers"
             config BSP_USING_SD_LINE
                 bool "Enable Linear SDIO for LITE"
                 default n
-                depends on SOC_SF32LB56X || SOC_SF32LB52X
+                depends on !SOC_SF32LB55X && !SOC_SF32LB58X
                 help
                     Enable Linear SD interface
 

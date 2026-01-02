@@ -22,7 +22,7 @@
 #define SDIO_MIN_FREQ        400000
 #define SDIO_ALIGN_LEN       32
 
-#ifdef SOC_SF32LB52X
+#if defined(SOC_SF32LB52X) || defined(SOC_SF32LB57X)
     #define SDCARD_INSTANCE     SDIO1
     #define SDIO_AHB_BASE       (HPSYS_MPI_MEM_CBUS_2_SBUS_OFFSET+QSPI2_MEM_BASE)
     #define SDIO_IRQn           SDMMC1_IRQn
