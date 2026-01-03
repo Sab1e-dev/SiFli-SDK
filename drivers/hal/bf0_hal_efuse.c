@@ -22,6 +22,63 @@
 #define EFUSE_RD_TIM_NS    (500)
 #define EFUSE_PCLK_LIMIT   (120000000)
 
+static int32_t EFUSE_WriteBank(uint8_t bank, int32_t bit_size)
+{
+    uint32_t ready = 0;
+    uint32_t timeout;
+
+    /* Change HPSYS LDO VERF */
+    uint32_t org = pmu_ldo_inc(3);
+
+#ifdef HPSYS_CFG_ANAU_CR_EFUSE_VDD_EN
+    MODIFY_REG(hwp_hpsys_cfg->ANAU_CR, HPSYS_CFG_ANAU_CR_EFUSE_VDD_PD, HPSYS_CFG_ANAU_CR_EFUSE_VDD_EN);
+#else
+    /* Enable BGR if it has not been enabled,
+       it may have been enabled by other module,
+       don't disable it as other module may need it */
+    hwp_tsen->BGR |= TSEN_BGR_EN;
+    /* delay 50us, then enable LDO */
+    HAL_Delay_us(50);
+#endif
+
+#ifdef EFUSEC_ANACR_LDO_EN
+    hwp_efusec->ANACR |= EFUSEC_ANACR_LDO_EN;
+#endif
+    /* delay 50us, then starting programming  */
+    HAL_Delay_us(50);
+
+    /* select bank and enable PGM mode */
+    hwp_efusec->CR = (bank << EFUSEC_CR_BANKSEL_Pos) | (1 << EFUSEC_CR_MODE_Pos);
+
+    /* start program */
+    hwp_efusec->CR |= EFUSEC_CR_EN;
+    /* minimum: 10us one bit
+     * here: 10ms one bit for 48MHz clock
+     */
+    timeout = (uint32_t)bit_size * 480000;
+    while (((hwp_efusec->SR & EFUSEC_SR_DONE) == 0) && (ready < timeout))
+    {
+        ready++;
+    }
+    hwp_efusec->SR |= EFUSEC_SR_DONE;
+
+    if (ready >= timeout)
+    {
+        bit_size = 0;
+    }
+
+#ifdef EFUSEC_ANACR_LDO_EN
+    hwp_efusec->ANACR &= ~EFUSEC_ANACR_LDO_EN;
+#endif
+
+    pmu_ldo_recover(org);
+
+#ifdef HPSYS_CFG_ANAU_CR_EFUSE_VDD_EN
+    MODIFY_REG(hwp_hpsys_cfg->ANAU_CR, HPSYS_CFG_ANAU_CR_EFUSE_VDD_EN, HPSYS_CFG_ANAU_CR_EFUSE_VDD_PD);
+#endif
+
+    return bit_size;
+}
 
 HAL_StatusTypeDef HAL_EFUSE_Init(void)
 {
@@ -81,11 +138,9 @@ void HAL_EFUSE_ConfigBypass(bool enabled)
 
 int32_t HAL_EFUSE_Write(uint16_t bit_offset, uint8_t *data, int32_t size)
 {
-    uint32_t ready = 0;
     int byte_off = (bit_offset >> 3) % HAL_EFUSE_BANK_SIZE;
     int bank = (bit_offset >> 8);
     volatile uint32_t *pg_reg = (volatile uint32_t *) & (hwp_efusec->PGM_DATA0);
-    uint32_t timeout;
     uint32_t i;
     uint32_t word_size;
 
@@ -104,28 +159,6 @@ int32_t HAL_EFUSE_Write(uint16_t bit_offset, uint8_t *data, int32_t size)
         pg_reg[i] = 0;
     }
 
-    /* Change HPSYS LDO VERF */
-    uint32_t org = pmu_ldo_inc(3);
-
-#ifdef HPSYS_CFG_ANAU_CR_EFUSE_VDD_EN
-    MODIFY_REG(hwp_hpsys_cfg->ANAU_CR, HPSYS_CFG_ANAU_CR_EFUSE_VDD_PD, HPSYS_CFG_ANAU_CR_EFUSE_VDD_EN);
-#else
-    /* Enable BGR if it has not been enabled,
-       it may have been enabled by other module,
-       don't disable it as other module may need it */
-    hwp_tsen->BGR |= TSEN_BGR_EN;
-    /* delay 50us, then enable LDO */
-    HAL_Delay_us(50);
-#endif
-#ifdef EFUSEC_ANACR_LDO_EN
-    hwp_efusec->ANACR |= EFUSEC_ANACR_LDO_EN;
-#endif
-    /* delay 50us, then starting programming  */
-    HAL_Delay_us(50);
-
-    /* select bank and enable PGM mode */
-    hwp_efusec->CR = (bank << EFUSEC_CR_BANKSEL_Pos) | (1 << EFUSEC_CR_MODE_Pos);
-
     pg_reg += (byte_off >> 2);
     word_size = size >> 2;
     for (i = 0; i < word_size; i++)
@@ -133,30 +166,9 @@ int32_t HAL_EFUSE_Write(uint16_t bit_offset, uint8_t *data, int32_t size)
         pg_reg[i] = data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
         data += 4;
     }
-    /* start program */
-    hwp_efusec->CR |= EFUSEC_CR_EN;
-    /* minimum: 10us one bit
-     * here: 10ms one bit for 48MHz clock
-     */
-    timeout = (uint32_t)size * 8 * 480000;
-    while (((hwp_efusec->SR & EFUSEC_SR_DONE) == 0) && (ready < timeout))
-        ready++;
-    hwp_efusec->SR |= EFUSEC_SR_DONE;
 
-    if (ready >= timeout)
-    {
-        size = 0;
-    }
+    size = EFUSE_WriteBank(bank, (size << 3)) >> 3;
 
-#ifdef EFUSEC_ANACR_LDO_EN
-    hwp_efusec->ANACR &= ~EFUSEC_ANACR_LDO_EN;
-#endif
-
-    pmu_ldo_recover(org);
-
-#ifdef HPSYS_CFG_ANAU_CR_EFUSE_VDD_EN
-    MODIFY_REG(hwp_hpsys_cfg->ANAU_CR, HPSYS_CFG_ANAU_CR_EFUSE_VDD_EN, HPSYS_CFG_ANAU_CR_EFUSE_VDD_PD);
-#endif
     return size;
 }
 
@@ -216,6 +228,157 @@ int32_t HAL_EFUSE_Read(uint16_t bit_offset, uint8_t *data, int size)
     pmu_ldo_recover(org);
 
     return size;
+}
+
+int32_t HAL_EFUSE_Write2(uint16_t bit_offset, uint8_t *data, int32_t bit_size)
+{
+    uint16_t bank = (bit_offset >> 8);
+    uint16_t bit_offset_in_bank = bit_offset & (HAL_EFUSE_BANK_BIT_SIZE - 1);
+    volatile uint32_t *pg_reg = (volatile uint32_t *) & (hwp_efusec->PGM_DATA0);
+    uint32_t i;
+    uint16_t reg_idx;
+    uint16_t reg_bit_pos;
+    uint16_t in_byte_idx;
+    uint16_t in_byte_bit_pos;
+    uint32_t val;
+    uint8_t val_bit;
+
+    if ((bit_offset_in_bank + bit_size) > HAL_EFUSE_BANK_BIT_SIZE)
+    {
+        /* Should be less than a bank, and do not accross bank */
+        return 0;
+    }
+    if (bank >= HAL_EFUSE_BANK_NUM)
+    {
+        return 0;
+    }
+
+    /* clear PGM_DATA to avoid programming unexpected bit */
+    for (i = 0; i < HAL_EFUSE_BANK_WORD_SIZE; i++)
+    {
+        pg_reg[i] = 0;
+    }
+    reg_idx = bit_offset_in_bank >> 5;
+    reg_bit_pos = bit_offset_in_bank & 31;
+    in_byte_idx = 0;
+    in_byte_bit_pos = 0;
+    val = 0;
+    for (i = 0; i < bit_size; i++)
+    {
+        val_bit = (data[in_byte_idx] >> in_byte_bit_pos) & 0x1;
+        val |= (val_bit << reg_bit_pos);
+
+        reg_bit_pos++;
+        if (reg_bit_pos >= 32)
+        {
+            /* write register */
+            pg_reg[reg_idx] = val;
+            /* next register */
+            reg_idx++;
+            reg_bit_pos = 0;
+            val = 0;
+        }
+        in_byte_bit_pos++;
+        if (in_byte_bit_pos >= 8)
+        {
+            in_byte_idx++;
+            in_byte_bit_pos = 0;
+        }
+    }
+    if (val)
+    {
+        /* write tail data */
+        pg_reg[reg_idx] = val;
+    }
+
+    bit_size = EFUSE_WriteBank(bank, bit_size);
+
+    return bit_size;
+}
+
+int32_t HAL_EFUSE_Read2(uint16_t bit_offset, uint8_t *data, int bit_size)
+{
+    uint32_t ready = 0;
+    uint16_t bank = (bit_offset / HAL_EFUSE_BANK_BIT_SIZE);
+    uint16_t bit_offset_in_bank = bit_offset & (HAL_EFUSE_BANK_BIT_SIZE - 1);
+    uint32_t timeout;
+    volatile uint32_t *rd_reg = (volatile uint32_t *) & (hwp_efusec->BANK0_DATA0);
+    uint32_t i;
+    uint32_t val;
+    uint16_t byte_size;
+    uint16_t reg_idx;
+    uint16_t reg_bit_pos;
+    uint16_t out_byte_idx;
+    uint16_t out_byte_bit_pos;
+    uint8_t val_bit;
+
+    if ((bit_offset_in_bank + bit_size) > HAL_EFUSE_BANK_BIT_SIZE)
+    {
+        /* Should be less than a bank, and do not accross bank */
+        return 0;
+    }
+    if (bank >= HAL_EFUSE_BANK_NUM)
+    {
+        return 0;
+    }
+
+    uint32_t org = pmu_ldo_inc(3);
+
+    /* select bank and enable READ mode */
+    hwp_efusec->CR = (bank << EFUSEC_CR_BANKSEL_Pos);
+    /* start read */
+    hwp_efusec->CR |= EFUSEC_CR_EN;
+    /* mininum: two cycle one bit
+     * here: 1ms one bit for 48MHz clock
+     */
+    timeout = (uint32_t)bit_size * 48000;
+    while (((hwp_efusec->SR & EFUSEC_SR_DONE) == 0) && (ready < timeout))
+    {
+        ready++;
+    }
+
+    hwp_efusec->SR |= EFUSEC_SR_DONE;
+
+    if (ready >= timeout)
+    {
+        pmu_ldo_recover(org);
+        return 0;
+    }
+    rd_reg += (bank * HAL_EFUSE_BANK_WORD_SIZE);  // Each bank has 8 registers.
+    byte_size = (bit_size + 7) >> 3;
+    reg_idx = bit_offset_in_bank >> 5;
+    reg_bit_pos = bit_offset_in_bank & 31;
+    val = rd_reg[reg_idx];
+    out_byte_idx = 0;
+    out_byte_bit_pos = 0;
+    for (i = 0; i < byte_size; i++)
+    {
+        data[i] = 0;
+    }
+    for (i = 0; i < bit_size; i++)
+    {
+        val_bit = (val >> reg_bit_pos) & 0x1;
+        data[out_byte_idx] |= (val_bit << out_byte_bit_pos);
+
+        reg_bit_pos++;
+        if (reg_bit_pos >= 32)
+        {
+            /* next register */
+            reg_idx++;
+            reg_bit_pos = 0;
+            val = rd_reg[reg_idx];
+        }
+        out_byte_bit_pos++;
+        if (out_byte_bit_pos >= 8)
+        {
+            out_byte_idx++;
+            out_byte_bit_pos = 0;
+        }
+    }
+
+    pmu_ldo_recover(org);
+
+    return bit_size;
 }
 
 #endif /* HAL_EFUSE_MODULE_ENABLED */
