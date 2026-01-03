@@ -39,11 +39,7 @@ void boot_error(unsigned char code)
 /**
 * Initializes the Global MSP.
 */
-#ifdef TARMAC
-    #define BOOT_MODE_DELAY 1000
-#else
-    #define BOOT_MODE_DELAY 1000000
-#endif
+#define BOOT_MODE_DELAY 100000
 void HAL_MspInit(void)
 {
     // TODO:
@@ -51,12 +47,7 @@ void HAL_MspInit(void)
 #ifdef CFG_BOOTROM
     char *boot_tag = "SFBL\n";
     boot_uart_tx(hwp_usart1, (uint8_t *)boot_tag, strlen(boot_tag));
-    //TODO:
-    //HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_SYS, RCC_SYSCLK_HXT48);
-    if ((hwp_pmuc->CR & (PMUC_CR_HIBER_EN | PMUC_CR_REBOOT)) == 0)
-    {
-        HAL_Delay_us(BOOT_MODE_DELAY);      // Wait for boot_mode options.
-    }
+    HAL_Delay_us(BOOT_MODE_DELAY);      // Wait for boot_mode options.
 #endif
 }
 

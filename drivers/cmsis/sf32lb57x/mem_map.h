@@ -296,6 +296,110 @@ start_addr  0x0x20400000           0x20406000          0x20408000      0x2040E00
 #define LCPU_AUDIO_MEM_START_ADDR_H  (LCPU_AUDIO_MEM_START_ADDR)
 #define LCPU_AUDIO_MEM_END_ADDR      (END_ADDR(LCPU_AUDIO_MEM_START_ADDR + LCPU_HCPU_AUDIO_MEM_SIZE))
 
+/*******************************************************************************************
+ * @defgroup EFUSE_BITMAP_Definition EFUSE Bitmap Definition
+ * @brief  EFUSE Bitmap Definition
+ *
+ * _OFFSET: offset in bit across all banks, i.e. 0~255 is the first bank, 256~511 is the second bank
+ * _SIZE: size in bit
+ *
+ * @{
+ *******************************************************************************************/
+/** UID offset  */
+#define EFUSE_UID_OFFSET        0
+/** UID size  */
+#define EFUSE_UID_SIZE          128
+/** Package ID offset */
+#define EFUSE_PKGID_OFFSET      228
+/** Package ID size  */
+#define EFUSE_PKGID_SIZE        8
+#define EFUSE_SWDDIS_OFFSET     236
+#define EFUSE_SWDDIS_SIZE       2
+#define EFUSE_SECEN_OFFSET      238
+#define EFUSE_SECEN_SIZE        2
+#define EFUSE_IDSEL_OFFSET      240
+#define EFUSE_IDSEL_SIZE        2
+#define EFUSE_BANK1_RDDIS_OFFSET      244
+#define EFUSE_BANK1_RDDIS_SIZE        2
+#define EFUSE_BANK1_PGMDIS_OFFSET     246
+#define EFUSE_BANK1_PGMDIS_SIZE       2
+#define EFUSE_BANK2_RDDIS_OFFSET      248
+#define EFUSE_BANK2_RDDIS_SIZE        2
+#define EFUSE_BANK2_PGMDIS_OFFSET     250
+#define EFUSE_BANK2_PGMDIS_SIZE       2
+#define EFUSE_ROOTKEY_OFFSET          512
+#define EFUSE_ROOTKEY_SIZE            256
+
+/**
+ * @}
+ */
+
+/*******************************************************************************************
+ * @defgroup PKGID_Definition Package ID Definition
+ * @brief  Package ID Definition
+ * @{
+ *******************************************************************************************/
+/**  Boot Device Position */
+#define PKGID_BOOT_DEVICE_Pos        (0U)
+/**  Boot Device Mask */
+#define PKGID_BOOT_DEVICE_Msk        (0x3UL << PKGID_BOOT_DEVICE_Pos)
+/**  LDO18 Enable Position */
+#define PKGID_LDO18_EN_Pos           (2U)
+/**  LDO18 Enable Mask */
+#define PKGID_LDO18_EN_Msk           (0x1UL << PKGID_LDO18_EN_Pos)
+/**  LDO33 Enable Position */
+#define PKGID_LDO33_EN_Pos           (3U)
+/**  LDO33 Enable Mask */
+#define PKGID_LDO33_EN_Msk           (0x1UL << PKGID_LDO33_EN_Pos)
+/**  PSRAM Type Position */
+#define PKGID_PSRAM_TYPE_Pos         (4U)
+/**  PSRAM Type Mask */
+#define PKGID_PSRAM_TYPE_Msk         (0x3UL << PKGID_PSRAM_TYPE_Pos)
+
+/**
+ * @}
+ */
+
+
+/*******************************************************************************************
+ * @defgroup PKGID_BOOT_DEVICE_Definition Package ID Boot Device Definition
+ * @brief  Package ID Boot Device Definition
+ * @{
+ *******************************************************************************************/
+/** Boot Device is internal SB NOR Flash connected to MPI2 */
+#define PKGID_BOOT_DEVICE_MPI2                0
+/** Boot Device is internal SA NOR Flash type 1 connected to MPI1 */
+#define PKGID_BOOT_DEVICE_MPI1_TYPE1          1
+/** Boot Device is internal SA NOR Flash type 2 connected to MPI1 */
+#define PKGID_BOOT_DEVICE_MPI1_TYPE2          2
+/** Boot Device is external storage */
+#define PKGID_BOOT_DEVICE_EXT                 3
+
+/**
+ * @}
+ */
+
+/*******************************************************************************************
+ * @defgroup PKGID_PSRAM_TYPE_Definition Package ID PSRAM Type Definition
+ * @brief  Package ID PSRAM Type Definition
+ * @{
+ *******************************************************************************************/
+/** APS 64Mb PSRAM */
+#define PKGID_PSRAM_APS_64           0
+/** APS 128Mb PSRAM */
+#define PKGID_PSRAM_APS_128          1
+/** APS 32Mb PSRAM */
+#define PKGID_PSRAM_APS_32           2
+/** APS 16Mb PSRAM */
+#define PKGID_PSRAM_APS_16           3
+/** Winbond PSRAM */
+#define PKGID_PSRAM_WINBOND          4
+
+/**
+ * @}
+ */
+
+
 //======================================= Customize =======================================
 #define FLASH_PART_NAME(id)       FLASH_PART##id##_NAME
 #define FLASH_PART_DEVICE(id)     FLASH_PART##id##_DEVICE

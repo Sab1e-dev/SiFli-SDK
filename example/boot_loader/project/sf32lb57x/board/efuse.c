@@ -1,18 +1,11 @@
 #include "rtconfig.h"
 #include "stdint.h"
 #include "string.h"
-#include "../dfu/dfu.h"
 #include "bf0_hal.h"
 #include "board.h"
+#include "../dfu/dfu.h"
 
 #define AES_BLOCK_SIZE 512
-
-#define EFUSE_OFFSET_UID        0
-#define EFUSE_OFFSET_SIG_HASH   128
-#define EFUSE_OFFSET_SECURE     192
-#define EFUSE_OFFSET_ROOT       768
-#define EFUSE_BANK_SIZE         32
-#define EFUSE_BANK_NUM          (4)
 
 ALIGN(4)
 uint8_t g_uid[DFU_UID_SIZE];
@@ -27,24 +20,17 @@ int sifli_hw_efuse_write(uint8_t id, uint8_t *data, int size)
     switch (id)
     {
     case EFUSE_UID:
-        r = HAL_EFUSE_Write(EFUSE_OFFSET_UID, data, size);
+        r = HAL_EFUSE_Write2(EFUSE_UID_OFFSET, data, EFUSE_UID_SIZE);
         break;
-    case EFUSE_ID_SIG_HASH:
-        size = size < DFU_SIG_HASH_SIZE ? size : DFU_SIG_HASH_SIZE;
-        r = HAL_EFUSE_Write(EFUSE_OFFSET_SIG_HASH, data, size);
+    case DFU_CONFIG_PKGID:
+        r = HAL_EFUSE_Write2(EFUSE_PKGID_OFFSET, data, EFUSE_PKGID_SIZE);
         break;
     case EFUSE_ID_ROOT:
-        r = HAL_EFUSE_Write(EFUSE_OFFSET_ROOT, data, size);
+        r = HAL_EFUSE_Write2(EFUSE_ROOTKEY_OFFSET, data, EFUSE_ROOTKEY_SIZE);
         break;
     case EFUSE_ID_SECURE_ENABLED:
     {
-        uint32_t temp_data = 0;
-        temp_data = (uint32_t)(*data);
-        r = HAL_EFUSE_Write(EFUSE_OFFSET_SECURE, (uint8_t *)&temp_data, 4);
-        if (r == 4)
-            r = 1;
-        else
-            r = 0;
+        r = HAL_EFUSE_Write2(EFUSE_SECEN_OFFSET, data, EFUSE_SECEN_SIZE);
     }
     break;
     default:
@@ -65,22 +51,16 @@ int sifli_hw_efuse_read(uint8_t id, uint8_t *data, int size)
     }
 
     if (id == EFUSE_UID)
-        r = HAL_EFUSE_Read(EFUSE_OFFSET_UID, data, DFU_UID_SIZE);
-    else if (id == EFUSE_ID_SIG_HASH)
-        r = HAL_EFUSE_Read(EFUSE_OFFSET_SIG_HASH, data, DFU_SIG_HASH_SIZE);
+    {
+        r = HAL_EFUSE_Read(EFUSE_UID_OFFSET, data, DFU_UID_SIZE);
+    }
     else if (id == EFUSE_ID_ROOT)
-        r = HAL_EFUSE_Read(EFUSE_OFFSET_ROOT, data, DFU_KEY_SIZE);
+    {
+        r = HAL_EFUSE_Read(EFUSE_ROOTKEY_OFFSET, data, DFU_KEY_SIZE);
+    }
     else if (id == EFUSE_ID_SECURE_ENABLED)
     {
-        uint32_t temp_data;
-        r = HAL_EFUSE_Read(EFUSE_OFFSET_SECURE, (uint8_t *)&temp_data, 4);
-        if (r == 4)
-        {
-            *data = (uint8_t)(temp_data & 0xFF);
-            r = DFU_SECURE_SIZE;
-        }
-        else
-            r = 0;
+        r = HAL_EFUSE_Read2(EFUSE_SECEN_OFFSET, data, EFUSE_SECEN_SIZE);
     }
     else
         r = 0;

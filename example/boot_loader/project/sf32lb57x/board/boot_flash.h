@@ -116,12 +116,9 @@ extern flash_erase_func g_flash_erase;
 
 extern uint32_t g_boot_opt;
 #define MPI_POWER_PIN  (21)
-#ifdef TARMAC
-#define BOOT_MODE_DELAY 1000
-#else
-#define BOOT_MODE_DELAY 1000000
-#endif
 extern void BSP_GPIO_Set(int pin, int val, int is_porta);
+
+void boot_device_init(void);
 
 #define BOOT_SRC_Pos                    (0U)
 #define BOOT_SRC_Msk                    (0xFUL << BOOT_SRC_Pos)

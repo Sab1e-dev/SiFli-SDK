@@ -315,6 +315,7 @@ typedef struct
 #define DFU_CONFIG_UID          1
 #define DFU_CONFIG_ROOT         2
 #define DFU_CONFIG_SIG_HASH     3
+#define DFU_CONFIG_PKGID        3
 #define DFU_CONFIG_SECURE_ENABLED   4
 #define DFU_CONFIG_FLASH_TABLE  8
 #define DFU_CONFIG_SIG          9

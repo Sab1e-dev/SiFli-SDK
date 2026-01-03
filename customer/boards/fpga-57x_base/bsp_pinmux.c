@@ -10,17 +10,17 @@
 /* APS 128p*/
 static void board_pinmux_psram_func0()
 {
-    HAL_PIN_Set(PAD_SA01, MPI1_DIO0, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA02, MPI1_DIO1, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA03, MPI1_DIO2, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA04, MPI1_DIO3, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA05, MPI1_DIO4, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA06, MPI1_DIO5, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA07, MPI1_DIO6, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA08, MPI1_DIO7, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA09, MPI1_DQSDM, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA10, MPI1_CLK,  PIN_NOPULL, 1);
-    HAL_PIN_Set(PAD_SA11, MPI1_CS,   PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_SA01, MPI1_PSRAM_DIO0, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA02, MPI1_PSRAM_DIO1, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA03, MPI1_PSRAM_DIO2, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA04, MPI1_PSRAM_DIO3, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA05, MPI1_PSRAM_DIO4, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA06, MPI1_PSRAM_DIO5, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA07, MPI1_PSRAM_DIO6, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA08, MPI1_PSRAM_DIO7, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA09, MPI1_PSRAM_DQSDM, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA10, MPI1_PSRAM_CLK,  PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_SA11, MPI1_PSRAM_CS,   PIN_NOPULL, 1);
 
     HAL_PIN_Set_Analog(PAD_SA00, 1);
     HAL_PIN_Set_Analog(PAD_SA12, 1);
@@ -29,37 +29,37 @@ static void board_pinmux_psram_func0()
 /* APS 1:64p 2:32P, 4:Winbond 32/64/128p*/
 static void board_pinmux_psram_func1_2_4(int func)
 {
-    HAL_PIN_Set(PAD_SA01, MPI1_DIO0, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA02, MPI1_DIO1, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA03, MPI1_DIO2, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA04, MPI1_DIO3, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA08, MPI1_DIO4, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA09, MPI1_DIO5, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA10, MPI1_DIO6, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA11, MPI1_DIO7, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA07, MPI1_CLK,  PIN_NOPULL, 1);
-    HAL_PIN_Set(PAD_SA05, MPI1_CS,   PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_SA01, MPI1_PSRAM_DIO0, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA02, MPI1_PSRAM_DIO1, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA03, MPI1_PSRAM_DIO2, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA04, MPI1_PSRAM_DIO3, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA08, MPI1_PSRAM_DIO4, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA09, MPI1_PSRAM_DIO5, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA10, MPI1_PSRAM_DIO6, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA11, MPI1_PSRAM_DIO7, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA07, MPI1_PSRAM_CLK,  PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_SA05, MPI1_PSRAM_CS,   PIN_NOPULL, 1);
 
 #ifdef FPGA
-    HAL_PIN_Set(PAD_SA00, MPI1_DM, PIN_PULLDOWN, 1);
-    HAL_PIN_Set(PAD_SA06, MPI1_CLKB, PIN_NOPULL, 1);
-    HAL_PIN_Set(PAD_SA12, MPI1_DQSDM, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA00, MPI1_PSRAM_DM, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA06, MPI1_PSRAM_CLKB, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_SA12, MPI1_PSRAM_DQSDM, PIN_PULLDOWN, 1);
 #else
     switch (func)
     {
     case 1:             // APS 64P XCELLA
-        HAL_PIN_Set(PAD_SA12, MPI1_DQSDM, PIN_PULLDOWN, 1);
+        HAL_PIN_Set(PAD_SA12, MPI1_PSRAM_DQSDM, PIN_PULLDOWN, 1);
         HAL_PIN_Set_Analog(PAD_SA00, 1);
         HAL_PIN_Set_Analog(PAD_SA06, 1);
         break;
     case 2:             // APS 32P LEGACY
-        HAL_PIN_Set(PAD_SA00, MPI1_DM, PIN_PULLDOWN, 1);
-        HAL_PIN_Set(PAD_SA12, MPI1_DQS, PIN_PULLDOWN, 1);
-        HAL_PIN_Set(PAD_SA06, MPI1_CLKB, PIN_NOPULL, 1);
+        HAL_PIN_Set(PAD_SA00, MPI1_PSRAM_DM, PIN_PULLDOWN, 1);
+        HAL_PIN_Set(PAD_SA12, MPI1_PSRAM_DQS, PIN_PULLDOWN, 1);
+        HAL_PIN_Set(PAD_SA06, MPI1_PSRAM_CLKB, PIN_NOPULL, 1);
         break;
     case 4:             // Winbond 32/64/128p
         //HAL_PIN_Set(PAD_SA06, MPI1_CLKB, PIN_NOPULL, 1);
-        HAL_PIN_Set(PAD_SA12, MPI1_DQSDM, PIN_NOPULL, 1);
+        HAL_PIN_Set(PAD_SA12, MPI1_PSRAM_DQSDM, PIN_NOPULL, 1);
         HAL_PIN_Set_Analog(PAD_SA00, 1);
         HAL_PIN_Set_Analog(PAD_SA06, 1);
         break;
@@ -119,78 +119,32 @@ void BSP_PIN_Init(void)
     HAL_PIN_Set(PAD_PA45, I2C1_SDA, PIN_PULLUP, 1); //sda
     //HAL_PIN_Set(PAD_PA01, GPIO_A1, PIN_NOPULL, 1); //reset
 
-    uint32_t pid = (hwp_hpsys_cfg->IDR & HPSYS_CFG_IDR_PID_Msk) >> HPSYS_CFG_IDR_PID_Pos;
+    uint32_t psram_type;
 
-    pid &= 7;
-    pid = 3;
-    if (pid == 0)   // Puya flash
-    {
-//TODO:
-#if 0
-        HAL_PIN_Set(PAD_SA01, MPI1_CS,   PIN_NOPULL, 1);
-        HAL_PIN_Set(PAD_SA09, MPI1_CLK,  PIN_NOPULL, 1);
-        HAL_PIN_Set(PAD_SA07, MPI1_DIO0, PIN_PULLDOWN, 1);
-        HAL_PIN_Set(PAD_SA02, MPI1_DIO1, PIN_PULLDOWN, 1);
-        HAL_PIN_Set(PAD_SA10, MPI1_DIO3, PIN_NOPULL, 1);
-#endif
-
-        if (PM_STANDBY_BOOT == SystemPowerOnModeGet())
-        {
-            /* not support yet, has DIO2 is decided by flash size */
-            HAL_ASSERT(0);
-        }
-
-        //Should set in bootloader
-        //HAL_PIN_Set(PAD_SA03, MPI1_DIO2, PIN_PULLUP, 1);   // 64Mbits only
-        //HAL_PIN_Set(PAD_SA00, MPI1_DIO2, PIN_PULLUP, 1);   // 16/32Mbits
-    }
-    else if (pid == 1)  // GD Flash
-    {
-//TODO:
-#if 0
-        HAL_PIN_Set(PAD_SA04, MPI1_CS,   PIN_NOPULL, 1);
-        HAL_PIN_Set(PAD_SA09, MPI1_CLK,  PIN_NOPULL, 1);
-        HAL_PIN_Set(PAD_SA11, MPI1_DIO0, PIN_PULLDOWN, 1);
-        HAL_PIN_Set(PAD_SA02, MPI1_DIO1, PIN_PULLDOWN, 1);
-        HAL_PIN_Set(PAD_SA00, MPI1_DIO2, PIN_PULLUP, 1);
-        HAL_PIN_Set(PAD_SA08, MPI1_DIO3, PIN_PULLUP, 1);
-#endif
-
-        HAL_PIN_Set_Analog(PAD_SA01, 1);
-        HAL_PIN_Set_Analog(PAD_SA03, 1);
-        HAL_PIN_Set_Analog(PAD_SA05, 1);
-        HAL_PIN_Set_Analog(PAD_SA06, 1);
-        HAL_PIN_Set_Analog(PAD_SA07, 1);
-        HAL_PIN_Set_Analog(PAD_SA10, 1);
-        HAL_PIN_Set_Analog(PAD_SA12, 1);
-    }
-    else    // psram
-    {
+    psram_type = PKGID_PSRAM_APS_64;
 #ifdef BSP_USING_PSRAM1
-        switch (pid)
-        {
-        case 5: //BOOT_PSRAM_APS_16P:
-            board_pinmux_psram_func3();         // 16Mb APM QSPI PSRAM
-            break;
-        case 4: //BOOT_PSRAM_APS_32P:
-            board_pinmux_psram_func1_2_4(2);    // 32Mb APM LEGACY PSRAM
-            break;
-        case 6: //BOOT_PSRAM_WINBOND:                // Winbond HYPERBUS PSRAM
-            board_pinmux_psram_func1_2_4(4);
-            break;
-        case 3: // BOOT_PSRAM_APS_64P:
-            board_pinmux_psram_func1_2_4(1);    // 64Mb APM XCELLA PSRAM
-            break;
-        case 2: //BOOT_PSRAM_APS_128P:
-            board_pinmux_psram_func0();         // 128Mb APM XCELLA PSRAM
-            break;
-        default:
-            board_pinmux_mpi1_none();
-            break;
-        }
-#endif /* BSP_USING_PSRAM1 */
+    switch (psram_type)
+    {
+    case PKGID_PSRAM_APS_16: //BOOT_PSRAM_APS_16P:
+        board_pinmux_psram_func3();         // 16Mb APM QSPI PSRAM
+        break;
+    case PKGID_PSRAM_APS_32: //BOOT_PSRAM_APS_32P:
+        board_pinmux_psram_func1_2_4(2);    // 32Mb APM LEGACY PSRAM
+        break;
+    case PKGID_PSRAM_WINBOND: //BOOT_PSRAM_WINBOND:                // Winbond HYPERBUS PSRAM
+        board_pinmux_psram_func1_2_4(4);
+        break;
+    case PKGID_PSRAM_APS_64: // BOOT_PSRAM_APS_64P:
+        board_pinmux_psram_func1_2_4(1);    // 64Mb APM XCELLA PSRAM
+        break;
+    case PKGID_PSRAM_APS_128: //BOOT_PSRAM_APS_128P:
+        board_pinmux_psram_func0();         // 128Mb APM XCELLA PSRAM
+        break;
+    default:
+        board_pinmux_mpi1_none();
+        break;
     }
-
+#endif /* BSP_USING_PSRAM1 */
 
 #ifndef USE_V2_MEM
     // MPI3

@@ -760,9 +760,10 @@ static uint8_t dfu_secure_boot_check()
     uint8_t pattern;
     uint32_t ret = 0;
     int len = sifli_hw_efuse_read(EFUSE_ID_SECURE_ENABLED, &pattern, DFU_SECURE_SIZE);
-    if (len == DFU_SECURE_SIZE)
-        if (pattern == DFU_SECURE_PATTERN)
-            ret = 1;
+    if ((len > 0) && (pattern != 0))
+    {
+        ret = 1;
+    }
 
     return ret;
 }
@@ -818,44 +819,6 @@ int dfu_verify_body_sec(uint8_t flashid, uint8_t *data, int size)
     return r;
 }
 
-int dfu_receive_resume(uint8_t flashid, uint8_t *data, int size)
-{
-    int r = DFU_FAIL;
-
-#ifdef BSP_USING_DFU_COMPRESS
-    uint8_t compress_img_idx = DFU_FLASH_IMG_COMPRESS_IDX(flashid);
-
-    if (DFU_FLASH_IMG_COMPRESS_FLASH(flashid) == DFU_FLASH_COMPRESS)
-    {
-        flashid = DFU_FLASH_IMG_COMPRESS_FLASH(flashid);
-    }
-
-    if (flashid == DFU_FLASH_COMPRESS)
-    {
-        struct image_header_compress_resume *hdr = (struct image_header_compress_resume *)data;
-        volatile struct dfu_compress_configuration *config = g_dfu_compress_config;
-        // All other app should stop in this scenario, heap should be enough
-        RT_ASSERT(config);
-
-        if (config->imgs[config->img_count - 1].state != DFU_STATE_BIN_DOWNLOADING ||
-                config->imgs[config->img_count - 1].compress_img_id != hdr->img_id ||
-                config->imgs[config->img_count - 1].img.enc_img.length != hdr->total_len ||
-                config->imgs[config->img_count - 1].current_img_len != hdr->offset ||
-                rt_memcmp((const void *)config->imgs[config->img_count - 1].img.enc_img.sig, hdr->sig, DFU_SIG_SIZE) != 0 ||
-                rt_strncmp((char *)config->imgs[config->img_count - 1].img.enc_img.ver, (const char *)hdr->ver, DFU_VERSION_LEN) != 0)
-            return r;
-
-        // Use flash info
-        rt_memcpy(&g_dfu_img_progress, (const void *)&config->imgs, sizeof(sizeof(struct image_header_compress)));
-        // Recovery dfu key
-        memcpy(dfu_key, (const void *)config->imgs[config->img_count - 1].img.enc_img.key, sizeof(dfu_key));
-        sifli_hw_dec_key(dfu_key, dfu_key1, sizeof(dfu_key1));
-        r = DFU_SUCCESS;
-    }
-#endif
-    return r;
-
-}
 int dfu_receive_pkt(int len, uint8_t *data)
 {
     int r;

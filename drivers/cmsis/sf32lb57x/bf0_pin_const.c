@@ -10,108 +10,108 @@
 /* PAD_SA00 */
 const pin_fsel_function_t pad_sa00_fsel_func_tbl[] =
 {
-    {1, MPI1_DM},
-    {4, MPI2_CS},
+    {1, MPI1_PSRAM_DM},
+    {4, MPI1_FLASH_CS},
     {0, PIN_FUNC_UNDEF},
 };
 
 /* PAD_SA01 */
 const pin_fsel_function_t pad_sa01_fsel_func_tbl[] =
 {
-    {1, MPI1_DIO0},
-    {4, MPI2_DIO2},
+    {1, MPI1_PSRAM_DIO0},
+    {4, MPI1_FLASH_DIO2},
     {0, PIN_FUNC_UNDEF},
 };
 
 /* PAD_SA02 */
 const pin_fsel_function_t pad_sa02_fsel_func_tbl[] =
 {
-    {1, MPI1_DIO1},
-    {4, MPI2_DIO1},
+    {1, MPI1_PSRAM_DIO1},
+    {4, MPI1_FLASH_DIO1},
     {0, PIN_FUNC_UNDEF},
 };
 
 /* PAD_SA03 */
 const pin_fsel_function_t pad_sa03_fsel_func_tbl[] =
 {
-    {1, MPI1_DIO2},
-    {4, MPI2_CS},
+    {1, MPI1_PSRAM_DIO2},
+    {4, MPI1_FLASH_CS},
     {0, PIN_FUNC_UNDEF},
 };
 
 /* PAD_SA04 */
 const pin_fsel_function_t pad_sa04_fsel_func_tbl[] =
 {
-    {1, MPI1_DIO3},
-    {4, MPI2_DIO2},
+    {1, MPI1_PSRAM_DIO3},
+    {4, MPI1_FLASH_DIO2},
     {0, PIN_FUNC_UNDEF},
 };
 
 /* PAD_SA05 */
 const pin_fsel_function_t pad_sa05_fsel_func_tbl[] =
 {
-    {1, MPI1_CS},
-    {3, MPI1_DIO4},
+    {1, MPI1_PSRAM_CS},
+    {3, MPI1_PSRAM_DIO4},
     {0, PIN_FUNC_UNDEF},
 };
 
 /* PAD_SA06 */
 const pin_fsel_function_t pad_sa06_fsel_func_tbl[] =
 {
-    {1, MPI1_CLKB},
-    {3, MPI1_DIO5},
+    {1, MPI1_PSRAM_CLKB},
+    {3, MPI1_PSRAM_DIO5},
     {0, PIN_FUNC_UNDEF},
 };
 
 /* PAD_SA07 */
 const pin_fsel_function_t pad_sa07_fsel_func_tbl[] =
 {
-    {1, MPI1_CLK},
-    {3, MPI1_DIO6},
+    {1, MPI1_PSRAM_CLK},
+    {3, MPI1_PSRAM_DIO6},
     {0, PIN_FUNC_UNDEF},
 };
 
 /* PAD_SA08 */
 const pin_fsel_function_t pad_sa08_fsel_func_tbl[] =
 {
-    {1, MPI1_DIO4},
-    {3, MPI1_DIO7},
+    {1, MPI1_PSRAM_DIO4},
+    {3, MPI1_PSRAM_DIO7},
     {0, PIN_FUNC_UNDEF},
 };
 
 /* PAD_SA09 */
 const pin_fsel_function_t pad_sa09_fsel_func_tbl[] =
 {
-    {1, MPI1_DIO5},
-    {3, MPI1_DQSDM},
-    {4, MPI2_DIO3},
+    {1, MPI1_PSRAM_DIO5},
+    {3, MPI1_PSRAM_DQSDM},
+    {4, MPI1_FLASH_DIO3},
     {0, PIN_FUNC_UNDEF},
 };
 
 /* PAD_SA10 */
 const pin_fsel_function_t pad_sa10_fsel_func_tbl[] =
 {
-    {1, MPI1_DIO6},
-    {4, MPI2_CLK},
+    {1, MPI1_PSRAM_DIO6},
+    {4, MPI1_FLASH_CLK},
     {0, PIN_FUNC_UNDEF},
 };
 
 /* PAD_SA11 */
 const pin_fsel_function_t pad_sa11_fsel_func_tbl[] =
 {
-    {1, MPI1_DIO7},
-    {3, MPI1_CLK},
-    {4, MPI2_DIO3},
+    {1, MPI1_PSRAM_DIO7},
+    {3, MPI1_PSRAM_CLK},
+    {4, MPI1_FLASH_DIO3},
     {0, PIN_FUNC_UNDEF},
 };
 
 /* PAD_SA12 */
 const pin_fsel_function_t pad_sa12_fsel_func_tbl[] =
 {
-    {1, MPI1_DQS},
-    {2, MPI1_DQSDM},
-    {3, MPI1_CS},
-    {4, MPI2_DIO0},
+    {1, MPI1_PSRAM_DQS},
+    {2, MPI1_PSRAM_DQSDM},
+    {3, MPI1_PSRAM_CS},
+    {4, MPI1_FLASH_DIO0},
     {0, PIN_FUNC_UNDEF},
 };
 

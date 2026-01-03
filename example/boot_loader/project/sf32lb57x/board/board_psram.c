@@ -66,37 +66,37 @@ void board_pinmux_psram_func0()
 /* APS 1:64p 2:32P, 4:Winbond 32/64/128p*/
 void board_pinmux_psram_func1_2_4(int func)
 {
-    HAL_PIN_CompileTimeSet(PAD_SA01, MPI1_DIO0, PIN_PULLDOWN, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA02, MPI1_DIO1, PIN_PULLDOWN, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA03, MPI1_DIO2, PIN_PULLDOWN, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA04, MPI1_DIO3, PIN_PULLDOWN, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA08, MPI1_DIO4, PIN_PULLDOWN, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA09, MPI1_DIO5, PIN_PULLDOWN, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA10, MPI1_DIO6, PIN_PULLDOWN, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA11, MPI1_DIO7, PIN_PULLDOWN, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA07, MPI1_CLK,  PIN_NOPULL, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA05, MPI1_CS,   PIN_NOPULL, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA01, MPI1_PSRAM_DIO0, PIN_PULLDOWN, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA02, MPI1_PSRAM_DIO1, PIN_PULLDOWN, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA03, MPI1_PSRAM_DIO2, PIN_PULLDOWN, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA04, MPI1_PSRAM_DIO3, PIN_PULLDOWN, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA08, MPI1_PSRAM_DIO4, PIN_PULLDOWN, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA09, MPI1_PSRAM_DIO5, PIN_PULLDOWN, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA10, MPI1_PSRAM_DIO6, PIN_PULLDOWN, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA11, MPI1_PSRAM_DIO7, PIN_PULLDOWN, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA07, MPI1_PSRAM_CLK,  PIN_NOPULL, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA05, MPI1_PSRAM_CS,   PIN_NOPULL, 1);
 
 #ifdef FPGA
-    HAL_PIN_CompileTimeSet(PAD_SA00, MPI1_DM, PIN_PULLDOWN, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA06, MPI1_CLKB, PIN_NOPULL, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA12, MPI1_DQSDM, PIN_PULLDOWN, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA00, MPI1_PSRAM_DM, PIN_PULLDOWN, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA06, MPI1_PSRAM_CLKB, PIN_NOPULL, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA12, MPI1_PSRAM_DQSDM, PIN_PULLDOWN, 1);
 #else
     switch (func)
     {
     case 1:             // APS 64P XCELLA
-        HAL_PIN_CompileTimeSet(PAD_SA12, MPI1_DQSDM, PIN_PULLDOWN, 1);
+        HAL_PIN_CompileTimeSet(PAD_SA12, MPI1_PSRAM_DQSDM, PIN_PULLDOWN, 1);
         HAL_PIN_Set_Analog(PAD_SA00, 1);
         HAL_PIN_Set_Analog(PAD_SA06, 1);
         break;
     case 2:             // APS 32P LEGACY
-        HAL_PIN_CompileTimeSet(PAD_SA00, MPI1_DM, PIN_PULLDOWN, 1);
-        HAL_PIN_CompileTimeSet(PAD_SA12, MPI1_DQS, PIN_PULLDOWN, 1);
-        HAL_PIN_CompileTimeSet(PAD_SA06, MPI1_CLKB, PIN_NOPULL, 1);
+        HAL_PIN_CompileTimeSet(PAD_SA00, MPI1_PSRAM_DM, PIN_PULLDOWN, 1);
+        HAL_PIN_CompileTimeSet(PAD_SA12, MPI1_PSRAM_DQS, PIN_PULLDOWN, 1);
+        HAL_PIN_CompileTimeSet(PAD_SA06, MPI1_PSRAM_CLKB, PIN_NOPULL, 1);
         break;
     case 4:             // Winbond 32/64/128p
         //HAL_PIN_CompileTimeSet(PAD_SA06, MPI1_CLKB, PIN_NOPULL, 1);
-        HAL_PIN_CompileTimeSet(PAD_SA12, MPI1_DQSDM, PIN_NOPULL, 1);
+        HAL_PIN_CompileTimeSet(PAD_SA12, MPI1_PSRAM_DQSDM, PIN_NOPULL, 1);
         HAL_PIN_Set_Analog(PAD_SA00, 1);
         HAL_PIN_Set_Analog(PAD_SA06, 1);
         break;
@@ -152,21 +152,21 @@ void boot_psram_init(int func)
     qspi_cfg.SpiMode = SPI_MODE_OPSRAM;
     switch (func)
     {
-    case BOOT_PSRAM_APS_128P:
+    case PKGID_PSRAM_APS_128:
         qspi_cfg.msize = 16;
         break;
-    case BOOT_PSRAM_APS_64P:
+    case PKGID_PSRAM_APS_64:
         qspi_cfg.msize = 8;
         break;
-    case BOOT_PSRAM_APS_32P:
+    case PKGID_PSRAM_APS_32:
         qspi_cfg.SpiMode = SPI_MODE_LEGPSRAM;
         qspi_cfg.msize = 4;
         break;
-    case BOOT_PSRAM_APS_16P:
+    case PKGID_PSRAM_APS_16:
         qspi_cfg.SpiMode = SPI_MODE_PSRAM;
         qspi_cfg.msize = 2;
         break;
-    case BOOT_PSRAM_WINBOND:
+    case PKGID_PSRAM_WINBOND:
         qspi_cfg.SpiMode = SPI_MODE_HBPSRAM;
         qspi_cfg.msize = 8;                   // Might be 16, depends on PSRAM ID, 4MB not support.
         break;
@@ -243,25 +243,26 @@ void boot_psram_init(int func)
 
 void board_init_psram()
 {
-    uint32_t pid = (hwp_hpsys_cfg->IDR & HPSYS_CFG_IDR_PID_Msk) >> HPSYS_CFG_IDR_PID_Pos;
+    //TODO:
+    uint32_t psram_type;
 
-    pid = (pid & 0x7);
+    psram_type = PKGID_PSRAM_APS_64;
 
-    switch (pid)
+    switch (psram_type)
     {
-    case BOOT_PSRAM_APS_16P:
+    case PKGID_PSRAM_APS_16:
         board_pinmux_psram_func3();         // 16Mb APM QSPI PSRAM
         break;
-    case BOOT_PSRAM_APS_32P:
+    case PKGID_PSRAM_APS_32:
         board_pinmux_psram_func1_2_4(2);    // 32Mb APM LEGACY PSRAM
         break;
-    case BOOT_PSRAM_WINBOND:                // Winbond HYPERBUS PSRAM
+    case PKGID_PSRAM_WINBOND:                // Winbond HYPERBUS PSRAM
         board_pinmux_psram_func1_2_4(4);
         break;
-    case BOOT_PSRAM_APS_64P:
+    case PKGID_PSRAM_APS_64:
         board_pinmux_psram_func1_2_4(1);    // 64Mb APM XCELLA PSRAM
         break;
-    case BOOT_PSRAM_APS_128P:
+    case PKGID_PSRAM_APS_128:
         board_pinmux_psram_func0();         // 128Mb APM XCELLA PSRAM
         break;
     default:
@@ -274,7 +275,7 @@ void board_init_psram()
     bootloader_switch_clock(1);
 #endif
     BSP_SetFlash1DIV(2);    // for QSPI PSRAM need set divider to avoid to high, OPI PSRAM do not care.
-    boot_psram_init(pid);
+    boot_psram_init(psram_type);
 }
 
 

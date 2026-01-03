@@ -11,54 +11,14 @@
 #include "board.h"
 #include "boot_flash.h"
 
+//TODO:
+#define BOOT_DEVICE_FORCED
+
+board_boot_device_type_t board_boot_device;
+
 void SystemClock_Config(void)
 {
 }
-
-#if 0
-const unsigned short int pin_array[][3] =
-{
-    { PAD_PA19, PA19_I2C_UART, 4},
-    { PAD_PA18, PA18_I2C_UART, 4},
-
-    { PAD_SA00, MPI1_DIO2,  5},
-    { PAD_SA01, MPI1_CS,    5},
-    { PAD_SA02, MPI1_DIO1,  5},
-    { PAD_SA03, MPI1_DIO2,  5},
-    { PAD_SA04, MPI1_CS,    5},
-    { PAD_SA07, MPI1_DIO0,  5},
-    { PAD_SA08, MPI1_DIO3,  5},
-    { PAD_SA09, MPI1_CLK,   5},
-    { PAD_SA10, MPI1_DIO3,  5},
-    { PAD_SA11, MPI1_DIO0,  5},
-
-    { PAD_PA16, MPI2_CLK, 1},
-    { PAD_PA12, MPI2_CS,  1},
-    { PAD_PA15, MPI2_DIO0, 1},
-    { PAD_PA13, MPI2_DIO1, 1},
-    { PAD_PA14, MPI2_DIO2, 1},
-    { PAD_PA17, MPI2_DIO3, 1},
-
-    { PAD_PA14, SD1_CLK,  2},
-    { PAD_PA15, SD1_CMD,  2},
-    { PAD_PA16, SD1_DIO0, 2},
-    { PAD_PA17, SD1_DIO1, 2},
-    { PAD_PA12, SD1_DIO2, 2},
-    { PAD_PA13, SD1_DIO3, 2},
-    { PAD_PA23, GPIO_A23, 0},
-
-};
-
-int HAL_PIN_Func2Idx(int pad, pin_function func, int hcpu)
-{
-    int i;
-
-    for (i = 0; i < sizeof(pin_array) / sizeof(pin_array[0]); i++)
-        if (pad == pin_array[i][0] && func == pin_array[i][1])
-            return pin_array[i][2];
-    return 0;
-}
-#endif
 
 // Do not use HAL_PIN_Get in bootloader ROM
 pin_function HAL_PIN_Idx2Func(int pad, int idx,  int hcpu)
@@ -66,64 +26,38 @@ pin_function HAL_PIN_Idx2Func(int pad, int idx,  int hcpu)
     return 0;
 }
 
-void board_pinmux_mpi1_puya_base()
+void board_pinmux_mpi1_type1(void)
 {
-//TODO:
-#if 0
-    HAL_PIN_CompileTimeSet(PAD_SA01, MPI1_CS,   PIN_NOPULL, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA09, MPI1_CLK,  PIN_NOPULL, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA07, MPI1_DIO0, PIN_PULLDOWN, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA02, MPI1_DIO1, PIN_PULLDOWN, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA10, MPI1_DIO3, PIN_NOPULL, 1);
-#endif
+    HAL_PIN_CompileTimeSet(PAD_SA10, MPI1_FLASH_CLK,  PIN_NOPULL, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA00, MPI1_FLASH_CS,   PIN_NOPULL, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA12, MPI1_FLASH_DIO0, PIN_PULLDOWN, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA02, MPI1_FLASH_DIO1, PIN_PULLDOWN, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA04, MPI1_FLASH_DIO2, PIN_PULLUP, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA11, MPI1_FLASH_DIO3, PIN_PULLUP, 1);
+    //TODO: is it needed to set other to analog?
 }
 
-void board_pinmux_mpi1_puya_ext(int is64Mb)
+void board_pinmux_mpi1_type2(void)
 {
-//TODO:
-#if 0
-    HAL_PIN_Set_Analog(PAD_SA04, 1);
-    HAL_PIN_Set_Analog(PAD_SA05, 1);
-    HAL_PIN_Set_Analog(PAD_SA06, 1);
-    HAL_PIN_Set_Analog(PAD_SA08, 1);
-    HAL_PIN_Set_Analog(PAD_SA11, 1);
-    HAL_PIN_Set_Analog(PAD_SA12, 1);
-
-    if (is64Mb)
-    {
-        HAL_PIN_Set_Analog(PAD_SA00, 1);
-        HAL_PIN_CompileTimeSet(PAD_SA03, MPI1_DIO2, PIN_PULLUP, 1);
-    }
-    else
-    {
-        HAL_PIN_Set_Analog(PAD_SA03, 1);
-        HAL_PIN_CompileTimeSet(PAD_SA00, MPI1_DIO2, PIN_PULLUP, 1);
-    }
-#endif
+    HAL_PIN_CompileTimeSet(PAD_SA10, MPI1_FLASH_CLK,  PIN_NOPULL, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA03, MPI1_FLASH_CS,   PIN_NOPULL, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA12, MPI1_FLASH_DIO0, PIN_PULLDOWN, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA02, MPI1_FLASH_DIO1, PIN_PULLDOWN, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA01, MPI1_FLASH_DIO2, PIN_PULLUP, 1);
+    HAL_PIN_CompileTimeSet(PAD_SA09, MPI1_FLASH_DIO3, PIN_PULLUP, 1);
 }
 
-void board_pinmux_mpi1_gd()
+void board_pinmux_mpi2(void)
 {
-//TODO:
-#if 0
-    HAL_PIN_CompileTimeSet(PAD_SA04, MPI1_CS,   PIN_NOPULL, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA09, MPI1_CLK,  PIN_NOPULL, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA11, MPI1_DIO0, PIN_PULLDOWN, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA02, MPI1_DIO1, PIN_PULLDOWN, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA00, MPI1_DIO2, PIN_PULLUP, 1);
-    HAL_PIN_CompileTimeSet(PAD_SA08, MPI1_DIO3, PIN_PULLUP, 1);
-
-    HAL_PIN_Set_Analog(PAD_SA01, 1);
-    HAL_PIN_Set_Analog(PAD_SA03, 1);
-    HAL_PIN_Set_Analog(PAD_SA05, 1);
-    HAL_PIN_Set_Analog(PAD_SA06, 1);
-    HAL_PIN_Set_Analog(PAD_SA07, 1);
-    HAL_PIN_Set_Analog(PAD_SA10, 1);
-    HAL_PIN_Set_Analog(PAD_SA12, 1);
-#endif
+    HAL_PIN_CompileTimeSet(PAD_SB12, MPI2_CLK, PIN_NOPULL, 1);
+    HAL_PIN_CompileTimeSet(PAD_SB06, MPI2_CS,  PIN_NOPULL, 1);
+    HAL_PIN_CompileTimeSet(PAD_SB10, MPI2_DIO0, PIN_PULLDOWN, 1);
+    HAL_PIN_CompileTimeSet(PAD_SB05, MPI2_DIO1, PIN_PULLDOWN, 1);
+    HAL_PIN_CompileTimeSet(PAD_SB04, MPI2_DIO2, PIN_PULLUP, 1);
+    HAL_PIN_CompileTimeSet(PAD_SB11, MPI2_DIO3, PIN_PULLUP, 1);
 }
 
-void board_pinmux_mpi3()
+void board_pinmux_mpi3(void)
 {
     HAL_PIN_CompileTimeSet(PAD_PA16, MPI3_CLK, PIN_NOPULL, 1);
     HAL_PIN_CompileTimeSet(PAD_PA12, MPI3_CS,  PIN_NOPULL, 1);
@@ -145,12 +79,6 @@ void board_pinmux_sd()
     HAL_PIN_CompileTimeSet(PAD_PA13, SD1_DIO3, PIN_PULLUP, 1);
 }
 
-void board_pinmux_uart()
-{
-    HAL_PIN_CompileTimeSet(PAD_PA19, USART1_TXD, PIN_PULLUP, 1);
-    HAL_PIN_CompileTimeSet(PAD_PA18, USART1_RXD, PIN_PULLUP, 1);
-}
-
 static void board_pinmux_mpi1_none(void)
 {
     uint32_t i;
@@ -161,21 +89,59 @@ static void board_pinmux_mpi1_none(void)
     }
 }
 
-int board_boot_from(void)
+static uint8_t board_read_pkgid(void)
 {
-    uint32_t pid = (hwp_hpsys_cfg->IDR & HPSYS_CFG_IDR_PID_Msk) >> HPSYS_CFG_IDR_PID_Pos;
-    int r;
+    uint8_t pkgid;
+    int32_t r;
 
-    pid &= 7;
-    if (BOOT_SIP_NONE == pid)
-        board_pinmux_mpi1_none();
+    r = HAL_EFUSE_Read2(EFUSE_PKGID_OFFSET, &pkgid, EFUSE_PKGID_SIZE);
+    HAL_ASSERT(EFUSE_PKGID_SIZE == r);
+
+    return pkgid;
+}
+
+static uint8_t board_get_soc_boot_device(void)
+{
+    uint8_t pkgid;
+
+    pkgid = board_read_pkgid();
+
+    return GET_REG_VAL2(pkgid, PKGID_BOOT_DEVICE);
+}
+
+static uint8_t board_get_bootstrap_type(void)
+{
+    uint8_t bootstrap_type;
+    bootstrap_type = (uint8_t)HAL_GPIO_ReadPin(hwp_gpio1, BOARD_BOOTSTRAP_PIN_BIT0);
+    bootstrap_type |= ((uint8_t)HAL_GPIO_ReadPin(hwp_gpio1, BOARD_BOOTSTRAP_PIN_BIT1) << 1);
+
+    return bootstrap_type;
+}
+
+board_boot_device_type_t board_boot_from(void)
+{
+    uint8_t boot_device;
+    board_boot_device_type_t r;
+    uint8_t bootstrap_type;
+
+    boot_device = board_get_soc_boot_device();
 
     //TODO: efuse is not ready yet
-    pid = BOOT_PSRAM_APS_64P;
-    if (pid == BOOT_SIP_PUYA)
-        r = BOOT_FROM_SIP_PUYA;
-    else if (pid == BOOT_SIP_GD)
-        r = BOOT_FROM_SIP_GD;
+#ifdef BOOT_DEVICE_FORCED
+    boot_device = PKGID_BOOT_DEVICE_EXT;
+#endif /* BOOT_DEVICE_FORCED */
+    if (boot_device == PKGID_BOOT_DEVICE_MPI2)
+    {
+        r = BOARD_BOOT_DEVICE_MPI2;
+    }
+    else if (boot_device == PKGID_BOOT_DEVICE_MPI1_TYPE1)
+    {
+        r = BOARD_BOOT_DEVICE_MPI1_TYPE1;
+    }
+    else if (boot_device == PKGID_BOOT_DEVICE_MPI1_TYPE2)
+    {
+        r = BOARD_BOOT_DEVICE_MPI1_TYPE2;
+    }
     else
     {
 #ifdef CFG_BOOTROM
@@ -184,23 +150,23 @@ int board_boot_from(void)
         hwp_pmuc->CR &= ~PMUC_CR_PIN_RET;
         HAL_Delay_us(100);
 #endif /* PMUC_CR_PIN_RET */
-        // Use external PIN(DIO1,DIO3) to detect NOR/NAND/SD-NAND
-        int ext_bond = HAL_GPIO_ReadPin(hwp_gpio1, 17);      // A17,  MPI2_DIO3
-        ext_bond |= (HAL_GPIO_ReadPin(hwp_gpio1, 13) << 1);  // A13,  MPI2_DIO1
+        bootstrap_type = board_get_bootstrap_type();
 
-        //TODO: bonding pin is not ready yet
-        ext_bond = 0;
-        if (ext_bond == 0)
+        if (BOARD_BOOTSTRAP_FROM_EXT_NOR == bootstrap_type)
         {
-            r = BOOT_FROM_NOR;
+            r = BOARD_BOOT_DEVICE_MPI3_NOR;
         }
-        else if (ext_bond == 1)
+        else if (BOARD_BOOTSTRAP_FROM_EXT_NAND == bootstrap_type)
         {
-            r = BOOT_FROM_NAND;
+            r = BOARD_BOOT_DEVICE_MPI3_NAND;
         }
-        else
+        else if (BOARD_BOOTSTRAP_FROM_EXT_SD == bootstrap_type)
         {
-            r = (ext_bond == 2) ? BOOT_FROM_SD : BOOT_FROM_EMMC;
+            r = BOARD_BOOT_DEVICE_SD;
+        }
+        else if (BOARD_BOOTSTRAP_FROM_EXT_EMMC == bootstrap_type)
+        {
+            r = BOARD_BOOT_DEVICE_EMMC;
         }
         HAL_Set_backup(RTC_BACKUP_BOOTOPT, r);
 #else

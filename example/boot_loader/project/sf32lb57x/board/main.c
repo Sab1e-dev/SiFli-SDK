@@ -44,7 +44,6 @@ extern flash_erase_func g_flash_erase;
 struct sec_configuration g_temp_sec_config;
 struct sec_configuration *temp_sec_config;
 
-int board_boot_src;
 ALIGN(4) struct sec_configuration sec_config_cache;
 
 typedef void (*ram_hook_handler)(void);
@@ -172,15 +171,23 @@ void dfu_boot_img_in_flash(int flashid)
             }
         }
     }
+
+    if (img_hdr->length && (src != dest)
+            && (is_addr_in_nor((uint32_t)dest) == 0))
+    {
+        g_flash_read(src, (const int8_t *)dest, img_hdr->length);
+    }
+
     if (coreid < 2 * CORE_MAX)
     {
         coreid %= CORE_MAX;
         if (coreid == CORE_HCPU || coreid == CORE_BL || coreid == CORE_LCPU)
         {
             if (is_addr_in_nor(dest))
+            {
                 HAL_FLASH_ALIAS_CFG(boot_handle, dest, img_hdr->length, src - dest);
-            else if (src != dest)
-                g_flash_read(src, (const int8_t *)dest, img_hdr->length);
+            }
+
             run_img(dest);
         }
     }
@@ -359,10 +366,17 @@ void boot_images_help()
             }
         }
 
+        board_init_psram();
+        /* load extended img if present, such as ACPU img */
+        if (sec_config_cache.imgs[DFU_FLASH_IMG_IDX(DFU_FLASH_HCPU_EXT2)].length != FLASH_UNINIT_32)
+        {
+            dfu_boot_img_in_flash(DFU_FLASH_HCPU_EXT2);
+        }
+
         if (sec_config_cache.running_imgs[CORE_HCPU] != (struct image_header_enc *)FLASH_UNINIT_32)
         {
             int flash_id = ((uint32_t)sec_config_cache.running_imgs[CORE_HCPU] - g_config_addr - 0x1000) / sizeof(struct image_header_enc) + DFU_FLASH_IMG_LCPU;
-            board_init_psram();
+
             dfu_boot_img_in_flash(flash_id);
         }
 #endif
@@ -603,6 +617,27 @@ void handle_rx_data(void)
 }
 #endif /* PKG_USING_CHERRYUSB */
 
+#ifdef CFG_BOOTROM
+static bool boot_is_bootmode(void)
+{
+    bool is_bootmode;
+    GPIO_PinState pin_state;
+
+    pin_state = HAL_GPIO_ReadPin(hwp_gpio1, BOARD_BOOT_MODE_PIN);
+
+    if ((pin_state == GPIO_PIN_SET) || (hwp_hpsys_cfg->BMR))
+    {
+        is_bootmode = true;
+    }
+    else
+    {
+        is_bootmode = false;
+    }
+
+    return is_bootmode;
+}
+#endif /* CFG_BOOTROM */
+
 
 #if defined(__CC_ARM) || defined(__CLANG_ARM)
     int main(void)
@@ -615,7 +650,7 @@ void handle_rx_data(void)
     HAL_Delay_us(0);
 
     //TODO: need to be removed
-    board_pinmux_uart();
+    // board_pinmux_uart();
 
     // 3. Power on flash.
     board_flash_power_on();
@@ -623,18 +658,17 @@ void handle_rx_data(void)
     // 4. Check boot mode.
     HAL_MspInit();
 
-
     // 5. Boot images
 #ifdef CFG_BOOTROM
-    if (hwp_hpsys_cfg->BMR == 0)
+    if (!boot_is_bootmode())
 #endif
     {
         // 6. Read boot options
-        board_boot_src = board_boot_from();
+        board_boot_device = board_boot_from();
 
         /* init AES_ACC as normal mode */
         __HAL_SYSCFG_CLEAR_SECURITY();
-        dfu_flash_init();
+        boot_device_init();
         boot_images_help();
     }
 

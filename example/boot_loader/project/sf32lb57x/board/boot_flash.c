@@ -37,6 +37,11 @@ static uint32_t nand_blksize = 0x20000;
     static uint16_t mpi3_div = 2;
 #endif /* BSP_NO_BOARD_USED */
 
+static uint32_t nand_cache[(4096 + 128) / 4];
+#ifndef  CFG_BOOTROM
+    static uint32_t bbm_cache_buf[(4096 + 128) / 4];
+#endif
+
 #ifdef BSP_NO_BOARD_USED
 uint16_t BSP_GetFlash1DIV(void)
 {
@@ -75,7 +80,7 @@ int port_read_page(int blk, int page, int offset, uint8_t *buff, uint32_t size, 
     int res;
     uint32_t addr = (blk * nand_blksize) + (page * nand_pagesize) + offset;
 
-    FLASH_HandleTypeDef *hflash = (FLASH_HandleTypeDef *)&spi_flash_handle[1].handle;
+    FLASH_HandleTypeDef *hflash = (FLASH_HandleTypeDef *)&spi_flash_handle[2].handle;
     if ((offset + size) > nand_pagesize)
     {
         HAL_ASSERT(0);
@@ -231,42 +236,36 @@ static uint32_t init_mpi1()
     struct dma_config flash_dma = FLASH1_DMA_CONFIG;
 
     spi_flash_handle[0].dual_mode = 1;
-    flash_cfg.line = HAL_FLASH_NOR_MODE;
-    if (board_boot_src == BOOT_FROM_SIP_PUYA)
+    if (BOARD_BOOT_DEVICE_MPI1_TYPE1 == board_boot_device)
     {
-        board_pinmux_mpi1_puya_base();
+        board_pinmux_mpi1_type1();
     }
     else
     {
-        board_pinmux_mpi1_gd();
-#ifndef CFG_BOOTROM
-        flash_cfg.line = HAL_FLASH_QMODE;
-#endif
+        board_pinmux_mpi1_type2();
     }
-    HAL_FLASH_Init(&(spi_flash_handle[0]), &flash_cfg, &spi_flash_dma_handle[0],     &flash_dma, BSP_GetFlash1DIV());
-#ifndef CFG_BOOTROM
-    if (board_boot_src == BOOT_FROM_SIP_PUYA)
-    {
-        // check spi_flash_handle[0].dev_id == 0x176085 // 0x856017
-        board_pinmux_mpi1_puya_ext(spi_flash_handle[0].dev_id == 0x176085);
-        HAL_FLASH_SET_QUAL_SPI((FLASH_HandleTypeDef *) & (spi_flash_handle[0].handle), true);
-        spi_flash_handle[0].handle.Mode = HAL_FLASH_QMODE;
-    }
-#endif
+
+#ifdef CFG_BOOTROM
+    flash_cfg.line = HAL_FLASH_NOR_MODE;
+#else
+    flash_cfg.line = HAL_FLASH_QMODE;
+#endif /* CFG_BOOTROM */
+    HAL_FLASH_Init(&(spi_flash_handle[0]), &flash_cfg, &spi_flash_dma_handle[0], &flash_dma, BSP_GetFlash1DIV());
+
     g_flash_read = read_nor;
+
+#ifndef CFG_BOOTROM
     g_flash_write = write_nor;
     g_flash_erase = erase_nor;
+
+#endif /* !CFG_BOOTROM */
+
     return (spi_flash_handle[0].base_addr);
 }
 
-static uint32_t nand_cache[(4096 + 128) / 4];
-
-#ifndef  CFG_BOOTROM
-    static uint32_t bbm_cache_buf[(4096 + 128) / 4];
-#endif
-
-static uint32_t init_mpi2(int nand)
+static uint32_t init_mpi2(void)
 {
+    HAL_StatusTypeDef res;
     // Initialize MPI2
     qspi_configure_t flash_cfg = FLASH2_CONFIG;
     struct dma_config flash_dma = FLASH2_DMA_CONFIG;
@@ -277,36 +276,16 @@ static uint32_t init_mpi2(int nand)
     flash_cfg.line = HAL_FLASH_NOR_MODE;
 #else
     flash_cfg.line = HAL_FLASH_QMODE ;
-#endif
-    g_flash_read = nand ? read_nand : read_nor;
-    if (nand)
-    {
-        flash_cfg.base += HPSYS_MPI_MEM_CBUS_2_SBUS_OFFSET;
-        flash_cfg.SpiMode = SPI_MODE_NAND;
-        spi_flash_handle[1].handle.data_buf = (uint8_t *)nand_cache;
-    }
+#endif /* CFG_BOOTROM */
+    g_flash_read = read_nor;
     HAL_Delay_us(0);
     spi_flash_handle[1].dual_mode = 1;
-    spi_flash_handle[1].flash_mode = nand;
-    HAL_StatusTypeDef res = HAL_FLASH_Init(&(spi_flash_handle[1]), &flash_cfg, &spi_flash_dma_handle[1], &flash_dma, BSP_GetFlash2DIV());
-    if ((res == HAL_OK) && (nand != 0))
-    {
-        nand_pagesize = HAL_NAND_PAGE_SIZE(&spi_flash_handle[1].handle);
-        nand_blksize = HAL_NAND_BLOCK_SIZE(&spi_flash_handle[1].handle);
+    res = HAL_FLASH_Init(&(spi_flash_handle[1]), &flash_cfg, &spi_flash_dma_handle[1], &flash_dma, BSP_GetFlash2DIV());
 
-        spi_flash_handle[1].handle.buf_mode = 1;    // default set to buffer mode for nand
-        HAL_NAND_CONF_ECC(&spi_flash_handle[1].handle, 1); // default enable ECC if support !
 #ifndef CFG_BOOTROM
-        bbm_set_page_size(nand_pagesize);
-        bbm_set_blk_size(nand_blksize);
-        sif_bbm_init(spi_flash_handle[1].total_size, (uint8_t *)bbm_cache_buf);
-#endif /* CFG_BOOTROM */
-    }
-    if (!nand)
-    {
-        g_flash_write = write_nor;
-        g_flash_erase = erase_nor;
-    }
+    g_flash_write = write_nor;
+    g_flash_erase = erase_nor;
+#endif /* !CFG_BOOTROM */
 
     return (spi_flash_handle[1].base_addr);
 }
@@ -338,10 +317,9 @@ static uint32_t init_mpi3(int nand)
     {
         nand_pagesize = HAL_NAND_PAGE_SIZE(&spi_flash_handle[2].handle);
         nand_blksize = HAL_NAND_BLOCK_SIZE(&spi_flash_handle[2].handle);
-
         spi_flash_handle[2].handle.buf_mode = 1;    // default set to buffer mode for nand
-        HAL_NAND_CONF_ECC(&spi_flash_handle[2].handle, 1); // default enable ECC if support !
 #ifndef CFG_BOOTROM
+        HAL_NAND_CONF_ECC(&spi_flash_handle[2].handle, 1); // default enable ECC if support !
         bbm_set_page_size(nand_pagesize);
         bbm_set_blk_size(nand_blksize);
         sif_bbm_init(spi_flash_handle[2].total_size, (uint8_t *)bbm_cache_buf);
@@ -438,7 +416,7 @@ static uint32_t init_sdemmc()
 /******************************************************************************/
 
 #define MAX_RETRY 5
-void dfu_flash_init()
+void boot_device_init(void)
 {
 #if !defined(CFG_BOOTROM) && !defined(FPGA)
     // set clock to high speed for bootloader
@@ -456,59 +434,61 @@ void dfu_flash_init()
     HAL_Delay_us(0);
 #endif
 
-    switch (board_boot_src)
+    switch (board_boot_device)
     {
-    case BOOT_FROM_SIP_PUYA:
-    case BOOT_FROM_SIP_GD:
+    case BOARD_BOOT_DEVICE_MPI2:
+    {
+#ifdef CFG_BOOTROM
+        BSP_SetFlash2DIV(2);    // rom use default rc48 / 2, 48/2 = 24
+#else
+        BSP_SetFlash2DIV(1);
+#endif /* CFG_BOOTROM */
+        g_config_addr = init_mpi2();
+        boot_handle = (FLASH_HandleTypeDef *)&spi_flash_handle[1].handle;
+        break;
+    }
+    case BOARD_BOOT_DEVICE_MPI1_TYPE1:
+    case BOARD_BOOT_DEVICE_MPI1_TYPE2:
+    {
 #ifdef CFG_BOOTROM
         BSP_SetFlash1DIV(2);    // rom use default rc48 / 2, 48/2 = 24
 #else
-        //TODO: increase speed for SIP NOR flash
-        //HAL_PMU_EnableDLL(1);
-        //HAL_RCC_HCPU_EnableDLL1(144000000);
-        //HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_SYS, RCC_SYSCLK_DLL1);
-        HAL_RCC_HCPU_EnableDLL2(288000000);
-        BSP_SetFlash1DIV(6);    // bootloader use DLL2 / 6, 288/6 = 48
-        HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH1, RCC_CLK_FLASH_DLL2);
-#endif
+        BSP_SetFlash1DIV(1);
+#endif /* CFG_BOOTROM */
         g_config_addr = init_mpi1();
         boot_handle = (FLASH_HandleTypeDef *)&spi_flash_handle[0].handle;
         break;
-    case BOOT_FROM_NOR:
-    case BOOT_FROM_NAND:
+    }
+    case BOARD_BOOT_DEVICE_MPI3_NOR:
+    case BOARD_BOOT_DEVICE_MPI3_NAND:
+    {
 #ifdef CFG_BOOTROM
-        BSP_SetFlash2DIV(2);    // rom use default rc48 / 2, 48/2 = 24
         BSP_SetFlash3DIV(2);    // rom use default rc48 / 2, 48/2 = 24
 #else
-#ifdef FPGA
-        BSP_SetFlash2DIV(2);
-        BSP_SetFlash3DIV(2);
-#else
-        HAL_RCC_HCPU_EnableDLL2(288000000);
-        BSP_SetFlash2DIV(6);    // bootloader use DLL2 / 6, 288/6 = 48
-        HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH2, RCC_CLK_FLASH_DLL2);
-#endif
-#endif
-#ifndef BOOT_FROM_MPI3
-        g_config_addr = init_mpi2(board_boot_src == BOOT_FROM_NOR ? 0 : 1);
-        boot_handle = (FLASH_HandleTypeDef *)&spi_flash_handle[1].handle;
-#else
-        g_config_addr = init_mpi3(board_boot_src == BOOT_FROM_NOR ? 0 : 1);
+        BSP_SetFlash3DIV(1);
+#endif /* CFG_BOOTROM */
+        g_config_addr = init_mpi3(board_boot_device == BOARD_BOOT_DEVICE_MPI3_NOR ? 0 : 1);
         boot_handle = (FLASH_HandleTypeDef *)&spi_flash_handle[2].handle;
-#endif
         break;
-    case BOOT_FROM_SD:
+    }
+    case BOARD_BOOT_DEVICE_SD:
+    {
+#if !defined(CFG_BOOTROM) && !defined(FPGA)
         HAL_RCC_HCPU_EnableDLL2(288000000);
+#endif /* !CFG_BOOTROM && !FPGA */
         g_config_addr = init_sdnand();  // TODO, update sd clock divider after clock changed
         boot_handle = NULL;
         break;
-    case BOOT_FROM_EMMC:
-#ifdef FPGA
+    }
+    case BOARD_BOOT_DEVICE_EMMC:
+    {
+#if !defined(CFG_BOOTROM) && !defined(FPGA)
         HAL_RCC_HCPU_EnableDLL2(288000000);
-#endif /* FPGA */
+#endif /* !CFG_BOOTROM && !FPGA */
         g_config_addr = init_sdemmc();
         boot_handle = NULL;
         break;
+    }
     default:
         boot_error('S');
     }
@@ -523,15 +503,15 @@ void dfu_flash_init()
             g_flash_read(g_config_addr, (const int8_t *)&sec_config_cache, sizeof(struct sec_configuration));
             if (sec_config_cache.magic == SEC_CONFIG_MAGIC)
             {
-                if (board_boot_src == BOOT_FROM_NAND)
+                if (BOARD_BOOT_DEVICE_MPI3_NAND == board_boot_device)
                 {
                     struct flash_config *cfg = (struct flash_config *)&sec_config_cache.ftab[DFU_FLASH_CONFIG];
                     if ((cfg->page_size != 0 &&  cfg->page_size != FLASH_UNINIT_32))
                     {
                         nand_pagesize = cfg->page_size;
+                        boot_handle->dualFlash |= NAND_FLAG_PAGE_DOUBLE;
                         g_flash_read(g_config_addr, (const int8_t *)&sec_config_cache, sizeof(struct sec_configuration));
                     }
-
                 }
                 break;
             }
