@@ -2013,10 +2013,9 @@ static volatile uint32_t *DMA_ConfigMutiple(DMA_HandleTypeDef *hdma, DMA_LinkLis
     GPDMA_TypeDef *base;
     __IO uint32_t *lcr;
     __IO uint32_t *tsel;
-    uint32_t tsel_mask;
-    uint32_t tsel_pos;
 
     idx = hdma->OrgChannelIndex;
+    HAL_ASSERT(idx < 8);
     base = (GPDMA_TypeDef *)hdma->DmaBaseAddress;
     if (idx < GPDMA_REP_CHANNEL_NUM)
     {
@@ -2041,18 +2040,8 @@ static volatile uint32_t *DMA_ConfigMutiple(DMA_HandleTypeDef *hdma, DMA_LinkLis
     }
 
     /* config trigger of the first task */
-    if (idx < 4)
-    {
-        tsel = &base->TSELR1;
-        tsel_pos = (idx << 3);
-    }
-    else
-    {
-        tsel = &base->TSELR2;
-        tsel_pos = ((idx - 4) << 3);
-    }
-    tsel_mask = GPDMA_TSELR1_T1S << tsel_pos;
-    MODIFY_REG(*tsel, tsel_mask, MAKE_REG_VAL(LinkList->Trigger, tsel_mask, tsel_pos));
+    tsel = (__IO uint32_t *)&base->SELR1 + idx;
+    MODIFY_REG(*tsel, GPDMA_SELR1_TS_Msk, MAKE_REG_VAL(LinkList->Trigger, GPDMA_SELR1_TS_Msk, GPDMA_SELR1_TS_Pos));
     hdma->Instance->CCR &= ~(GPDMA_CCR1_TEDGE | GPDMA_CCR1_TPOL);
     if (LinkList->Trigger)
     {
@@ -2084,6 +2073,7 @@ __HAL_ROM_USED void HAL_DMA_Select_Source(DMA_Channel_TypeDef *dma_chl, uint8_t 
     channel = ((uint32_t)dma_chl - temp) / sizeof(DMA_Channel_TypeDef);
     if (request <= DMA_CSELR_C1S)
     {
+        //TODO: CSEL is moved to SELR
         if (channel < 4)
         {
             t->CSELR1 |= (request << (channel * DMAC_CSELR1_C2S_Pos));

@@ -48,8 +48,14 @@ typedef struct
     __IO uint32_t CSELR1;
     __IO uint32_t CSELR2;
     __IO uint32_t DBGSEL;
-    __IO uint32_t TSELR1;
-    __IO uint32_t TSELR2;
+    __IO uint32_t SELR1;
+    __IO uint32_t SELR2;
+    __IO uint32_t SELR3;
+    __IO uint32_t SELR4;
+    __IO uint32_t SELR5;
+    __IO uint32_t SELR6;
+    __IO uint32_t SELR7;
+    __IO uint32_t SELR8;
     __IO uint32_t LISR;
     __IO uint32_t LIFCR;
     __IO uint32_t CREPR1;
@@ -1175,33 +1181,69 @@ typedef struct
 #define GPDMA_DBGSEL_DBGSEL_Msk         (0xFUL << GPDMA_DBGSEL_DBGSEL_Pos)
 #define GPDMA_DBGSEL_DBGSEL             GPDMA_DBGSEL_DBGSEL_Msk
 
-/****************** Bit definition for GPDMA_TSELR1 register ******************/
-#define GPDMA_TSELR1_T1S_Pos            (0U)
-#define GPDMA_TSELR1_T1S_Msk            (0xFFUL << GPDMA_TSELR1_T1S_Pos)
-#define GPDMA_TSELR1_T1S                GPDMA_TSELR1_T1S_Msk
-#define GPDMA_TSELR1_T2S_Pos            (8U)
-#define GPDMA_TSELR1_T2S_Msk            (0xFFUL << GPDMA_TSELR1_T2S_Pos)
-#define GPDMA_TSELR1_T2S                GPDMA_TSELR1_T2S_Msk
-#define GPDMA_TSELR1_T3S_Pos            (16U)
-#define GPDMA_TSELR1_T3S_Msk            (0xFFUL << GPDMA_TSELR1_T3S_Pos)
-#define GPDMA_TSELR1_T3S                GPDMA_TSELR1_T3S_Msk
-#define GPDMA_TSELR1_T4S_Pos            (24U)
-#define GPDMA_TSELR1_T4S_Msk            (0xFFUL << GPDMA_TSELR1_T4S_Pos)
-#define GPDMA_TSELR1_T4S                GPDMA_TSELR1_T4S_Msk
+/****************** Bit definition for GPDMA_SELR1 register *******************/
+#define GPDMA_SELR1_CS_Pos              (0U)
+#define GPDMA_SELR1_CS_Msk              (0x7FUL << GPDMA_SELR1_CS_Pos)
+#define GPDMA_SELR1_CS                  GPDMA_SELR1_CS_Msk
+#define GPDMA_SELR1_TS_Pos              (8U)
+#define GPDMA_SELR1_TS_Msk              (0xFFUL << GPDMA_SELR1_TS_Pos)
+#define GPDMA_SELR1_TS                  GPDMA_SELR1_TS_Msk
 
-/****************** Bit definition for GPDMA_TSELR2 register ******************/
-#define GPDMA_TSELR2_T5S_Pos            (0U)
-#define GPDMA_TSELR2_T5S_Msk            (0xFFUL << GPDMA_TSELR2_T5S_Pos)
-#define GPDMA_TSELR2_T5S                GPDMA_TSELR2_T5S_Msk
-#define GPDMA_TSELR2_T6S_Pos            (8U)
-#define GPDMA_TSELR2_T6S_Msk            (0xFFUL << GPDMA_TSELR2_T6S_Pos)
-#define GPDMA_TSELR2_T6S                GPDMA_TSELR2_T6S_Msk
-#define GPDMA_TSELR2_T7S_Pos            (16U)
-#define GPDMA_TSELR2_T7S_Msk            (0xFFUL << GPDMA_TSELR2_T7S_Pos)
-#define GPDMA_TSELR2_T7S                GPDMA_TSELR2_T7S_Msk
-#define GPDMA_TSELR2_T8S_Pos            (24U)
-#define GPDMA_TSELR2_T8S_Msk            (0xFFUL << GPDMA_TSELR2_T8S_Pos)
-#define GPDMA_TSELR2_T8S                GPDMA_TSELR2_T8S_Msk
+/****************** Bit definition for GPDMA_SELR2 register *******************/
+#define GPDMA_SELR2_CS_Pos              (0U)
+#define GPDMA_SELR2_CS_Msk              (0x7FUL << GPDMA_SELR2_CS_Pos)
+#define GPDMA_SELR2_CS                  GPDMA_SELR2_CS_Msk
+#define GPDMA_SELR2_TS_Pos              (8U)
+#define GPDMA_SELR2_TS_Msk              (0xFFUL << GPDMA_SELR2_TS_Pos)
+#define GPDMA_SELR2_TS                  GPDMA_SELR2_TS_Msk
+
+/****************** Bit definition for GPDMA_SELR3 register *******************/
+#define GPDMA_SELR3_CS_Pos              (0U)
+#define GPDMA_SELR3_CS_Msk              (0x7FUL << GPDMA_SELR3_CS_Pos)
+#define GPDMA_SELR3_CS                  GPDMA_SELR3_CS_Msk
+#define GPDMA_SELR3_TS_Pos              (8U)
+#define GPDMA_SELR3_TS_Msk              (0xFFUL << GPDMA_SELR3_TS_Pos)
+#define GPDMA_SELR3_TS                  GPDMA_SELR3_TS_Msk
+
+/****************** Bit definition for GPDMA_SELR4 register *******************/
+#define GPDMA_SELR4_CS_Pos              (0U)
+#define GPDMA_SELR4_CS_Msk              (0x7FUL << GPDMA_SELR4_CS_Pos)
+#define GPDMA_SELR4_CS                  GPDMA_SELR4_CS_Msk
+#define GPDMA_SELR4_TS_Pos              (8U)
+#define GPDMA_SELR4_TS_Msk              (0xFFUL << GPDMA_SELR4_TS_Pos)
+#define GPDMA_SELR4_TS                  GPDMA_SELR4_TS_Msk
+
+/****************** Bit definition for GPDMA_SELR5 register *******************/
+#define GPDMA_SELR5_CS_Pos              (0U)
+#define GPDMA_SELR5_CS_Msk              (0x7FUL << GPDMA_SELR5_CS_Pos)
+#define GPDMA_SELR5_CS                  GPDMA_SELR5_CS_Msk
+#define GPDMA_SELR5_TS_Pos              (8U)
+#define GPDMA_SELR5_TS_Msk              (0xFFUL << GPDMA_SELR5_TS_Pos)
+#define GPDMA_SELR5_TS                  GPDMA_SELR5_TS_Msk
+
+/****************** Bit definition for GPDMA_SELR6 register *******************/
+#define GPDMA_SELR6_CS_Pos              (0U)
+#define GPDMA_SELR6_CS_Msk              (0x7FUL << GPDMA_SELR6_CS_Pos)
+#define GPDMA_SELR6_CS                  GPDMA_SELR6_CS_Msk
+#define GPDMA_SELR6_TS_Pos              (8U)
+#define GPDMA_SELR6_TS_Msk              (0xFFUL << GPDMA_SELR6_TS_Pos)
+#define GPDMA_SELR6_TS                  GPDMA_SELR6_TS_Msk
+
+/****************** Bit definition for GPDMA_SELR7 register *******************/
+#define GPDMA_SELR7_CS_Pos              (0U)
+#define GPDMA_SELR7_CS_Msk              (0x7FUL << GPDMA_SELR7_CS_Pos)
+#define GPDMA_SELR7_CS                  GPDMA_SELR7_CS_Msk
+#define GPDMA_SELR7_TS_Pos              (8U)
+#define GPDMA_SELR7_TS_Msk              (0xFFUL << GPDMA_SELR7_TS_Pos)
+#define GPDMA_SELR7_TS                  GPDMA_SELR7_TS_Msk
+
+/****************** Bit definition for GPDMA_SELR8 register *******************/
+#define GPDMA_SELR8_CS_Pos              (0U)
+#define GPDMA_SELR8_CS_Msk              (0x7FUL << GPDMA_SELR8_CS_Pos)
+#define GPDMA_SELR8_CS                  GPDMA_SELR8_CS_Msk
+#define GPDMA_SELR8_TS_Pos              (8U)
+#define GPDMA_SELR8_TS_Msk              (0xFFUL << GPDMA_SELR8_TS_Pos)
+#define GPDMA_SELR8_TS                  GPDMA_SELR8_TS_Msk
 
 /******************* Bit definition for GPDMA_LISR register *******************/
 #define GPDMA_LISR_LCIF1_Pos            (0U)

@@ -48,6 +48,14 @@ typedef struct
     __IO uint32_t CSELR1;
     __IO uint32_t CSELR2;
     __IO uint32_t DBGSEL;
+    __IO uint32_t SELR1;
+    __IO uint32_t SELR2;
+    __IO uint32_t SELR3;
+    __IO uint32_t SELR4;
+    __IO uint32_t SELR5;
+    __IO uint32_t SELR6;
+    __IO uint32_t SELR7;
+    __IO uint32_t SELR8;
 } DMAC_TypeDef;
 
 typedef struct
@@ -769,6 +777,47 @@ typedef struct
 #define DMAC_DBGSEL_DBGSEL_Pos          (0U)
 #define DMAC_DBGSEL_DBGSEL_Msk          (0xFUL << DMAC_DBGSEL_DBGSEL_Pos)
 #define DMAC_DBGSEL_DBGSEL              DMAC_DBGSEL_DBGSEL_Msk
+
+/******************* Bit definition for DMAC_SELR1 register *******************/
+#define DMAC_SELR1_CS_Pos               (0U)
+#define DMAC_SELR1_CS_Msk               (0x3FUL << DMAC_SELR1_CS_Pos)
+#define DMAC_SELR1_CS                   DMAC_SELR1_CS_Msk
+
+/******************* Bit definition for DMAC_SELR2 register *******************/
+#define DMAC_SELR2_CS_Pos               (0U)
+#define DMAC_SELR2_CS_Msk               (0x3FUL << DMAC_SELR2_CS_Pos)
+#define DMAC_SELR2_CS                   DMAC_SELR2_CS_Msk
+
+/******************* Bit definition for DMAC_SELR3 register *******************/
+#define DMAC_SELR3_CS_Pos               (0U)
+#define DMAC_SELR3_CS_Msk               (0x3FUL << DMAC_SELR3_CS_Pos)
+#define DMAC_SELR3_CS                   DMAC_SELR3_CS_Msk
+
+/******************* Bit definition for DMAC_SELR4 register *******************/
+#define DMAC_SELR4_CS_Pos               (0U)
+#define DMAC_SELR4_CS_Msk               (0x3FUL << DMAC_SELR4_CS_Pos)
+#define DMAC_SELR4_CS                   DMAC_SELR4_CS_Msk
+
+/******************* Bit definition for DMAC_SELR5 register *******************/
+#define DMAC_SELR5_CS_Pos               (0U)
+#define DMAC_SELR5_CS_Msk               (0x3FUL << DMAC_SELR5_CS_Pos)
+#define DMAC_SELR5_CS                   DMAC_SELR5_CS_Msk
+
+/******************* Bit definition for DMAC_SELR6 register *******************/
+#define DMAC_SELR6_CS_Pos               (0U)
+#define DMAC_SELR6_CS_Msk               (0x3FUL << DMAC_SELR6_CS_Pos)
+#define DMAC_SELR6_CS                   DMAC_SELR6_CS_Msk
+
+/******************* Bit definition for DMAC_SELR7 register *******************/
+#define DMAC_SELR7_CS_Pos               (0U)
+#define DMAC_SELR7_CS_Msk               (0x3FUL << DMAC_SELR7_CS_Pos)
+#define DMAC_SELR7_CS                   DMAC_SELR7_CS_Msk
+
+/******************* Bit definition for DMAC_SELR8 register *******************/
+#define DMAC_SELR8_CS_Pos               (0U)
+#define DMAC_SELR8_CS_Msk               (0x3FUL << DMAC_SELR8_CS_Pos)
+#define DMAC_SELR8_CS                   DMAC_SELR8_CS_Msk
+
 
 #define DMA_CCR_CIRC                    DMAC_CCR1_CIRC
 #define DMA_CCR_PL                      DMAC_CCR1_PL
