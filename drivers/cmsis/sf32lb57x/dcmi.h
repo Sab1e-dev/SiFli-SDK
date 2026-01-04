@@ -28,6 +28,7 @@ typedef struct
     __IO uint32_t JPEG_BYTE;
     __IO uint32_t IPI_CR;
     __IO uint32_t CONV_CR;
+    __IO uint32_t FIFO_SR;
 } DCMI_TypeDef;
 
 
@@ -355,5 +356,10 @@ typedef struct
 #define DCMI_CONV_CR_CON_TO565_Pos      (1U)
 #define DCMI_CONV_CR_CON_TO565_Msk      (0x1UL << DCMI_CONV_CR_CON_TO565_Pos)
 #define DCMI_CONV_CR_CON_TO565          DCMI_CONV_CR_CON_TO565_Msk
+
+/****************** Bit definition for DCMI_FIFO_SR register ******************/
+#define DCMI_FIFO_SR_FIFO_CNT_Pos       (0U)
+#define DCMI_FIFO_SR_FIFO_CNT_Msk       (0x1FFUL << DCMI_FIFO_SR_FIFO_CNT_Pos)
+#define DCMI_FIFO_SR_FIFO_CNT           DCMI_FIFO_SR_FIFO_CNT_Msk
 
 #endif

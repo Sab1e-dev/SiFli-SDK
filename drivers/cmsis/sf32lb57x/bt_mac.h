@@ -167,7 +167,8 @@ typedef struct
     __IO uint32_t BTFREQCNTL6;
     __IO uint32_t BTFREQCNTL7;
     __IO uint32_t BTEXTCH;
-    __IO uint32_t RSVD16[88];
+    __IO uint32_t CHSCAN;
+    __IO uint32_t RSVD16[87];
     __IO uint32_t RWBLECNTL;
     __IO uint32_t BLEVERSION;
     __IO uint32_t RSVD15;
@@ -2174,6 +2175,11 @@ typedef struct
 #define BT_MAC_BTEXTCH_EXTCHNUM_Pos     (0U)
 #define BT_MAC_BTEXTCH_EXTCHNUM_Msk     (0xFUL << BT_MAC_BTEXTCH_EXTCHNUM_Pos)
 #define BT_MAC_BTEXTCH_EXTCHNUM         BT_MAC_BTEXTCH_EXTCHNUM_Msk
+
+/***************** Bit definition for BT_MAC_CHSCAN register ******************/
+#define BT_MAC_CHSCAN_END_FREQ_Pos      (0U)
+#define BT_MAC_CHSCAN_END_FREQ_Msk      (0x7FUL << BT_MAC_CHSCAN_END_FREQ_Pos)
+#define BT_MAC_CHSCAN_END_FREQ          BT_MAC_CHSCAN_END_FREQ_Msk
 
 /**************** Bit definition for BT_MAC_RWBLECNTL register ****************/
 #define BT_MAC_RWBLECNTL_RXWINSZDEF_Pos  (0U)
