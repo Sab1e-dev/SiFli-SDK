@@ -1912,7 +1912,7 @@ menu "On-chip Peripheral RTOS Drivers"
     config BSP_USING_ACPU
         bool "Enable ACPU"
         default n
-        depends on BF0_HCPU && SOC_SF32LB58X
+        depends on BF0_HCPU && (SOC_SF32LB58X || SOC_SF32LB57X)
         help
             Enable ACPU
 

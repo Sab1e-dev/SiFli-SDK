@@ -81,6 +81,13 @@ typedef struct
     int decode_fec;
 } opus_decode_arg_t;
 
+typedef struct
+{
+    uint32_t rw_addr;
+    uint32_t rw_size;
+    uint8_t *buffer;
+} rw_buffer_arg_t;
+
 /** ACPU task name macro */
 #define ACPU_TASK_INVALID                (0)
 #define ACPU_TASK_0                      (1)
@@ -91,7 +98,9 @@ typedef struct
 #define ACPU_TASK_opus_decoder_init      (6)
 #define ACPU_TASK_opus_decoder_ctl       (7)
 #define ACPU_TASK_opus_decode            (8)
-#define ACPU_TASK_COUNT                  (9)
+#define ACPU_TASK_read          (9)
+#define ACPU_TASK_write         (10)
+#define ACPU_TASK_COUNT                  (11)
 
 typedef enum
 {

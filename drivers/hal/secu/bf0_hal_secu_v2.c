@@ -189,7 +189,32 @@ HAL_StatusTypeDef HAL_SECU_SetAttr(SECU_MODULE_TYPE module, uint32_t role, uint3
     {
         p_reg = Get_Master_Reg(module, &bit_n);
         tmp = *p_reg;
-        if ((module != SECU_MOD_HCPU) && (module != SECU_MOD_LCPU) && (module != SECU_MOD_ACPU)) //No privilege bit for HCPU&LCPU&ACPU
+
+        if (SECU_MOD_HCPU == module)
+        {
+            tmp |= SECU1_HPMST_ATTR_CFG_HCPU_SEC_USE;
+            if (flag & SECU_FLAG_SECU)
+                tmp |= SECU1_HPMST_ATTR_CFG_HCPU_SEC;
+            else
+                tmp &= ~SECU1_HPMST_ATTR_CFG_HCPU_SEC;
+        }
+        else if (SECU_MOD_ACPU == module)
+        {
+            tmp |= SECU1_HPMST_ATTR_CFG_ACPU_SEC_USE;
+            if (flag & SECU_FLAG_SECU)
+                tmp |= SECU1_HPMST_ATTR_CFG_ACPU_SEC;
+            else
+                tmp &= ~SECU1_HPMST_ATTR_CFG_ACPU_SEC;
+        }
+        else if (SECU_MOD_LCPU == module)
+        {
+            tmp |= SECU2_LPMST_ATTR_CFG_LCPU_SEC_USE;
+            if (flag & SECU_FLAG_SECU)
+                tmp |= SECU2_LPMST_ATTR_CFG_LCPU_SEC;
+            else
+                tmp &= ~SECU2_LPMST_ATTR_CFG_LCPU_SEC;
+        }
+        else
         {
             tmp |= 1 << (bit_n + 3); //set xxx_priv_use
             if (flag & SECU_FLAG_PRIV)
@@ -200,18 +225,18 @@ HAL_StatusTypeDef HAL_SECU_SetAttr(SECU_MODULE_TYPE module, uint32_t role, uint3
             {
                 tmp &= ~(1 << (bit_n + 1)); //clear xxx_priv
             }
-        }
 
-        tmp |= 1 << (bit_n + 2); //set xxx_sec_use
-        if (flag & SECU_FLAG_SECU)
-        {
-            tmp |= 1 << (bit_n + 0); //set xxx_sec
-        }
-        else
-        {
-            tmp &= ~(1 << (bit_n + 0)); //clear xxx_sec
-        }
 
+            tmp |= 1 << (bit_n + 2); //set xxx_sec_use
+            if (flag & SECU_FLAG_SECU)
+            {
+                tmp |= 1 << (bit_n + 0); //set xxx_sec
+            }
+            else
+            {
+                tmp &= ~(1 << (bit_n + 0)); //clear xxx_sec
+            }
+        }
         *p_reg = tmp;
 
 
@@ -391,7 +416,6 @@ HAL_StatusTypeDef HAL_SECU_SetMemoryAttr(SECU_MEM_TYPE memory_type, const SECU_M
 {
     uint32_t i, j, rg_num = 0, flag = 0;
     SECU_MemAttr_Reg MemReg = {0};
-    HAL_StatusTypeDef ret = HAL_OK;
 
     if (MemReg_GET(memory_type, &MemReg, &rg_num) != HAL_OK)
     {

@@ -1907,6 +1907,12 @@ __HAL_ROM_USED void HAL_RCC_ResetModule(RCC_MODULE_TYPE module)
     {
         rstr = &hwp_lpsys_rcc->RSTR1 + group;
     }
+#ifdef SECU1_ACPU_ENR
+    else if (RCC_MOD_TYPE_SECU1 == subsys)
+    {
+        rstr = &hwp_secu1->ACPU;
+    }
+#endif /* SECU1_ACPU_ENR */
     else
     {
         HAL_ASSERT(0);
@@ -1983,6 +1989,13 @@ __HAL_ROM_USED void HAL_RCC_DisableModule(RCC_MODULE_TYPE module)
     {
         ecr = &hwp_lpsys_rcc->ECR1 + group;
     }
+#ifdef SECU1_ACPU_ENR
+    else if (RCC_MOD_TYPE_SECU1 == subsys)
+    {
+        hwp_secu1->ACPU &= ~(1UL << offset);
+        return;
+    }
+#endif /* SECU1_ACPU_ENR */
     else
     {
         HAL_ASSERT(0);
@@ -2015,6 +2028,12 @@ __HAL_ROM_USED bool HAL_RCC_IsModuleEnabled(RCC_MODULE_TYPE module)
     {
         enr = &hwp_lpsys_rcc->ENR1 + group;
     }
+#ifdef SECU1_ACPU_ENR
+    else if (RCC_MOD_TYPE_SECU1 == subsys)
+    {
+        enr = &hwp_secu1->ACPU;
+    }
+#endif /* SECU1_ACPU_ENR */
     else
     {
         HAL_ASSERT(0);
