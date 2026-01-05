@@ -340,6 +340,29 @@ def validate_ptab_v3(ptab_obj) -> List[ValidationError]:
         errors.extend(validate_size(p.get('size', 0), 'size', pname))
         errors.extend(validate_exec(p.get('exec'), pname, chip_config, p.get('core')))
 
+        # flashdb_kv partitions must live on an mpiN region for FAL_PART_TABLE generation
+        if p.get('type') == 'data' and p.get('subtype') == 'flashdb_kv':
+            # Partition `name` is used as the FlashDB KV DB name and the FAL
+            # partition name string. Legacy names like `kvdb_dfu_region` are
+            # not supported and would generate wrong macros / FAL entries.
+            m = re.match(r'^kvdb_(.+)_region$', str(pname).strip(), flags=re.IGNORECASE)
+            if m:
+                db_hint = (m.group(1) or '').strip().lower()
+                if db_hint:
+                    errors.append(ValidationError(
+                        f"Partition '{pname}': flashdb_kv name must be the DB/FAL partition name (e.g. '{db_hint}'), not legacy '{pname}'"
+                    ))
+                else:
+                    errors.append(ValidationError(
+                        f"Partition '{pname}': flashdb_kv name must be the DB/FAL partition name (e.g. 'dfu', 'ble'), not legacy '{pname}'"
+                    ))
+
+            region = str(p.get('region', '') or '').strip()
+            if not re.match(r'^mpi\\d+$', region, flags=re.IGNORECASE):
+                errors.append(ValidationError(
+                    f"Partition '{pname}': flashdb_kv must use region 'mpiN' (got '{region}')"
+                ))
+
     # Global validations
     errors.extend(validate_bootloader_unique(partitions))
     errors.extend(validate_ftab_unique(partitions))

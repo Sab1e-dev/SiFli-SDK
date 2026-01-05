@@ -124,8 +124,6 @@ class PtabV3:
             subtype = (p.get('subtype') or '').strip() or None
 
             region = (p.get('region') or '').strip()
-            if region == 'psram':
-                region = 'psram1'
 
             offset = p.get('offset', 0)
             size = p.get('size', 0)
@@ -614,12 +612,6 @@ def _get_region_memory_type(region: str, chip_config: Dict[str, Any]) -> str:
     mtype = info.get('type')
     if mtype is not None:
         return str(mtype)
-
-    # Default heuristic: when memory type is not specified for an mpi region,
-    # treat it as NOR for backward compatibility (v1/v2 commonly use XIP
-    # address as the "base" for flash regions).
-    if re.match(r'^mpi\d+$', region):
-        return 'nor'
 
     return ''
 
