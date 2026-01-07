@@ -489,4 +489,6 @@ menu "Sifli middleware"
         bool "BSP testcases"
         default n
 
+    source "$SIFLI_SDK/middleware/crypto/Kconfig"    
+
 endmenu
