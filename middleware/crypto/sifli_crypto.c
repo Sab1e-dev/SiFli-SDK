@@ -43,7 +43,7 @@ sf_crypto_err_t sf_crypto_aes_cmac_init(sf_crypto_aes_cmac_ctx_t *ctx, const uin
     uint8_t *k1;
     uint8_t *k2;
 
-    if (key_size != 32)
+    if (key_size != SF_CRYPTO_AES_CMAC_KEY_SIZE)
     {
         return -SF_CRYPTO_E_INVALID_KEY;
     }

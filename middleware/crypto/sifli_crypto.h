@@ -21,17 +21,24 @@ extern "C" {
 
 typedef int32_t sf_crypto_err_t;
 
-#define SF_CRYPTO_AES_CMAC_PACKET_SIZE         16
-#define SF_CRYPTO_AES_CMAC_K1_SIZE             16
-#define SF_CRYPTO_AES_CMAC_K2_SIZE             16
-#define SF_CRYPTO_AES_CMAC_HASH_SIZE       16
+#define SF_CRYPTO_AES_CMAC_PACKET_SIZE         16          /**< CMAC packet size in byte */
+#define SF_CRYPTO_AES_CMAC_K1_SIZE             16          /**< CMAC key K1 size ini byte */
+#define SF_CRYPTO_AES_CMAC_K2_SIZE             16          /**< CMAC key K2 size in byte */
+#define SF_CRYPTO_AES_CMAC_HASH_SIZE           16          /**< CMAC hash size in byte */
+#define SF_CRYPTO_AES_CMAC_KEY_SIZE            32          /**< CMAC original key size in byte */
 
+/** AES-CMAC context structure */
 typedef struct
 {
+    /** original key */
     const uint32_t *key;
+    /** original key size, must be equal to SF_CRYPTO_AES_CMAC_KEY_SIZE */
     uint16_t key_size;
+    /** CMAC key K1 */
     uint8_t k1[SF_CRYPTO_AES_CMAC_K1_SIZE];
+    /** CMAC key K2 */
     uint8_t k2[SF_CRYPTO_AES_CMAC_K2_SIZE];
+    /** CMAC IV, i.e. hash of last computation */
     uint32_t iv[SF_CRYPTO_AES_CMAC_HASH_SIZE / sizeof(uint32_t)];
     /** whether it's the first calculation, i.e. iv is all zero */
     bool is_first;
