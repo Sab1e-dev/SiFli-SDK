@@ -1,0 +1,1 @@
+python imgtool.py cmac_sign --key=%1s01 --img=%2 --eimg=boot_ram_patch_sign.bin --bksize=512
