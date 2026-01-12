@@ -24,26 +24,32 @@ int main(void)
     return 0;
 }
 
-
 static int efuse_write(int argc, char *argv[])
 {
     int pos;
-    int val;
+    uint8_t *buf;
     int len;
     int32_t r;
+    uint32_t byte_len;
 
     if (argc < 4)
     {
         rt_kprintf("wrong arguments\n");
+        rt_kprintf("argument list:\n");
+        rt_kprintf("  pos: bit position\n");
+        rt_kprintf("  len: bit length\n");
+        rt_kprintf("  data: data in hex, e.g. 0102, 0x01 is the first byte written to [pos], 0x02 is the second byte written to [pos+8]\n");
         return -1;
-
     }
 
     pos = atoi(argv[1]);
-    val = atoi(argv[2]);
-    len = atoi(argv[3]);
+    len = atoi(argv[2]);
+    byte_len = (len + 7) >> 3;
+    buf = rt_malloc(byte_len);
+    RT_ASSERT(buf);
+    hex2data(argv[3], buf, byte_len);
 
-    r = HAL_EFUSE_Write2(pos, (uint8_t *)&val, len);
+    r = HAL_EFUSE_Write2(pos, (uint8_t *)buf, len);
     if (r != len)
     {
         rt_kprintf("write fail:%d\n", r);
