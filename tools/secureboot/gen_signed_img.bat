@@ -1,0 +1,1 @@
+python imgtool.py append_cmac_sign --key=%1s01 --img=%2.bin --eimg=%2_sign.bin

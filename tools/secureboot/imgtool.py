@@ -140,7 +140,7 @@ def cmac_sign_data(key, data):
 def cmac_sign_padding_16(key, data):
     return cmac_sign_data(key, data) + bytearray(16)
 
-def cmac_sign_image_help(img, eimg) :
+def gen_cmac_sign_dfu_img_help(img, eimg) :
     file_key=open(FLAGS.key+".bin", "rb")
     root_key = file_key.read()
     
@@ -184,7 +184,7 @@ def cmac_sign_image_help(img, eimg) :
     file_out.write(data2)
     file_out.write(data3)
 
-def cmac_sign_image():
+def gen_cmac_sign_dfu_img():
     if os.path.isdir(FLAGS.img):
         if os.path.exists(FLAGS.eimg):
             print("Skip create, already exist:" + FLAGS.eimg)
@@ -193,9 +193,25 @@ def cmac_sign_image():
         for f in os.listdir(FLAGS.img):
             print(FLAGS.img+'/'+f)
             print(FLAGS.eimg+'/'+f+'_sign.bin')  
-            cmac_sign_image_help(FLAGS.img+'/'+f, FLAGS.eimg+'/'+f+'_sign.bin')
+            gen_cmac_sign_dfu_img_help(FLAGS.img+'/'+f, FLAGS.eimg+'/'+f+'_sign.bin')
     else:
-        cmac_sign_image_help(FLAGS.img,FLAGS.eimg)
+        gen_cmac_sign_dfu_img_help(FLAGS.img,FLAGS.eimg)
+
+
+def append_cmac_sign():
+    file_key=open(FLAGS.key+".bin", "rb")
+    root_key = file_key.read()
+    
+    # Align image to 16 bytes 
+    data=open(FLAGS.img,"rb").read()
+    data=bytearray(data)
+                
+    # Sign the whole image
+    signature = cmac_sign_data(root_key, data)
+        
+    file_out = open(FLAGS.eimg, "wb")
+    file_out.write(data)
+    file_out.write(signature)
 
 
 def encrypt_image_help_static(img, eimg) :
@@ -564,7 +580,7 @@ if __name__ == '__main__':
          Print Non-ecnrypted: python imgtool.py rftab --table=<flash table>
          '''))
 
-    parser.add_argument('action', choices=['enc', 'dec', 'uid', 'root','dumproot', 'enctab', 'dectab','ftab','rftab','gensig','dumpsig', 'test', 'sig_ftab', 'enc_static', 'cmac_sign'], default='enc')
+    parser.add_argument('action', choices=['enc', 'dec', 'uid', 'root','dumproot', 'enctab', 'dectab','ftab','rftab','gensig','dumpsig', 'test', 'sig_ftab', 'enc_static', 'gen_cmac_sign_dfu_img', 'append_cmac_sign'], default='enc')
     parser.add_argument(
         '--img',
         type=str,
@@ -633,5 +649,8 @@ if __name__ == '__main__':
         add_sig_in_ftab()
     if (FLAGS.action == 'enc_static'):
         encrypt_image_static()
-    if (FLAGS.action == 'cmac_sign'):
-        cmac_sign_image()
+    if (FLAGS.action == 'gen_cmac_sign_dfu_img'):
+        gen_cmac_sign_dfu_img()
+    if (FLAGS.action == 'append_cmac_sign'):
+        append_cmac_sign()        
+

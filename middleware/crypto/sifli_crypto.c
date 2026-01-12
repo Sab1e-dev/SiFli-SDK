@@ -36,7 +36,6 @@ static void sf_crypto_cmac_gen_subkey(uint8_t *input, uint8_t *output)
 
 sf_crypto_err_t sf_crypto_aes_cmac_init(sf_crypto_aes_cmac_ctx_t *ctx, const uint32_t *key, uint16_t key_size)
 {
-    int r;
     sf_crypto_err_t err;
     uint8_t plain_packet[SF_CRYPTO_AES_CMAC_PACKET_SIZE];
     uint8_t encrypted_packet[SF_CRYPTO_AES_CMAC_PACKET_SIZE];
@@ -92,7 +91,6 @@ sf_crypto_err_t sf_crypto_aes_cmac_calc(sf_crypto_aes_cmac_ctx_t *ctx, uint8_t *
     uint32_t i;
     uint8_t last_packet[SF_CRYPTO_AES_CMAC_PACKET_SIZE];
     uint16_t padding_size;
-    int r;
     sf_crypto_err_t err;
 
     if (!ctx || !hash)
