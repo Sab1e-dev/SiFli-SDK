@@ -426,6 +426,7 @@ static HAL_StatusTypeDef SelectIntf(LCDC_HandleTypeDef *lcdc, HAL_LCDC_IF_TypeDe
         reg_v |= MAKE_REG_VAL2(init->cfg.epd.SDCLK_polarity, LCD_IF_TCON_IF_CONF1_SDCLK_POL);
         reg_v |= MAKE_REG_VAL2(init->cfg.epd.GDCLK_polarity, LCD_IF_TCON_IF_CONF1_GDCLK_POL);
         reg_v |= MAKE_REG_VAL2(init->cfg.epd.GDSP_polarity, LCD_IF_TCON_IF_CONF1_GDSP_POL);
+        reg_v |= LCD_IF_TCON_IF_CONF1_GDCLK_AON_EXT | LCD_IF_TCON_IF_CONF1_GDCLK_AON;
         lcdc->Instance->TCON_IF_CONF1 = reg_v;
 
 
@@ -1435,7 +1436,7 @@ static HAL_StatusTypeDef LayerUpdate(LCDC_HandleTypeDef *lcdc)
         lcdc->Instance->CANVAS_BR_POS = (lcdc->roi.x1 << LCD_IF_CANVAS_BR_POS_X1_Pos) | (lcdc->roi.y1 << LCD_IF_CANVAS_BR_POS_Y1_Pos);
     }
 
-#ifdef LCDC_SUPPORT_EXTENAL_LINEBUF
+#ifdef LCDC_SUPPORT_EXTERNAL_LINEBUF
     if ((0 == lcdc->sram_line_buf0) || (0 == lcdc->sram_line_buf1))
     {
         lcdc->Instance->CANVAS_BG |= LCD_IF_CANVAS_BG_LB_BYPASS;
@@ -1446,7 +1447,13 @@ static HAL_StatusTypeDef LayerUpdate(LCDC_HandleTypeDef *lcdc)
         lcdc->Instance->LINE_BUF1 = (uint32_t) lcdc->sram_line_buf1;
         lcdc->Instance->CANVAS_BG &= ~LCD_IF_CANVAS_BG_LB_BYPASS;
     }
-#endif /* LCDC_SUPPORT_EXTENAL_LINEBUF */
+#ifdef FPGA
+    if (HAL_LCDC_IS_EPD_IF(lcdc->Init.lcd_itf)) // FPGA SRAM is too slow, bypass line buffer for EPD interface
+    {
+        lcdc->Instance->CANVAS_BG |= LCD_IF_CANVAS_BG_LB_BYPASS;
+    }
+#endif
+#endif /* LCDC_SUPPORT_EXTERNAL_LINEBUF */
 
 
     /*** 2. setup layer ***/

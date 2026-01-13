@@ -266,7 +266,7 @@ void BSP_PIN_Init(void)
     HAL_PIN_Set(PAD_PA45, I2C1_SDA, PIN_PULLUP, 1);
     HAL_PIN_Set(PAD_PA46, I2C1_SCL, PIN_PULLUP, 1);
 
-#ifdef BSP_USING_DCMI
+#if defined(BSP_USING_DCMI) && (!defined(BSP_LCDC_USING_EPD_8BIT))
     // Digital Camera Interface
     HAL_PIN_Set(PAD_PA30, GPTIM2_CH1, PIN_PULLUP, 1); // mclk output
 

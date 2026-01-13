@@ -171,8 +171,8 @@ static LCD_DrvTypeDef drv_lcd;
     static uint32_t *ramless_code = NULL;
 #endif /* BSP_USING_RAMLESS_LCD */
 
-#if defined(LCDC_SUPPORT_EXTENAL_LINEBUF) || (defined(BSP_USING_RAMLESS_LCD) && defined(BSP_LCDC_USING_DPI))
-    #if defined(LCDC_SUPPORT_EXTENAL_LINEBUF)
+#if defined(LCDC_SUPPORT_EXTERNAL_LINEBUF) || (defined(BSP_USING_RAMLESS_LCD) && defined(BSP_LCDC_USING_DPI))
+    #if defined(LCDC_SUPPORT_EXTERNAL_LINEBUF)
         //Fixed ARGB8888 format
         #define SRAM_BUF_1LINE (LCD_HOR_RES_MAX * 4)
     #else
@@ -730,10 +730,10 @@ static rt_err_t lcd_hw_open(void)
 #ifdef SRAM_BUF_1LINE
     init_line_buffer();
 #endif /* SRAM_BUF_1LINE */
-#ifdef LCDC_SUPPORT_EXTENAL_LINEBUF
+#ifdef LCDC_SUPPORT_EXTERNAL_LINEBUF
     drv_lcd.hlcdc.sram_line_buf0 = sram_data0;
     drv_lcd.hlcdc.sram_line_buf1 = sram_data1;
-#else /*LCDC_SUPPORT_EXTENAL_LINEBUF*/
+#else /*LCDC_SUPPORT_EXTERNAL_LINEBUF*/
 
 #ifdef BSP_USING_RAMLESS_LCD
     if ((drv_lcd.p_drv_ops) && (HAL_LCDC_IS_PTC_AUX_IF(drv_lcd.hlcdc.Init.lcd_itf)))
@@ -748,7 +748,7 @@ static rt_err_t lcd_hw_open(void)
 #endif /* BSP_LCDC_USING_DPI */
     }
 #endif /* BSP_USING_RAMLESS_LCD */
-#endif /*LCDC_SUPPORT_EXTENAL_LINEBUF*/
+#endif /*LCDC_SUPPORT_EXTERNAL_LINEBUF*/
 
     LOG_I("HW open done.");
 
@@ -767,7 +767,7 @@ static rt_err_t lcd_hw_close(void)
     HAL_LCDC_DeInit(&drv_lcd.hlcdc);
 
     BSP_LCD_PowerDown();
-#ifdef LCDC_SUPPORT_EXTENAL_LINEBUF
+#ifdef LCDC_SUPPORT_EXTERNAL_LINEBUF
     drv_lcd.hlcdc.sram_line_buf0 = NULL;
     drv_lcd.hlcdc.sram_line_buf1 = NULL;
 #else
@@ -778,7 +778,7 @@ static rt_err_t lcd_hw_close(void)
         ramless_code = NULL;
     }
 #endif /* BSP_USING_RAMLESS_LCD */
-#endif /*LCDC_SUPPORT_EXTENAL_LINEBUF*/
+#endif /*LCDC_SUPPORT_EXTERNAL_LINEBUF*/
 
 #ifdef SRAM_BUF_1LINE
     deinit_line_buffer();
@@ -1574,7 +1574,7 @@ static rt_err_t draw_core(LCD_DrvTypeDef *p_drvlcd, const uint8_t *pixels, int x
             }
         }
 
-#ifdef LCDC_SUPPORT_EXTENAL_LINEBUF
+#ifdef LCDC_SUPPORT_EXTERNAL_LINEBUF
         if (check_line_bufer_overwrite())
         {
             LOG_E("Line buffer overwritten!!");

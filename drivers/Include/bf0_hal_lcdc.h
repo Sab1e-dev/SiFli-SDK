@@ -115,7 +115,7 @@ extern "C" {
    External line buffer
 */
 #if !(defined(SF32LB55X) || defined(SF32LB58X) || defined(SF32LB56X) || defined(SF32LB52X))
-#define LCDC_SUPPORT_EXTENAL_LINEBUF
+#define LCDC_SUPPORT_EXTERNAL_LINEBUF
 #endif /* !(defined(SF32LB55X) || defined(SF32LB58X) || defined(SF32LB56X) || defined(SF32LB52X)) */
 
 
@@ -562,10 +562,10 @@ typedef struct __LCDC_HandleTypeDef
     uint32_t sram_buf_bytes;
 #endif /* HAL_RAMLESS_LCD_ENABLED */
 
-#ifdef LCDC_SUPPORT_EXTENAL_LINEBUF
+#ifdef LCDC_SUPPORT_EXTERNAL_LINEBUF
     uint32_t *sram_line_buf0;
     uint32_t *sram_line_buf1;
-#endif /* LCDC_SUPPORT_EXTENAL_LINEBUF */
+#endif /* LCDC_SUPPORT_EXTERNAL_LINEBUF */
 
     LCDC_AreaDef roi;                   //!< Clip area position (Origin is LCD top-left, same as below)
     LCDC_ColorDef bg;                   //!< LCDC default background color

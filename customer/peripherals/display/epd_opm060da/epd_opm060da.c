@@ -30,11 +30,7 @@
 static const LCDC_InitTypeDef lcdc_int_cfg_edp_8bit =
 {
     .lcd_itf = LCDC_INTF_EPD_8BIT,
-#ifdef FPGA
-    .freq = 2 * 1000 * 1000, //sclk frequnecy
-#else
-    .freq = 12 * 1000 * 1000, //sclk frequnecy
-#endif
+    .freq = 24 * 1000 * 1000, //sclk frequnecy
     .color_mode = LCDC_PIXEL_FORMAT_F2_SWAP,
 
     .cfg = {
@@ -55,9 +51,6 @@ static const LCDC_InitTypeDef lcdc_int_cfg_edp_8bit =
                                    .FBL = 3, //Frame begin length
                                    .FDL = LCD_VER_RES_MAX, //Frame data length
                                    .FEL = 5, //Frame end length
-
-
-
         },
     },
 
@@ -100,7 +93,7 @@ static void LCD_Init(LCDC_HandleTypeDef *hlcdc)
     HAL_LCDC_SetROIArea(hlcdc, 0, 0, LCD_HOR_RES_MAX - 1, LCD_VER_RES_MAX - 1);
 
 
-    tps_init(1500); //-1.5V
+    tps_init(1000); //-1.5V
     tps_exit_sleep();
 }
 
