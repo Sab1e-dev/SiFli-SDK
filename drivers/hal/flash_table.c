@@ -12,9 +12,9 @@ typedef enum
 {
     NOR_TYPE0 = 0,  // normal type 0, DTR, NO CMD_WRSR2, Max 128Mb, as default command table
     NOR_TYPE1,      // type 1, WRSR2 to write status register 2(QE), Max 128Mb
-    NOR_TYPE2,      // type 2, 256Mb, DTR, 4 bytes address command diff with 3 bytes, OTP support 4-B mode
-    NOR_TYPE3,      // type 3, 256Mb , NO DTR , 4 bytes command same to 3 bytes, only timing changed, OTP 3-B only
-    NOR_TYPE4,      // type 4, 256Mb, NO DTR, 4B ADDR command diff with 3B addr , OTP support 4-B mode
+    NOR_TYPE2,      // type 2, 256Mb, DTR, 4 bytes address command diff with 3 bytes, OTP support 4-B mode, no WRSR2 command
+    NOR_TYPE3,      // type 3, 256Mb, NO DTR , 4 bytes command same to 3 bytes, only timing changed, OTP 3-B only
+    NOR_TYPE4,      // type 4, 256Mb, NO DTR, 4B ADDR command diff with 3B addr , OTP support 4-B mode, WRSR2 command
     NOR_TYPE5,      // type 5, 256Mb, NO DTR, MXIC flash have too many diff with others
     NOR_CMD_TABLE_CNT
 } FLASH_CMD_TABLE_ID_T;
@@ -510,6 +510,7 @@ FT_CONST FLASH_RDID_TYPE_T flash_cmd_id_pool_typ0[] =
 FT_CONST FLASH_RDID_TYPE_T flash_cmd_id_pool_typ1[] =
 {
     {0x85, 0x60, 0x16, 1, 0x400000},    //P25Q32L_RDID
+    {0x85, 0x42, 0x16, 1, 0x400000},    //P25Q32L_RDID, old id
     {0x85, 0x60, 0x17, 1, 0x800000},    //P25Q64H_RDID, P25Q64SH
     {0x85, 0x60, 0x18, 1, 0x1000000},   //P25Q128L_RDID
     {0x85, 0x65, 0x18, 1, 0x1000000},   //P25Q128LA_RDID
@@ -538,6 +539,7 @@ FT_CONST FLASH_RDID_TYPE_T flash_cmd_id_pool_typ2[] =
     {0xef, 0x40, 0x19, 0, 0x2000000},   //W25Q256JVM_RDID
     {0x68, 0x49, 0x19, 0, 0x2000000},   //BY25Q256FS
     {0x5e, 0x40, 0x19, 0, 0x2000000},   //ZQ25Q256AW1G
+    {0xa1, 0x60, 0x19, 1, 0x2000000},   //FM25LP256_RDID
     {FLASH_INVALID_ID, 0, 0, 0, 0},      //last one
 };
 FT_CONST FLASH_RDID_TYPE_T flash_cmd_id_pool_typ3[] =
