@@ -494,7 +494,7 @@ bool boot_device_init(void)
         break;
     }
     default:
-        boot_error('S');
+        printf("invalid boot device");
     }
 
     if (g_flash_read)
@@ -535,7 +535,11 @@ bool boot_device_init(void)
         }
         else
         {
-            printf("invalid magic\n");
+#if defined(CFG_BOOTROM)
+            printf("ROM:invalid ftab magic\n");
+#else
+            printf("BL:invalid ftab magic\n");
+#endif /* CFG_BOOTROM */
         }
     }
 

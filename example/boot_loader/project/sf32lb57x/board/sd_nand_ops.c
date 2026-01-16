@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <rtconfig.h>
 #include "sd_nand_drv.h"
 
 static uint8_t  wire_mode = 1;  //0 for 1-wire mode, 1 for 4-wire mode
@@ -21,11 +22,11 @@ uint8_t sdmmc1_sdnand()
 
     //initialize sdmmc host
     sd1_init();
-#ifdef FPGA
+#if defined(CFG_BOOTROM) || defined(FPGA)
     hwp_sdmmc1->CLKCR = 119 << SD_CLKCR_DIV_Pos; //48M/120=400k, stop_clk = 0
 #else
     hwp_sdmmc1->CLKCR = 359 << SD_CLKCR_DIV_Pos; //144M/360=400k, stop_clk = 0
-#endif
+#endif /* CFG_BOOTROM || FPGA */
     hwp_sdmmc1->CLKCR |= SD_CLKCR_VOID_FIFO_ERROR;
     hwp_sdmmc1->IER = 0; //mask sdmmc interrupt
     hwp_sdmmc1->TOR = 0x00100000; // set timeout for 400K about 2.6s
@@ -198,14 +199,15 @@ uint8_t sdmmc1_sdnand()
     }
     //debug_print("SD card identification done!\n");
 
-#ifdef FPGA
-    hwp_sdmmc1->CLKCR = 1 << SD_CLKCR_DIV_Pos; //48M/2=24M
+#if defined(CFG_BOOTROM) || defined(FPGA)
+//TODO
+    hwp_sdmmc1->CLKCR = 3 << SD_CLKCR_DIV_Pos; //48M/4=12M
 #else
     hwp_sdmmc1->CLKCR = 5 << SD_CLKCR_DIV_Pos; //144M/6=24M
-#endif
+#endif /* CFG_BOOTROM || FPGA */
     hwp_sdmmc1->CLKCR |= SD_CLKCR_VOID_FIFO_ERROR;
     hwp_sdmmc1->TOR = 0x02000000; // set timeout for 24M about 1.4s
-    hwp_sdmmc1->CDR = SD_CDR_ITIMING_SEL | (0 << SD_CDR_ITIMING_Pos);
+    hwp_sdmmc1->CDR = (0 << SD_CDR_ITIMING_Pos);
 
     //start card transfer
     //CMD7 (SELECT_CARD)

@@ -82,7 +82,7 @@ extern "C" {
     }
 
 //---------------------------- SD-NAND ----------------------------
-#define SDNAND_MEM_ADDR (MPI2_MEM_BASE+HPSYS_MPI_MEM_CBUS_2_SBUS_OFFSET)
+#define SDNAND_MEM_ADDR (MPI3_MEM_BASE+HPSYS_MPI_MEM_CBUS_2_SBUS_OFFSET)
 #define SDNAND_START_OFFSET     (0X1000)
 
 

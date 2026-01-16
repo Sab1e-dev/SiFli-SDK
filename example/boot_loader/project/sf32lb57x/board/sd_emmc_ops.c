@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <rtconfig.h>
 #include "sd_nand_drv.h"
 
 static uint32_t sdemmc_cache[128];
@@ -16,11 +17,11 @@ int sdio_emmc_init()
 
     //initialize sdmmc host
     sd1_init();
-#ifdef FPGA
+#if defined(CFG_BOOTROM) || defined(FPGA)
     hwp_sdmmc1->CLKCR = 119 << SD_CLKCR_DIV_Pos; //48M/120=400k
 #else
     hwp_sdmmc1->CLKCR = 359 << SD_CLKCR_DIV_Pos; //144M/360=400k
-#endif
+#endif /* CFG_BOOTROM || FPGA */
     hwp_sdmmc1->CLKCR |= SD_CLKCR_VOID_FIFO_ERROR;
     hwp_sdmmc1->IER = 0; //mask sdmmc interrupt
     hwp_sdmmc1->TOR = 0x02000000; //
@@ -103,14 +104,14 @@ int sdio_emmc_init()
     }
     sd1_get_rsp(&rsp_idx, &rsp_arg[0], &rsp_arg[1], &rsp_arg[2], &rsp_arg[3]);
 
-#ifdef FPGA
-    hwp_sdmmc1->CLKCR = 7 << SD_CLKCR_DIV_Pos; //48M/8=6M
+#if defined(CFG_BOOTROM) || defined(FPGA)
+    hwp_sdmmc1->CLKCR = 3 << SD_CLKCR_DIV_Pos; //48M/4=12M
 #else
     hwp_sdmmc1->CLKCR = 23 << SD_CLKCR_DIV_Pos; //144M/24=6M
-#endif
+#endif /* CFG_BOOTROM || FPGA */
     hwp_sdmmc1->CLKCR |= SD_CLKCR_VOID_FIFO_ERROR;
     hwp_sdmmc1->TOR = 0x02000000; // set timeout
-    hwp_sdmmc1->CDR = SD_CDR_ITIMING_SEL | (0 << SD_CDR_ITIMING_Pos);
+    hwp_sdmmc1->CDR = (0 << SD_CDR_ITIMING_Pos);
 
     //start card transfer
     //CMD7 (SELECT_CARD)

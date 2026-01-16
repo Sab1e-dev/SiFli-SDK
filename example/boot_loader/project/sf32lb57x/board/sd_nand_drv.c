@@ -1,4 +1,4 @@
-
+#include <rtconfig.h>
 #include "sd_nand_drv.h"
 
 void sd1_init()
