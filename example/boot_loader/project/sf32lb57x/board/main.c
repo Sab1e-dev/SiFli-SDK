@@ -17,6 +17,9 @@
 #include "boot_flash.h"
 #include "secboot.h"
 #include "../dfu/dfu_protocol.h"
+#include "transport.h"
+#include "cdc_acm_transport.h"
+#include "serial_transport.h"
 
 #define CMD_BUF_SIZE 32
 #define CMD_ARG_MAX 3
@@ -30,13 +33,11 @@ typedef struct
 uint32_t rx_data_buf_len(void);
 uint32_t rx_data_buf_get(uint8_t *buf, uint32_t len);
 
-static cmd_buf_t cmd_buf;
+static cmd_buf_t cdc_acm_cmd_buf;
+static cmd_buf_t serial_cmd_buf;
 static uint8_t dfu_data[DFU_MAX_BLK_SIZE];
 
 void HAL_MspInit(void);
-
-void cdc_acm_data_send_with_dtr_test(uint8_t *buf, uint32_t len);
-extern void cdc_acm_init(uint8_t busid, uintptr_t base);
 
 extern flash_read_func g_flash_read;
 extern flash_write_func g_flash_write;
@@ -314,14 +315,13 @@ int _write(int fd, char *ptr, int len)
 }
 #endif
 
-#ifdef PKG_USING_CHERRYUSB
-
 PUTCHAR_PROTOTYPE
 {
     boot_uart_tx(hwp_usart1, (uint8_t *)&ch, 1);
     return ch;
 }
 
+#ifdef CFG_BOOTROM
 static uint32_t cmd_split(char *cmd, uint32_t length, char *argv[CMD_ARG_MAX])
 {
     char *ptr;
@@ -401,7 +401,7 @@ static uint32_t cmd_split(char *cmd, uint32_t length, char *argv[CMD_ARG_MAX])
     return argc;
 }
 
-int32_t handle_cmd_dfu_recv(uint32_t argc, char **argv)
+int32_t handle_cmd_dfu_recv(transport_t *transport, uint32_t argc, char **argv)
 {
     int r = DFU_FAIL;
     int32_t offset = 0;
@@ -414,7 +414,7 @@ int32_t handle_cmd_dfu_recv(uint32_t argc, char **argv)
         {
             while (offset < len)
             {
-                delta = rx_data_buf_get(&dfu_data[offset], len - offset);
+                delta = xport_rx_buf_get(transport, &dfu_data[offset], len - offset);
                 offset += delta;
             }
             r = dfu_receive_pkt(len, dfu_data);
@@ -422,11 +422,11 @@ int32_t handle_cmd_dfu_recv(uint32_t argc, char **argv)
     }
     if (r == DFU_SUCCESS)
     {
-        cdc_acm_data_send_with_dtr_test("OK\n", 3);
+        xport_send(transport, "OK\n", 3);
     }
     else
     {
-        cdc_acm_data_send_with_dtr_test("Fail\n", 5);
+        xport_send(transport, "Fail\n", 5);
     }
 
     return r;
@@ -434,7 +434,7 @@ int32_t handle_cmd_dfu_recv(uint32_t argc, char **argv)
 }
 
 
-void handle_cmd(char *cmd, uint32_t len)
+void handle_cmd(transport_t *transport, char *cmd, uint32_t len)
 {
     char *argv[CMD_ARG_MAX];
     uint32_t argc;
@@ -465,50 +465,50 @@ void handle_cmd(char *cmd, uint32_t len)
 
     if (strncmp((const char *)argv[0], "dfu_recv", 8) == 0)
     {
-        handle_cmd_dfu_recv(argc, argv);
+        handle_cmd_dfu_recv(transport, argc, argv);
     }
 }
 
-void handle_rx_data(void)
+void handle_rx_data(transport_t *transport, cmd_buf_t *cmd_buf)
 {
     char ch;
     uint32_t len;
 
+    HAL_ASSERT(transport && cmd_buf);
+
     while (1)
     {
-        len = rx_data_buf_get((uint8_t *)&ch, 1);
+        len = xport_rx_buf_get(transport, (uint8_t *)&ch, 1);
         if (len == 0)
         {
             break;
         }
         if ((ch == '\r') || (ch == '\n'))
         {
-            handle_cmd(cmd_buf.buf, cmd_buf.pos);
-            memset(cmd_buf.buf, 0, CMD_BUF_SIZE);
-            cmd_buf.pos = 0;
+            handle_cmd(transport, cmd_buf->buf, cmd_buf->pos);
+            memset(cmd_buf->buf, 0, CMD_BUF_SIZE);
+            cmd_buf->pos = 0;
         }
-        if (cmd_buf.pos >= CMD_BUF_SIZE)
+        if (cmd_buf->pos >= CMD_BUF_SIZE)
         {
-            cmd_buf.pos = 0;
+            cmd_buf->pos = 0;
         }
         if (((ch >= 'a') && (ch <= 'z'))
                 || ((ch >= 'A') && (ch <= 'Z'))
                 || ((ch >= '0') && (ch <= '9'))
                 || (ch == ' ') || (ch == '\t') || (ch == '_'))
         {
-            cmd_buf.buf[cmd_buf.pos] = ch;
-            cmd_buf.pos++;
+            cmd_buf->buf[cmd_buf->pos] = ch;
+            cmd_buf->pos++;
             /* leave one byte for null terminator */
-            if (cmd_buf.pos >= CMD_BUF_SIZE)
+            if (cmd_buf->pos >= CMD_BUF_SIZE)
             {
-                cmd_buf.pos = 0;
+                cmd_buf->pos = 0;
             }
         }
     }
 }
-#endif /* PKG_USING_CHERRYUSB */
 
-#ifdef CFG_BOOTROM
 static bool boot_is_bootmode(void)
 {
     bool is_bootmode;
@@ -567,6 +567,7 @@ static bool boot_is_bootmode(void)
         }
     }
 
+#ifdef CFG_BOOTROM
     //TODO:
     if (RCC_SYSCLK_HRC48 == HAL_RCC_HCPU_GetClockSrc(RCC_CLK_MOD_SYS))
     {
@@ -580,19 +581,26 @@ static bool boot_is_bootmode(void)
     HAL_PIN_Set_Analog(PAD_PA35, 1);                    // USB_DP
     HAL_PIN_Set_Analog(PAD_PA36, 1);                    // USB_DM
 
-
-#ifdef PKG_USING_CHERRYUSB
     cdc_acm_init(0, (uintptr_t)USBC_BASE);
-#endif /* PKG_USING_CHERRYUSB */
+
+    serial_transport_init();
+
     while (1)
     {
-#ifdef PKG_USING_CHERRYUSB
-        if (rx_data_buf_len() > 0)
+        if (xport_rx_buf_len(&usb_cdc_acm_transport) > 0)
         {
-            handle_rx_data();
+            handle_rx_data(&usb_cdc_acm_transport, &cdc_acm_cmd_buf);
         }
-#endif /* PKG_USING_CHERRYUSB */
+        if (xport_rx_buf_len(&serial_transport) > 0)
+        {
+            handle_rx_data(&serial_transport, &serial_cmd_buf);
+        }
     }
+#else
+    while (1)
+    {
+    }
+#endif /* CFG_BOOTROM */
 
     return HAL_OK;
 }

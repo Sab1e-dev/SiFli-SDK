@@ -7,6 +7,7 @@
 #include "bf0_hal.h"
 #include "usbd_core.h"
 #include "usbd_cdc_acm.h"
+#include "transport.h"
 
 
 #define USB_BUFF_MAX_LEN 64
@@ -184,19 +185,13 @@ USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t read_buffer[USB_BUFF_MAX_LEN]; /*
 USB_NOCACHE_RAM_SECTION USB_MEM_ALIGNX uint8_t write_buffer[USB_BUFF_MAX_LEN];
 
 
-#define RX_DATA_BUF_SIZE    (8192)
 
-typedef struct
+static void cdc_acm_data_send_with_dtr_test(uint8_t *buf, uint32_t len);
+
+transport_t usb_cdc_acm_transport =
 {
-    uint32_t total_size;
-    uint32_t wr_pos;
-    uint32_t rd_pos;
-    uint8_t buf[RX_DATA_BUF_SIZE];
-} rx_data_buf_t;
-
-
-static rx_data_buf_t rx_data_buf;
-
+    .send = cdc_acm_data_send_with_dtr_test
+};
 
 volatile bool ep_tx_busy_flag = false;
 
@@ -229,100 +224,11 @@ static void usbd_event_handler(uint8_t busid, uint8_t event)
     }
 }
 
-uint32_t rx_data_buf_put(uint8_t *buf, uint32_t len)
-{
-    uint32_t wr_size;
-    uint32_t level;
-
-    if ((rx_data_buf.total_size + len) > RX_DATA_BUF_SIZE)
-    {
-        printf("rx_data_buf full: %d, %d\n", rx_data_buf.total_size, len);
-        len = RX_DATA_BUF_SIZE - rx_data_buf.total_size;
-    }
-    if (len == 0)
-    {
-        return 0;
-    }
-
-    if (rx_data_buf.wr_pos + len > RX_DATA_BUF_SIZE)
-    {
-        wr_size = RX_DATA_BUF_SIZE - rx_data_buf.wr_pos;
-        memcpy(&rx_data_buf.buf[rx_data_buf.wr_pos], buf, wr_size);
-        memcpy(&rx_data_buf.buf[0], &buf[wr_size], len - wr_size);
-
-        level = HAL_DisableInterrupt();
-        rx_data_buf.wr_pos = len - wr_size;
-        rx_data_buf.total_size += len;
-        HAL_EnableInterrupt(level);
-    }
-    else
-    {
-        memcpy(&rx_data_buf.buf[rx_data_buf.wr_pos], buf, len);
-        level = HAL_DisableInterrupt();
-        rx_data_buf.wr_pos += len;
-        if (rx_data_buf.wr_pos >= RX_DATA_BUF_SIZE)
-        {
-            rx_data_buf.wr_pos = 0;
-        }
-        rx_data_buf.total_size += len;
-        HAL_EnableInterrupt(level);
-    }
-
-    return len;
-}
-
-uint32_t rx_data_buf_get(uint8_t *buf, uint32_t len)
-{
-    uint32_t rd_size;
-    uint32_t level;
-
-    if (len > rx_data_buf.total_size)
-    {
-        len = rx_data_buf.total_size;
-    }
-    if (len == 0)
-    {
-        return 0;
-    }
-
-    if (rx_data_buf.rd_pos + len > RX_DATA_BUF_SIZE)
-    {
-        rd_size = RX_DATA_BUF_SIZE - rx_data_buf.rd_pos;
-        memcpy(buf, &rx_data_buf.buf[rx_data_buf.rd_pos], rd_size);
-        memcpy(&buf[rd_size], &rx_data_buf.buf[0], len - rd_size);
-
-        level = HAL_DisableInterrupt();
-        rx_data_buf.rd_pos = len - rd_size;
-        rx_data_buf.total_size -= len;
-        HAL_EnableInterrupt(level);
-    }
-    else
-    {
-        memcpy(buf, &rx_data_buf.buf[rx_data_buf.rd_pos], len);
-        level = HAL_DisableInterrupt();
-        rx_data_buf.rd_pos += len;
-        if (rx_data_buf.rd_pos >= RX_DATA_BUF_SIZE)
-        {
-            rx_data_buf.rd_pos = 0;
-        }
-        rx_data_buf.total_size -= len;
-        HAL_EnableInterrupt(level);
-    }
-
-    return len;
-}
-
-uint32_t rx_data_buf_len(void)
-{
-    return rx_data_buf.total_size;
-}
-
-
 void usbd_cdc_acm_bulk_out(uint8_t busid, uint8_t ep, uint32_t nbytes)
 {
     // USB_LOG_RAW("actual out len:%d\r\n", (unsigned int)nbytes);
     //printf("RX:%s\r\n",read_buffer);
-    rx_data_buf_put(read_buffer, nbytes);
+    xport_rx_buf_put(&usb_cdc_acm_transport, read_buffer, nbytes);
     // memset(read_buffer, 0, USB_BUFF_MAX_LEN);
     /* setup next out ep read transfer */
     usbd_ep_start_read(busid, CDC_OUT_EP, read_buffer, USB_BUFF_MAX_LEN);
@@ -406,7 +312,7 @@ void cdc_acm_data_send_with_dtr_test(uint8_t busid)
     }
 }
 #else
-void cdc_acm_data_send_with_dtr_test(uint8_t *buf, uint32_t len)
+static void cdc_acm_data_send_with_dtr_test(uint8_t *buf, uint32_t len)
 {
     if (dtr_enable)
     {
