@@ -105,7 +105,7 @@ int sdio_emmc_init()
     sd1_get_rsp(&rsp_idx, &rsp_arg[0], &rsp_arg[1], &rsp_arg[2], &rsp_arg[3]);
 
 #if defined(CFG_BOOTROM) || defined(FPGA)
-    hwp_sdmmc1->CLKCR = 3 << SD_CLKCR_DIV_Pos; //48M/4=12M
+    hwp_sdmmc1->CLKCR = 1 << SD_CLKCR_DIV_Pos; //48M/2=24M
 #else
     hwp_sdmmc1->CLKCR = 23 << SD_CLKCR_DIV_Pos; //144M/24=6M
 #endif /* CFG_BOOTROM || FPGA */

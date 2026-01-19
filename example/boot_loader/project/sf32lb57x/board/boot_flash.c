@@ -477,18 +477,12 @@ bool boot_device_init(void)
     }
     case BOARD_BOOT_DEVICE_SD:
     {
-#if !defined(CFG_BOOTROM) && !defined(FPGA)
-        HAL_RCC_HCPU_EnableDLL2(288000000);
-#endif /* !CFG_BOOTROM && !FPGA */
-        g_config_addr = init_sdnand();  // TODO, update sd clock divider after clock changed
+        g_config_addr = init_sdnand();
         boot_handle = NULL;
         break;
     }
     case BOARD_BOOT_DEVICE_EMMC:
     {
-#if !defined(CFG_BOOTROM) && !defined(FPGA)
-        HAL_RCC_HCPU_EnableDLL2(288000000);
-#endif /* !CFG_BOOTROM && !FPGA */
         g_config_addr = init_sdemmc();
         boot_handle = NULL;
         break;

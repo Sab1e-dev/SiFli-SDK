@@ -201,7 +201,7 @@ uint8_t sdmmc1_sdnand()
 
 #if defined(CFG_BOOTROM) || defined(FPGA)
 //TODO
-    hwp_sdmmc1->CLKCR = 3 << SD_CLKCR_DIV_Pos; //48M/4=12M
+    hwp_sdmmc1->CLKCR = 1 << SD_CLKCR_DIV_Pos; //48M/2=24M
 #else
     hwp_sdmmc1->CLKCR = 5 << SD_CLKCR_DIV_Pos; //144M/6=24M
 #endif /* CFG_BOOTROM || FPGA */
