@@ -920,8 +920,12 @@ def PtabAddAddDefaultRegion52x(mems):
                     "type": ["app_img"]
                 }    
             elif "nand" == boot_dev_type:
+                if building.GetConfigValue("FLASH_CONFIG_PAGE_SIZE") != '' and building.GetConfigValue("FLASH_CONFIG_BLOCK_SIZE") != '':
+                    block_size = int(building.GetConfigValue("FLASH_CONFIG_BLOCK_SIZE"))
+                else:
+                    block_size = 128*1024
                 bootloader_region =  {
-                    "offset": "0x00080000", 
+                    "offset": "0x{:08X}".format(4 * block_size), # block0: ftab, block1: ftab_bak, block2: calibration data, block3: reserved
                     "max_size": "0x00010000", 
                     "tags": [],                    
                     "name": "bootloader",
@@ -1034,8 +1038,12 @@ def PtabAddAddDefaultRegion57x(mems):
                     "type": ["app_img"]
                 }    
             elif "nand" == boot_dev_type:
+                if building.GetConfigValue("FLASH_CONFIG_PAGE_SIZE") != '' and building.GetConfigValue("FLASH_CONFIG_BLOCK_SIZE") != '':
+                    block_size = int(building.GetConfigValue("FLASH_CONFIG_BLOCK_SIZE"))
+                else:
+                    block_size = 128*1024
                 bootloader_region =  {
-                    "offset": "0x00080000", 
+                    "offset": "0x{:08X}".format(4 * block_size), # block0: ftab, block1: ftab_bak, block2: calibration data, block3: reserved
                     "max_size": "0x00010000", 
                     "tags": [],                    
                     "name": "bootloader",
