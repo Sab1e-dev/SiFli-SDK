@@ -662,7 +662,7 @@ const SPI_FLASH_FACT_CFG_T *spi_nand_get_cmd_by_id(uint8_t fid, uint8_t did, uin
     return res;
 }
 
-__weak int HAL_GET_FLASH_DEFAUT_INX(void)
+__weak int HAL_GET_NAND_FLASH_DEFAUT_IDX(void)
 {
     return -1;
 }
@@ -673,7 +673,7 @@ const SPI_FLASH_FACT_CFG_T *spi_nand_get_default_ctable(void)
     int deft;
     const SPI_FLASH_FACT_CFG_T *res = NULL;
 
-    deft = HAL_GET_FLASH_DEFAUT_INX();
+    deft = HAL_GET_NAND_FLASH_DEFAUT_IDX();
     if (deft >= 0)
     {
         res = (const SPI_FLASH_FACT_CFG_T *)&nand_cmd_table_list[deft];

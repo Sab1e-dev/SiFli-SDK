@@ -73,6 +73,14 @@ void BSP_SetFlash3DIV(uint16_t div)
 
 #endif /* BSP_NO_BOARD_USED */
 
+#ifdef CFG_BOOTROM
+/* provide default type as bootrom cannot identify all flash chipid */
+int HAL_GET_NAND_FLASH_DEFAUT_IDX(void)
+{
+    return 0;
+}
+#endif /* CFG_BOOTROM */
+
 int port_read_page(int blk, int page, int offset, uint8_t *buff, uint32_t size, uint8_t *spare, uint32_t spare_len)
 {
     int res;
@@ -274,7 +282,7 @@ static uint32_t init_mpi2(void)
 #ifdef  CFG_BOOTROM
     flash_cfg.line = HAL_FLASH_NOR_MODE;
 #else
-    flash_cfg.line = HAL_FLASH_QMODE ;
+    flash_cfg.line = HAL_FLASH_QMODE;
 #endif /* CFG_BOOTROM */
     g_flash_read = read_nor;
     HAL_Delay_us(0);
@@ -299,7 +307,7 @@ static uint32_t init_mpi3(int nand)
 #ifdef CFG_BOOTROM
     flash_cfg.line = HAL_FLASH_NOR_MODE;
 #else
-    flash_cfg.line = HAL_FLASH_QMODE ;
+    flash_cfg.line = HAL_FLASH_QMODE;
 #endif
     g_flash_read = nand ? read_nand : read_nor;
     if (nand)
@@ -491,7 +499,7 @@ bool boot_device_init(void)
         printf("invalid boot device");
     }
 
-    if (g_flash_read)
+    if (g_flash_read && g_config_addr)
     {
         g_flash_read(g_config_addr, (const int8_t *)&sec_config_cache, sizeof(sec_config_cache));
         if (sec_config_cache.magic == SEC_CONFIG_MAGIC)
@@ -535,6 +543,14 @@ bool boot_device_init(void)
             printf("BL:invalid ftab magic\n");
 #endif /* CFG_BOOTROM */
         }
+    }
+    else
+    {
+#if defined(CFG_BOOTROM)
+        printf("ROM:boot device init fail\n");
+#else
+        printf("BL:boot device init fail\n");
+#endif /* CFG_BOOTROM */
     }
 
     return succ;
