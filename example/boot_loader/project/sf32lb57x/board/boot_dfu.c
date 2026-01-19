@@ -47,11 +47,6 @@ static uint32_t g_boot_patch_addr = BOOTLOADER_PATCH_CODE_ADDR;
     extern int sifli_hw_efuse_write_din(uint8_t id, uint8_t *data, int size);
 #endif
 
-static const uint8_t g_fake_dfu_efuse_uid[DFU_UID_SIZE] =
-{
-    0xB7, 0x76, 0x6B, 0x8A, 0xD7, 0xA5, 0xE7, 0xD0, 0x88, 0x52, 0x36, 0xDE, 0xC3, 0x16, 0x36, 0x4C
-};
-
 static const uint8_t g_fake_dfu_efuse_root_key[DFU_KEY_SIZE] =
 {
     0xE6, 0x92, 0xDF, 0xB5, 0xE8, 0xFA, 0xC2, 0x43, 0x78, 0x13, 0x34, 0x5D, 0x1B, 0x4B, 0xE2, 0xB9,
@@ -84,12 +79,7 @@ static int dfu_get_efuse_hook(uint8_t id, uint8_t *data, int size)
 {
     int ret = 0;
 
-    if (id == EFUSE_UID)
-    {
-        memcpy(data, (uint8_t *)g_fake_dfu_efuse_uid, DFU_UID_SIZE);
-        ret = DFU_UID_SIZE;
-    }
-    else if (id == EFUSE_ID_ROOT)
+    if (id == EFUSE_ID_ROOT)
     {
         memcpy(data, (uint8_t *)g_fake_dfu_efuse_root_key, DFU_KEY_SIZE);
         ret = DFU_KEY_SIZE;

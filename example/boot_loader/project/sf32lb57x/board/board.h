@@ -67,7 +67,6 @@ extern void board_pinmux_mpi1_type2(void);
 extern void board_pinmux_mpi2(void);
 extern void board_pinmux_mpi3(void);
 extern void board_pinmux_sd(void);
-extern void boot_error(unsigned char code);
 
 #ifdef __cplusplus
 }

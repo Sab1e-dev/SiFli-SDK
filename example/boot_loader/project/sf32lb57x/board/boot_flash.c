@@ -374,8 +374,7 @@ static uint32_t init_sdnand()
     uint8_t res = sdmmc1_sdnand();
     if (res != 1)
     {
-        // TODO: UART output error message.
-        boot_error(res);
+        return 0;
     }
     g_flash_read = read_sdnand;
     return SDNAND_MEM_ADDR + SDNAND_START_OFFSET;
@@ -412,9 +411,7 @@ static uint32_t init_sdemmc()
     emmc_init_res = res;
     if (res != 0)
     {
-        // TODO: UART output error message.
-        boot_error(res);
-        g_flash_read = NULL;
+        return 0;
     }
 
     g_flash_read = read_sdemmc;

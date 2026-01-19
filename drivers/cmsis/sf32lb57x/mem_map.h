@@ -309,6 +309,7 @@ start_addr  0x0x20400000           0x20406000          0x20408000      0x2040E00
 #define EFUSE_UID_OFFSET        0
 /** UID size  */
 #define EFUSE_UID_SIZE          128
+#define EFUSE_UID_BYTE_SIZE     (EFUSE_UID_SIZE >> 3)
 /** Package ID offset */
 #define EFUSE_PKGID_OFFSET      228
 /** Package ID size  */
