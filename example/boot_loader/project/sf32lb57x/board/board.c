@@ -11,8 +11,7 @@
 #include "board.h"
 #include "boot_flash.h"
 
-//TODO:
-#define BOOT_DEVICE_FORCED
+// #define BOOT_DEVICE_FORCED
 
 board_boot_device_type_t board_boot_device;
 
@@ -126,7 +125,6 @@ board_boot_device_type_t board_boot_from(void)
 
     boot_device = board_get_soc_boot_device();
 
-    //TODO: efuse is not ready yet
 #ifdef BOOT_DEVICE_FORCED
     boot_device = PKGID_BOOT_DEVICE_EXT;
 #endif /* BOOT_DEVICE_FORCED */
