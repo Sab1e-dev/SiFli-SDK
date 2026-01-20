@@ -173,7 +173,7 @@ int HAL_PIN_Set(int pad, pin_function func, int flags, int hcpu);
  * @retval 0  success
  */
 #define HAL_PIN_CompileTimeSet(pad, func, flags, hcpu)   \
-    HAL_PIN_Set2(pad##_##func, flags)
+    HAL_PIN_Set2(HAL_CONCAT_2(HAL_CONCAT_2(pad, _),func), flags)
 
 /**
  * @brief  Set pin function.

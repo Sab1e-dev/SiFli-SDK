@@ -343,6 +343,24 @@ extern "C" {
 #define _FOREACH_FUNC_II(N, fn, pad, ...)                            \
     _FOREACH_FUNC_##N(fn, pad, __VA_ARGS__)
 
+
+#define HAL_CONCAT_2_(p1, p2)     p1##p2
+
+/**@brief Concatenates two parameters.
+ *
+ * It realizes two level expansion to make it sure that all the parameters
+ * are actually expanded before gluing them together.
+ *
+ * @param p1 First parameter to concatenating
+ * @param p2 Second parameter to concatenating
+ *
+ * @return Two parameters glued together.
+ *         They have to create correct C mnemonic in other case
+ *         preprocessor error would be generated.
+ *
+ */
+#define HAL_CONCAT_2(p1, p2)      HAL_CONCAT_2_(p1, p2)
+
 /**
   * @brief  HAL Status structures definition
   */
