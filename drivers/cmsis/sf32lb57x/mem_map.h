@@ -353,10 +353,6 @@ start_addr  0x0x20400000           0x20406000          0x20408000      0x2040E00
 #define PKGID_LDO33_EN_Pos           (3U)
 /**  LDO33 Enable Mask */
 #define PKGID_LDO33_EN_Msk           (0x1UL << PKGID_LDO33_EN_Pos)
-/**  PSRAM Type Position */
-#define PKGID_PSRAM_TYPE_Pos         (4U)
-/**  PSRAM Type Mask */
-#define PKGID_PSRAM_TYPE_Msk         (0x7UL << PKGID_PSRAM_TYPE_Pos)
 
 /**
  * @}

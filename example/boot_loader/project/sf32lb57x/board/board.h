@@ -45,6 +45,11 @@ extern "C" {
 /** boot from external eMMC connected to SDMMC1 */
 #define BOARD_BOOTSTRAP_FROM_EXT_EMMC  (3)
 
+/** external power control pin */
+#define MPI_POWER_PAD       PAD_PA21
+// /** external power control pin function */
+#define MPI_POWER_PAD_FUNC  GPIO_A21
+
 typedef enum
 {
     BOARD_BOOT_DEVICE_MPI2       = 0,   /**< boot from mpi2 */
@@ -58,8 +63,8 @@ typedef enum
 
 extern board_boot_device_type_t board_boot_device;
 board_boot_device_type_t board_boot_from(void);
-void board_flash_power_on(void);
 void board_init_psram(void);
+void board_init(void);
 
 extern void board_pinmux_uart(void);
 extern void board_pinmux_mpi1_type1(void);

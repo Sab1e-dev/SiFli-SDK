@@ -114,11 +114,6 @@ extern flash_read_func g_flash_read;
 extern flash_write_func g_flash_write;
 extern flash_erase_func g_flash_erase;
 
-extern uint32_t g_boot_opt;
-#define MPI_POWER_PIN  (21)
-extern void BSP_GPIO_Set(int pin, int val, int is_porta);
-
-
 /**
  * @brief  Init boot device
  *

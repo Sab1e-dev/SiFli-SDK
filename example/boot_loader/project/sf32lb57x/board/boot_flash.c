@@ -418,10 +418,6 @@ static uint32_t init_sdemmc()
     return SDNAND_MEM_ADDR + SDNAND_START_OFFSET;
 }
 
-
-/******************************************************************************/
-
-#define MAX_RETRY 5
 bool boot_device_init(void)
 {
     bool succ = false;

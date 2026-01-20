@@ -21,28 +21,8 @@ void boot_uart_tx(USART_TypeDef *uart, uint8_t *data, int len)
 /**
 * Initializes the Global MSP.
 */
-#define BOOT_MODE_DELAY 100000
 void HAL_MspInit(void)
 {
-    // TODO:
-    __HAL_WDT_DISABLE();
-#ifdef CFG_BOOTROM
-    uint8_t uid[EFUSE_UID_BYTE_SIZE];
-    int r;
-    printf("SFBL\n");
-    r = sifli_hw_efuse_read(EFUSE_UID, uid, EFUSE_UID_BYTE_SIZE);
-    if (EFUSE_UID_BYTE_SIZE == r)
-    {
-        r--;
-        for (; r >= 0; r--)
-        {
-            printf("%02X", uid[r]);
-        }
-        printf("\n");
-    }
-
-    HAL_Delay_us(BOOT_MODE_DELAY);      // Wait for boot_mode options.
-#endif
 }
 
 void mpu_config(void)

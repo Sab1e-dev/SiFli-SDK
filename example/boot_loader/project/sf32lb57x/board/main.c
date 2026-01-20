@@ -24,6 +24,8 @@
 #define CMD_BUF_SIZE 32
 #define CMD_ARG_MAX 3
 
+#define BOOT_MODE_DELAY 100000
+
 typedef struct
 {
     uint8_t pos;
@@ -277,16 +279,6 @@ void boot_images_help()
 
 void hw_preinit0(void)
 {
-#if 0
-    /* lower power on threshold and set VBAT_LDO output voltage to default 3.3V*/
-    MODIFY_REG(hwp_pmuc->AON_LDO, PMUC_AON_LDO_VBAT_POR_TH_Msk | PMUC_AON_LDO_VBAT_LDO_SET_VOUT_Msk,
-               MAKE_REG_VAL(0, PMUC_AON_LDO_VBAT_POR_TH_Msk, PMUC_AON_LDO_VBAT_POR_TH_Pos)
-               | MAKE_REG_VAL(6, PMUC_AON_LDO_VBAT_LDO_SET_VOUT_Msk, PMUC_AON_LDO_VBAT_LDO_SET_VOUT_Pos));
-
-    /* auto power down if VCC is low */
-    hwp_pmuc->WER |= PMUC_WER_LOWBAT;
-#endif
-
     HAL_Delay_us(0);
 
     // 1. Read efuse bank0 first to take efuse effect.
@@ -527,8 +519,31 @@ static bool boot_is_bootmode(void)
 
     return is_bootmode;
 }
+
 #endif /* CFG_BOOTROM */
 
+static void print_boot_info(void)
+{
+    // TODO:
+    __HAL_WDT_DISABLE();
+#ifdef CFG_BOOTROM
+    uint8_t uid[EFUSE_UID_BYTE_SIZE];
+    int r;
+    printf("SFBL\n");
+    r = sifli_hw_efuse_read(EFUSE_UID, uid, EFUSE_UID_BYTE_SIZE);
+    if (EFUSE_UID_BYTE_SIZE == r)
+    {
+        r--;
+        for (; r >= 0; r--)
+        {
+            printf("%02X", uid[r]);
+        }
+        printf("\n");
+    }
+
+    HAL_Delay_us(BOOT_MODE_DELAY);      // Wait for boot_mode options.
+#endif /* CFG_BOOTROM */
+}
 
 #if defined(__CC_ARM) || defined(__CLANG_ARM)
     int main(void)
@@ -538,19 +553,14 @@ static bool boot_is_bootmode(void)
     int entry(void)
 #endif
 {
+    HAL_HPAON_EnableXT48();
+    HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_SYS, RCC_SYSCLK_HXT48);
     HAL_Delay_us(0);
 
-    // HAL_sw_breakpoint();
-
-    // 3. Power on flash.
-    board_flash_power_on();
-
-    // 4. Check boot mode.
-    HAL_MspInit();
-
+    board_init();
     sboot_init();
+    print_boot_info();
 
-    // 5. Boot images
 #ifdef CFG_BOOTROM
     if (!boot_is_bootmode())
 #endif
@@ -568,12 +578,6 @@ static bool boot_is_bootmode(void)
     }
 
 #ifdef CFG_BOOTROM
-    //TODO:
-    if (RCC_SYSCLK_HRC48 == HAL_RCC_HCPU_GetClockSrc(RCC_CLK_MOD_SYS))
-    {
-        HAL_HPAON_EnableXT48();
-        HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_SYS, RCC_SYSCLK_HXT48);
-    }
 
     dfu_init();
 

@@ -15,8 +15,27 @@
 
 board_boot_device_type_t board_boot_device;
 
+typedef struct
+{
+    uint8_t pkgid;
+} board_info_t;
+
+static board_info_t board_info;
+
 void SystemClock_Config(void)
 {
+}
+
+void board_gpio_set(int pin, int val, int is_porta)
+{
+    GPIO_InitTypeDef GPIO_InitStruct;
+
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT;
+    GPIO_InitStruct.Pin = pin;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(hwp_gpio1, &GPIO_InitStruct);
+
+    HAL_GPIO_WritePin(hwp_gpio1, pin, (GPIO_PinState)val);
 }
 
 // Do not use HAL_PIN_Get in bootloader ROM
@@ -99,13 +118,10 @@ static uint8_t board_read_pkgid(void)
     return pkgid;
 }
 
+#ifdef CFG_BOOTROM
 static uint8_t board_get_soc_boot_device(void)
 {
-    uint8_t pkgid;
-
-    pkgid = board_read_pkgid();
-
-    return GET_REG_VAL2(pkgid, PKGID_BOOT_DEVICE);
+    return GET_REG_VAL2(board_info.pkgid, PKGID_BOOT_DEVICE);
 }
 
 static uint8_t board_get_bootstrap_type(void)
@@ -116,18 +132,23 @@ static uint8_t board_get_bootstrap_type(void)
 
     return bootstrap_type;
 }
+#endif /* CFG_BOOTROM */
 
 board_boot_device_type_t board_boot_from(void)
 {
+#ifdef CFG_BOOTROM
     uint8_t boot_device;
-    board_boot_device_type_t r;
     uint8_t bootstrap_type;
+    uint32_t tmp;
+#endif /* CFG_BOOTROM */
+    board_boot_device_type_t r;
 
+#ifdef CFG_BOOTROM
     boot_device = board_get_soc_boot_device();
-
 #ifdef BOOT_DEVICE_FORCED
     boot_device = PKGID_BOOT_DEVICE_EXT;
 #endif /* BOOT_DEVICE_FORCED */
+
     if (boot_device == PKGID_BOOT_DEVICE_MPI2)
     {
         r = BOARD_BOOT_DEVICE_MPI2;
@@ -142,7 +163,6 @@ board_boot_device_type_t board_boot_from(void)
     }
     else
     {
-#ifdef CFG_BOOTROM
 //TODO:
 #ifdef PMUC_CR_PIN_RET
         hwp_pmuc->CR &= ~PMUC_CR_PIN_RET;
@@ -166,24 +186,52 @@ board_boot_device_type_t board_boot_from(void)
         {
             r = BOARD_BOOT_DEVICE_EMMC;
         }
-        HAL_Set_backup(RTC_BACKUP_BOOTOPT, r);
-#else
-        r = HAL_Get_backup(RTC_BACKUP_BOOTOPT);
-#endif
+        tmp = HAL_Get_backup(RTC_BACKUP_BOOTOPT);
+        MODIFY_REG(tmp, RTC_BACKUP_BOOTOPT_SRC_Msk, MAKE_REG_VAL2(r, RTC_BACKUP_BOOTOPT_SRC));
+        HAL_Set_backup(RTC_BACKUP_BOOTOPT, tmp);
     }
+#else
+    r = GET_REG_VAL2(HAL_Get_backup(RTC_BACKUP_BOOTOPT), RTC_BACKUP_BOOTOPT_SRC);
+#endif
+
+
     return r;
 }
 
-// Use internal LDO to power on flash.
-//TODO:
-void board_flash_power_on()
+void board_init(void)
 {
-    // hwp_pmuc->PERI_LDO |= PMUC_PERI_LDO_EN_VDD33_LDO2;
+#ifdef CFG_BOOTROM
+    uint32_t delay;
+    uint32_t boot_opt;
+#endif /* CFG_BOOTROM */
 
-    // No longer needed as bootmode delay is 1s.
-    // HAL_Delay_us(0);
-    // HAL_Delay_us(2000);
+    board_info.pkgid = board_read_pkgid();
+
+#ifdef CFG_BOOTROM
+    if (0 == GET_REG_VAL2(board_info.pkgid, PKGID_LDO18_EN))
+    {
+        HAL_PMU_ConfigPeriLdo(PMU_PERI_LDO_1V8, true, true);
+    }
+    if (0 == GET_REG_VAL2(board_info.pkgid, PKGID_LDO33_EN))
+    {
+        HAL_PMU_ConfigPeriLdo(PMU_PERI_LDO2_3V3, true, true);
+    }
+
+    boot_opt = HAL_Get_backup(RTC_BACKUP_BOOTOPT);
+    delay = (boot_opt & BOOT_PD_Delay_Msk) >> BOOT_PD_Delay_Pos;
+    if (delay)
+    {
+        HAL_PIN_CompileTimeSet(MPI_POWER_PAD, MPI_POWER_PAD_FUNC, PIN_PULLDOWN, 1);
+        HAL_Delay_us(delay * 1000);
+    }
+
+    HAL_PIN_CompileTimeSet(MPI_POWER_PAD, MPI_POWER_PAD_FUNC, PIN_PULLUP, 1);
+    delay = (boot_opt & BOOT_PU_Delay_Msk) >> BOOT_PU_Delay_Pos;
+    if (delay)
+    {
+        HAL_Delay_us(delay * 1000);
+    }
+
+#endif /* CFG_BOOTROM */
 }
-
-
 
