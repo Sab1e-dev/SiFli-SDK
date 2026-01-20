@@ -107,7 +107,7 @@ HAL_RAM_RET_CODE_SECT(HAL_PMU_ConfigPeriLdo, HAL_StatusTypeDef HAL_PMU_ConfigPer
 
     if (wait)
     {
-        HAL_Delay_us(5000);
+        HAL_Delay_us(1000);
     }
 
     return HAL_OK;
