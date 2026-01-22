@@ -27,13 +27,9 @@ typedef struct
 static UART_HandleTypeDef uart_handle;
 static DMA_HandleTypeDef dma_rx_handle;
 static serial_xfer_ctx_t serial_xfer_ctx;
+transport_t serial_transport;
 
 static void serial_send(uint8_t *buf, uint32_t len);
-
-transport_t serial_transport =
-{
-    .send = serial_send
-};
 
 static void serial_send(uint8_t *buf, uint32_t len)
 {
@@ -145,6 +141,8 @@ void UART1_DMA_RX_IRQHandler(void)
 
 void serial_transport_init(void)
 {
+    serial_transport.send = serial_send;
+
     uart_handle.Instance        = hwp_usart1;
     uart_handle.Init.BaudRate   = 1000000;
     uart_handle.Init.WordLength = UART_WORDLENGTH_8B;
