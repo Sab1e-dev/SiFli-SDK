@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <rtconfig.h>
-#include "sd_nand_drv.h"
+#include "sd_drv.h"
 
 static uint8_t  wire_mode = 1;  //0 for 1-wire mode, 1 for 4-wire mode
 static uint8_t  sdsc = 1; //0 for sdhc/sdxc, 1 for sdsc
 
 static uint8_t mmcsd_parse_csd(uint32_t *resp);
 
-uint8_t sdmmc1_sdnand()
+uint8_t sdio_sd_init(void)
 {
     uint8_t test_result = 1;
     uint8_t  rsp_idx;

@@ -1,15 +1,13 @@
 #include <rtconfig.h>
-#include "sd_nand_drv.h"
+#include "sd_drv.h"
 
-void sd1_init()
+void sd1_init(void)
 {
     hwp_hpsys_rcc->ENR2 &= ~HPSYS_RCC_ENR2_SDMMC1;
-    //pinmux_sdmmc1(1);
     HAL_Delay_us(100);
     hwp_hpsys_rcc->ENR2 |= HPSYS_RCC_ENR2_SDMMC1;
     hwp_sdmmc1->CLKCR = 0x1 << SD_CLKCR_DIV_Pos; //also clear sd_stop_clk
     hwp_sdmmc1->CDR = 0; //no card detect
-    //hwp_sdmmc1->TOR = SD_BLOCK_SIZE*8*100;
 }
 
 uint8_t sd1_send_cmd(uint8_t cmd_idx, uint32_t cmd_arg)
@@ -69,7 +67,7 @@ uint8_t sd1_send_acmd(uint8_t cmd_idx, uint32_t cmd_arg, uint16_t rca)
     return cmd_result;
 }
 
-uint8_t sd1_wait_cmd()
+uint8_t sd1_wait_cmd(void)
 {
     while ((hwp_sdmmc1->SR & (SD_SR_CMD_DONE | SD_SR_CMD_TIMEOUT)) == 0);
     hwp_sdmmc1->SR = SD_SR_CMD_DONE; //clear cmd done status
@@ -118,7 +116,7 @@ void sd1_read(uint8_t wire_mode, uint8_t block_num)
     hwp_sdmmc1->DCR = dcr;
 }
 
-uint8_t sd1_wait_read()
+uint8_t sd1_wait_read(void)
 {
     uint32_t mask = SD_SR_DATA_DONE | SD_SR_DATA_TIMEOUT | SD_SR_DATA_CRC;
     while ((hwp_sdmmc1->SR & mask) == 0);

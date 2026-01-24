@@ -17,6 +17,7 @@
 #include "boot_flash.h"
 #include "sifli_bbm.h"
 #include "secboot.h"
+#include "sd_drv.h"
 
 QSPI_FLASH_CTX_T spi_flash_handle[FLASH_MAX_INSTANCE];
 DMA_HandleTypeDef spi_flash_dma_handle[FLASH_MAX_INSTANCE];
@@ -344,7 +345,6 @@ static uint32_t init_mpi3(int nand)
 }
 
 /*****************************SD functions*************************************/
-#include "sd_nand_drv.h"
 static int read_sdnand(uint32_t addr, const int8_t *buf, uint32_t size)
 {
     uint32_t offset = addr - SDNAND_MEM_ADDR;
@@ -369,7 +369,7 @@ static int read_sdnand(uint32_t addr, const int8_t *buf, uint32_t size)
 static uint32_t init_sdnand()
 {
     board_pinmux_sd();
-    uint8_t res = sdmmc1_sdnand();
+    uint8_t res = sdio_sd_init();
     if (res != 1)
     {
         return 0;

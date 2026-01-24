@@ -1,12 +1,9 @@
-#ifndef _SD_NAND_DRV_H_
-#define _SD_NAND_DRV_H_
+#ifndef _SD_DRV_H_
+#define _SD_DRV_H_
 
 #include <bf0_hal.h>
 #include <string.h>
 #include <stdio.h>
-//#include <drv_io.h>
-
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,22 +38,22 @@ enum resp
     RESP_R7
 };
 
-void sd1_init();
+void sd1_init(void);
 uint8_t sd1_send_cmd(uint8_t cmd_idx, uint32_t cmd_arg);
 uint8_t sd1_send_acmd(uint8_t cmd_idx, uint32_t cmd_arg, uint16_t rca);
 uint8_t sd1_wait_cmd();
 void sd1_get_rsp(uint8_t *rsp_idx, uint32_t *rsp_arg1, uint32_t *rsp_arg2, uint32_t *rsp_arg3, uint32_t *rsp_arg4);
 void sd1_read(uint8_t wire_mode, uint8_t block_num);
-uint8_t sd1_wait_read();
+uint8_t sd1_wait_read(void);
 
 
-uint8_t sdmmc1_sdnand();
+uint8_t sdio_sd_init(void);
 int sd_read_data(uint32_t addr, uint8_t *data, uint32_t len);
 
-int sdio_emmc_init();
+int sdio_emmc_init(void);
 int emmc_read_data(uint32_t addr, uint8_t *data, uint32_t len);
 
 #ifdef __cplusplus
 }
 #endif
-#endif  //_SD_NAND_DRV_H_
+#endif  //_SD_DRV_H_

@@ -28,10 +28,13 @@ void SystemClock_Config(void)
 {
 }
 
-void board_gpio_set(int pin, int val, int is_porta)
+void board_gpio_set(pin_pad pad, int val, int is_porta)
 {
     GPIO_InitTypeDef GPIO_InitStruct;
+    uint32_t pin;
 
+    HAL_ASSERT((pad >= PAD_PA00) && (pad < PIN_PAD_MAX_H));
+    pin = pad - PAD_PA00;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT;
     GPIO_InitStruct.Pin = pin;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -79,6 +82,12 @@ void board_pinmux_mpi2(void)
 
 void board_pinmux_mpi3(void)
 {
+    HAL_PMU_ClearPadRetention(PAD_PA16);
+    HAL_PMU_ClearPadRetention(PAD_PA12);
+    HAL_PMU_ClearPadRetention(PAD_PA15);
+    HAL_PMU_ClearPadRetention(PAD_PA13);
+    HAL_PMU_ClearPadRetention(PAD_PA14);
+    HAL_PMU_ClearPadRetention(PAD_PA17);
     HAL_PIN_CompileTimeSet(PAD_PA16, MPI3_CLK, PIN_NOPULL, 1);
     HAL_PIN_CompileTimeSet(PAD_PA12, MPI3_CS,  PIN_NOPULL, 1);
     HAL_PIN_CompileTimeSet(PAD_PA15, MPI3_DIO0, PIN_PULLDOWN, 1);
@@ -87,8 +96,15 @@ void board_pinmux_mpi3(void)
     HAL_PIN_CompileTimeSet(PAD_PA17, MPI3_DIO3, PIN_PULLUP, 1);
 }
 
-void board_pinmux_sd()
+void board_pinmux_sd(void)
 {
+    HAL_PMU_ClearPadRetention(PAD_PA15);
+    HAL_PMU_ClearPadRetention(PAD_PA14);
+    HAL_PMU_ClearPadRetention(PAD_PA16);
+    HAL_PMU_ClearPadRetention(PAD_PA17);
+    HAL_PMU_ClearPadRetention(PAD_PA12);
+    HAL_PMU_ClearPadRetention(PAD_PA13);
+
     HAL_PIN_CompileTimeSet(PAD_PA15, SD1_CMD, PIN_PULLUP, 1);
     HAL_Delay_us(20);   // add a delay before clock setting to avoid wrong cmd happen
 
@@ -220,14 +236,14 @@ void board_init(void)
     delay = GET_REG_VAL2(boot_opt, BOOT_PD_Delay);
     if (delay)
     {
-        board_gpio_set(MPI_POWER_GPIO_PIN, 0, 1);
+        board_gpio_set(MPI_POWER_PAD, 0, 1);
         HAL_Delay_us(delay * 1000);
     }
 
     delay = GET_REG_VAL2(boot_opt, BOOT_PU_Delay);
     if (delay)
     {
-        board_gpio_set(MPI_POWER_GPIO_PIN, 1, 1);
+        board_gpio_set(MPI_POWER_PAD, 1, 1);
         HAL_Delay_us(delay * 1000);
     }
 #endif /* CFG_BOOTROM */

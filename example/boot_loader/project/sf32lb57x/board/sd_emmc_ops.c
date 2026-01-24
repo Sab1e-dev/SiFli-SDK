@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <rtconfig.h>
-#include "sd_nand_drv.h"
+#include "sd_drv.h"
 
 static uint32_t sdemmc_cache[128];
 static uint8_t  wire_mode = 0;    //0 for 1-wire mode, 1 for 4-wire mode
 
-int sdio_emmc_init()
+int sdio_emmc_init(void)
 {
     int i;
     uint8_t  rsp_idx;

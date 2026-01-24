@@ -42,7 +42,6 @@ extern "C" {
 /** boot from external eMMC connected to SDMMC1 */
 #define BOARD_BOOTSTRAP_FROM_EXT_EMMC  (3)
 
-#define MPI_POWER_GPIO_PIN  21
 /** external power control pin */
 #define MPI_POWER_PAD       PAD_PA21
 // /** external power control pin function */
