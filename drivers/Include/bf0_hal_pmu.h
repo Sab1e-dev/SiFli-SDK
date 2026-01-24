@@ -478,6 +478,57 @@ typedef enum
             }                                                               \
             while (0)
 
+#ifdef PMUC_PRCR1_PA0
+__STATIC_INLINE HAL_StatusTypeDef HAL_PMU_SetPadRetention(pin_pad pad)
+{
+    uint16_t offset;
+    __IO uint32_t *prsr;
+
+    if ((pad >= PAD_PA00) && (pad < PAD_PA32))
+    {
+        offset = pad - PAD_PA00;
+        prsr = &hwp_pmuc->PRSR1;
+    }
+    else if (pad < PIN_PAD_MAX_H)
+    {
+        offset = pad - PAD_PA32;
+        prsr = &hwp_pmuc->PRSR2;
+    }
+    else
+    {
+        return HAL_ERROR;
+    }
+
+    *prsr = 1UL << offset;
+
+    return HAL_OK;
+}
+
+__STATIC_INLINE HAL_StatusTypeDef HAL_PMU_ClearPadRetention(pin_pad pad)
+{
+    uint16_t offset;
+    __IO uint32_t *prcr;
+
+    if ((pad >= PAD_PA00) && (pad < PAD_PA32))
+    {
+        offset = pad - PAD_PA00;
+        prcr = &hwp_pmuc->PRCR1;
+    }
+    else if (pad < PIN_PAD_MAX_H)
+    {
+        offset = pad - PAD_PA32;
+        prcr = &hwp_pmuc->PRCR2;
+    }
+    else
+    {
+        return HAL_ERROR;
+    }
+
+    *prcr = 1UL << offset;
+
+    return HAL_OK;
+}
+#endif /* PMUC_PRCR1_PA0 */
 
 
 #ifdef PMUC_CR_PIN0_SEL
@@ -572,8 +623,6 @@ void HAL_PMU_EnterHibernate(void);
  * @retval void
  */
 void HAL_PMU_EnterShutdown(void);
-
-
 
 
 /**
@@ -968,12 +1017,6 @@ HAL_StatusTypeDef HAL_PMU_GetHpsysVoutRef(uint8_t *vout_ref);
  * @retval hal status
  */
 HAL_StatusTypeDef HAL_PMU_GetHpsysVoutRef2(uint8_t *vout_ref);
-
-
-
-
-
-
 
 /**
  * @brief  Init PMU
