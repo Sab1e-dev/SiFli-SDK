@@ -55,7 +55,7 @@ static int32_t EFUSE_WriteBank(uint8_t bank, int32_t bit_size)
     /* minimum: 10us one bit
      * here: 10ms one bit for 48MHz clock
      */
-    timeout = (uint32_t)bit_size * 480000;
+    timeout = (uint32_t)HAL_EFUSE_BANK_BIT_SIZE * 480000;
     while (((hwp_efusec->SR & EFUSEC_SR_DONE) == 0) && (ready < timeout))
     {
         ready++;
@@ -201,7 +201,7 @@ int32_t HAL_EFUSE_Read(uint16_t bit_offset, uint8_t *data, int size)
     /* mininum: two cycle one bit
      * here: 1ms one bit for 48MHz clock
      */
-    timeout = (uint32_t)size * 8 * 48000;
+    timeout = (uint32_t)HAL_EFUSE_BANK_BIT_SIZE * 48000;
     while (((hwp_efusec->SR & EFUSEC_SR_DONE) == 0) && (ready < timeout))
         ready++;
 
@@ -331,7 +331,7 @@ int32_t HAL_EFUSE_Read2(uint16_t bit_offset, uint8_t *data, int bit_size)
     /* mininum: two cycle one bit
      * here: 1ms one bit for 48MHz clock
      */
-    timeout = (uint32_t)bit_size * 48000;
+    timeout = (uint32_t)HAL_EFUSE_BANK_BIT_SIZE * 48000;
     while (((hwp_efusec->SR & EFUSEC_SR_DONE) == 0) && (ready < timeout))
     {
         ready++;
