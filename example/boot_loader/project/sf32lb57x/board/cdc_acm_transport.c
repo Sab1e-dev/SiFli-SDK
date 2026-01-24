@@ -279,30 +279,13 @@ void cdc_acm_init(uint8_t busid, uintptr_t reg_base)
     usbd_initialize(busid, reg_base, usbd_event_handler);
 }
 
-volatile uint8_t dtr_enable = 0;
-
-void usbd_cdc_acm_set_dtr(uint8_t busid, uint8_t intf, bool dtr)
-{
-    if (dtr)
-    {
-        dtr_enable = 1;
-    }
-    else
-    {
-        dtr_enable = 0;
-    }
-}
-
 static void cdc_acm_data_send_with_dtr_test(uint8_t *buf, uint32_t len)
 {
-    if (dtr_enable)
+    ep_tx_busy_flag = true;
+    HAL_ASSERT(len <= USB_BUFF_MAX_LEN);
+    usbd_ep_start_write(0, CDC_IN_EP, buf, len);
+    while (ep_tx_busy_flag)
     {
-        ep_tx_busy_flag = true;
-        HAL_ASSERT(len <= USB_BUFF_MAX_LEN);
-        usbd_ep_start_write(0, CDC_IN_EP, buf, len);
-        while (ep_tx_busy_flag)
-        {
-        }
     }
 }
 
