@@ -32,6 +32,13 @@
     #include "metrics_id_middleware.h"
 #endif /* PM_METRICS_USE_COLLECTOR */
 
+#ifdef SF32LB57X
+    #include "../dfu/dfu.h"
+    #ifdef USING_SF_CRYPTO
+        #include "sifli_crypto.h"
+    #endif /* USING_SF_CRYPTO */
+#endif /* SF32LB57X */
+
 #define LOG_TAG       "sys.pm"
 #include "log.h"
 
@@ -67,6 +74,9 @@ extern void mpu_config(void);
 EXEC_REGION_DEF(ER_IROM1_EX$$RO);
 EXEC_REGION_DEF(RW_IRAM1);
 EXEC_REGION_LOAD_SYM_DEF(ER_IROM1_EX$$RO);
+#ifdef SF32LB57X
+    EXEC_REGION_DEF(RW_IRAM_RET$$RO);
+#endif /* SF32LB57X */
 
 typedef struct
 {
@@ -248,6 +258,9 @@ typedef struct
 RETM_BSS_SECT_BEGIN(pm_reg)
 __ROM_USED pm_reg_ctx_t pm_reg_ctx RETM_BSS_SECT(pm_reg);
 __ROM_USED uint32_t pm_init_sp RETM_BSS_SECT(pm_reg);
+#ifdef SF32LB57X
+    static sboot_standby_boot_tbl_t pm_standby_boot_tbl RETM_BSS_SECT(pm_standby_boot_tbl);
+#endif /* SF32LB57X */
 RETM_BSS_SECT_END
 
 #ifdef PM_PROFILING_ENABLED
@@ -1202,7 +1215,11 @@ __WEAK int sifli_standby_handler(void)
     SCB->ICSR = SCB_ICSR_PENDSVCLR_Msk;
 
 #ifndef SF32LB55X
+#ifndef SF32LB57X
     hwp_hpsys_aon->RESERVE0 = (uint32_t)SystemInitFromStandby;
+#else
+    hwp_hpsys_aon->RESERVE0 = (uint32_t)&pm_standby_boot_tbl;
+#endif /* SF32LB57X */
 #endif /* SF32LB55X */
 
     clear_interrupt_setting();
@@ -2958,6 +2975,33 @@ int32_t pm_init_mem_map()
 }
 #endif /* USING_CONTEXT_BACKUP && SOC_BF0_HCPU*/
 
+
+#ifdef SF32LB57X
+static void pm_standby_boot_tbl_init(void)
+{
+#ifdef USING_SF_CRYPTO
+    sf_crypto_aes_cmac_ctx_t ctx;
+    sf_crypto_err_t err;
+    uint8_t hash[SF_CRYPTO_AES_CMAC_HASH_SIZE];
+#endif /* USING_SF_CRYPTO */
+    bool succ = false;
+    uint32_t exec_addr = (uint32_t)EXEC_REGION_START_ADDR(RW_IRAM_RET$$RO);
+    uint32_t len = (uint32_t)EXEC_REGION_END_ADDR(RW_IRAM_RET$$RO) - (uint32_t)EXEC_REGION_START_ADDR(RW_IRAM_RET$$RO);
+
+    pm_standby_boot_tbl.code_size = len;
+    pm_standby_boot_tbl.code_start_addr = exec_addr;
+    pm_standby_boot_tbl.code_jump_addr = (uint32_t)SystemInitFromStandby;
+
+#ifdef USING_SF_CRYPTO
+    err = sf_crypto_aes_cmac_init(&ctx, NULL, EFUSE_ROOTKEY_BYTE_SIZE);
+    HAL_ASSERT(SF_CRYPTO_E_OK == err);
+
+    err = sf_crypto_aes_cmac_calc(&ctx, (uint8_t *)exec_addr, len, true, pm_standby_boot_tbl.code_cmac_hash);
+    RT_ASSERT(err == SF_CRYPTO_E_OK);
+#endif /* USING_SF_CRYPTO */
+}
+#endif /* SF32LB57X */
+
 __ROM_USED int low_power_init(void)
 {
 #ifndef PM_LP_TIMER_DISABLE
@@ -3010,6 +3054,11 @@ __ROM_USED int low_power_init(void)
                MAKE_REG_VAL(1, PMUC_LPSYS_SWR_PSW_RET_Msk, PMUC_LPSYS_SWR_PSW_RET_Pos));
 #endif /* PM_DEEP_ENABLE */
 #endif /* SOC_BF0_LCPU */
+
+
+#if defined(SF32LB57X) && defined(SOC_BF0_HCPU)
+    pm_standby_boot_tbl_init();
+#endif /* SF32BL57X && SOC_BF0_HCPU*/
 
     PM_DEBUG_PIN_INIT();
 

@@ -451,6 +451,19 @@ struct sec_efuse
 #else
 #endif
 
+/** standby boot table */
+typedef struct
+{
+    /** standby boot ram code start address */
+    uint32_t code_start_addr;
+    /** ram code size in byte */
+    uint32_t code_size;
+    /** standby boot jump address */
+    uint32_t code_jump_addr;
+    /** ram code cmac hash */
+    uint8_t  code_cmac_hash[DFU_FTAB_CMAC_HASH_SIZE];
+} sboot_standby_boot_tbl_t;
+
 extern struct sec_configuration *g_sec_config;
 
 #ifdef BSP_USING_DFU_COMPRESS

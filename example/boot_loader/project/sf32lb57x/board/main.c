@@ -32,6 +32,8 @@ typedef struct
     char buf[CMD_BUF_SIZE];
 } cmd_buf_t;
 
+typedef void (*ram_hook_handler)(void);
+
 uint32_t rx_data_buf_len(void);
 uint32_t rx_data_buf_get(uint8_t *buf, uint32_t len);
 
@@ -49,12 +51,32 @@ struct sec_configuration *temp_sec_config;
 
 ALIGN(4) struct sec_configuration sec_config_cache;
 
-typedef void (*ram_hook_handler)(void);
 void boot_ram(void)
 {
-    volatile ram_hook_handler hook = (volatile ram_hook_handler)hwp_hpsys_aon->RESERVE0;
-    if (hook)
-        hook();
+    sboot_standby_boot_tbl_t *boot_tbl = (sboot_standby_boot_tbl_t *)hwp_hpsys_aon->RESERVE0;
+    ram_hook_handler hook;
+    uint32_t ram_code_size;
+
+    if (boot_tbl)
+    {
+        hook = (ram_hook_handler)(boot_tbl->code_jump_addr);
+        if (sboot_ctx.sec_en)
+        {
+            ram_code_size = boot_tbl->code_size;
+            if (!sifli_verify_img_cmac_hash(NULL, (uint8_t *)boot_tbl->code_start_addr, ram_code_size,
+                                            boot_tbl->code_cmac_hash))
+            {
+                hook = NULL;
+                /* verify failure */
+                printf("ram hook verify failure\n");
+                while (1);
+            }
+        }
+        if (hook)
+        {
+            hook();
+        }
+    }
 }
 
 
