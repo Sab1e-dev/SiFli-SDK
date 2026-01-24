@@ -144,8 +144,6 @@ void HAL_PreInit(void)
     HAL_MspInit();
 
 #if defined (BSP_USING_PSRAM)
-    // only set 1.8 for PSRAM, do NOT set if no psram !!!
-    HAL_PMU_ConfigPeriLdo(PMU_PERI_LDO_1V8, true, true);
     bsp_psramc_init();
 #endif
 
