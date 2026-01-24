@@ -209,7 +209,9 @@ def append_cmac_sign():
     # Sign the whole image
     signature = cmac_sign_data(root_key, data)
         
-    file_out = open(FLAGS.eimg, "wb")
+    base_name, ext = os.path.splitext(FLAGS.img)
+    signed_filename = base_name + "_signed" + ext
+    file_out = open(signed_filename, "wb")
     file_out.write(data)
     file_out.write(signature)
 
