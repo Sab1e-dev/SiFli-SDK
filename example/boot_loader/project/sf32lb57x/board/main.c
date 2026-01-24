@@ -79,13 +79,6 @@ void boot_test(void)
 #define boot_test()
 #endif
 
-/**************************Efuse**************************************************/
-#define boot_efuse_init_stage1(void) \
-{ \
-    /* Read bank0 */ \
-    sifli_hw_efuse_read_bank(0); \
-}
-
 #ifndef CFG_BOOTROM
 static void update_sec_flash(struct sec_configuration *sec_config)
 {
@@ -275,17 +268,6 @@ void boot_images_help()
         }
 #endif
     }
-}
-
-void hw_preinit0(void)
-{
-    HAL_Delay_us(0);
-
-    // 1. Read efuse bank0 first to take efuse effect.
-    boot_efuse_init_stage1();
-
-    // 2. If ram hook existed, just jump to ram.
-    boot_ram();
 }
 
 #ifdef __CC_ARM                                                 /*ARMCC*/
@@ -504,11 +486,8 @@ void handle_rx_data(transport_t *transport, cmd_buf_t *cmd_buf)
 static bool boot_is_bootmode(void)
 {
     bool is_bootmode;
-    GPIO_PinState pin_state;
 
-    pin_state = HAL_GPIO_ReadPin(hwp_gpio1, BOARD_BOOT_MODE_PIN);
-
-    if ((pin_state == GPIO_PIN_SET) || (hwp_hpsys_cfg->BMR))
+    if (hwp_hpsys_cfg->BMR)
     {
         is_bootmode = true;
     }
@@ -522,14 +501,17 @@ static bool boot_is_bootmode(void)
 
 #endif /* CFG_BOOTROM */
 
+#ifdef CFG_BOOTROM
 static void print_boot_info(void)
 {
-    // TODO:
-    __HAL_WDT_DISABLE();
-#ifdef CFG_BOOTROM
+    printf("SFBL\n");
+    HAL_Delay_us(BOOT_MODE_DELAY);      // Wait for boot_mode options.
+}
+
+static void print_uid(void)
+{
     uint8_t uid[EFUSE_UID_BYTE_SIZE];
     int r;
-    printf("SFBL\n");
     r = sifli_hw_efuse_read(EFUSE_UID, uid, EFUSE_UID_BYTE_SIZE);
     if (EFUSE_UID_BYTE_SIZE == r)
     {
@@ -540,10 +522,8 @@ static void print_boot_info(void)
         }
         printf("\n");
     }
-
-    HAL_Delay_us(BOOT_MODE_DELAY);      // Wait for boot_mode options.
-#endif /* CFG_BOOTROM */
 }
+#endif /* CFG_BOOTROM */
 
 #if defined(__CC_ARM) || defined(__CLANG_ARM)
     int main(void)
@@ -553,24 +533,36 @@ static void print_boot_info(void)
     int entry(void)
 #endif
 {
+    /* pull up power control pin by default */
+    HAL_PIN_CompileTimeSet(MPI_POWER_PAD, MPI_POWER_PAD_FUNC, PIN_PULLUP, 1);
+
+    /* Read efuse bank0 first to take efuse effect. */
+    //TODO:
+    sifli_hw_efuse_read_bank(0);
+    sboot_init();
+
+    /* init AES_ACC as normal mode */
+    __HAL_SYSCFG_CLEAR_SECURITY();
+
+    /* If ram hook existed, just jump to ram. */
+    boot_ram();
+
     HAL_HPAON_EnableXT48();
     HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_SYS, RCC_SYSCLK_HXT48);
     HAL_Delay_us(0);
 
-    board_init();
-    sboot_init();
+#ifdef CFG_BOOTROM
     print_boot_info();
+#endif /* CFG_BOOTROM */
 
 #ifdef CFG_BOOTROM
     if (!boot_is_bootmode())
 #endif
     {
-        // 6. Read boot options
+        board_init();
+
         board_boot_device = board_boot_from();
 
-        // HAL_sw_breakpoint();
-        /* init AES_ACC as normal mode */
-        __HAL_SYSCFG_CLEAR_SECURITY();
         if (boot_device_init())
         {
             boot_images_help();
@@ -578,6 +570,7 @@ static void print_boot_info(void)
     }
 
 #ifdef CFG_BOOTROM
+    print_uid();
 
     dfu_init();
 

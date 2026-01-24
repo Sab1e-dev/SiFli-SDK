@@ -347,7 +347,6 @@ static uint32_t init_mpi3(int nand)
 #include "sd_nand_drv.h"
 static int read_sdnand(uint32_t addr, const int8_t *buf, uint32_t size)
 {
-    // TODO: Add SD read.
     uint32_t offset = addr - SDNAND_MEM_ADDR;
     uint32_t remain = size;
     uint8_t *data = (uint8_t *)buf;
@@ -369,7 +368,6 @@ static int read_sdnand(uint32_t addr, const int8_t *buf, uint32_t size)
 
 static uint32_t init_sdnand()
 {
-    // TODO: Add SD initial sequence
     board_pinmux_sd();
     uint8_t res = sdmmc1_sdnand();
     if (res != 1)
@@ -382,7 +380,6 @@ static uint32_t init_sdnand()
 
 static int read_sdemmc(uint32_t addr, const int8_t *buf, uint32_t size)
 {
-    // TODO: Add SD read.
     uint32_t offset = addr - SDNAND_MEM_ADDR;
     uint32_t remain = size;
     uint8_t *data = (uint8_t *)buf;
@@ -405,7 +402,6 @@ static int read_sdemmc(uint32_t addr, const int8_t *buf, uint32_t size)
 volatile int emmc_init_res = 0;
 static uint32_t init_sdemmc()
 {
-    // TODO: Add SD initial sequence
     board_pinmux_sd();
     int res = sdio_emmc_init();
     emmc_init_res = res;

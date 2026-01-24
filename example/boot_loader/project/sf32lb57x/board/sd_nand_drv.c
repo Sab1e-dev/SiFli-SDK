@@ -7,10 +7,6 @@ void sd1_init()
     //pinmux_sdmmc1(1);
     HAL_Delay_us(100);
     hwp_hpsys_rcc->ENR2 |= HPSYS_RCC_ENR2_SDMMC1;
-    //TODO:
-#ifdef HPSYS_CFG_SYSCR_SDNAND
-    hwp_hpsys_cfg->SYSCR |= HPSYS_CFG_SYSCR_SDNAND;
-#endif /* HPSYS_CFG_SYSCR_SDNAND */
     hwp_sdmmc1->CLKCR = 0x1 << SD_CLKCR_DIV_Pos; //also clear sd_stop_clk
     hwp_sdmmc1->CDR = 0; //no card detect
     //hwp_sdmmc1->TOR = SD_BLOCK_SIZE*8*100;

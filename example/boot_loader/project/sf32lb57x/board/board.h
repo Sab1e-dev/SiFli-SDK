@@ -23,9 +23,6 @@ extern "C" {
 
 #define ALIGN(n)                    __attribute__((aligned(n)))
 
-/** boot mode pin: PA20 */
-//TODO: need to be changed to PA00 by new fpga version
-#define BOARD_BOOT_MODE_PIN  (20)
 /* bootstrap pin that indicates external boot device
  * b2'00: NOR
  * b2'01: NAND
@@ -45,6 +42,7 @@ extern "C" {
 /** boot from external eMMC connected to SDMMC1 */
 #define BOARD_BOOTSTRAP_FROM_EXT_EMMC  (3)
 
+#define MPI_POWER_GPIO_PIN  21
 /** external power control pin */
 #define MPI_POWER_PAD       PAD_PA21
 // /** external power control pin function */

@@ -418,17 +418,7 @@ void SystemInit(void)
 
     {
         hw_preinit0();
-
         mpu_config();
-
-#ifdef SOC_BF0_HCPU
-        if (__HAL_SYSCFG_GET_BOOT_MODE() < 1)
-        {
-            boot_images();
-        }
-#endif
-
-        // cache_enable();
     }
 
     SystemPowerOnModeInit();

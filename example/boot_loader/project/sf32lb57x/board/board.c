@@ -20,7 +20,9 @@ typedef struct
     uint8_t pkgid;
 } board_info_t;
 
-static board_info_t board_info;
+#ifdef CFG_BOOTROM
+    static board_info_t board_info;
+#endif /* CFG_BOOTROM */
 
 void SystemClock_Config(void)
 {
@@ -203,11 +205,8 @@ void board_init(void)
 #ifdef CFG_BOOTROM
     uint32_t delay;
     uint32_t boot_opt;
-#endif /* CFG_BOOTROM */
 
     board_info.pkgid = board_read_pkgid();
-
-#ifdef CFG_BOOTROM
     if (0 == GET_REG_VAL2(board_info.pkgid, PKGID_LDO18_EN))
     {
         HAL_PMU_ConfigPeriLdo(PMU_PERI_LDO_1V8, true, true);
@@ -218,20 +217,19 @@ void board_init(void)
     }
 
     boot_opt = HAL_Get_backup(RTC_BACKUP_BOOTOPT);
-    delay = (boot_opt & BOOT_PD_Delay_Msk) >> BOOT_PD_Delay_Pos;
+    delay = GET_REG_VAL2(boot_opt, BOOT_PD_Delay);
     if (delay)
     {
-        HAL_PIN_CompileTimeSet(MPI_POWER_PAD, MPI_POWER_PAD_FUNC, PIN_PULLDOWN, 1);
+        board_gpio_set(MPI_POWER_GPIO_PIN, 0, 1);
         HAL_Delay_us(delay * 1000);
     }
 
-    HAL_PIN_CompileTimeSet(MPI_POWER_PAD, MPI_POWER_PAD_FUNC, PIN_PULLUP, 1);
-    delay = (boot_opt & BOOT_PU_Delay_Msk) >> BOOT_PU_Delay_Pos;
+    delay = GET_REG_VAL2(boot_opt, BOOT_PU_Delay);
     if (delay)
     {
+        board_gpio_set(MPI_POWER_GPIO_PIN, 1, 1);
         HAL_Delay_us(delay * 1000);
     }
-
 #endif /* CFG_BOOTROM */
 }
 

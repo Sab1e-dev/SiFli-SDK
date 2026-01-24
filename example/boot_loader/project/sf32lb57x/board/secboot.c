@@ -180,19 +180,17 @@ void sboot_init(void)
     int len;
     uint8_t rootkey[EFUSE_ROOTKEY_BYTE_SIZE];
 
+    // Read secure enabled flag from efuse, also load the whole bank0 to make SWDDIS take effect
     len = sifli_hw_efuse_read(EFUSE_ID_SECURE_ENABLED, &pattern, DFU_SECURE_SIZE);
     if ((len > 0) && (pattern != 0))
     {
         sboot_ctx.sec_en = true;
     }
 
-    if (sboot_ctx.sec_en)
+    len = sifli_hw_efuse_read(EFUSE_ID_ROOT, rootkey, sizeof(rootkey));
+    if (len != sizeof(rootkey))
     {
-        len = sifli_hw_efuse_read(EFUSE_ID_ROOT, rootkey, sizeof(rootkey));
-        if (len != sizeof(rootkey))
-        {
-            printf("load rootkey fails\n");
-        }
+        printf("load rootkey fails\n");
     }
 }
 
@@ -237,7 +235,6 @@ void dfu_boot_img_in_flash(int flashid)
         coreid %= CORE_MAX;
         if (coreid == CORE_HCPU || coreid == CORE_BL || coreid == CORE_LCPU)
         {
-            //TODO:
             if (is_addr_in_nor(dest))
             {
                 HAL_FLASH_ALIAS_CFG(boot_handle, dest, img_hdr->length, src - dest);
