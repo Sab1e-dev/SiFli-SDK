@@ -3094,7 +3094,7 @@ rt_err_t pm_scenario_start(pm_scenario_name_t scenario)
     if (pm_scenario_ctx.audio_active)
     {
         /* if audio is active, downscale to 48MHz  */
-        HAL_RCC_HCPU_SetDeepWFIDiv(1, 0, 0);
+        HAL_RCC_HCPU_SetDeepWFIDiv(1, 0, 1);
 #if defined(SF32LB52X)
         /* force clock on to avoid audprc clock is closed during DeepWFI */
         hwp_hpsys_rcc->DBGR |= HPSYS_RCC_DBGR_FORCE_HP;
@@ -3135,7 +3135,7 @@ rt_err_t pm_scenario_stop(pm_scenario_name_t scenario)
 #if !defined(SF32LB52X) && !defined(SF32LB57X)
         HAL_RCC_HCPU_SetDeepWFIDiv(48, 0, 1);
 #else
-        HAL_RCC_HCPU_SetDeepWFIDiv(12, 0, 0);
+        HAL_RCC_HCPU_SetDeepWFIDiv(12, 0, 1);
 #ifdef SF32LB52X
         /* disable clock force */
         hwp_hpsys_rcc->DBGR &= ~HPSYS_RCC_DBGR_FORCE_HP;
