@@ -83,7 +83,7 @@ static inline int HAL_IS_ID_VALID(uint32_t mid)
     return 1;
 }
 
-int nand_clear_status(FLASH_HandleTypeDef *handle);
+int nand_clear_status(FLASH_HandleTypeDef *handle, uint8_t fid);
 
 __HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_Init(QSPI_FLASH_CTX_T *ctx, qspi_configure_t *cfg,
         DMA_HandleTypeDef *dma, struct dma_config *dma_cfg, uint16_t clk_div)
@@ -341,7 +341,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_Init(QSPI_FLASH_CTX_T *ctx, qspi_conf
         }
         while (sta & 0x1);    // busy/iop
 
-        nand_clear_status(hflash);
+        nand_clear_status(hflash, fid);
         if (hflash->Mode == HAL_FLASH_QMODE)    // ONLY qspi need switch QE
         {
             HAL_NAND_EN_QUAL(hflash, 1);
@@ -744,7 +744,7 @@ int HAL_NAND_CHECK_ECC(NAND_ECC_MODE_T mode, int value, uint32_t *errcode)
 
 __HAL_ROM_USED int HAL_NAND_GET_ECC_RESULT(FLASH_HandleTypeDef *handle)
 {
-    int sta, res, valid;
+    int sta, res;
     NAND_ECC_MODE_T ecc_res_mode = 0;
 
     if (handle->ecc_en == 0)
@@ -1472,17 +1472,21 @@ __HAL_ROM_USED int HAL_NAND_EN_QUAL(FLASH_HandleTypeDef *handle, uint8_t en)
 }
 
 
-__HAL_ROM_USED int nand_clear_status(FLASH_HandleTypeDef *handle)
+__HAL_ROM_USED int nand_clear_status(FLASH_HandleTypeDef *handle, uint8_t fid)
 {
     uint32_t status;
 
     status = 0;
     HAL_FLASH_WRITE_DLEN(handle, 1);
-#ifdef HYF_SPECIAL_SUPPORT
-    // for some HYF chips, need set 2 before clear protect, others no this request
-    HAL_FLASH_WRITE_WORD(handle, 2);
-    HAL_FLASH_ISSUE_CMD(handle, SPI_FLASH_CMD_WRSR, handle->ctable->protect_reg);
-#endif
+
+    if ((0xC9U == fid) || (0x01U == fid))
+    {
+        // for some HYF chips, need set 2 before clear protect, others no this request
+        // for winbond W25N01GW, there must be a delay(e.g. 100ms) before setting WP-E bit if SPI_FLASH_CMD_4READ has already been sent before,
+        // otherwise, the data read operation may fail afterwards.
+        HAL_FLASH_WRITE_WORD(handle, 2);
+        HAL_FLASH_ISSUE_CMD(handle, SPI_FLASH_CMD_WRSR, handle->ctable->protect_reg);
+    }
     HAL_FLASH_WRITE_WORD(handle, 0);
     HAL_FLASH_ISSUE_CMD(handle, SPI_FLASH_CMD_WRSR, handle->ctable->protect_reg);
     //HAL_FLASH_WRITE_WORD(handle, 0);
