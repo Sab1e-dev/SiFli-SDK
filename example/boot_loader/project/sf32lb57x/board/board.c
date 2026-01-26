@@ -57,7 +57,6 @@ void board_pinmux_mpi1_type1(void)
     HAL_PIN_CompileTimeSet(PAD_SA02, MPI1_FLASH_DIO1, PIN_PULLDOWN, 1);
     HAL_PIN_CompileTimeSet(PAD_SA04, MPI1_FLASH_DIO2, PIN_PULLUP, 1);
     HAL_PIN_CompileTimeSet(PAD_SA11, MPI1_FLASH_DIO3, PIN_PULLUP, 1);
-    //TODO: is it needed to set other to analog?
 }
 
 void board_pinmux_mpi1_type2(void)
@@ -113,16 +112,6 @@ void board_pinmux_sd(void)
     HAL_PIN_CompileTimeSet(PAD_PA17, SD1_DIO1, PIN_PULLUP, 1);
     HAL_PIN_CompileTimeSet(PAD_PA12, SD1_DIO2, PIN_PULLUP, 1);
     HAL_PIN_CompileTimeSet(PAD_PA13, SD1_DIO3, PIN_PULLUP, 1);
-}
-
-static void board_pinmux_mpi1_none(void)
-{
-    uint32_t i;
-
-    for (i = 0; i <= 12; i++)
-    {
-        HAL_PIN_Set_Analog(PAD_SA00 + i, 1);
-    }
 }
 
 static uint8_t board_read_pkgid(void)
@@ -181,11 +170,6 @@ board_boot_device_type_t board_boot_from(void)
     }
     else
     {
-//TODO:
-#ifdef PMUC_CR_PIN_RET
-        hwp_pmuc->CR &= ~PMUC_CR_PIN_RET;
-        HAL_Delay_us(100);
-#endif /* PMUC_CR_PIN_RET */
         bootstrap_type = board_get_bootstrap_type();
 
         if (BOARD_BOOTSTRAP_FROM_EXT_NOR == bootstrap_type)

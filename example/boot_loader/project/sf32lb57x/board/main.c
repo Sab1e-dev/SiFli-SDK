@@ -559,9 +559,6 @@ static void print_uid(void)
     HAL_PMU_ClearPadRetention(MPI_POWER_PAD);
     HAL_PIN_CompileTimeSet(MPI_POWER_PAD, MPI_POWER_PAD_FUNC, PIN_PULLUP, 1);
 
-    /* Read efuse bank0 first to take efuse effect. */
-    //TODO:
-    sifli_hw_efuse_read_bank(0);
     sboot_init();
 
     /* init AES_ACC as normal mode */
