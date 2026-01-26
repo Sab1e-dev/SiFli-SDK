@@ -253,7 +253,9 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_Init(QSPI_FLASH_CTX_T *ctx, qspi_conf
     {
         if (HAL_IS_ID_VALID(mid) == 0)
         {
+#ifndef HAL_BOOTROM
             HAL_FLASH_CLR_PROTECT(hflash);
+#endif /* !HAL_BOOTROM */
             //HAL_Delay_us(30);
             if (hflash->size > NOR_FLASH_MAX_3B_SIZE)
             {
@@ -341,7 +343,9 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_Init(QSPI_FLASH_CTX_T *ctx, qspi_conf
         }
         while (sta & 0x1);    // busy/iop
 
+#ifndef HAL_BOOTROM
         nand_clear_status(hflash, fid);
+#endif /* HAL_BOOTROM */
         if (hflash->Mode == HAL_FLASH_QMODE)    // ONLY qspi need switch QE
         {
             HAL_NAND_EN_QUAL(hflash, 1);
