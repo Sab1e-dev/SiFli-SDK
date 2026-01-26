@@ -72,8 +72,18 @@ int32_t HAL_EFUSE_Read(uint16_t bit_offset, uint8_t *data, int size);
  * @param bit_size data size in bit to be read, read data cannot cross bank boundary
  * @return bit size successfully read
  */
-
 int32_t HAL_EFUSE_Read2(uint16_t bit_offset, uint8_t *data, int bit_size);
+
+/**
+ * @brief  Extract data from provided bank data starting from bit_offset, no alignment requirement for bit_offset
+ *
+ * @param bank_data pointer to the whole bank data array, HAL_EFUSE_BANK_WORD_SIZE words are expected
+ * @param bit_offset_in_bank bit_offset in one bank, range: 0~255
+ * @param data point to buffer to save read data
+ * @param bit_size data size in bit to be read, read data cannot cross bank boundary
+ * @return bit size successfully read
+ */
+int32_t HAL_EFUSE_Extract(const uint32_t *bank_data, uint16_t bit_offset_in_bank, uint8_t *data, int bit_size);
 
 /**
  * @brief  Write data to efuse starting from bit_offset, no alignment requirement for bit_offset
@@ -83,7 +93,6 @@ int32_t HAL_EFUSE_Read2(uint16_t bit_offset, uint8_t *data, int bit_size);
  * @param bit_size data size in bit to be written, written data cannot cross bank boundary
  * @return bit size successfully written
  */
-
 int32_t HAL_EFUSE_Write2(uint16_t bit_offset, uint8_t *data, int32_t bit_size);
 
 #ifdef __cplusplus

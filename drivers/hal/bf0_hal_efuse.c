@@ -296,6 +296,62 @@ int32_t HAL_EFUSE_Write2(uint16_t bit_offset, uint8_t *data, int32_t bit_size)
     return bit_size;
 }
 
+int32_t HAL_EFUSE_Extract(const uint32_t *bank_data, uint16_t bit_offset_in_bank, uint8_t *data, int bit_size)
+{
+    uint32_t i;
+    uint32_t val;
+    uint16_t byte_size;
+    uint16_t in_word_idx;
+    uint16_t in_word_bit_pos;
+    uint16_t out_byte_idx;
+    uint16_t out_byte_bit_pos;
+    uint8_t val_bit;
+
+    if (!bank_data || !data)
+    {
+        return 0;
+    }
+
+    if ((bit_offset_in_bank + bit_size) > HAL_EFUSE_BANK_BIT_SIZE)
+    {
+        /* Should be less than a bank, and do not accross bank */
+        return 0;
+    }
+
+    byte_size = (bit_size + 7) >> 3;
+    in_word_idx = bit_offset_in_bank >> 5;
+    in_word_bit_pos = bit_offset_in_bank & 31;
+    val = bank_data[in_word_idx];
+    out_byte_idx = 0;
+    out_byte_bit_pos = 0;
+    for (i = 0; i < byte_size; i++)
+    {
+        data[i] = 0;
+    }
+    for (i = 0; i < bit_size; i++)
+    {
+        val_bit = (val >> in_word_bit_pos) & 0x1;
+        data[out_byte_idx] |= (val_bit << out_byte_bit_pos);
+
+        in_word_bit_pos++;
+        if (in_word_bit_pos >= 32)
+        {
+            /* next word */
+            in_word_idx++;
+            in_word_bit_pos = 0;
+            val = bank_data[in_word_idx];
+        }
+        out_byte_bit_pos++;
+        if (out_byte_bit_pos >= 8)
+        {
+            out_byte_idx++;
+            out_byte_bit_pos = 0;
+        }
+    }
+
+    return bit_size;
+}
+
 int32_t HAL_EFUSE_Read2(uint16_t bit_offset, uint8_t *data, int bit_size)
 {
     uint32_t ready = 0;
@@ -303,14 +359,6 @@ int32_t HAL_EFUSE_Read2(uint16_t bit_offset, uint8_t *data, int bit_size)
     uint16_t bit_offset_in_bank = bit_offset & (HAL_EFUSE_BANK_BIT_SIZE - 1);
     uint32_t timeout;
     volatile uint32_t *rd_reg = (volatile uint32_t *) & (hwp_efusec->BANK0_DATA0);
-    uint32_t i;
-    uint32_t val;
-    uint16_t byte_size;
-    uint16_t reg_idx;
-    uint16_t reg_bit_pos;
-    uint16_t out_byte_idx;
-    uint16_t out_byte_bit_pos;
-    uint8_t val_bit;
 
     if ((bit_offset_in_bank + bit_size) > HAL_EFUSE_BANK_BIT_SIZE)
     {
@@ -345,37 +393,7 @@ int32_t HAL_EFUSE_Read2(uint16_t bit_offset, uint8_t *data, int bit_size)
         return 0;
     }
     rd_reg += (bank * HAL_EFUSE_BANK_WORD_SIZE);  // Each bank has 8 registers.
-    byte_size = (bit_size + 7) >> 3;
-    reg_idx = bit_offset_in_bank >> 5;
-    reg_bit_pos = bit_offset_in_bank & 31;
-    val = rd_reg[reg_idx];
-    out_byte_idx = 0;
-    out_byte_bit_pos = 0;
-    for (i = 0; i < byte_size; i++)
-    {
-        data[i] = 0;
-    }
-    for (i = 0; i < bit_size; i++)
-    {
-        val_bit = (val >> reg_bit_pos) & 0x1;
-        data[out_byte_idx] |= (val_bit << out_byte_bit_pos);
-
-        reg_bit_pos++;
-        if (reg_bit_pos >= 32)
-        {
-            /* next register */
-            reg_idx++;
-            reg_bit_pos = 0;
-            val = rd_reg[reg_idx];
-        }
-        out_byte_bit_pos++;
-        if (out_byte_bit_pos >= 8)
-        {
-            out_byte_idx++;
-            out_byte_bit_pos = 0;
-        }
-    }
-
+    bit_size = HAL_EFUSE_Extract((uint32_t *)rd_reg, bit_offset_in_bank, data, bit_size);
     pmu_ldo_recover(org);
 
     return bit_size;
