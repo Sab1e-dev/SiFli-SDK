@@ -196,6 +196,15 @@ void sboot_init(void)
     {
         sboot_ctx.sec_en = true;
     }
+    if (bank0_data)
+    {
+        len = HAL_EFUSE_Extract(bank0_data, EFUSE_PINRST_OFFSET, &pattern, EFUSE_PINRST_SIZE);
+        if ((EFUSE_PINRST_SIZE == len) && (3 == pattern))
+        {
+            /* 25ms for rc10k, 7ms for rc32k */
+            hwp_pmuc->PWRKEY_CNT = 256;
+        }
+    }
 
     len = sifli_hw_efuse_read(EFUSE_ID_ROOT, rootkey, sizeof(rootkey));
     if (len != sizeof(rootkey))

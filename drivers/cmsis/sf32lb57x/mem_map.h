@@ -320,6 +320,8 @@ start_addr  0x0x20400000           0x20406000          0x20408000      0x2040E00
 #define EFUSE_SECEN_SIZE        2
 #define EFUSE_IDSEL_OFFSET      240
 #define EFUSE_IDSEL_SIZE        2
+#define EFUSE_PINRST_OFFSET     242
+#define EFUSE_PINRST_SIZE       2
 #define EFUSE_BANK1_RDDIS_OFFSET      244
 #define EFUSE_BANK1_RDDIS_SIZE        2
 #define EFUSE_BANK1_PGMDIS_OFFSET     246
@@ -328,6 +330,7 @@ start_addr  0x0x20400000           0x20406000          0x20408000      0x2040E00
 #define EFUSE_BANK2_RDDIS_SIZE        2
 #define EFUSE_BANK2_PGMDIS_OFFSET     250
 #define EFUSE_BANK2_PGMDIS_SIZE       2
+
 #define EFUSE_ROOTKEY_OFFSET          512
 #define EFUSE_ROOTKEY_SIZE            256
 #define EFUSE_ROOTKEY_BYTE_SIZE       (EFUSE_ROOTKEY_SIZE >> 3)
