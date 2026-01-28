@@ -19,6 +19,8 @@
 #include "secboot.h"
 #include "sd_drv.h"
 
+#define SD_CACHE_SIZE   512
+
 QSPI_FLASH_CTX_T spi_flash_handle[FLASH_MAX_INSTANCE];
 DMA_HandleTypeDef spi_flash_dma_handle[FLASH_MAX_INSTANCE];
 flash_read_func g_flash_read;
@@ -27,7 +29,7 @@ flash_erase_func g_flash_erase;
 
 FLASH_HandleTypeDef *boot_handle;
 uint32_t g_config_addr;
-static uint8_t sd_cache[512];
+static uint8_t sd_cache[SD_CACHE_SIZE];
 static uint32_t nand_pagesize = 2048;
 static uint32_t nand_blksize = 0x20000;
 #ifdef BSP_NO_BOARD_USED
@@ -350,17 +352,35 @@ static int read_sdnand(uint32_t addr, const int8_t *buf, uint32_t size)
     uint32_t offset = addr - SDNAND_MEM_ADDR;
     uint32_t remain = size;
     uint8_t *data = (uint8_t *)buf;
+    uint32_t fill;
+    uint32_t block_offset;
 
-    while (remain >= 512)
+    /* handle unaligned start */
+    block_offset = offset & (SD_CACHE_SIZE - 1);
+    if (block_offset > 0)
     {
-        sd_read_data(offset, data, 512);
-        remain -= 512;
-        offset += 512;
-        data += 512;
+        sd_read_data(offset - block_offset, sd_cache, SD_CACHE_SIZE);
+        fill = SD_CACHE_SIZE - block_offset;
+        if (fill > remain)
+        {
+            fill = remain;
+        }
+        memcpy(data, sd_cache + block_offset, fill);
+        remain -= fill;
+        offset += fill;
+        data += fill;
+    }
+
+    while (remain >= SD_CACHE_SIZE)
+    {
+        sd_read_data(offset, data, SD_CACHE_SIZE);
+        remain -= SD_CACHE_SIZE;
+        offset += SD_CACHE_SIZE;
+        data += SD_CACHE_SIZE;
     }
     if (remain > 0)
     {
-        sd_read_data(offset, sd_cache, 512);
+        sd_read_data(offset, sd_cache, SD_CACHE_SIZE);
         memcpy(data, sd_cache, remain);
     }
     return size;
@@ -383,17 +403,35 @@ static int read_sdemmc(uint32_t addr, const int8_t *buf, uint32_t size)
     uint32_t offset = addr - SDNAND_MEM_ADDR;
     uint32_t remain = size;
     uint8_t *data = (uint8_t *)buf;
+    uint32_t fill;
+    uint32_t block_offset;
 
-    while (remain >= 512)
+    /* handle unaligned start */
+    block_offset = offset & (SD_CACHE_SIZE - 1);
+    if (block_offset > 0)
     {
-        emmc_read_data(offset, data, 512);
-        remain -= 512;
-        offset += 512;
-        data += 512;
+        emmc_read_data(offset - block_offset, sd_cache, SD_CACHE_SIZE);
+        fill = SD_CACHE_SIZE - block_offset;
+        if (fill > remain)
+        {
+            fill = remain;
+        }
+        memcpy(data, sd_cache + block_offset, fill);
+        remain -= fill;
+        offset += fill;
+        data += fill;
+    }
+
+    while (remain >= SD_CACHE_SIZE)
+    {
+        emmc_read_data(offset, data, SD_CACHE_SIZE);
+        remain -= SD_CACHE_SIZE;
+        offset += SD_CACHE_SIZE;
+        data += SD_CACHE_SIZE;
     }
     if (remain > 0)
     {
-        emmc_read_data(offset, sd_cache, 512);
+        emmc_read_data(offset, sd_cache, SD_CACHE_SIZE);
         memcpy(data, sd_cache, remain);
     }
     return size;
