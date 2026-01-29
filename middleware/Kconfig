@@ -468,7 +468,7 @@ menu "Sifli middleware"
     if USING_ACPU_CTRL_FWK
         config ACPU_CALLER_ENABLED
             bool "Enable Caller"
-            default y
+            default y if BF0_HCPU
     endif
 
     source "$SIFLI_SDK/middleware/file_logger/Kconfig"

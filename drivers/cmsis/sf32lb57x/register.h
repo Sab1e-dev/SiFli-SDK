@@ -130,7 +130,7 @@ typedef enum IRQn
     DMAC1_CH7_IRQn                =  56,
     DMAC1_CH8_IRQn                =  57,
     LCPU2HCPU_IRQn                =  58,
-    LCPU2ACPU_IRQHandler          =  58,
+    LCPU2ACPU_IRQn                =  58,
     USART1_IRQn                   =  59,
     SPI1_IRQn                     =  60,
     I2C1_IRQn                     =  61,
@@ -180,6 +180,7 @@ typedef enum IRQn
     Interrupt104_IRQn             = 104,
     PWM1_IRQn                     = 105,
     HCPU2LCPU_IRQn                =  -1,
+    ACPU2LCPU_IRQn                =  -1,
     /* Interrupts 106 .. 479 are left out */
 } IRQn_Type;
 
