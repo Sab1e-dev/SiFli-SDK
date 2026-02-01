@@ -2416,7 +2416,7 @@ __HAL_ROM_USED void HAL_QSPIEX_FLASH_RESET(FLASH_HandleTypeDef *hflash)
     HAL_FLASH_MANUAL_CMD(hflash, 0, 0, 0, 0, 0, 0, 0, 1);
     HAL_FLASH_SET_CMD(hflash, 0x66, 0);
 
-    HAL_Delay_us(300);
+    HAL_Delay_us(100);
 
     // send RST
     HAL_FLASH_MANUAL_CMD(hflash, 0, 0, 0, 0, 0, 0, 0, 1);
