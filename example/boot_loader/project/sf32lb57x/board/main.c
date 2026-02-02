@@ -556,6 +556,8 @@ static void print_uid(void)
 #endif
 {
 #ifdef CFG_BOOTROM
+    uint32_t boot_opt;
+
     /* pull up power control pin by default */
     HAL_PMU_ClearPadRetention(MPI_POWER_PAD);
     HAL_PIN_CompileTimeSet(MPI_POWER_PAD, MPI_POWER_PAD_FUNC, PIN_PULLUP, 1);
@@ -582,6 +584,10 @@ static void print_uid(void)
 
         if (boot_device_init())
         {
+            /* set default delay value to 5*100us for nor flash reset */
+            boot_opt = HAL_Get_backup(RTC_BACKUP_BOOTOPT);
+            MODIFY_REG(boot_opt, RTC_BACKUP_BOOTOPT_NOR_RESET_DELAY_Msk, MAKE_REG_VAL2(5, RTC_BACKUP_BOOTOPT_NOR_RESET_DELAY));
+            HAL_Set_backup(RTC_BACKUP_BOOTOPT, boot_opt);
             boot_images_help();
         }
     }

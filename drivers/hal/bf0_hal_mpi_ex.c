@@ -158,8 +158,10 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_Init(QSPI_FLASH_CTX_T *ctx, qspi_conf
             HAL_Delay_us(0);
             HAL_Delay_us(50);   // change to 50us to meet boya request, others with 8,20, 30 us can be cover
 
+#ifdef HAL_BOOTROM
             /* reset flash to exit 4byte address mode */
             HAL_QSPIEX_FLASH_RESET(hflash);
+#endif /* HAL_BOOTROM */
         }
     }
 #ifdef HAL_USE_NAND
@@ -2409,8 +2411,16 @@ __HAL_ROM_USED int HAL_QSPIEX_FLASH_ERASE(FLASH_HandleTypeDef *hflash, uint32_t 
 
 __HAL_ROM_USED void HAL_QSPIEX_FLASH_RESET(FLASH_HandleTypeDef *hflash)
 {
-    if (hflash == NULL)
+    uint32_t boot_opt;
+    uint32_t delay;
+
+    boot_opt = HAL_Get_backup(RTC_BACKUP_BOOTOPT);
+    delay = GET_REG_VAL2(boot_opt, RTC_BACKUP_BOOTOPT_NOR_RESET_DELAY);
+
+    if ((hflash == NULL) || (0 == delay))
+    {
         return ;
+    }
 
     // send RST_EN
     HAL_FLASH_MANUAL_CMD(hflash, 0, 0, 0, 0, 0, 0, 0, 1);
@@ -2423,7 +2433,7 @@ __HAL_ROM_USED void HAL_QSPIEX_FLASH_RESET(FLASH_HandleTypeDef *hflash)
     HAL_FLASH_SET_CMD(hflash, 0x99, 0);
 
     /* although some flash need max 12ms to recover from erase, we don't consider this case */
-    HAL_Delay_us(500);    // delay 500us
+    HAL_Delay_us(delay * 100);    // delay 500us
 
     return ;
 }
