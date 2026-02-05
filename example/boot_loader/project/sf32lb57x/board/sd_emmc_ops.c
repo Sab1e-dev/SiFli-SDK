@@ -3,7 +3,7 @@
 #include "sd_drv.h"
 
 static uint32_t sdemmc_cache[128];
-static uint8_t  wire_mode = 0;    //0 for 1-wire mode, 1 for 4-wire mode
+static uint8_t  wire_mode = 1;    //0 for 1-wire mode, 1 for 4-wire mode
 
 int sdio_emmc_init(void)
 {
@@ -24,7 +24,7 @@ int sdio_emmc_init(void)
 #endif /* CFG_BOOTROM || FPGA */
     hwp_sdmmc1->CLKCR |= SD_CLKCR_VOID_FIFO_ERROR;
     hwp_sdmmc1->IER = 0; //mask sdmmc interrupt
-    hwp_sdmmc1->TOR = 0x02000000; //
+    hwp_sdmmc1->TOR = 0x00080000; // 1.3s timeout for 400K
 
     // add a delay after clock set, at least 74 SD clock
     // need wait more than 200ms for 400khz
@@ -67,7 +67,7 @@ int sdio_emmc_init(void)
     }
     sd1_get_rsp(&rsp_idx, &cid[3], &cid[2], &cid[1], &cid[0]);
 
-    //CMD3
+    //CMD3, SET_RELATIVE_ADDR
     rca = 1;
     cmd_arg = 0x10000;
     cmd_result = sd1_send_cmd(3, cmd_arg); //CMD3
@@ -107,7 +107,7 @@ int sdio_emmc_init(void)
     hwp_sdmmc1->CLKCR = 23 << SD_CLKCR_DIV_Pos; //144M/24=6M
 #endif /* CFG_BOOTROM || FPGA */
     hwp_sdmmc1->CLKCR |= SD_CLKCR_VOID_FIFO_ERROR;
-    hwp_sdmmc1->TOR = 0x02000000; // set timeout
+    hwp_sdmmc1->TOR = 0x02000000; // 1.4s timeout for 24M
     hwp_sdmmc1->CDR = (0 << SD_CDR_ITIMING_Pos);
 
     //start card transfer
@@ -169,14 +169,12 @@ int sdio_emmc_init(void)
     capacity = capacity >> 10;
     capacity = capacity * 512;
 
-#if 0   // switch to 4 line, same not work?
-    //ACMD6
-    HAL_Delay_us(20);
-    uint32_t cmd6_index = 183;  // swtich line
-    uint32_t cmd6_value = 1;
-    cmd_arg = 0x03000000 | (cmd6_index << 16) | (cmd6_value << 8);
-    cmd_arg = cmd_arg | 1;
-    cmd_result = sd1_send_cmd(6, cmd_arg); //
+    // CMD6 switch to 4 line
+    cmd_arg = (3 << 24)          /* MMC_SWITCH_MODE_WRITE_BYTE, set target value */
+              | (183 << 16)      /* EXT_CSD bitfield index */
+              | (1 << 8)         /* Card is in 4 bit mode  */
+              | (1 << 0);        /* EXT_CSD_CMD_SET_NORMAL */
+    cmd_result = sd1_send_cmd(6, cmd_arg);
     if (cmd_result == SD_TIMEOUT)
     {
         return 15;
@@ -185,27 +183,30 @@ int sdio_emmc_init(void)
     {
         return 16;
     }
+    sd1_get_rsp(&rsp_idx, &rsp_arg[0], &rsp_arg[1], &rsp_arg[2], &rsp_arg[3]);
+    if (rsp_idx != 6)
+    {
+        return 17;
+    }
 
     sd1_read(wire_mode, 1); //4 wire mode,1 blocks
-#else
-    sd1_read(0, 1); //1 wire mode,1 blocks
-#endif
+
     //CMD17 (READ_SINGLE_BLOCK)
     hwp_sdmmc1->SR = 0xffffffff; //clear sdmmc interrupts
     cmd_arg = 0; //start data address
     cmd_result = sd1_send_cmd(17, cmd_arg);
     if (cmd_result == SD_TIMEOUT)
     {
-        return 17;
+        return 18;
     }
     else if (cmd_result == SD_CRCERR)
     {
-        return 18;
+        return 19;
     }
     sd1_get_rsp(&rsp_idx, &rsp_arg[0], &rsp_arg[1], &rsp_arg[2], &rsp_arg[3]);
     if (rsp_idx != 17)
     {
-        return 19;
+        return 20;
     }
 
     //wait read data
@@ -213,11 +214,11 @@ int sdio_emmc_init(void)
     cmd_result = sd1_wait_read();  //wait sdmmc interrupt
     if (hwp_sdmmc1->SR & SD_SR_DATA_TIMEOUT)
     {
-        return 20; // read time Out
+        return 21; // read time Out
     }
     if (hwp_sdmmc1->SR & SD_SR_DATA_CRC)
     {
-        return 21; // Data error
+        return 22; // Data error
     }
     // read data
     for (i = 0; i < 512 / 4; i++)
@@ -240,7 +241,7 @@ int emmc_read_data(uint32_t addr, uint8_t *data, uint32_t len)
 
 
     //start data read before read command
-    sd1_read(wire_mode, 1); //1 wire mode
+    sd1_read(wire_mode, 1); //4 wire mode
 
     //CMD17 (READ_SINGLE_BLOCK)
     hwp_sdmmc1->SR = 0xffffffff; //clear sdmmc interrupts

@@ -29,7 +29,7 @@ uint8_t sdio_sd_init(void)
 #endif /* CFG_BOOTROM || FPGA */
     hwp_sdmmc1->CLKCR |= SD_CLKCR_VOID_FIFO_ERROR;
     hwp_sdmmc1->IER = 0; //mask sdmmc interrupt
-    hwp_sdmmc1->TOR = 0x00100000; // set timeout for 400K about 2.6s
+    hwp_sdmmc1->TOR = 0x00080000; // set timeout for 400K about 1.3s
 
     // add a delay after clock set, at least 74 SD clock
     // need wait more than 200ms for 400khz
