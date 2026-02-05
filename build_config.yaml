@@ -441,9 +441,9 @@ common_projects:
   - path: example/pm/coremark/project/hcpu
     boards: *default_boards
 
-  - path: example/printer/project
-    boards:
-      - eh-lb520s
+  # - path: example/printer/project
+  #   boards:
+  #     - eh-lb520s
 
   - path: example/rt_device/adc/adc_battery/project
     boards: *525_devkit_lcd_boards
