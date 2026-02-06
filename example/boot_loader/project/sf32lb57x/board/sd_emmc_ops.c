@@ -3,7 +3,8 @@
 #include "sd_drv.h"
 
 static uint32_t sdemmc_cache[128];
-static uint8_t  wire_mode = 1;    //0 for 1-wire mode, 1 for 4-wire mode
+static uint8_t  wire_mode = 0;    //0 for 1-wire mode, 1 for 4-wire mode
+static uint8_t  sdsc = 1; //0 for sdhc/sdxc, 1 for sdsc
 
 int sdio_emmc_init(void)
 {
@@ -53,6 +54,15 @@ int sdio_emmc_init(void)
         HAL_Delay_us(20);
     }
     while (!(rsp_arg[0] & 0x80000000));
+
+    if (rsp_arg[0] & 0x40000000)
+    {
+        sdsc = 0; // SDHC/SDXC
+    }
+    else
+    {
+        sdsc = 1; // SDSC
+    }
 
     //CMD2
     cmd_arg = 0x0;
@@ -128,68 +138,31 @@ int sdio_emmc_init(void)
         return 10;
     }
 
-    //CMD8 EXT_CSD
-    hwp_sdmmc1->SR = 0xffffffff; //clear sdmmc interrupts
-    sd1_read(0, 1); //1 wire mode,1 blocks
-    cmd_arg = 0;
-    cmd_result = sd1_send_cmd(8, cmd_arg);
-    if (cmd_result == SD_TIMEOUT)
+    // CMD6 switch to 4line
+    // if send switch command to set 1-line mode, DATA crc error happens when reading data, don't know the reason yet
+    if (wire_mode)
     {
-        return 11;
-    }
-    else if (cmd_result == SD_CRCERR)
-    {
-        return 12;
-    }
-    sd1_get_rsp(&rsp_idx, &rsp_arg[0], &rsp_arg[1], &rsp_arg[2], &rsp_arg[3]);
-    if (rsp_idx != 8)
-    {
-        return 13;
-    }
-
-    //wait for read data
-    hwp_sdmmc1->IER = SD_IER_DATA_DONE_MASK;
-    cmd_result = sd1_wait_read();  //wait sdmmc interrupt
-    if (hwp_sdmmc1->SR & SD_SR_DATA_TIMEOUT)
-    {
-        return 13;
-    }
-    if (hwp_sdmmc1->SR & SD_SR_DATA_CRC)
-    {
-        return 14;
+        cmd_arg = (3 << 24)       /* MMC_SWITCH_MODE_WRITE_BYTE, set target value */
+                  | (183 << 16)      /* EXT_CSD bitfield index */
+                  | (1 << 8)         /* Card is in 4 bit mode  */
+                  | (1 << 0);        /* EXT_CSD_CMD_SET_NORMAL */
+        cmd_result = sd1_send_cmd(6, cmd_arg);
+        if (cmd_result == SD_TIMEOUT)
+        {
+            return 15;
+        }
+        else if (cmd_result == SD_CRCERR)
+        {
+            return 16;
+        }
+        sd1_get_rsp(&rsp_idx, &rsp_arg[0], &rsp_arg[1], &rsp_arg[2], &rsp_arg[3]);
+        if (rsp_idx != 6)
+        {
+            return 17;
+        }
     }
 
-    for (i = 0; i < 512 / 4; i++)
-    {
-        sdemmc_cache[i] = hwp_sdmmc1->FIFO;
-    }
-
-    // get cap
-    uint32_t capacity = sdemmc_cache[212 / 4];
-    capacity = capacity >> 10;
-    capacity = capacity * 512;
-
-    // CMD6 switch to 4 line
-    cmd_arg = (3 << 24)          /* MMC_SWITCH_MODE_WRITE_BYTE, set target value */
-              | (183 << 16)      /* EXT_CSD bitfield index */
-              | (1 << 8)         /* Card is in 4 bit mode  */
-              | (1 << 0);        /* EXT_CSD_CMD_SET_NORMAL */
-    cmd_result = sd1_send_cmd(6, cmd_arg);
-    if (cmd_result == SD_TIMEOUT)
-    {
-        return 15;
-    }
-    else if (cmd_result == SD_CRCERR)
-    {
-        return 16;
-    }
-    sd1_get_rsp(&rsp_idx, &rsp_arg[0], &rsp_arg[1], &rsp_arg[2], &rsp_arg[3]);
-    if (rsp_idx != 6)
-    {
-        return 17;
-    }
-
-    sd1_read(wire_mode, 1); //4 wire mode,1 blocks
+    sd1_read(wire_mode, 1);
 
     //CMD17 (READ_SINGLE_BLOCK)
     hwp_sdmmc1->SR = 0xffffffff; //clear sdmmc interrupts
@@ -241,11 +214,11 @@ int emmc_read_data(uint32_t addr, uint8_t *data, uint32_t len)
 
 
     //start data read before read command
-    sd1_read(wire_mode, 1); //4 wire mode
+    sd1_read(wire_mode, 1);
 
     //CMD17 (READ_SINGLE_BLOCK)
     hwp_sdmmc1->SR = 0xffffffff; //clear sdmmc interrupts
-    cmd_arg =  addr >> 9; //start data address
+    cmd_arg =  sdsc ? addr : addr >> 9; //start data address
     cmd_result = sd1_send_cmd(17, cmd_arg);
     if (cmd_result == SD_TIMEOUT)
     {

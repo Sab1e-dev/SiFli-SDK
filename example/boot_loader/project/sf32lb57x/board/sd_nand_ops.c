@@ -2,7 +2,7 @@
 #include <rtconfig.h>
 #include "sd_drv.h"
 
-static uint8_t  wire_mode = 1;  //0 for 1-wire mode, 1 for 4-wire mode
+static uint8_t  wire_mode = 0;  //0 for 1-wire mode, 1 for 4-wire mode
 static uint8_t  sdsc = 1; //0 for sdhc/sdxc, 1 for sdsc
 
 static uint8_t mmcsd_parse_csd(uint32_t *resp);
@@ -249,7 +249,7 @@ uint8_t sdio_sd_init(void)
         return test_result;
     }
 
-    sd1_read(wire_mode, 1); //4 wire mode,8 blocks
+    sd1_read(wire_mode, 1);
 
     //CMD17 (READ_SINGLE_BLOCK)
     cmd_arg = 0; //start data address
