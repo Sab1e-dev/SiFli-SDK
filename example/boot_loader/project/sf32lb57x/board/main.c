@@ -562,6 +562,10 @@ static void print_uid(void)
     HAL_PMU_ClearPadRetention(MPI_POWER_PAD);
     HAL_PIN_CompileTimeSet(MPI_POWER_PAD, MPI_POWER_PAD_FUNC, PIN_PULLUP, 1);
 
+    /* disable RTO of UART PIN */
+    HAL_PMU_ClearPadRetention(PAD_PA18);
+    HAL_PMU_ClearPadRetention(PAD_PA19);
+
     sboot_init();
 
     /* init AES_ACC as normal mode */
