@@ -81,30 +81,24 @@ void board_pinmux_mpi2(void)
 
 void board_pinmux_mpi3(void)
 {
-    HAL_PMU_ClearPadRetention(PAD_PA16);
-    HAL_PMU_ClearPadRetention(PAD_PA12);
-    HAL_PMU_ClearPadRetention(PAD_PA15);
-    HAL_PMU_ClearPadRetention(PAD_PA13);
-    HAL_PMU_ClearPadRetention(PAD_PA14);
-    HAL_PMU_ClearPadRetention(PAD_PA17);
     HAL_PIN_CompileTimeSet(PAD_PA16, MPI3_CLK, PIN_NOPULL, 1);
     HAL_PIN_CompileTimeSet(PAD_PA12, MPI3_CS,  PIN_NOPULL, 1);
     HAL_PIN_CompileTimeSet(PAD_PA15, MPI3_DIO0, PIN_PULLDOWN, 1);
     HAL_PIN_CompileTimeSet(PAD_PA13, MPI3_DIO1, PIN_PULLDOWN, 1);
     HAL_PIN_CompileTimeSet(PAD_PA14, MPI3_DIO2, PIN_PULLUP, 1);
     HAL_PIN_CompileTimeSet(PAD_PA17, MPI3_DIO3, PIN_PULLUP, 1);
+    HAL_PMU_ClearPadRetention(PAD_PA16);
+    HAL_PMU_ClearPadRetention(PAD_PA12);
+    HAL_PMU_ClearPadRetention(PAD_PA15);
+    HAL_PMU_ClearPadRetention(PAD_PA13);
+    HAL_PMU_ClearPadRetention(PAD_PA14);
+    HAL_PMU_ClearPadRetention(PAD_PA17);
 }
 
 void board_pinmux_sd(void)
 {
-    HAL_PMU_ClearPadRetention(PAD_PA15);
-    HAL_PMU_ClearPadRetention(PAD_PA14);
-    HAL_PMU_ClearPadRetention(PAD_PA16);
-    HAL_PMU_ClearPadRetention(PAD_PA17);
-    HAL_PMU_ClearPadRetention(PAD_PA12);
-    HAL_PMU_ClearPadRetention(PAD_PA13);
-
     HAL_PIN_CompileTimeSet(PAD_PA15, SD1_CMD, PIN_PULLUP, 1);
+    HAL_PMU_ClearPadRetention(PAD_PA15);
     HAL_Delay_us(20);   // add a delay before clock setting to avoid wrong cmd happen
 
     HAL_PIN_CompileTimeSet(PAD_PA14, SD1_CLK,  PIN_NOPULL, 1);
@@ -112,6 +106,12 @@ void board_pinmux_sd(void)
     HAL_PIN_CompileTimeSet(PAD_PA17, SD1_DIO1, PIN_PULLUP, 1);
     HAL_PIN_CompileTimeSet(PAD_PA12, SD1_DIO2, PIN_PULLUP, 1);
     HAL_PIN_CompileTimeSet(PAD_PA13, SD1_DIO3, PIN_PULLUP, 1);
+
+    HAL_PMU_ClearPadRetention(PAD_PA14);
+    HAL_PMU_ClearPadRetention(PAD_PA16);
+    HAL_PMU_ClearPadRetention(PAD_PA17);
+    HAL_PMU_ClearPadRetention(PAD_PA12);
+    HAL_PMU_ClearPadRetention(PAD_PA13);
 }
 
 static uint8_t board_read_pkgid(void)

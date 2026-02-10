@@ -559,8 +559,8 @@ static void print_uid(void)
     uint32_t boot_opt;
 
     /* pull up power control pin by default */
-    HAL_PMU_ClearPadRetention(MPI_POWER_PAD);
     HAL_PIN_CompileTimeSet(MPI_POWER_PAD, MPI_POWER_PAD_FUNC, PIN_PULLUP, 1);
+    HAL_PMU_ClearPadRetention(MPI_POWER_PAD);
 
     /* disable RTO of UART PIN */
     HAL_PMU_ClearPadRetention(PAD_PA18);
