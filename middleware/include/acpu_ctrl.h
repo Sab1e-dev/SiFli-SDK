@@ -80,6 +80,13 @@ typedef struct
     uint8_t *buffer;
 } rw_buffer_arg_t;
 
+typedef struct
+{
+    void *p_drv_epic;
+    void *p_render_list;
+    void *p_scaled_area;
+} epic_rl_arg_t;
+
 /** ACPU task name macro */
 #define ACPU_TASK_INVALID                (0)
 #define ACPU_TASK_0                      (1)
@@ -92,7 +99,8 @@ typedef struct
 #define ACPU_TASK_opus_decode            (8)
 #define ACPU_TASK_read                   (9)
 #define ACPU_TASK_write                  (10)
-#define ACPU_TASK_COUNT                  (11)
+#define ACPU_TASK_epic_rl                (11)
+#define ACPU_TASK_COUNT                  (12)
 
 /** HCPU task name */
 #define HCPU_TASK_INVALID                (0)

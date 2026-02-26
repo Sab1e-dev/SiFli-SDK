@@ -92,14 +92,9 @@ __WEAK void mpu_config(void)
 
     rnr = 0;
 
-    //  flash1, region 1
-    rbar = ARM_MPU_RBAR(0x10000000, ARM_MPU_SH_NON, 1, 1, 0); //Non-shareable,RO,any privilege,executable
-    rlar = ARM_MPU_RLAR(0x1fffffff, ATTR_CODE_IDX);
-    ARM_MPU_SetRegion(rnr++, rbar, rlar);
-
-    // nand3
+    // XIP Code region
     rbar = ARM_MPU_RBAR(0x64000000, ARM_MPU_SH_NON, 1, 1, 0); //Non-shareable,RO,any privilege,executable
-    rlar = ARM_MPU_RLAR(0x6FFFFFFF, ATTR_RAM_IDX);
+    rlar = ARM_MPU_RLAR(0x6FFFFFFF, ATTR_CODE_IDX);
     ARM_MPU_SetRegion(rnr++, rbar, rlar);
 
     // hpsys ram, disable sram cache

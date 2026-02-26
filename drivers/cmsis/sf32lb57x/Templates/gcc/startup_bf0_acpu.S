@@ -129,7 +129,7 @@ __Vectors:
                 .long     Interrupt77_IRQHandler                 /*  77 Interrupt 77 */
                 .long     I2C4_IRQHandler                        /*  78 Interrupt 78 */
                 .long     SDMMC1_IRQHandler                      /*  79 Interrupt 79 */
-                .long     HCPUAHCPU_IRQHandler                   /*  80 Interrupt 80 */
+                .long     HCPU2ACPU_IRQHandler                   /*  80 Interrupt 80 */
                 .long     SDMMC2_IRQHandler                      /*  81 Interrupt 81 */
                 .long     PDM1_IRQHandler                        /*  82 Interrupt 82 */
                 .long     CAN1_IRQHandler                        /*  83 Interrupt 83 */ 

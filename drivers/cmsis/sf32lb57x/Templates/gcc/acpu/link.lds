@@ -35,7 +35,7 @@
   </h>
   -----------------------------------------------------------------------------*/
 __ROM_BASE = CODE_START_ADDR;
-__ROM_SIZE = CODE_START_SIZE;
+__ROM_SIZE = CODE_SIZE;
 
 
 /*--------------------- Embedded RAM Configuration ----------------------------
@@ -176,12 +176,11 @@ SECTIONS
   {
     . = ALIGN(4);
     __copy_table_start__ = .;
-    /* no need to copy .data as it's at the same space as load region */
-    /*
-     * LONG (LOADADDR(.data))
-     * LONG (ADDR(.data))
-     * LONG (SIZEOF(.data))    
-     */ 
+
+     LONG (LOADADDR(.data))
+     LONG (ADDR(.data))
+     LONG (SIZEOF(.data))    
+      
      __copy_table_end__ = .;
   } > ROM
 

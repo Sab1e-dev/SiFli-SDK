@@ -26,7 +26,9 @@
 
 static rt_mailbox_t g_call_mb;
 static acpu_ctrl_ipc_msg_t *p_received_msg;
-
+#ifdef DRV_EPIC_NEW_API
+    static rt_mailbox_t g_epic_mb;
+#endif /* DRV_EPIC_NEW_API */
 
 static void *req_hcpu_run_task(uint8_t task_name, void *param, uint32_t param_size, uint8_t *error_code)
 {
@@ -131,21 +133,28 @@ void acpu_send_assert(const char *file, int line)
 #define ACPU_ASSERT(ex) if (!(ex)) acpu_send_assert(__FILE__, __LINE__)
 
 
-void acpu_send_result(uint32_t err_code, uint32_t ret_value)
+static void acpu_send_result2(acpu_ctrl_ipc_msg_t *p_msg, uint32_t err_code, uint32_t ret_value)
 {
-    RT_ASSERT(p_received_msg);
+    RT_ASSERT(p_msg);
 
-    p_received_msg->is_rsp = 1;
-    p_received_msg->ret_error_code = err_code;
-    p_received_msg->ret_value = ret_value;
+    p_msg->is_rsp = 1;
+    p_msg->ret_error_code = err_code;
+    p_msg->ret_value = ret_value;
 
 
-    size_t wr_size = ipc_queue_write(sys_get_ah_ipc_queue(), &p_received_msg, sizeof(acpu_ctrl_ipc_msg_t *), 1000);
+    size_t wr_size = ipc_queue_write(sys_get_ah_ipc_queue(), &p_msg, sizeof(acpu_ctrl_ipc_msg_t *), 1000);
     RT_ASSERT(wr_size == sizeof(acpu_ctrl_ipc_msg_t *));
 
 
-    acpu_printf("acpu: send result done\n");
+    // acpu_printf("acpu: send result done\n");
 }
+
+void acpu_send_result(uint32_t err_code, uint32_t ret_value)
+{
+    acpu_send_result2(p_received_msg, err_code, ret_value);
+}
+
+
 
 __WEAK void acpu_main(uint8_t task_name, void *param)
 {
@@ -288,13 +297,55 @@ static int32_t queue_rx_ind(ipc_queue_handle_t handle, size_t size)
     }
     else
     {
-        rt_err_t err = rt_mb_send(g_call_mb, (rt_uint32_t)p_msg);
+        rt_err_t err;
+        if (0)
+        {
+        }
+#ifdef DRV_EPIC_NEW_API
+        else if (ACPU_TASK_epic_rl == p_msg->task_id)
+        {
+            err = rt_mb_send(g_epic_mb, (rt_uint32_t)p_msg);
+        }
+#endif /*DRV_EPIC_NEW_API*/
+        else
+        {
+            err = rt_mb_send(g_call_mb, (rt_uint32_t)p_msg);
+        }
         RT_ASSERT(err == RT_EOK);
     }
 
     return 0;
 }
+#ifdef DRV_EPIC_NEW_API
+#include "drv_epic.h"
+extern rt_err_t drv_epic_render_list(void *p_drv_epic, void *list);
+extern rt_err_t drv_epic_render_list_scale(void *p_drv_epic, void *list, void *p_scaled_area);
+static void epic_rl_task_entry(void *parameter)
+{
+    while (1)
+    {
+        acpu_ctrl_ipc_msg_t *p_msg;
 
+        if (rt_mb_recv(g_epic_mb, (rt_uint32_t *)&p_msg, RT_WAITING_FOREVER) == RT_EOK)
+        {
+            if (p_msg)
+            {
+                epic_rl_arg_t *arg = (epic_rl_arg_t *)p_msg->task_param;
+                rt_err_t ret;
+                //acpu_printf("epic_rl_task_entry: 0x%x, 0x%x\n", arg->p_drv_epic, arg->p_render_list);
+
+                if (arg->p_scaled_area == NULL)
+                    ret = drv_epic_render_list(arg->p_drv_epic, arg->p_render_list);
+                else
+                    ret = drv_epic_render_list_scale(arg->p_drv_epic, arg->p_render_list, arg->p_scaled_area);
+
+                acpu_send_result2(p_msg, 0, ret);
+            }
+        }
+    }
+
+}
+#endif /*DRV_EPIC_NEW_API*/
 
 int main(void)
 {
@@ -304,6 +355,17 @@ int main(void)
     g_call_mb = rt_mb_create("recv_req", 1, RT_IPC_FLAG_FIFO);
     RT_ASSERT(g_call_mb);
 
+
+#ifdef DRV_EPIC_NEW_API
+    g_epic_mb = rt_mb_create("epic_rl", 1, RT_IPC_FLAG_FIFO);
+    RT_ASSERT(g_epic_mb);
+
+    rt_thread_t tid = rt_thread_create("epic_rl", epic_rl_task_entry,
+                                       NULL, 4096,
+                                       RT_THREAD_PRIORITY_HIGH,
+                                       RT_THREAD_TICK_DEFAULT);
+    rt_thread_startup(tid);
+#endif /* DRV_EPIC_NEW_API */
 
     ah_ipc_queue = sys_init_ah_ipc_queue(queue_rx_ind);
     RT_ASSERT(IPC_QUEUE_INVALID_HANDLE != ah_ipc_queue);
