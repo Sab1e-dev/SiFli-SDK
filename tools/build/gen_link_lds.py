@@ -137,6 +137,8 @@ def _infer_cmsis_dir_from_chip(chip: str) -> str:
     chip = (chip or '').upper()
     if chip.startswith('SF32LB52'):
         return 'sf32lb52x'
+    if chip.startswith('SF32LB56'):
+        return 'sf32lb56x'
     raise LinkLdsError('Unsupported chip for Jinja2 link generation: {}'.format(chip))
 
 
@@ -149,6 +151,8 @@ def _load_mem_map_ints(sifli_sdk_root: str, cmsis_dir: str) -> Dict[str, int]:
         'HCPU_FLASH2_FONT_SIZE',
         # Bootloader runtime size
         'FLASH_BOOT_LOADER_SIZE',
+        # HCPU RO data (ROM_EX) size (placed at end of HPSYS RAM)
+        'HCPU_RO_DATA_SIZE',
         # Mailbox sizes
         'HPSYS_MBOX_BUF_SIZE',
         'LPSYS_MBOX_BUF_SIZE',
@@ -157,15 +161,102 @@ def _load_mem_map_ints(sifli_sdk_root: str, cmsis_dir: str) -> Dict[str, int]:
         'LPSYS_RAM_CBUS_BASE',
         'LPSYS_RAM_SIZE',
         'LCPU_RAM_CODE_SIZE',
+        # LCPU DTCM
+        'LPSYS_DTCM_BASE',
+        'LPSYS_DTCM_SIZE',
+        # LCPU flash code (used by 56x LCPU linker scripts)
+        'LCPU_FLASH_CODE_SIZE',
     }
 
     raw = _parse_define_map(mem_map_path)
+
+    cache: Dict[str, int] = {}
+    visiting: set = set()
+
+    def _safe_eval_int_with_names(expr: str) -> int:
+        expr = (expr or '').strip()
+        if not expr:
+            raise LinkLdsError('Empty expression')
+
+        # Strip outer parentheses to reduce noise like "((0x12000000))"
+        while expr.startswith('(') and expr.endswith(')'):
+            inner = expr[1:-1].strip()
+            if not inner:
+                break
+            expr = inner
+
+        tree = ast.parse(expr, mode='eval')
+
+        def _eval(node: ast.AST) -> int:
+            if isinstance(node, ast.Expression):
+                return _eval(node.body)
+            if isinstance(node, ast.Constant):
+                if isinstance(node.value, bool):
+                    return int(node.value)
+                if isinstance(node.value, int):
+                    return node.value
+                raise LinkLdsError('Unsupported constant: {}'.format(type(node.value)))
+            if isinstance(node, ast.Name):
+                return _eval_define(node.id)
+            if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
+                v = _eval(node.operand)
+                return +v if isinstance(node.op, ast.UAdd) else -v
+            if isinstance(node, ast.BinOp):
+                left = _eval(node.left)
+                right = _eval(node.right)
+                op = node.op
+                if isinstance(op, ast.Add):
+                    return left + right
+                if isinstance(op, ast.Sub):
+                    return left - right
+                if isinstance(op, ast.Mult):
+                    return left * right
+                if isinstance(op, ast.Div):
+                    return int(left / right)
+                if isinstance(op, ast.FloorDiv):
+                    return left // right
+                if isinstance(op, ast.Mod):
+                    return left % right
+                if isinstance(op, ast.LShift):
+                    return left << right
+                if isinstance(op, ast.RShift):
+                    return left >> right
+                if isinstance(op, ast.BitOr):
+                    return left | right
+                if isinstance(op, ast.BitAnd):
+                    return left & right
+                if isinstance(op, ast.BitXor):
+                    return left ^ right
+                raise LinkLdsError('Unsupported binary operator: {}'.format(type(op)))
+            raise LinkLdsError('Unsupported expression node: {}'.format(type(node)))
+
+        return int(_eval(tree))
+
+    def _eval_define(name: str) -> int:
+        name = (name or '').strip()
+        if not name:
+            raise LinkLdsError('Empty identifier')
+        if name in cache:
+            return cache[name]
+        if name in visiting:
+            raise LinkLdsError('Circular define reference: {}'.format(name))
+        if name not in raw:
+            raise LinkLdsError('Unknown identifier in mem_map.h: {}'.format(name))
+
+        visiting.add(name)
+        try:
+            v = _safe_eval_int_with_names(raw[name])
+        finally:
+            visiting.remove(name)
+        cache[name] = int(v)
+        return int(v)
+
     out: Dict[str, int] = {}
     for name in wanted:
         if name not in raw:
             continue
         try:
-            out[name] = _safe_eval_int(raw[name])
+            out[name] = _eval_define(name)
         except Exception as e:
             raise LinkLdsError('Failed to eval {} from {}: {} ({})'.format(name, mem_map_path, raw[name], e))
     return out
@@ -201,7 +292,10 @@ def _select_start_addr(mem_type: str, sbus_addr: int, cbus_addr: int) -> int:
 
 
 def _select_exec_addr(mem_type: str, sbus_addr: int, cbus_addr: int) -> int:
-    return sbus_addr if mem_type in ('ram', 'nand', 'psram') else cbus_addr
+    # Execution address selection:
+    # - RAM/NAND: base (SBUS)
+    # - NOR/PSRAM: XIP (CBUS)
+    return sbus_addr if mem_type in ('ram', 'nand') else cbus_addr
 
 
 def _get_hpsys_ram_hcpu(chip_config: Dict[str, Any]) -> Tuple[int, int]:
@@ -296,29 +390,61 @@ def compute_link_defines(ptab_obj, build_name: str, build_core: str, rtconfig_de
     lpsys_mbox_size = int(mem_map_ints.get('LPSYS_MBOX_BUF_SIZE', 0x400))
 
     hcpu_ram_base = hpsys_base
-    hcpu_ram_size = max(0, int(hpsys_total) - hpsys_mbox_size)
+    hcpu_ro_data_size = int(mem_map_ints.get('HCPU_RO_DATA_SIZE', 0))
+    hcpu_ram_size_total = max(0, int(hpsys_total) - hpsys_mbox_size)
+    hcpu_ram_size = max(0, int(hcpu_ram_size_total) - int(hcpu_ro_data_size))
     hcpu_rom_ex_base = hcpu_ram_base + hcpu_ram_size
+    hcpu_rom_ex_size = max(0, int(hcpu_ro_data_size))
 
     lcpu_ram_base = lpsys_base_hcpu
     lcpu_ram_size = max(0, int(lpsys_total) - lpsys_mbox_size)
     lcpu_rom_base = lpsys_base_lcpu
     lcpu_rom_size = int(mem_map_ints.get('LCPU_RAM_CODE_SIZE', 0)) * 2
 
-    # PSRAM window from ptab (optional)
+    # PSRAM windows from ptab (optional, usually injected from SiliconSchema)
     psram_part = (
         _match_partition_by_alias(partitions, 'PSRAM_DATA')
         or _find_partition(partitions, name='psram_data')
     )
-    if psram_part:
-        psram_region = psram_part.get('region', '')
-        psram_offset = ptab_module.parse_size(psram_part.get('offset', 0))
-        psram_size = ptab_module.parse_size(psram_part.get('size', 0))
-        psram_sbus, psram_cbus = ptab_module.resolve_region_address(psram_region, psram_offset, chip_config, core=psram_part.get('core'))
-        psram_mem_type = _get_region_mem_type(psram_region, chip_config)
-        psram_base = _select_start_addr(psram_mem_type, psram_sbus, psram_cbus)
-    else:
-        psram_base = 0
-        psram_size = 0
+    psram2_part = (
+        _match_partition_by_alias(partitions, 'PSRAM_DATA2')
+        or _find_partition(partitions, name='psram_data2')
+    )
+
+    def _partition_to_base_size(p: Optional[Dict[str, Any]]) -> Tuple[int, int, str]:
+        if not p:
+            return 0, 0, ''
+        region = p.get('region', '')
+        offset = ptab_module.parse_size(p.get('offset', 0))
+        size = ptab_module.parse_size(p.get('size', 0))
+        sbus, cbus = ptab_module.resolve_region_address(region, offset, chip_config, core=p.get('core'))
+        mem_type = _get_region_mem_type(region, chip_config)
+        base = _select_start_addr(mem_type, sbus, cbus)
+        return int(base), int(size), str(region)
+
+    psram_base0, psram_size0, psram_region0 = _partition_to_base_size(psram_part)
+    psram2_base0, psram2_size0, psram2_region0 = _partition_to_base_size(psram2_part)
+
+    # Enforce PSRAM naming rule:
+    # - 1 PSRAM  -> always `PSRAM` (no matter which mpi)
+    # - 2 PSRAMs -> mpi1 is `PSRAM`, mpi2 is `PSRAM2`
+    psram_base = psram_base0
+    psram_size = psram_size0
+    psram2_base = psram2_base0
+    psram2_size = psram2_size0
+
+    # If only psram_data2 exists, treat it as the primary PSRAM.
+    if psram_size <= 0 and psram2_size > 0:
+        psram_base, psram_size, psram_region0 = psram2_base0, psram2_size0, psram2_region0
+        psram2_base, psram2_size = 0, 0
+
+    # If both exist, ensure mpi1 -> PSRAM, mpi2 -> PSRAM2 when possible.
+    if psram_size > 0 and psram2_size > 0:
+        mpi1 = 'mpi1'
+        mpi2 = 'mpi2'
+        if psram_region0.strip().lower() == mpi2 and psram2_region0.strip().lower() == mpi1:
+            psram_base, psram2_base = psram2_base0, psram_base0
+            psram_size, psram2_size = psram2_size0, psram_size0
 
     # Pick ROM region for current build
     build_name = (build_name or '').strip().lower()
@@ -339,14 +465,19 @@ def compute_link_defines(ptab_obj, build_name: str, build_core: str, rtconfig_de
         exec_region = str(exec_def.get('region', '')).strip()
         exec_offset = ptab_module.parse_size(exec_def.get('offset', 0))
         exec_sbus, exec_cbus = ptab_module.resolve_region_address(exec_region, exec_offset, chip_config, core=boot_p.get('core'))
-        # NOTE: `exec` describes the execution address. Prefer CBUS/XIP view.
-        rom_base = exec_cbus
+        exec_mem_type = _get_region_mem_type(exec_region, chip_config)
+        rom_base = _select_exec_addr(exec_mem_type, exec_sbus, exec_cbus)
         rom_size = int(mem_map_ints.get('FLASH_BOOT_LOADER_SIZE', 0))
         if rom_size <= 0:
             rom_size = ptab_module.parse_size(boot_p.get('size', 0))
     elif build_core == 'LCPU':
-        rom_base = lcpu_rom_base
-        rom_size = lcpu_rom_size
+        if cmsis_dir == 'sf32lb56x':
+            # For 56x, LCPU linker script layout comes from mem_map.h.
+            rom_base = int(mem_map_ints.get('LPSYS_RAM_CBUS_BASE', 0))
+            rom_size = int(mem_map_ints.get('LCPU_RAM_CODE_SIZE', 0))
+        else:
+            rom_base = lcpu_rom_base
+            rom_size = lcpu_rom_size
     else:
         # main/dfu or named images (HCPU)
         code_p = None
@@ -370,8 +501,8 @@ def compute_link_defines(ptab_obj, build_name: str, build_core: str, rtconfig_de
             exec_region = str(exec_def.get('region', '')).strip()
             exec_offset = ptab_module.parse_size(exec_def.get('offset', 0))
             exec_sbus, exec_cbus = ptab_module.resolve_region_address(exec_region, exec_offset, chip_config, core=core)
-            # NOTE: `exec` describes the execution address. Prefer CBUS/XIP view.
-            rom_base = exec_cbus
+            exec_mem_type = _get_region_mem_type(exec_region, chip_config)
+            rom_base = _select_exec_addr(exec_mem_type, exec_sbus, exec_cbus)
         else:
             region = code_p.get('region', '')
             offset = ptab_module.parse_size(code_p.get('offset', 0))
@@ -398,7 +529,11 @@ def compute_link_defines(ptab_obj, build_name: str, build_core: str, rtconfig_de
         else:
             ram_base, ram_size = hcpu_ram_base, hcpu_ram_size
     elif build_core == 'LCPU':
-        ram_base, ram_size = lcpu_ram_base, lcpu_ram_size
+        if cmsis_dir == 'sf32lb56x':
+            ram_base = int(mem_map_ints.get('LPSYS_RAM_BASE', 0))
+            ram_size = max(0, int(mem_map_ints.get('LPSYS_RAM_SIZE', 0)) - int(mem_map_ints.get('LPSYS_MBOX_BUF_SIZE', 0)))
+        else:
+            ram_base, ram_size = lcpu_ram_base, lcpu_ram_size
     else:
         ram_base, ram_size = hcpu_ram_base, hcpu_ram_size
 
@@ -408,12 +543,46 @@ def compute_link_defines(ptab_obj, build_name: str, build_core: str, rtconfig_de
     out['__RAM_BASE'] = int(ram_base)
     out['__RAM_SIZE'] = int(ram_size)
     out['__ROM_EX_BASE'] = int(hcpu_rom_ex_base if build_core == 'HCPU' else 0)
-    out['__ROM_EX_SIZE'] = 0
+    out['__ROM_EX_SIZE'] = int(hcpu_rom_ex_size if build_core == 'HCPU' else 0)
     out['__PSRAM_BASE'] = int(psram_base)
     out['__PSRAM_SIZE'] = int(psram_size)
+    out['__PSRAM2_BASE'] = int(psram2_base)
+    out['__PSRAM2_SIZE'] = int(psram2_size)
+
+    # Optional flash2 layout (used by some HCPU linker scripts)
+    rom2_base = int(mem_map_ints.get('QSPI2_MEM_BASE', 0))
+    rom2_size = int(mem_map_ints.get('HCPU_FLASH2_IMG_SIZE', 0))
+    rom3_size = int(mem_map_ints.get('HCPU_FLASH2_FONT_SIZE', 0))
+    out['__ROM2_BASE'] = rom2_base
+    out['__ROM2_SIZE'] = rom2_size
+    out['__ROM3_BASE'] = int(rom2_base + rom2_size) if rom2_base and rom2_size else 0
+    out['__ROM3_SIZE'] = rom3_size
+
+    # 56x LCPU extra regions
+    if build_core == 'LCPU' and cmsis_dir == 'sf32lb56x':
+        out['__DTCM_BASE'] = int(mem_map_ints.get('LPSYS_DTCM_BASE', 0))
+        out['__DTCM_SIZE'] = int(mem_map_ints.get('LPSYS_DTCM_SIZE', 0))
+        # ROM2 (flash) starts right after bootloader in internal flash.
+        boot_p = _find_partition(partitions, ptype='bootloader', core='HCPU') or _find_partition(partitions, ptype='bootloader')
+        if boot_p and isinstance(boot_p.get('exec'), dict):
+            b_exec = boot_p['exec']
+            b_region = str(b_exec.get('region', '')).strip()
+            b_offset = ptab_module.parse_size(b_exec.get('offset', 0))
+            b_sbus, b_cbus = ptab_module.resolve_region_address(b_region, b_offset, chip_config, core=boot_p.get('core'))
+            b_mem_type = _get_region_mem_type(b_region, chip_config)
+            b_base = _select_exec_addr(b_mem_type, b_sbus, b_cbus)
+            bl_size = int(mem_map_ints.get('FLASH_BOOT_LOADER_SIZE', 0))
+            if bl_size <= 0:
+                bl_size = ptab_module.parse_size(boot_p.get('size', 0))
+            else:
+                bl_storage = ptab_module.parse_size(boot_p.get('size', 0))
+                if bl_storage > bl_size:
+                    bl_size = bl_storage
+            out['__ROM2_BASE'] = int(b_base + bl_size)
+        out['__ROM2_SIZE'] = int(mem_map_ints.get('LCPU_FLASH_CODE_SIZE', 0))
 
     # int_res partitions: dedicated MEMORY regions and output sections
-    reserved_memory_names = {'ROM', 'RAM', 'ROM_EX', 'PSRAM'}
+    reserved_memory_names = {'ROM', 'RAM', 'ROM_EX', 'PSRAM', 'PSRAM2', 'ROM2', 'ROM3', 'DTCM'}
     int_res_parts: List[Dict[str, Any]] = []
     for p in ptab_module.iter_int_res_partitions_v3(ptab_obj, core=build_core):
         name = (p.get('name') or '').strip()

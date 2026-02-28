@@ -151,7 +151,7 @@ def build_partition_table_entries(
 
     def _select_exec_addr(region: str, sbus_addr: int, cbus_addr: int) -> int:
         mem_type = _get_region_mem_type(region)
-        return sbus_addr if mem_type in ('ram', 'nand', 'psram') else cbus_addr
+        return sbus_addr if mem_type in ('ram', 'nand') else cbus_addr
 
     def _get_flash_boot_loader_size_default() -> Optional[int]:
         try:
@@ -164,6 +164,10 @@ def build_partition_table_entries(
             chip_u = (chip or '').upper()
             if chip_u.startswith('SF32LB52'):
                 cmsis_dir = 'sf32lb52x'
+            elif chip_u.startswith('SF32LB56'):
+                cmsis_dir = 'sf32lb56x'
+            elif chip_u.startswith('SF32LB58'):
+                cmsis_dir = 'sf32lb58x'
             else:
                 return None
             import gen_link_lds
@@ -239,8 +243,7 @@ def build_partition_table_entries(
         exec_region = str(exec_def.get('region', '')).strip()
         exec_offset = ptab_module.parse_size(exec_def.get('offset', 0))
         exec_sbus_addr, exec_cbus_addr = ptab_module.resolve_region_address(exec_region, exec_offset, chip_config)
-        # NOTE: `exec` describes the execution address. Prefer CBUS/XIP view.
-        xip_addr = exec_cbus_addr
+        xip_addr = _select_exec_addr(exec_region, exec_sbus_addr, exec_cbus_addr)
 
         entries[PartitionIndex.BOOTLOADER] = (base_addr, size, xip_addr, 0)
         entries[PartitionIndex.BOOTLOADER_IMAGE_PONG] = (base_addr, size, xip_addr, 0)
@@ -258,8 +261,7 @@ def build_partition_table_entries(
             exec_region = str(exec_def.get('region', '')).strip()
             exec_offset = ptab_module.parse_size(exec_def.get('offset', 0))
             exec_sbus_addr, exec_cbus_addr = ptab_module.resolve_region_address(exec_region, exec_offset, chip_config)
-            # NOTE: `exec` describes the execution address. Prefer CBUS/XIP view.
-            xip_addr = exec_cbus_addr
+            xip_addr = _select_exec_addr(exec_region, exec_sbus_addr, exec_cbus_addr)
         else:
             # No exec: allow XIP for NOR/PSRAM; NAND must provide exec
             mem_type = _get_region_mem_type(region)
@@ -283,8 +285,7 @@ def build_partition_table_entries(
             exec_region = str(exec_def.get('region', '')).strip()
             exec_offset = ptab_module.parse_size(exec_def.get('offset', 0))
             exec_sbus_addr, exec_cbus_addr = ptab_module.resolve_region_address(exec_region, exec_offset, chip_config)
-            # NOTE: `exec` describes the execution address. Prefer CBUS/XIP view.
-            xip_addr = exec_cbus_addr
+            xip_addr = _select_exec_addr(exec_region, exec_sbus_addr, exec_cbus_addr)
         else:
             mem_type = _get_region_mem_type(region)
             if mem_type == 'nand':

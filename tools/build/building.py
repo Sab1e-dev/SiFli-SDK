@@ -1956,6 +1956,23 @@ def InitBuild(bsp_root, build_dir, board):
                          os.path.join(build_dir, "kconfiglist")] + conf_list)
     assert retcode == 0, "Fail to generate .config and rtconfig.h"
 
+    # ptab v3 boards (ptab.yaml) must not rely on custom_mem_map.h. Keep project-level
+    # CUSTOM_MEM_MAP defaults (often y) for legacy ptab v1/v2 boards, while force
+    # disabling it for v3 boards to avoid missing-header build failures.
+    if os.path.exists(os.path.join(path1, 'ptab.yaml')):
+        rtconfig_h_path = os.path.join(build_dir, "rtconfig.h")
+        marker = "/* auto: ptab v3 disables CUSTOM_MEM_MAP */"
+        try:
+            with open(rtconfig_h_path, "r", encoding="utf-8") as f:
+                contents = f.read()
+            if marker not in contents:
+                with open(rtconfig_h_path, "a", encoding="utf-8") as f:
+                    f.write("\n" + marker + "\n")
+                    f.write("#ifdef CUSTOM_MEM_MAP\n#undef CUSTOM_MEM_MAP\n#endif\n")
+        except Exception as e:
+            logging.error("Fail to patch {}: {}".format(rtconfig_h_path, e))
+            raise
+
     if os.path.isfile('rtconfig_project.h'):
         shutil.copy('rtconfig_project.h', os.path.join(build_dir, "rtconfig_project.h"))
 

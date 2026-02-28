@@ -14,9 +14,52 @@ import yaml
 _PTAB_CACHE = {}
 
 # SiliconSchema paths
-_SILICON_SCHEMA_PATH = Path(__file__).parent.parent / 'SiliconSchema' / 'common'
-_MPI_CONFIG_PATH = _SILICON_SCHEMA_PATH / 'mpi'
-_RAM_CONFIG_PATH = _SILICON_SCHEMA_PATH / 'ram'
+#
+# Preferred layout is a git submodule at `tools/SiliconSchema`, but some
+# developer environments keep SiliconSchema as a sibling repo next to the SDK.
+# Support both so ptab v3 can always resolve chip-internal regions.
+_SILICON_SCHEMA_ROOT: Optional[Path] = None
+
+
+def _looks_like_silicon_schema_root(root: Path) -> bool:
+    try:
+        return (root / 'common' / 'mpi').is_dir() and (root / 'common' / 'ram').is_dir()
+    except Exception:
+        return False
+
+
+def _get_silicon_schema_root() -> Path:
+    global _SILICON_SCHEMA_ROOT
+    if _SILICON_SCHEMA_ROOT is not None:
+        return _SILICON_SCHEMA_ROOT
+
+    candidates: List[Path] = []
+    env_path = os.environ.get('SIFLI_SILICON_SCHEMA') or os.environ.get('SILICON_SCHEMA_PATH')
+    if env_path:
+        candidates.append(Path(env_path).expanduser())
+
+    tools_dir = Path(__file__).resolve().parents[1]  # .../tools
+    repo_root = tools_dir.parent
+
+    # 1) Submodule in SDK repo
+    candidates.append(tools_dir / 'SiliconSchema')
+    # 2) Sibling checkout: ../SiliconSchema
+    candidates.append(repo_root.parent / 'SiliconSchema')
+
+    tried: List[str] = []
+    for c in candidates:
+        tried.append(str(c))
+        try:
+            if _looks_like_silicon_schema_root(c):
+                _SILICON_SCHEMA_ROOT = c
+                return c
+        except Exception:
+            continue
+
+    raise FileNotFoundError(
+        "SiliconSchema root not found. Please init git submodule 'tools/SiliconSchema' "
+        "or set env var SIFLI_SILICON_SCHEMA/SILICON_SCHEMA_PATH. Tried: {}".format(', '.join(tried))
+    )
 
 # Chip config cache
 _CHIP_CONFIG_CACHE = {}
@@ -79,6 +122,11 @@ class PtabV3:
         self._memory = data.get('memory', [])  # 外部存储配置
         self._chip_config = None
 
+        # Inject internal (SiP) partitions derived from SiliconSchema.
+        # NOTE: These partitions are chip-internal and should not be described
+        #       in board-level ptab.yaml.
+        self._inject_internal_partitions()
+
     @property
     def version(self):
         return self._version
@@ -103,6 +151,9 @@ class PtabV3:
 
     @property
     def partitions(self):
+        # Ensure internal partitions (e.g. PSRAM windows) are injected even if
+        # build options weren't ready during __init__.
+        self._inject_internal_partitions()
         return copy.deepcopy(self._partitions)
 
     def _normalize_partitions(self, partitions):
@@ -197,6 +248,15 @@ class PtabV3:
             
             # 合并芯片型号的 SiP memory 和 ptab.yaml 的 memory 配置
             self._chip_config = self._merge_memory_config(self._chip_config)
+        else:
+            # Build options (Kconfig) may become available after the ptab object
+            # is instantiated. Refresh inferred SiP memory info to avoid
+            # caching an incomplete memory_info (which would break PSRAM
+            # injection and exec address selection).
+            try:
+                self._infer_sip_memory_from_kconfig(self._chip_config)
+            except Exception:
+                pass
         return self._chip_config
 
     def _merge_memory_config(self, config):
@@ -238,8 +298,88 @@ class PtabV3:
                     'size': parse_size(mem.get('size', 0)),
                     'sip': False,
                 }
+
+        # Fallback: infer chip-internal (SiP) memories from Kconfig when the
+        # SiliconSchema `chips/*/chip.yaml` database is unavailable.
+        #
+        # This keeps ptab.yaml free of internal PSRAM declarations while still
+        # providing correct region types/sizes for link scripts and ptab.h.
+        try:
+            self._infer_sip_memory_from_kconfig(config)
+        except Exception:
+            pass
         
         return config
+
+    def _infer_sip_memory_from_kconfig(self, config: Dict[str, Any]) -> None:
+        """Infer SiP memory type/size from Kconfig build options.
+
+        Only fills missing `memory_info` entries for `sip: true` MPIs.
+        """
+        memory_info = config.get('memory_info')
+        if not isinstance(memory_info, dict):
+            return
+
+        mpi_cfg = config.get('mpi') or {}
+        if not isinstance(mpi_cfg, dict):
+            return
+
+        def _to_int(v: Any) -> Optional[int]:
+            if v is None:
+                return None
+            if v is False:
+                return None
+            if v is True:
+                return 1
+            try:
+                if isinstance(v, str):
+                    return int(v, 0)
+                return int(v)
+            except Exception:
+                return None
+
+        def _mode_to_type(mode: Optional[int]) -> Optional[str]:
+            if mode is None:
+                return None
+            if mode == 0:
+                return 'nor'
+            if mode == 1:
+                return 'nand'
+            if mode in (2, 3, 4, 5, 6):
+                return 'psram'
+            return None
+
+        for mpi_name, mpi_def in mpi_cfg.items():
+            if not isinstance(mpi_def, dict):
+                continue
+            if not mpi_def.get('sip'):
+                continue
+            mpi_key = str(mpi_name).strip().lower()
+            if not mpi_key.startswith('mpi'):
+                continue
+            if mpi_key in memory_info:
+                continue
+
+            m = re.match(r'^mpi(\d+)$', mpi_key)
+            if not m:
+                continue
+            idx = m.group(1)
+
+            mode = _to_int(_get_depend(f'BSP_QSPI{idx}_MODE'))
+            mtype = _mode_to_type(mode)
+            if not mtype:
+                continue
+
+            size_mb = _to_int(_get_depend(f'BSP_QSPI{idx}_MEM_SIZE'))
+            if not size_mb or size_mb <= 0:
+                continue
+
+            memory_info[mpi_key] = {
+                'type': mtype,
+                'size': int(size_mb) * 1024 * 1024,
+                'sip': True,
+                'inferred': True,
+            }
 
     def _load_chip_variant_memory(self):
         """从 chip.yaml 加载精确芯片型号的 memory 配置"""
@@ -251,7 +391,7 @@ class PtabV3:
         if not series:
             return []
 
-        chips_root = Path(__file__).parent.parent / 'SiliconSchema' / 'chips'
+        chips_root = _get_silicon_schema_root() / 'chips'
 
         # Known naming patterns in this repo:
         # - SF32LB52x/chip.yaml
@@ -294,12 +434,155 @@ class PtabV3:
 
         return []
 
+    def _inject_internal_partitions(self) -> None:
+        """Inject chip-internal partitions derived from SiliconSchema.
+
+        Currently injected:
+        - PSRAM data windows (`psram_data`, `psram_data2`) derived from chip
+          variant SiP memory, excluding any execution reservations described by
+          `exec` in ptab.yaml (e.g. NAND load-to-PSRAM).
+        """
+        try:
+            chip_config = self.get_chip_config()
+        except Exception:
+            # If SiliconSchema is unavailable, keep the original partitions.
+            # Downstream builders may fail with a clearer error.
+            return
+
+        memory_info = chip_config.get('memory_info', {}) or {}
+
+        def _has_partition(name: str) -> bool:
+            name_l = (name or '').strip().lower()
+            if not name_l:
+                return False
+            for p in self._partitions:
+                if not isinstance(p, dict):
+                    continue
+                if (p.get('name') or '').strip().lower() == name_l:
+                    return True
+                for a in (p.get('aliases') or []):
+                    if str(a).strip().lower() == name_l:
+                        return True
+            return False
+
+        def _region_to_mpi(region: str) -> Optional[str]:
+            region = (region or '').strip().lower()
+            if not region:
+                return None
+            if region.startswith('mpi'):
+                return region
+            m = re.match(r'^psram(\d+)?$', region)
+            if m:
+                n = m.group(1) or '1'
+                return f'mpi{n}'
+            return None
+
+        # Collect SiP PSRAM mpis and sizes
+        psram_mpis: List[str] = []
+        psram_sizes: Dict[str, int] = {}
+        for mpi, info in memory_info.items():
+            if not isinstance(info, dict):
+                continue
+            if not info.get('sip'):
+                continue
+            mtype = (info.get('type') or '').strip().lower()
+            if mtype != 'psram':
+                continue
+            size = int(info.get('size') or 0)
+            if size <= 0:
+                continue
+            mpi_l = str(mpi).strip().lower()
+            if not mpi_l.startswith('mpi'):
+                continue
+            psram_mpis.append(mpi_l)
+            psram_sizes[mpi_l] = size
+
+        if not psram_mpis:
+            return
+
+        # Compute reserved execution windows on each PSRAM mpi, based on `exec`.
+        reserved_end: Dict[str, int] = {}
+        for p in self._partitions:
+            if not isinstance(p, dict):
+                continue
+            exec_def = p.get('exec')
+            if not isinstance(exec_def, dict):
+                continue
+            exec_region = str(exec_def.get('region', '')).strip()
+            exec_offset = parse_size(exec_def.get('offset', 0))
+            size = parse_size(p.get('size', 0))
+            if size <= 0:
+                continue
+            mpi = _region_to_mpi(exec_region)
+            if not mpi:
+                continue
+            mpi_l = mpi.lower()
+            if mpi_l not in psram_sizes:
+                continue
+            end = exec_offset + size
+            reserved_end[mpi_l] = max(int(reserved_end.get(mpi_l, 0)), int(end))
+
+        # Partition naming rule for injected PSRAM data windows:
+        # - 1 PSRAM  -> inject `psram_data` on that mpi
+        # - 2 PSRAMs -> mpi1 inject `psram_data`, mpi2 inject `psram_data2`
+        psram_mpis_sorted = sorted(set(psram_mpis), key=lambda x: (len(x), x))
+        if len(psram_mpis_sorted) == 1:
+            name_map = {psram_mpis_sorted[0]: 'psram_data'}
+        else:
+            name_map: Dict[str, str] = {}
+            if 'mpi1' in psram_mpis_sorted:
+                name_map['mpi1'] = 'psram_data'
+            if 'mpi2' in psram_mpis_sorted:
+                name_map['mpi2'] = 'psram_data2'
+            # Fallback for unusual layouts: assign remaining mpis deterministically.
+            remaining = [m for m in psram_mpis_sorted if m not in name_map]
+            if remaining and 'psram_data' not in name_map.values():
+                name_map[remaining.pop(0)] = 'psram_data'
+            if remaining and 'psram_data2' not in name_map.values():
+                name_map[remaining.pop(0)] = 'psram_data2'
+
+        injected: List[Dict[str, Any]] = []
+        for mpi, pname in name_map.items():
+            if not pname:
+                continue
+            if _has_partition(pname):
+                continue
+            total = int(psram_sizes.get(mpi, 0))
+            if total <= 0:
+                continue
+            off = int(reserved_end.get(mpi, 0))
+            if off < 0:
+                off = 0
+            if off > total:
+                raise ValueError(
+                    f"PSRAM exec reservation overflow: {mpi} reserved {off} bytes > total {total} bytes"
+                )
+            size = total - off
+            if size <= 0:
+                continue
+            injected.append(
+                {
+                    'name': pname,
+                    'type': 'data',
+                    'subtype': 'ram',
+                    'region': mpi,
+                    'offset': off,
+                    'size': size,
+                }
+            )
+
+        if injected:
+            self._partitions.extend(self._normalize_partitions(injected))
+
     def content_mems(self, clone=True):
         """转换为 v1/v2 兼容的 mems 格式，用于向后兼容"""
         return self._convert_to_mems(clone)
 
     def _convert_to_mems(self, clone=True):
         """将 v3 partitions 转换为 v2 mems 格式"""
+        # Some builders still consume v1/v2-style mems, so ensure internal
+        # partitions are present before conversion.
+        self._inject_internal_partitions()
         chip_config = self.get_chip_config()
         mems_dict = OrderedDict()
 
@@ -486,20 +769,23 @@ def load_chip_config(chip_series: str) -> Dict[str, Any]:
     if chip_series in _CHIP_CONFIG_CACHE:
         return _CHIP_CONFIG_CACHE[chip_series]
 
-    config = {'mpi': {}, 'ram': {}}
+    config = {'series': chip_series, 'mpi': {}, 'ram': {}}
 
     # 加载 MPI 配置
-    mpi_file = _MPI_CONFIG_PATH / chip_series / 'mpi.yaml'
-    if mpi_file.exists():
-        with open(mpi_file) as f:
-            mpi_data = yaml.safe_load(f)
-            config['mpi'] = mpi_data.get('mpis', {})
+    schema_root = _get_silicon_schema_root()
+    mpi_file = schema_root / 'common' / 'mpi' / chip_series / 'mpi.yaml'
+    if not mpi_file.exists():
+        raise FileNotFoundError(f"SiliconSchema MPI config not found: {mpi_file}")
+    with open(mpi_file) as f:
+        mpi_data = yaml.safe_load(f)
+        config['mpi'] = mpi_data.get('mpis', {})
 
     # 加载 RAM 配置
-    ram_file = _RAM_CONFIG_PATH / chip_series / 'ram.yaml'
-    if ram_file.exists():
-        with open(ram_file) as f:
-            config['ram'] = yaml.safe_load(f)
+    ram_file = schema_root / 'common' / 'ram' / chip_series / 'ram.yaml'
+    if not ram_file.exists():
+        raise FileNotFoundError(f"SiliconSchema RAM config not found: {ram_file}")
+    with open(ram_file) as f:
+        config['ram'] = yaml.safe_load(f)
 
     _CHIP_CONFIG_CACHE[chip_series] = config
     return config
@@ -523,6 +809,8 @@ def resolve_region_address(
     """
     mpi_config = chip_config.get('mpi', {})
     ram_config = chip_config.get('ram', {})
+    series = str(chip_config.get('series') or '').strip().lower()
+    memory_info = chip_config.get('memory_info', {}) if isinstance(chip_config.get('memory_info', {}), dict) else {}
 
     core_key = None
     if core:
@@ -534,12 +822,20 @@ def resolve_region_address(
     if region in mpi_config:
         mpi = mpi_config[region]
         base_offset = mpi.get('base', {}).get('offset', 0)
-        sbus_addr = base_offset + offset
-        if 'xip' in mpi:
-            xip_offset = mpi['xip'].get('offset', 0)
-            cbus_addr = xip_offset + offset
-        else:
-            cbus_addr = sbus_addr
+        xip_offset = mpi.get('xip', {}).get('offset') if isinstance(mpi.get('xip'), dict) else None
+
+        # SF32LB56 special case: mpi2 address window differs between FLASH2 and PSRAM2.
+        # SiliconSchema provides the FLASH2 window by default. When mpi2 is used as PSRAM,
+        # align with SDK mem_map.h legacy mapping (PSRAM2: 0x6080_0000 / 0x1080_0000).
+        if series == 'sf32lb56' and region.lower() == 'mpi2':
+            mi = memory_info.get('mpi2', {})
+            mtype = (mi.get('type') or '').strip().lower() if isinstance(mi, dict) else ''
+            if mtype == 'psram':
+                base_offset = 0x60800000
+                xip_offset = 0x10800000
+
+        sbus_addr = int(base_offset) + int(offset)
+        cbus_addr = int(xip_offset) + int(offset) if xip_offset is not None else sbus_addr
         return sbus_addr, cbus_addr
 
     # RAM region (hpsys_ram -> hpsys.ram)
@@ -581,11 +877,17 @@ def resolve_region_address(
         if mpi_name in mpi_config:
             mpi = mpi_config[mpi_name]
             base_offset = mpi.get('base', {}).get('offset', 0)
-            sbus_addr = base_offset + offset
-            if 'xip' in mpi:
-                cbus_addr = mpi['xip'].get('offset', 0) + offset
-            else:
-                cbus_addr = sbus_addr
+            xip_offset = mpi.get('xip', {}).get('offset') if isinstance(mpi.get('xip'), dict) else None
+
+            if series == 'sf32lb56' and mpi_name == 'mpi2':
+                mi = memory_info.get('mpi2', {})
+                mtype = (mi.get('type') or '').strip().lower() if isinstance(mi, dict) else ''
+                if mtype == 'psram':
+                    base_offset = 0x60800000
+                    xip_offset = 0x10800000
+
+            sbus_addr = int(base_offset) + int(offset)
+            cbus_addr = int(xip_offset) + int(offset) if xip_offset is not None else sbus_addr
             return sbus_addr, cbus_addr
 
     logging.warning(f"Unknown region: {region}, using offset as address")

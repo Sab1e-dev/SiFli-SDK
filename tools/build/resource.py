@@ -786,12 +786,10 @@ def GenPartitionTableHeaderContentV3(env, ptab_obj):
 
     def _select_exec_addr(region, sbus_addr, cbus_addr):
         # Execution address selection:
-        # - RAM/NAND/PSRAM: base
-        # - NOR: XIP
+        # - RAM/NAND: base
+        # - NOR/PSRAM: XIP
         mem_type = _get_region_mem_type(region)
-        if mem_type in ('ram', 'nand', 'psram'):
-            return sbus_addr
-        return cbus_addr
+        return sbus_addr if mem_type in ('ram', 'nand') else cbus_addr
 
     def _define_u32(name, value):
         out = ''
@@ -943,8 +941,7 @@ def GenPartitionTableHeaderContentV3(env, ptab_obj):
                 bl_size = storage_size
         bl_core = bootloader_partition.get('core')
         exec_sbus, exec_cbus = ptab.resolve_region_address(exec_region, exec_offset, chip_config, core=bl_core)
-        # NOTE: `exec` describes the execution address. Prefer CBUS/XIP view.
-        bl_exec_addr = exec_cbus
+        bl_exec_addr = _select_exec_addr(exec_region, exec_sbus, exec_cbus)
 
         s += MakeLine('')
         s += MakeLine('')
@@ -988,8 +985,7 @@ def GenPartitionTableHeaderContentV3(env, ptab_obj):
                 exec_region = str(exec_def.get('region', '')).strip()
                 exec_offset = ptab.parse_size(exec_def.get('offset', 0))
                 exec_sbus, exec_cbus = ptab.resolve_region_address(exec_region, exec_offset, chip_config, core=core)
-                # NOTE: `exec` describes the execution address. Prefer CBUS/XIP view.
-                exec_addr = exec_cbus
+                exec_addr = _select_exec_addr(exec_region, exec_sbus, exec_cbus)
             else:
                 region = code_partition.get('region', '')
                 offset = ptab.parse_size(code_partition.get('offset', 0))
@@ -1526,6 +1522,9 @@ def ConstructImgDownloadInfoV3(img_download_info, ptab_obj):
         subtype = partition.get('subtype', '')
         if ptype == 'app' and subtype == 'factory':
             img_download_info['main'] = download_addr
+        # Add 'dfu' alias for dfu app (env['name'] is usually 'dfu')
+        if ptype == 'app' and subtype == 'dfu':
+            img_download_info['dfu'] = download_addr
 
 
 def BuildJLinkLoadScript(main_env):
