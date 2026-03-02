@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "drv_epic.h"
 #if defined(BSP_USING_EPIC) && !defined(DRV_EPIC_NEW_API)
 #include "string.h"

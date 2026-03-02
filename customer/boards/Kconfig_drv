@@ -1512,10 +1512,12 @@ menu "On-chip Peripheral RTOS Drivers"
 
                 config DRV_EPIC_NEW_API_DUAL_CORE_HCPU
                     bool "Using epic render list API in dual core HCPU mode"
+                    select USING_ACPU_CTRL_FWK
                     depends on BF0_HCPU
                 
                 config DRV_EPIC_NEW_API_DUAL_CORE_ACPU
                     bool "Using epic render list API in dual core ACPU mode"
+                    select USING_ACPU_CTRL_FWK
                     depends on BF0_ACPU
             endchoice
 

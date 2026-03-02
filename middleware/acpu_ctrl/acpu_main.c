@@ -322,6 +322,8 @@ extern rt_err_t drv_epic_render_list(void *p_drv_epic, void *list);
 extern rt_err_t drv_epic_render_list_scale(void *p_drv_epic, void *list, void *p_scaled_area);
 static void epic_rl_task_entry(void *parameter)
 {
+    rt_kprintf("epic_rl_task_entry start\n");
+
     while (1)
     {
         acpu_ctrl_ipc_msg_t *p_msg;

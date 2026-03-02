@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 #include "drv_epic.h"
 #if defined(DRV_EPIC_NEW_API) && defined(BSP_USING_EPIC)
 #include "drv_epic_private.h"
@@ -146,4 +151,24 @@ uint32_t GetElapsedUs(uint32_t prev_tick, uint32_t cur_tick)
     return (HAL_GetElapsedTick(prev_tick, cur_tick) + (gp_drv_epic->hclk_freq_Mhz >> 1)) / gp_drv_epic->hclk_freq_Mhz;
 }
 
-#endif
+__ROM_USED EPIC_HandleTypeDef *drv_get_epic_handle(void)
+{
+    return &gp_drv_epic->epic_handle;
+}
+
+#ifdef HAL_EZIP_MODULE_ENABLED
+__ROM_USED EZIP_HandleTypeDef *drv_get_ezip_handle(void)
+{
+    return &gp_drv_epic->ezip_handle;
+}
+#endif /* HAL_EZIP_MODULE_ENABLED */
+
+
+#ifdef HAL_JPEGD_MODULE_ENABLED
+__ROM_USED JPEGD_HandleTypeDef *drv_get_jpegd_handle(void)
+{
+    return &gp_drv_epic->jpegd_handle;
+}
+#endif /* HAL_JPEGD_MODULE_ENABLED */
+
+#endif /*DRV_EPIC_NEW_API && BSP_USING_EPIC*/

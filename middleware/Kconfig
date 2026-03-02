@@ -464,6 +464,8 @@ menu "Sifli middleware"
         default n
     menuconfig USING_ACPU_CTRL_FWK
         bool "Enable ACPU Control Framework"
+        select USING_IPC_QUEUE
+        select BSP_USING_ACPU
         default n
     if USING_ACPU_CTRL_FWK
         config ACPU_CALLER_ENABLED
