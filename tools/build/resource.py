@@ -609,6 +609,10 @@ def Convert2CBUSAddr(addr, offset, core=None):
     return ptab.convert_to_cbus_addr(addr, offset, core)
 
 
+def Convert2SBUSAddr(addr, offset, core=None):
+    return ptab.convert_to_sbus_addr(addr, offset, core)
+
+
 def PtabAddAddDefaultRegion(mems):
     ptab.add_default_regions(mems)
 
@@ -1125,7 +1129,8 @@ def ConstructFtabDictV2(ftab, mems, img_size):
                 if 'app_exec' in region_type_list and ((not ext) or ('1' == ext)):
                     # only first binary need to be described in ftab
                     assert 'xip' not in ftab_item, 'xip address already configured in {}'.format(item_name)
-                    ftab_item['xip'] = start_addr
+                    xip_addr, _ = Convert2SBUSAddr(start_addr, offset, region.get('core'))
+                    ftab_item['xip'] = xip_addr
                 if 'app_img' in region_type_list and ((not ext) or ('1' == ext)):
                     assert 'base' not in ftab_item, 'base address already configured in {}'.format(item_name)
                     ftab_item['base'] = start_addr
@@ -1168,7 +1173,8 @@ def ConstructFtabDictV2(ftab, mems, img_size):
         if 'app_exec' in region_type_list and ((not ext) or ('1' == ext)):
             # only first binary need to be described in ftab
             assert 'xip' not in ftab_item, 'xip address already configured in {}'.format(item_name)
-            ftab_item['xip'] = start_addr
+            xip_addr, _ = Convert2SBUSAddr(start_addr, offset, region.get('core'))
+            ftab_item['xip'] = xip_addr
         if 'app_img' in region_type_list and ((not ext) or ('1' == ext)):
             assert 'base' not in ftab_item, 'base address already configured in {}'.format(item_name)
             ftab_item['base'] = start_addr
@@ -1218,7 +1224,8 @@ def ConstructFtabDictV1(ftab, mems, img_size):
                 ftab_item['max_size'] = max_size
                 if 'xip' in region['ftab']['address']:
                     assert 'xip' not in ftab_item, 'xip address already configured in {}'.format(item_name)
-                    ftab_item['xip'] = start_addr
+                    xip_addr, _ = Convert2SBUSAddr(start_addr, offset, region.get('core'))
+                    ftab_item['xip'] = xip_addr
                 if 'base' in region['ftab']['address']:
                     assert 'base' not in ftab_item, 'base address already configured in {}'.format(item_name)
                     ftab_item['base'] = start_addr

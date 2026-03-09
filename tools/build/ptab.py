@@ -1084,6 +1084,20 @@ def convert_to_cbus_addr(addr, offset, core=None):
     raise Exception("unknown chip")
 
 
+def convert_to_sbus_addr(addr, offset, core=None):
+    if _get_depend("SOC_SF32LB55X"):
+        return addr, offset
+    if _get_depend("SOC_SF32LB56X") or _get_depend("SOC_SF32LB58X"):
+        if (addr >= 0x10000000) and (addr < 0x1C000000):
+            return addr + 0x50000000, offset
+        return addr, offset
+    if _get_depend("SOC_SF32LB52X"):
+        if (addr >= 0x10000000) and (addr < 0x14000000):
+            return addr + 0x50000000, offset
+        return addr, offset
+    raise Exception("unknown chip")
+
+
 def add_default_regions(mems):
     if _get_depend("SOC_SF32LB55X"):
         _add_default_regions_55x(mems)
