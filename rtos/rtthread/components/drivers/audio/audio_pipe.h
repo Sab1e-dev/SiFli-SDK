@@ -14,6 +14,7 @@
  */
 #include <rtthread.h>
 #include <rtdevice.h>
+#define AUDIO_PIPE_SUSPEND_RESUME 0
 
 //#ifndef RT_PIPE_BUFSZ
 //    #define PIPE_BUFSZ    320
@@ -50,12 +51,13 @@ struct rt_audio_pipe
     /* ring buffer in pipe device */
     struct rt_ringbuffer ringbuffer;
 
+#if AUDIO_PIPE_SUSPEND_RESUME
     rt_int32_t flag;
 
     /* suspended list */
     rt_list_t suspended_read_list;
     rt_list_t suspended_write_list;
-
+#endif
     struct rt_audio_portal_device *write_portal;
     struct rt_audio_portal_device *read_portal;
 };
