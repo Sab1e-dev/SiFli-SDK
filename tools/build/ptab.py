@@ -422,7 +422,7 @@ class PtabV3:
             checked.append(chip_file)
 
             try:
-                with open(chip_file) as f:
+                with open(chip_file, encoding='utf-8-sig') as f:
                     chip_data = yaml.safe_load(f)
             except Exception:
                 continue
@@ -776,7 +776,7 @@ def load_chip_config(chip_series: str) -> Dict[str, Any]:
     mpi_file = schema_root / 'common' / 'mpi' / chip_series / 'mpi.yaml'
     if not mpi_file.exists():
         raise FileNotFoundError(f"SiliconSchema MPI config not found: {mpi_file}")
-    with open(mpi_file) as f:
+    with open(mpi_file, encoding='utf-8-sig') as f:
         mpi_data = yaml.safe_load(f)
         config['mpi'] = mpi_data.get('mpis', {})
 
@@ -784,7 +784,7 @@ def load_chip_config(chip_series: str) -> Dict[str, Any]:
     ram_file = schema_root / 'common' / 'ram' / chip_series / 'ram.yaml'
     if not ram_file.exists():
         raise FileNotFoundError(f"SiliconSchema RAM config not found: {ram_file}")
-    with open(ram_file) as f:
+    with open(ram_file, encoding='utf-8-sig') as f:
         config['ram'] = yaml.safe_load(f)
 
     _CHIP_CONFIG_CACHE[chip_series] = config
@@ -974,13 +974,13 @@ def iter_int_res_partitions_v3(ptab_obj: Any, core: Optional[str] = None) -> Lis
 
 def _parse_ptab_file(path):
     """解析 ptab 文件（JSON 格式）"""
-    with open(path) as f:
+    with open(path, encoding='utf-8-sig') as f:
         return json.load(f, object_pairs_hook=OrderedDict)
 
 
 def _parse_ptab_yaml_file(path):
     """解析 ptab 文件（YAML 格式）"""
-    with open(path) as f:
+    with open(path, encoding='utf-8-sig') as f:
         return yaml.safe_load(f)
 
 
