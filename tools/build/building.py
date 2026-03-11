@@ -448,6 +448,9 @@ def ModifyProgramBinaryTargets(target, source, env):
         ptab_obj = ptab_module.load_ptab(env['PARTITION_TABLE'], fatal=False)
 
     if rtconfig.PLATFORM == 'gcc' and ptab_obj and ptab_obj.is_v3():
+        core = _infer_build_core(env, getattr(rtconfig, 'CORE', 'HCPU'))
+        if core == 'LCPU' and env.get('IMG_EMBEDDED'):
+            return target, source
         elf_path = str(source[0]) if source else ''
         elf_dir = os.path.dirname(elf_path)
         out_dir = os.path.join(elf_dir, 'int_res')
@@ -466,6 +469,9 @@ def ModifyProgramHexTargets(target, source, env):
         ptab_obj = ptab_module.load_ptab(env['PARTITION_TABLE'], fatal=False)
 
     if rtconfig.PLATFORM == 'gcc' and ptab_obj and ptab_obj.is_v3():
+        core = _infer_build_core(env, getattr(rtconfig, 'CORE', 'HCPU'))
+        if core == 'LCPU' and env.get('IMG_EMBEDDED'):
+            return target, source
         elf_path = str(source[0]) if source else ''
         elf_dir = os.path.dirname(elf_path)
         out_dir = os.path.join(elf_dir, 'int_res')
@@ -492,7 +498,8 @@ def ProgramBinaryBuild(target, source, env):
         ptab_obj = ptab_module.load_ptab(env['PARTITION_TABLE'], fatal=False)
 
     # ptab v3 (gcc): split int_res sections into `int_res/` and keep whole image in `<program>.bin`
-    if rtconfig.PLATFORM == 'gcc' and ptab_obj and ptab_obj.is_v3():
+    core = _infer_build_core(env, getattr(rtconfig, 'CORE', 'HCPU'))
+    if rtconfig.PLATFORM == 'gcc' and ptab_obj and ptab_obj.is_v3() and not (core == 'LCPU' and env.get('IMG_EMBEDDED')):
         # Prepare output dir (keep .hex outputs intact)
         if os.path.exists(out_dir) and not os.path.isdir(out_dir):
             _remove_file_or_dir(out_dir)
@@ -505,7 +512,6 @@ def ProgramBinaryBuild(target, source, env):
         used_sections = []
         all_sections = []
         present_sections = []
-        core = _infer_build_core(env, getattr(rtconfig, 'CORE', 'HCPU'))
         for p in ptab_module.iter_int_res_partitions_v3(ptab_obj, core=core):
             name = (p.get('name') or '').strip()
             if not name:
@@ -605,7 +611,8 @@ def ProgramHexBuild(target, source, env):
         ptab_obj = ptab_module.load_ptab(env['PARTITION_TABLE'], fatal=False)
 
     # ptab v3 (gcc): split int_res sections into `int_res/` and keep whole image in `<program>.hex`
-    if rtconfig.PLATFORM == 'gcc' and ptab_obj and ptab_obj.is_v3():
+    core = _infer_build_core(env, getattr(rtconfig, 'CORE', 'HCPU'))
+    if rtconfig.PLATFORM == 'gcc' and ptab_obj and ptab_obj.is_v3() and not (core == 'LCPU' and env.get('IMG_EMBEDDED')):
         # Prepare output dir (keep .bin outputs intact)
         if os.path.exists(out_dir) and not os.path.isdir(out_dir):
             _remove_file_or_dir(out_dir)
@@ -618,7 +625,6 @@ def ProgramHexBuild(target, source, env):
         used_sections = []
         all_sections = []
         present_sections = []
-        core = _infer_build_core(env, getattr(rtconfig, 'CORE', 'HCPU'))
         for p in ptab_module.iter_int_res_partitions_v3(ptab_obj, core=core):
             name = (p.get('name') or '').strip()
             if not name:
