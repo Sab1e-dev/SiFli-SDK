@@ -46,36 +46,29 @@
      ```{tip}
      `mnt_init` 中mount 文件系统分区，FDB初始化时需指定存储路径（在文件系统中的目录）。
      ```
-3. FAL 分区配置（当`FDB Mode`配置为`Use File LIBC Mode`或`Use File POSIX Mode`时需要）   
-+ `project/nor/ptab.json`:
+3. FAL 分区配置（当`FDB Mode`配置为`Use FAL Mode`时需要）   
++ `project/nor/ptab.yaml`:
      ```c
-            {
-                "offset": "0x00620000", 
-                "max_size": "0x00004000", 
-                "tags": [
-                    "KVDB_TST_REGION"
-                ]
-            }, 
-            {
-                "offset": "0x00624000", 
-                "max_size": "0x00004000", 
-                "tags": [
-                    "TSDB_TST_REGION"
-                ]
-            }, 
+     - name: kvdb_tst
+       type: data
+       subtype: flashdb_kv
+       region: mpi2
+       offset: 0x00620000
+       size: 0x00004000
+       aliases:
+         - KVDB_TST_REGION
+     - name: tsdb_tst
+       type: data
+       subtype: flashdb_kv
+       region: mpi2
+       offset: 0x00624000
+       size: 0x00004000
+       aliases:
+         - TSDB_TST_REGION
      ```  
-+ `project/nor/custom_mem_map.h`
-     ```c
-     #define FAL_PART_TABLE \
-     { \
-          {FAL_PART_MAGIC_WORD,       "kvdb_tst",      NOR_FLASH2_DEV_NAME,    KVDB_TST_REGION_OFFSET,   KVDB_TST_REGION_SIZE, 0}, \
-          {FAL_PART_MAGIC_WORD,       "tsdb_tst",      NOR_FLASH2_DEV_NAME,    TSDB_TST_REGION_OFFSET,   TSDB_TST_REGION_SIZE, 0}, \
-          ... ...
-     }
-     ``` 
 
      ```{tip}
-     FDB初始化时需指定Flash分区名（比如本例程中是"kvdb_tst"/"tsdb_tst"）。
+     FDB初始化时需指定Flash分区名（比如本例程中是"kvdb_tst"/"tsdb_tst"）。`ptab.h` 会自动生成 `KVDB_TST_REGION_*` / `TSDB_TST_REGION_*` 兼容宏，以及对应的 `FAL_PART_TABLE` 条目，不再需要 `custom_mem_map.h`。
      ```
 
 ### 编译和烧录

@@ -162,16 +162,25 @@ def _infer_cmsis_dir_from_chip(chip: str) -> str:
 def _load_mem_map_ints(sifli_sdk_root: str, cmsis_dir: str) -> Dict[str, int]:
     mem_map_path = os.path.join(sifli_sdk_root, 'drivers', 'cmsis', cmsis_dir, 'mem_map.h')
     wanted = {
-        # Flash2 layout (used by HCPU link script)
-        'QSPI2_MEM_BASE',
-        'HCPU_FLASH2_IMG_SIZE',
-        'HCPU_FLASH2_FONT_SIZE',
+        # HCPU RAM layout / bank split
+        'HPSYS_RAM_SIZE',
+        'HPSYS_RAM0_BASE',
+        'HPSYS_RAM0_SIZE',
+        'HPSYS_RAM1_BASE',
+        'HPSYS_RAM1_SIZE',
         'HCPU_RAM_DATA_START_ADDR',
         'HCPU_RAM_DATA_SIZE',
+        'HCPU_RO_DATA_START_ADDR',
+        'HCPU_RO_DATA_SIZE',
+        # Flash2 layout (used by HCPU link script)
+        'QSPI2_MEM_BASE',
+        'HCPU_FLASH2_IMG_START_ADDR',
+        'HCPU_FLASH2_IMG_SIZE',
+        'HCPU_FLASH2_FONT_START_ADDR',
+        'HCPU_FLASH2_FONT_SIZE',
         # Bootloader runtime size
         'FLASH_BOOT_LOADER_SIZE',
         # HCPU RO data (ROM_EX) size (placed at end of HPSYS RAM)
-        'HCPU_RO_DATA_SIZE',
         # 58x HCPU ret/itcm
         'HPSYS_RETM_BASE',
         'HPSYS_RETM_SIZE',
@@ -187,11 +196,19 @@ def _load_mem_map_ints(sifli_sdk_root: str, cmsis_dir: str) -> Dict[str, int]:
         'LCPU_MBOX_SIZE',
         'LCPU_RAM_CODE_SIZE',
         'LCPU_RAM_CODE_START_ADDR',
+        'LCPU_FLASH_CODE_START_ADDR',
         # LCPU DTCM
         'LPSYS_DTCM_BASE',
         'LPSYS_DTCM_SIZE',
         # LCPU flash code (used by 56x LCPU linker scripts)
         'LCPU_FLASH_CODE_SIZE',
+        # Optional PSRAM layout helpers used by legacy example linker scripts
+        'PSRAM_DATA_START_ADDR',
+        'PSRAM_DATA_SIZE',
+        'PSRAM_DATA2_START_ADDR',
+        'PSRAM_DATA2_SIZE',
+        'PSRAM_CODE_START_ADDR',
+        'PSRAM_CODE_SIZE',
     }
 
     raw = _parse_define_map(mem_map_path)
@@ -224,6 +241,13 @@ def _load_mem_map_ints(sifli_sdk_root: str, cmsis_dir: str) -> Dict[str, int]:
                 raise LinkLdsError('Unsupported constant: {}'.format(type(node.value)))
             if isinstance(node, ast.Name):
                 return _eval_define(node.id)
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                fname = node.func.id
+                if fname == 'END_ADDR' and len(node.args) == 2:
+                    start = _eval(node.args[0])
+                    size = _eval(node.args[1])
+                    return start + size - 1
+                raise LinkLdsError('Unsupported macro call: {}'.format(fname))
             if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.UAdd, ast.USub)):
                 v = _eval(node.operand)
                 return +v if isinstance(node.op, ast.UAdd) else -v
@@ -398,6 +422,38 @@ def _match_partition_by_alias(partitions, alias_base: str) -> Optional[Dict[str,
     return None
 
 
+def _find_named_code_partition(partitions, build_name: str, build_core: str) -> Optional[Dict[str, Any]]:
+    build_name_l = (build_name or '').strip().lower()
+    build_core_u = (build_core or 'HCPU').strip().upper()
+    if not build_name_l:
+        return None
+
+    candidates = []
+    for p in partitions or []:
+        if not isinstance(p, dict):
+            continue
+        if (p.get('name') or '').strip().lower() != build_name_l:
+            continue
+        candidates.append(p)
+
+    if not candidates:
+        return None
+
+    def _score(p: Dict[str, Any]) -> Tuple[int, int, int, int]:
+        pcore = (p.get('core') or 'HCPU').strip().upper()
+        ptype = (p.get('type') or '').strip().lower()
+        psubtype = (p.get('subtype') or '').strip().lower()
+        has_exec = 1 if isinstance(p.get('exec'), dict) else 0
+        return (
+            1 if pcore == build_core_u else 0,
+            1 if ptype == 'app' else 0,
+            1 if psubtype == 'factory' else 0,
+            has_exec,
+        )
+
+    return max(candidates, key=_score)
+
+
 def compute_link_defines(ptab_obj, build_name: str, build_core: str, rtconfig_defines: Dict[str, Any]) -> Dict[str, Any]:
     if not ptab_obj or not hasattr(ptab_obj, 'is_v3') or not ptab_obj.is_v3():
         raise LinkLdsError('compute_link_defines only supports ptab v3')
@@ -442,9 +498,33 @@ def compute_link_defines(ptab_obj, build_name: str, build_core: str, rtconfig_de
         _match_partition_by_alias(partitions, 'PSRAM_DATA')
         or _find_partition(partitions, name='psram_data')
     )
+    hcpu_ram_part = (
+        _match_partition_by_alias(partitions, 'HCPU_RAM_DATA')
+        or _find_partition(partitions, name='hcpu_ram_data')
+    )
+    hcpu_ro_part = (
+        _match_partition_by_alias(partitions, 'HCPU_RO_DATA')
+        or _find_partition(partitions, name='hcpu_ro_data')
+    )
+    bootloader_ram_part = (
+        _match_partition_by_alias(partitions, 'BOOTLOADER_RAM_DATA')
+        or _find_partition(partitions, name='bootloader_ram_data')
+    )
+    psram_code_part = (
+        _match_partition_by_alias(partitions, 'PSRAM_CODE')
+        or _find_partition(partitions, name='psram_code')
+    )
     psram2_part = (
         _match_partition_by_alias(partitions, 'PSRAM_DATA2')
         or _find_partition(partitions, name='psram_data2')
+    )
+    flash2_img_part = (
+        _match_partition_by_alias(partitions, 'HCPU_FLASH2_IMG')
+        or _find_partition(partitions, name='hcpu_flash2_img')
+    )
+    flash2_font_part = (
+        _match_partition_by_alias(partitions, 'HCPU_FLASH2_FONT')
+        or _find_partition(partitions, name='hcpu_flash2_font')
     )
 
     def _partition_to_base_size(p: Optional[Dict[str, Any]]) -> Tuple[int, int, str]:
@@ -458,8 +538,14 @@ def compute_link_defines(ptab_obj, build_name: str, build_core: str, rtconfig_de
         base = _select_start_addr(mem_type, sbus, cbus)
         return int(base), int(size), str(region)
 
+    hcpu_ram_base_ptab, hcpu_ram_size_ptab, _ = _partition_to_base_size(hcpu_ram_part)
+    hcpu_ro_base_ptab, hcpu_ro_size_ptab, _ = _partition_to_base_size(hcpu_ro_part)
+    bootloader_ram_base, bootloader_ram_size, _ = _partition_to_base_size(bootloader_ram_part)
     psram_base0, psram_size0, psram_region0 = _partition_to_base_size(psram_part)
+    psram_code_base, psram_code_size, _ = _partition_to_base_size(psram_code_part)
     psram2_base0, psram2_size0, psram2_region0 = _partition_to_base_size(psram2_part)
+    flash2_img_base, flash2_img_size, _ = _partition_to_base_size(flash2_img_part)
+    flash2_font_base, flash2_font_size, _ = _partition_to_base_size(flash2_font_part)
 
     # Enforce PSRAM naming rule:
     # - 1 PSRAM  -> always `PSRAM` (no matter which mpi)
@@ -526,7 +612,7 @@ def compute_link_defines(ptab_obj, build_name: str, build_core: str, rtconfig_de
             if not code_p:
                 code_p = _find_partition(partitions, ptype='app', subtype='dfu')
         if not code_p and build_name:
-            code_p = _find_partition(partitions, name=build_name)
+            code_p = _find_named_code_partition(partitions, build_name, build_core)
         if not code_p:
             raise LinkLdsError('code partition not found for build: {}'.format(build_name))
 
@@ -586,7 +672,23 @@ def compute_link_defines(ptab_obj, build_name: str, build_core: str, rtconfig_de
     else:
         ram_base, ram_size = hcpu_ram_base, hcpu_ram_size
 
+    # Prefer project-level ptab RAM windows when present so custom example
+    # linker scripts can keep using legacy raw macros without drifting to the
+    # board/chip default mem_map.h layout.
+    if build_core == 'HCPU' and hcpu_ram_base_ptab and hcpu_ram_size_ptab:
+        hcpu_ram_base = int(hcpu_ram_base_ptab)
+        hcpu_ram_size = int(hcpu_ram_size_ptab)
+        if not hcpu_ro_base_ptab and hcpu_ro_size_ptab == 0:
+            hcpu_ro_base_ptab = int(hcpu_ram_base + hcpu_ram_size)
+        hcpu_rom_ex_base = int(hcpu_ro_base_ptab)
+        hcpu_rom_ex_size = int(hcpu_ro_size_ptab)
+        if build_name != 'bootloader':
+            ram_base, ram_size = hcpu_ram_base, hcpu_ram_size
+
     out: Dict[str, Any] = dict(rtconfig_defines or {})
+    # Expose selected mem_map.h constants so migrated templates can stay close
+    # to their legacy layouts instead of hardcoding chip-specific addresses.
+    out.update(mem_map_ints)
     out['__ROM_BASE'] = int(rom_base)
     out['__ROM_SIZE'] = int(rom_size)
     out['__RAM_BASE'] = int(ram_base)
@@ -597,6 +699,18 @@ def compute_link_defines(ptab_obj, build_name: str, build_core: str, rtconfig_de
     out['__PSRAM_SIZE'] = int(psram_size)
     out['__PSRAM2_BASE'] = int(psram2_base)
     out['__PSRAM2_SIZE'] = int(psram2_size)
+    out['PSRAM_CODE_START_ADDR'] = int(psram_code_base)
+    out['PSRAM_CODE_SIZE'] = int(psram_code_size)
+    out['PSRAM_DATA_START_ADDR'] = int(psram_base)
+    out['PSRAM_DATA_SIZE'] = int(psram_size)
+    out['PSRAM_DATA2_START_ADDR'] = int(psram2_base)
+    out['PSRAM_DATA2_SIZE'] = int(psram2_size)
+    out['HCPU_RAM_DATA_START_ADDR'] = int(hcpu_ram_base)
+    out['HCPU_RAM_DATA_SIZE'] = int(hcpu_ram_size)
+    out['HCPU_RO_DATA_START_ADDR'] = int(hcpu_ro_base_ptab if hcpu_ro_base_ptab or hcpu_ro_size_ptab else hcpu_ram_base + hcpu_ram_size)
+    out['HCPU_RO_DATA_SIZE'] = int(hcpu_ro_size_ptab)
+    out['BOOTLOADER_RAM_DATA_START_ADDR'] = int(bootloader_ram_base)
+    out['BOOTLOADER_RAM_DATA_SIZE'] = int(bootloader_ram_size)
     out['__RET_RAM_BASE'] = int(mem_map_ints.get('HPSYS_RETM_BASE', 0))
     out['__RET_RAM_SIZE'] = int(mem_map_ints.get('HPSYS_RETM_SIZE', 0))
     out['__ITCM_BASE'] = int(mem_map_ints.get('HPSYS_ITCM_BASE', 0))
@@ -606,10 +720,22 @@ def compute_link_defines(ptab_obj, build_name: str, build_core: str, rtconfig_de
     rom2_base = int(mem_map_ints.get('QSPI2_MEM_BASE', 0))
     rom2_size = int(mem_map_ints.get('HCPU_FLASH2_IMG_SIZE', 0))
     rom3_size = int(mem_map_ints.get('HCPU_FLASH2_FONT_SIZE', 0))
+    if flash2_img_base and flash2_img_size:
+        rom2_base = int(flash2_img_base)
+        rom2_size = int(flash2_img_size)
+    if flash2_font_base and flash2_font_size:
+        rom3_size = int(flash2_font_size)
     out['__ROM2_BASE'] = rom2_base
     out['__ROM2_SIZE'] = rom2_size
-    out['__ROM3_BASE'] = int(rom2_base + rom2_size) if rom2_base and rom2_size else 0
+    if flash2_font_base and flash2_font_size:
+        out['__ROM3_BASE'] = int(flash2_font_base)
+    else:
+        out['__ROM3_BASE'] = int(rom2_base + rom2_size) if rom2_base and rom2_size else 0
     out['__ROM3_SIZE'] = rom3_size
+    out['HCPU_FLASH2_IMG_START_ADDR'] = int(out['__ROM2_BASE'])
+    out['HCPU_FLASH2_IMG_SIZE'] = int(out['__ROM2_SIZE'])
+    out['HCPU_FLASH2_FONT_START_ADDR'] = int(out['__ROM3_BASE'])
+    out['HCPU_FLASH2_FONT_SIZE'] = int(out['__ROM3_SIZE'])
 
     # 56x/58x LCPU extra regions
     if build_core == 'LCPU' and cmsis_dir in ('sf32lb56x', 'sf32lb58x'):

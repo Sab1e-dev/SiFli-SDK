@@ -61,17 +61,28 @@ if GetDepend('USING_PARTITION_TABLE'):
             env['PARTITION_TABLE'] = src_file
             output_dir = os.path.join(env['BSP_ROOT'], './linker_scripts')    
 
+    try:
+        import ptab as ptab_module
+        ptab_obj = ptab_module.load_ptab(src_file, fatal=False) if src_file else None
+    except Exception:
+        ptab_obj = None
+
+    cppdefines = list(env.get('CPPDEFINES', []))
+    filtered_cppdefines = []
+    for item in cppdefines:
+        define_name = item[0] if isinstance(item, tuple) else item
+        if define_name != 'USING_PTAB_V3':
+            filtered_cppdefines.append(item)
+    env['CPPDEFINES'] = filtered_cppdefines
+
+    if ptab_obj and ptab_obj.is_v3():
+        env.AppendUnique(CPPDEFINES=['USING_PTAB_V3'])
+
     ptab_header = env.PtabHeader(os.path.join(output_dir, 'ptab.h'), File(src_file))
     env['PTAB_HEADER'] = ptab_header
 
     # 生成 ftab.bin（仅 ptab v3 + 主项目中，避免与子项目冲突）
     if not IsChildProjEnv():
-        try:
-            import ptab as ptab_module
-            ptab_obj = ptab_module.load_ptab(src_file, fatal=False) if src_file else None
-        except Exception:
-            ptab_obj = None
-
         if ptab_obj and ptab_obj.is_v3():
             imgs_info = []
             target_list = []

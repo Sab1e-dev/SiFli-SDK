@@ -18,4 +18,3 @@
 #define LPSYS_RAM_SIZE (32*1024)
 
 #endif  /* __MEM_MAP__ */
-

@@ -47,35 +47,28 @@ Before running this example, you need to prepare:
      Mount file system partition in mnt_init. FDB initialization requires specifying a storage path (directory in the file system).
      ```
 3. FAL partition configuration (when using `FAL MODE`)   
-+ `project/nor/ptab.json`:
++ `project/nor/ptab.yaml`:
      ```c
-            {
-                "offset": "0x00620000", 
-                "max_size": "0x00004000", 
-                "tags": [
-                    "KVDB_TST_REGION"
-                ]
-            }, 
-            {
-                "offset": "0x00624000", 
-                "max_size": "0x00004000", 
-                "tags": [
-                    "TSDB_TST_REGION"
-                ]
-            }, 
+     - name: kvdb_tst
+       type: data
+       subtype: flashdb_kv
+       region: mpi2
+       offset: 0x00620000
+       size: 0x00004000
+       aliases:
+         - KVDB_TST_REGION
+     - name: tsdb_tst
+       type: data
+       subtype: flashdb_kv
+       region: mpi2
+       offset: 0x00624000
+       size: 0x00004000
+       aliases:
+         - TSDB_TST_REGION
      ```  
-+ `project/nor/custom_mem_map.h`
-     ```c
-     #define FAL_PART_TABLE \
-     { \
-          {FAL_PART_MAGIC_WORD,       "kvdb_tst",      NOR_FLASH2_DEV_NAME,    KVDB_TST_REGION_OFFSET,   KVDB_TST_REGION_SIZE, 0}, \
-          {FAL_PART_MAGIC_WORD,       "tsdb_tst",      NOR_FLASH2_DEV_NAME,    TSDB_TST_REGION_OFFSET,   TSDB_TST_REGION_SIZE, 0}, \
-          ... ...
-     }
-     ``` 
 
      ```{tip}
-     FDB initialization requires specifying flash partition name (for example, in this example it is "kvd_tst"/"tsd_tst").
+     FDB initialization requires specifying flash partition name (for example, in this example it is "kvdb_tst"/"tsdb_tst"). `ptab.h` now auto-generates the compatible `KVDB_TST_REGION_*` / `TSDB_TST_REGION_*` macros and matching `FAL_PART_TABLE` entries, so `custom_mem_map.h` is no longer needed here.
      ```
 
 ### Compilation and Programming
