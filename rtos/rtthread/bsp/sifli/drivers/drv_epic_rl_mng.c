@@ -1221,6 +1221,7 @@ rt_err_t drv_epic_render_list_init(void)
         priority = RT_THREAD_PRIORITY_HIGH - 3;
 #endif
 
+        drv_epic.magic_num = EPIC_DRV_MAGIC_NUM;
         rt_err_t ret = rt_thread_init(&drv_epic.task, "epic_task", epic_task, &drv_epic, drv_epic_stack, sizeof(drv_epic_stack),
                                       priority, RT_THREAD_TICK_DEFAULT);
 

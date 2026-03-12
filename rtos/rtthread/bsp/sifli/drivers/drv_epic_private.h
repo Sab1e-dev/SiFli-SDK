@@ -255,8 +255,11 @@ typedef struct
     uint32_t dbg_mask_buf_pool_max;
     uint32_t dbg_render_buf_max;
 #endif /* DRV_EPIC_NEW_API */
+
+    uint32_t magic_num; /* Magic number to check whether the handle is valid,the vaule should be 0xBEEFBEEF*/
 } EPIC_DrvTypeDef;
 
+#define EPIC_DRV_MAGIC_NUM 0xBEEFBEEF
 /*
     Private Macros
 */

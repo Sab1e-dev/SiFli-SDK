@@ -2200,7 +2200,7 @@ rt_err_t drv_epic_render_list(void *p_drv_epic, void *list)
     if (!p_drv_epic) return RT_EINVAL;
 
     gp_drv_epic = (EPIC_DrvTypeDef *)p_drv_epic;
-
+    DRV_EPIC_ASSERT(EPIC_DRV_MAGIC_NUM == gp_drv_epic->magic_num);
     rt_err_t ret;
 
     ret = render_list(list);
@@ -2219,7 +2219,7 @@ rt_err_t drv_epic_render_list_scale(void *p_drv_epic, void *list, void *p_scaled
 {
     if (!p_drv_epic) return RT_EINVAL;
     gp_drv_epic = (EPIC_DrvTypeDef *)p_drv_epic;
-
+    DRV_EPIC_ASSERT(EPIC_DRV_MAGIC_NUM == gp_drv_epic->magic_num);
 
     rt_err_t ret;
     priv_render_list_t *rl = (priv_render_list_t *)list;
