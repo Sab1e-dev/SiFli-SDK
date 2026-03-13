@@ -91,7 +91,7 @@ static uint8_t  lcdc_input_buffer[2][DISPLAY_LINE_CLOCKS];
     Define a 4bpp grey framebuffer on PSRAM to save previous frame
     */
     L2_NON_RET_BSS_SECT_BEGIN(frambuf)
-    L2_NON_RET_BSS_SECT(frambuf, ALIGN(4) static uint8_t previous_frame[LCD_HOR_RES_MAX * LCD_VER_RES_MAX / 2];);
+    L2_NON_RET_BSS_SECT(frambuf, ALIGN(4) static uint8_t previous_frame[LCD_HOR_RES_MAX * LCD_VER_RES_MAX / 2]);
     L2_NON_RET_BSS_SECT_END
 #endif
 /**
