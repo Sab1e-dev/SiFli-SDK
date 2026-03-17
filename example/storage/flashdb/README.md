@@ -47,7 +47,38 @@
      `mnt_init` 中mount 文件系统分区，FDB初始化时需指定存储路径（在文件系统中的目录）。
      ```
 3. FAL 分区配置（当`FDB Mode`配置为`Use FAL Mode`时需要）   
-+ `project/nor/ptab.yaml`:
++ 典型工程可直接提供完整 `ptab.yaml`，也可以只提供 `ptab.overlay.yaml` 覆盖板级分区。  
++ 本例中以下 board variant 已改为工程级 overlay：
+  - `project/nor/sf32lb56-lcd_n16r12n1_hcpu/ptab.overlay.yaml`
+  - `project/nor/sf32lb58-lcd_n16r64n4_hcpu/ptab.overlay.yaml`
+
+  ```yaml
+  partitions:
+    - op: add
+      name: kvdb_tst
+      type: data
+      subtype: flashdb_kv
+      region: mpi3
+      offset: 0x00608000
+      size: 0x00004000
+      aliases:
+        - KVDB_TST_REGION
+    - op: add
+          name: tsdb_tst
+          type: data
+          subtype: flashdb_kv
+          region: mpi3
+          offset: 0x0060C000
+          size: 0x00004000
+          aliases:
+            - TSDB_TST_REGION
+  ```
+
++ `sf32lb58-lcd_n16r64n4_hcpu` 的 overlay 还会额外调整 `hcpu_flash_code/fs_region/fs_ex_region/acpu`
+  的 offset 或 size，以便插入 `kvdb_tst/tsdb_tst` 分区。
+
++ 其它 board 目录目前仍保留 `ptab.json`（v2）。例如：
+  `project/nor/sf32lb52-lcd_n16r8_hcpu/ptab.json`
      ```c
      - name: kvdb_tst
        type: data
@@ -69,6 +100,17 @@
 
      ```{tip}
      FDB初始化时需指定Flash分区名（比如本例程中是"kvdb_tst"/"tsdb_tst"）。`ptab.h` 会自动生成 `KVDB_TST_REGION_*` / `TSDB_TST_REGION_*` 兼容宏，以及对应的 `FAL_PART_TABLE` 条目，不再需要 `custom_mem_map.h`。
+     ```
+
+     ```{tip}
+     如果使用 overlay，可以在工程目录执行
+     `sdk.py ptab-export --board=sf32lb56-lcd_n16r12n1_hcpu`
+     检查最终生效的 `ptab.effective.yaml`。
+     ```
+
+     ```{tip}
+     `sf32lb52-lcd_n16r8_hcpu` 和 `sf32lb52-nano_n16r16_hcpu` 目前仍保留 `ptab.json`（v2），
+     因为它们不仅修改分区，还修改了板级 `memory` 拓扑；这超出了当前分区级 overlay 的范围。
      ```
 
 ### 编译和烧录

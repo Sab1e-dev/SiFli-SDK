@@ -47,7 +47,40 @@ Before running this example, you need to prepare:
      Mount file system partition in mnt_init. FDB initialization requires specifying a storage path (directory in the file system).
      ```
 3. FAL partition configuration (when using `FAL MODE`)   
-+ `project/nor/ptab.yaml`:
++ A project can either provide a full `ptab.yaml` or only a `ptab.overlay.yaml`
+  to override board-level partitions.
++ In this example, the following board variants use project-level overlays:
+  - `project/nor/sf32lb56-lcd_n16r12n1_hcpu/ptab.overlay.yaml`
+  - `project/nor/sf32lb58-lcd_n16r64n4_hcpu/ptab.overlay.yaml`
+
+     ```yaml
+     partitions:
+       - op: add
+         name: kvdb_tst
+         type: data
+         subtype: flashdb_kv
+         region: mpi3
+         offset: 0x00608000
+         size: 0x00004000
+         aliases:
+           - KVDB_TST_REGION
+       - op: add
+         name: tsdb_tst
+         type: data
+         subtype: flashdb_kv
+         region: mpi3
+         offset: 0x0060C000
+         size: 0x00004000
+         aliases:
+           - TSDB_TST_REGION
+     ```
+
++ The `sf32lb58-lcd_n16r64n4_hcpu` overlay also adjusts
+  `hcpu_flash_code/fs_region/fs_ex_region/acpu` offset or size so the
+  `kvdb_tst/tsdb_tst` partitions can be inserted cleanly.
+
++ Other board directories currently keep `ptab.json` (v2). For example:
+  `project/nor/sf32lb52-lcd_n16r8_hcpu/ptab.json`
      ```c
      - name: kvdb_tst
        type: data
@@ -69,6 +102,18 @@ Before running this example, you need to prepare:
 
      ```{tip}
      FDB initialization requires specifying flash partition name (for example, in this example it is "kvdb_tst"/"tsdb_tst"). `ptab.h` now auto-generates the compatible `KVDB_TST_REGION_*` / `TSDB_TST_REGION_*` macros and matching `FAL_PART_TABLE` entries, so `custom_mem_map.h` is no longer needed here.
+     ```
+
+     ```{tip}
+     If you use the overlay variant, run
+     `sdk.py ptab-export --board=sf32lb56-lcd_n16r12n1_hcpu`
+     in the project directory to inspect the final `ptab.effective.yaml`.
+     ```
+
+     ```{tip}
+     `sf32lb52-lcd_n16r8_hcpu` and `sf32lb52-nano_n16r16_hcpu` still keep
+     `ptab.json` (v2), because they modify both partitions and the board-level
+     `memory` topology. That is outside the current partition-only overlay scope.
      ```
 
 ### Compilation and Programming

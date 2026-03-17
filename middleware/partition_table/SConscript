@@ -6,6 +6,7 @@ cwd = GetCurrentDir()
 env = GetCurrentEnv()
 
 src_file = None
+ptab_obj = None
 
 if GetDepend('USING_PARTITION_TABLE'):
     if GetBoardName():
@@ -17,34 +18,7 @@ if GetDepend('USING_PARTITION_TABLE'):
             board = GetBoardName()
             bsp_root = env['BSP_ROOT']
 
-        # 优先查找 ptab.yaml (v3)，其次 ptab.json (v1/v2)
-        src_file = None
-        search_paths = [
-            os.path.join(bsp_root, board),
-            os.path.join(bsp_root, rtconfig.CHIP.lower()),
-            bsp_root,
-        ]
-        # 添加 board path
-        path1, path2 = GetBoardPath(GetBoardName())
-        search_paths.append(path1)
-
-        for search_dir in search_paths:
-            # 优先 yaml
-            yaml_path = os.path.join(search_dir, 'ptab.yaml')
-            json_path = os.path.join(search_dir, 'ptab.json')
-            if os.path.exists(yaml_path):
-                src_file = yaml_path
-                break
-            elif os.path.exists(json_path):
-                src_file = json_path
-                break
-
-        if src_file is None:
-            # 兼容原有逻辑
-            src_file = os.path.join(path1, 'ptab.json')
-
-        logging.debug("ptab file: {}".format(src_file))
-        env['PARTITION_TABLE'] = src_file
+        path1, path2 = GetBoardPath(board)
         output_dir = env['BUILD_DIR_FULL_PATH']
     else:    
         if 'PARTITION_TABLE' in env:
@@ -63,9 +37,24 @@ if GetDepend('USING_PARTITION_TABLE'):
 
     try:
         import ptab as ptab_module
-        ptab_obj = ptab_module.load_ptab(src_file, fatal=False) if src_file else None
+        if GetBoardName():
+            prepared = ptab_module.prepare_project_ptab(
+                bsp_root,
+                board,
+                rtconfig.CHIP.lower(),
+                board_path=path1,
+                output_dir=output_dir,
+                emit_summary=True,
+                summary_dedupe=True,
+            )
+            src_file = prepared['path']
+            ptab_obj = prepared.get('ptab_obj')
+        else:
+            ptab_obj = ptab_module.load_ptab(src_file, fatal=False) if src_file else None
+        logging.debug("ptab file: {}".format(src_file))
+        env['PARTITION_TABLE'] = src_file
     except Exception:
-        ptab_obj = None
+        raise
 
     cppdefines = list(env.get('CPPDEFINES', []))
     filtered_cppdefines = []

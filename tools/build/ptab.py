@@ -7,11 +7,28 @@ import os
 import re
 from collections import OrderedDict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 import yaml
 
 _PTAB_CACHE = {}
+_OVERLAY_SUMMARY_CACHE: Set[Tuple[str, str, str]] = set()
+
+_PTAB_OVERLAY_FILENAME = 'ptab.overlay.yaml'
+_PTAB_OVERLAY_TOP_KEYS = {'partitions'}
+_PTAB_OVERLAY_PARTITION_KEYS = {
+    'name',
+    'op',
+    'type',
+    'subtype',
+    'region',
+    'offset',
+    'size',
+    'core',
+    'attrs',
+    'aliases',
+    'exec',
+}
 
 # SiliconSchema paths
 #
@@ -1002,6 +1019,558 @@ def _is_v3_yaml(data):
     return False
 
 
+def normalize_board_name(board: Optional[str]) -> Optional[str]:
+    """Normalize board name to include the core suffix."""
+    if board is None:
+        return None
+    board = str(board).strip()
+    if not board:
+        return None
+    if board.endswith(('_hcpu', '_lcpu', '_acpu')):
+        return board
+    return board + '_hcpu'
+
+
+def get_board_paths(
+    board: Optional[str],
+    board_search_path: Optional[str] = None,
+    sdk_root: Optional[str] = None,
+) -> Tuple[Optional[str], Optional[str]]:
+    """Return `(board_root, core_subdir)` for a board name."""
+    board = normalize_board_name(board)
+    if board is None:
+        return None, None
+
+    if board.endswith('_hcpu'):
+        board_path = board[:-len('_hcpu')]
+        subfolder = 'hcpu'
+    elif board.endswith('_lcpu'):
+        board_path = board[:-len('_lcpu')]
+        subfolder = 'lcpu'
+    else:
+        board_path = board[:-len('_acpu')]
+        subfolder = 'acpu'
+
+    sdk_root = os.path.abspath(sdk_root or os.environ.get('SIFLI_SDK') or os.getcwd())
+    default_root = os.path.join(sdk_root, 'customer', 'boards')
+    board_root = default_root
+
+    if board_search_path:
+        board_search_path = os.path.abspath(board_search_path)
+        if os.path.exists(os.path.join(board_search_path, board_path)):
+            board_root = board_search_path
+
+    board_path1 = os.path.join(board_root, board_path).replace('\\', '/')
+    board_path2 = os.path.join(board_path1, subfolder).replace('\\', '/')
+    return board_path1, board_path2
+
+
+def detect_chip_dir_from_board(
+    board: Optional[str],
+    board_search_path: Optional[str] = None,
+    sdk_root: Optional[str] = None,
+) -> Optional[str]:
+    """Best-effort read the board rtconfig.py and return CHIP in lowercase."""
+    _, board_core_path = get_board_paths(board, board_search_path=board_search_path, sdk_root=sdk_root)
+    if not board_core_path:
+        return None
+
+    rtconfig_path = os.path.join(board_core_path, 'rtconfig.py')
+    if not os.path.exists(rtconfig_path):
+        return None
+
+    try:
+        with open(rtconfig_path, encoding='utf-8') as f:
+            content = f.read()
+    except Exception:
+        return None
+
+    match = re.search(r'^\s*CHIP\s*=\s*[\'"]([^\'"]+)[\'"]', content, flags=re.MULTILINE)
+    if not match:
+        return None
+    chip = (match.group(1) or '').strip()
+    return chip.lower() if chip else None
+
+
+def _find_first_ptab_file(search_dirs: List[Optional[str]]) -> Optional[str]:
+    for search_dir in search_dirs:
+        if not search_dir:
+            continue
+        yaml_path = os.path.join(search_dir, 'ptab.yaml')
+        json_path = os.path.join(search_dir, 'ptab.json')
+        if os.path.exists(yaml_path):
+            return os.path.abspath(yaml_path)
+        if os.path.exists(json_path):
+            return os.path.abspath(json_path)
+    return None
+
+
+def resolve_project_ptab_paths(
+    project_root: str,
+    board: Optional[str],
+    chip: Optional[str],
+    board_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Resolve the project-local PTAB replacement/overlay paths."""
+    project_root = os.path.abspath(project_root)
+    board = normalize_board_name(board)
+    chip = (chip or '').strip().lower() or None
+    board_path = os.path.abspath(board_path) if board_path else None
+
+    project_search_dirs: List[str] = []
+    if board:
+        project_search_dirs.append(os.path.join(project_root, board))
+    if chip:
+        project_search_dirs.append(os.path.join(project_root, chip))
+    project_search_dirs.append(project_root)
+
+    project_full_ptab = _find_first_ptab_file(project_search_dirs)
+    board_base_ptab = _find_first_ptab_file([board_path] if board_path else [])
+
+    overlay_paths = {
+        'chip': None,
+        'board': None,
+    }
+    if chip:
+        chip_overlay = os.path.join(project_root, chip, _PTAB_OVERLAY_FILENAME)
+        if os.path.exists(chip_overlay):
+            overlay_paths['chip'] = os.path.abspath(chip_overlay)
+    if board:
+        board_overlay = os.path.join(project_root, board, _PTAB_OVERLAY_FILENAME)
+        if os.path.exists(board_overlay):
+            overlay_paths['board'] = os.path.abspath(board_overlay)
+
+    fallback_path = os.path.join(board_path, 'ptab.json') if board_path else None
+
+    return {
+        'project_root': project_root,
+        'board': board,
+        'chip': chip,
+        'board_path': board_path,
+        'project_full_ptab': project_full_ptab,
+        'board_base_ptab': board_base_ptab,
+        'board_fallback_ptab': fallback_path,
+        'overlay_paths': overlay_paths,
+    }
+
+
+def _load_overlay_partitions(path: str) -> List[Dict[str, Any]]:
+    data = _parse_ptab_yaml_file(path)
+    if not isinstance(data, dict):
+        raise ValueError(f"{path}: overlay file must be a YAML mapping")
+
+    extra_keys = sorted(set(data.keys()) - _PTAB_OVERLAY_TOP_KEYS)
+    if extra_keys:
+        raise ValueError(
+            f"{path}: unsupported top-level key(s): {', '.join(extra_keys)}; "
+            f"overlay file only supports 'partitions'"
+        )
+
+    if 'partitions' not in data:
+        raise ValueError(f"{path}: overlay file must define top-level 'partitions'")
+
+    partitions = data.get('partitions')
+    if not isinstance(partitions, list):
+        raise ValueError(f"{path}: 'partitions' must be a list")
+    return partitions
+
+
+def _validate_overlay_partition_item(path: str, index: int, item: Any) -> Dict[str, Any]:
+    if not isinstance(item, dict):
+        raise ValueError(f"{path}: partitions[{index}] must be a mapping")
+
+    extra_keys = sorted(set(item.keys()) - _PTAB_OVERLAY_PARTITION_KEYS)
+    if extra_keys:
+        raise ValueError(
+            f"{path}: partitions[{index}] contains unsupported key(s): {', '.join(extra_keys)}"
+        )
+
+    name = str(item.get('name') or '').strip()
+    if not name:
+        raise ValueError(f"{path}: partitions[{index}] missing required field 'name'")
+
+    if 'op' in item and item.get('op') is not None:
+        op = str(item.get('op')).strip().lower()
+        if op not in ('override', 'add'):
+            raise ValueError(
+                f"{path}: partitions[{index}] has invalid op '{item.get('op')}', expected 'override' or 'add'"
+            )
+
+    return item
+
+
+def _infer_overlay_operation(item: Dict[str, Any], exists: bool) -> Tuple[str, str]:
+    if 'op' in item and item.get('op') is not None:
+        return str(item.get('op')).strip().lower(), 'explicit'
+    return ('override' if exists else 'add'), 'inferred'
+
+
+def _merge_overlay_partition(base: Dict[str, Any], update: Dict[str, Any]) -> Dict[str, Any]:
+    merged = copy.deepcopy(base)
+    for key, value in update.items():
+        if key in ('name', 'op'):
+            continue
+        if key == 'attrs':
+            base_attrs = copy.deepcopy(merged.get('attrs') or {})
+            if not isinstance(base_attrs, dict):
+                base_attrs = {}
+            if value is None:
+                merged.pop('attrs', None)
+                continue
+            if not isinstance(value, dict):
+                raise ValueError("overlay attrs must be a mapping")
+            base_attrs.update(copy.deepcopy(value))
+            if base_attrs:
+                merged['attrs'] = base_attrs
+            else:
+                merged.pop('attrs', None)
+            continue
+        if key == 'aliases':
+            if value is None:
+                merged.pop('aliases', None)
+            else:
+                merged['aliases'] = copy.deepcopy(value)
+            continue
+        if key == 'exec':
+            if value is None:
+                merged.pop('exec', None)
+            else:
+                merged['exec'] = copy.deepcopy(value)
+            continue
+        if value is None and key in ('subtype', 'core'):
+            merged.pop(key, None)
+            continue
+        merged[key] = copy.deepcopy(value)
+    return merged
+
+
+def _validate_effective_ptab_v3(
+    ptab_obj: Any,
+    strict: bool = False,
+    context: Optional[str] = None,
+) -> List[Any]:
+    from validate_ptab_v3 import validate_ptab_v3
+
+    issues = validate_ptab_v3(ptab_obj)
+    blocking = [
+        issue for issue in issues
+        if issue.severity == 'error' or (strict and issue.severity == 'warning')
+    ]
+    if blocking:
+        prefix = f"{context}: " if context else ''
+        messages = '\n'.join(str(issue) for issue in blocking)
+        raise ValueError(f"{prefix}invalid ptab v3 configuration:\n{messages}")
+    return issues
+
+
+def build_effective_ptab_v3(
+    base_ptab_path: str,
+    chip_overlay_path: Optional[str] = None,
+    board_overlay_path: Optional[str] = None,
+    strict_validation: bool = False,
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    """Apply project overlay files to a board-level ptab v3."""
+    base_ptab_path = os.path.abspath(base_ptab_path)
+    base_data = _parse_ptab_yaml_file(base_ptab_path)
+    if not _is_v3_yaml(base_data):
+        raise ValueError(
+            f"{base_ptab_path}: project overlay only supports board-level ptab.yaml (v3), "
+            "ptab.json cannot be overlaid"
+        )
+
+    merged_data = copy.deepcopy(base_data)
+    partitions = merged_data.get('partitions')
+    if not isinstance(partitions, list):
+        raise ValueError(f"{base_ptab_path}: v3 ptab must define 'partitions' as a list")
+    merged_data['partitions'] = partitions
+
+    report = {
+        'base_path': base_ptab_path,
+        'overlay_paths': {
+            'chip': os.path.abspath(chip_overlay_path) if chip_overlay_path else None,
+            'board': os.path.abspath(board_overlay_path) if board_overlay_path else None,
+        },
+        'effective_path': None,
+        'operations': [],
+        'validation': [],
+    }
+
+    for layer, overlay_path in (('chip', chip_overlay_path), ('board', board_overlay_path)):
+        if not overlay_path:
+            continue
+        overlay_path = os.path.abspath(overlay_path)
+        overlay_partitions = _load_overlay_partitions(overlay_path)
+
+        for index, raw_item in enumerate(overlay_partitions):
+            item = _validate_overlay_partition_item(overlay_path, index, raw_item)
+            name = str(item.get('name') or '').strip()
+            name_lower = name.lower()
+
+            current_index = None
+            for part_idx, partition in enumerate(partitions):
+                if not isinstance(partition, dict):
+                    continue
+                if str(partition.get('name') or '').strip().lower() == name_lower:
+                    current_index = part_idx
+                    break
+
+            op, op_mode = _infer_overlay_operation(item, current_index is not None)
+            changed_fields = [key for key in item.keys() if key not in ('name', 'op')]
+
+            if op == 'override':
+                if current_index is None:
+                    raise ValueError(
+                        f"{overlay_path}: partitions[{index}] override target '{name}' not found in base ptab"
+                    )
+                partitions[current_index] = _merge_overlay_partition(partitions[current_index], item)
+            else:
+                if current_index is not None:
+                    raise ValueError(
+                        f"{overlay_path}: partitions[{index}] add target '{name}' already exists"
+                    )
+                missing = [key for key in ('type', 'region', 'offset', 'size') if key not in item]
+                if missing:
+                    raise ValueError(
+                        f"{overlay_path}: partitions[{index}] add entry '{name}' missing required field(s): "
+                        f"{', '.join(missing)}"
+                    )
+                new_item = copy.deepcopy(item)
+                new_item.pop('op', None)
+                partitions.append(new_item)
+
+            report['operations'].append({
+                'layer': layer,
+                'kind': op,
+                'mode': op_mode,
+                'name': name,
+                'fields': changed_fields,
+                'source': overlay_path,
+            })
+
+    effective_obj = PtabV3(base_ptab_path, merged_data)
+    report['validation'] = _validate_effective_ptab_v3(
+        effective_obj,
+        strict=strict_validation,
+        context=base_ptab_path,
+    )
+
+    return merged_data, report
+
+
+def dump_ptab_yaml(data: Dict[str, Any]) -> str:
+    return yaml.safe_dump(
+        data,
+        sort_keys=False,
+        allow_unicode=False,
+        default_flow_style=False,
+    )
+
+
+def write_effective_ptab_yaml(path: str, data: Dict[str, Any]) -> str:
+    path = os.path.abspath(path)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'w', encoding='utf-8', newline='\n') as f:
+        f.write(dump_ptab_yaml(data))
+    return path
+
+
+def print_overlay_summary(report: Dict[str, Any], dedupe: bool = True) -> None:
+    ops = report.get('operations') or []
+    if not ops:
+        return
+
+    cache_key = (
+        str(report.get('base_path') or ''),
+        str((report.get('overlay_paths') or {}).get('chip') or ''),
+        str((report.get('overlay_paths') or {}).get('board') or ''),
+    )
+    if dedupe and cache_key in _OVERLAY_SUMMARY_CACHE:
+        return
+    _OVERLAY_SUMMARY_CACHE.add(cache_key)
+
+    try:
+        from rich.console import Console
+        from rich.panel import Panel
+        from rich.table import Table
+    except ImportError:
+        logging.info("PTAB overlay base: %s", report.get('base_path'))
+        for op in ops:
+            logging.info(
+                "PTAB overlay %s %s (%s): %s [%s]",
+                op.get('layer'),
+                op.get('kind'),
+                op.get('mode'),
+                op.get('name'),
+                ', '.join(op.get('fields') or ['-']),
+            )
+        return
+
+    console = Console(stderr=True, width=180)
+
+    summary_lines = [
+        f"[bold]Base PTAB[/bold]: {report.get('base_path')}",
+    ]
+    overlay_paths = report.get('overlay_paths') or {}
+    if overlay_paths.get('chip'):
+        summary_lines.append(f"[bold]Chip Overlay[/bold]: {overlay_paths.get('chip')}")
+    if overlay_paths.get('board'):
+        summary_lines.append(f"[bold]Board Overlay[/bold]: {overlay_paths.get('board')}")
+    if report.get('effective_path'):
+        summary_lines.append(f"[bold]Effective PTAB[/bold]: {report.get('effective_path')}")
+    console.print(Panel.fit('\n'.join(summary_lines), title='PTAB Overlay'))
+
+    override_table = Table(title='Partition Overrides', show_header=True, header_style='bold magenta')
+    override_table.add_column('Layer', style='cyan')
+    override_table.add_column('Partition', style='green')
+    override_table.add_column('Mode', style='yellow')
+    override_table.add_column('Fields', style='white')
+    override_table.add_column('Source', style='dim')
+
+    addition_table = Table(title='Partition Additions', show_header=True, header_style='bold magenta')
+    addition_table.add_column('Layer', style='cyan')
+    addition_table.add_column('Partition', style='green')
+    addition_table.add_column('Mode', style='yellow')
+    addition_table.add_column('Fields', style='white')
+    addition_table.add_column('Source', style='dim')
+
+    has_override = False
+    has_addition = False
+    for op in ops:
+        fields = ', '.join(op.get('fields') or ['-'])
+        row = [
+            str(op.get('layer') or ''),
+            str(op.get('name') or ''),
+            str(op.get('mode') or ''),
+            fields,
+            str(op.get('source') or ''),
+        ]
+        if op.get('kind') == 'add':
+            addition_table.add_row(*row)
+            has_addition = True
+        else:
+            override_table.add_row(*row)
+            has_override = True
+
+    if has_override:
+        console.print(override_table)
+    if has_addition:
+        console.print(addition_table)
+
+
+def prepare_project_ptab(
+    project_root: str,
+    board: Optional[str],
+    chip: Optional[str],
+    board_path: Optional[str] = None,
+    output_dir: Optional[str] = None,
+    emit_summary: bool = False,
+    validate: bool = False,
+    strict_validation: bool = False,
+    summary_dedupe: bool = True,
+) -> Dict[str, Any]:
+    """Resolve the PTAB file used by a project and apply overlays if needed."""
+    resolved = resolve_project_ptab_paths(project_root, board, chip, board_path=board_path)
+    project_full_ptab = resolved.get('project_full_ptab')
+    board_base_ptab = resolved.get('board_base_ptab')
+    overlay_paths = resolved.get('overlay_paths') or {}
+    uses_overlay = bool(overlay_paths.get('chip') or overlay_paths.get('board'))
+
+    if project_full_ptab and uses_overlay:
+        raise ValueError(
+            "Project-level ptab.yaml/ptab.json and ptab.overlay.yaml cannot be used together"
+        )
+
+    if project_full_ptab:
+        ptab_obj = load_ptab(project_full_ptab, fatal=validate)
+        validation = []
+        if validate and ptab_obj and ptab_obj.is_v3():
+            validation = _validate_effective_ptab_v3(
+                ptab_obj,
+                strict=strict_validation,
+                context=project_full_ptab,
+            )
+        return {
+            'path': project_full_ptab,
+            'effective_path': project_full_ptab,
+            'base_path': project_full_ptab,
+            'project_root': resolved.get('project_root'),
+            'board': resolved.get('board'),
+            'chip': resolved.get('chip'),
+            'uses_overlay': False,
+            'overlay_paths': overlay_paths,
+            'report': {
+                'base_path': project_full_ptab,
+                'overlay_paths': overlay_paths,
+                'effective_path': project_full_ptab,
+                'operations': [],
+                'validation': validation,
+            },
+            'merged_data': None,
+            'ptab_obj': ptab_obj,
+        }
+
+    if uses_overlay:
+        if not board_base_ptab:
+            raise ValueError("Board-level ptab.yaml not found, cannot apply overlay")
+        merged_data, report = build_effective_ptab_v3(
+            board_base_ptab,
+            chip_overlay_path=overlay_paths.get('chip'),
+            board_overlay_path=overlay_paths.get('board'),
+            strict_validation=strict_validation if validate else False,
+        )
+        effective_path = board_base_ptab
+        if output_dir:
+            effective_path = write_effective_ptab_yaml(
+                os.path.join(os.path.abspath(output_dir), 'ptab.effective.yaml'),
+                merged_data,
+            )
+        report['effective_path'] = effective_path
+        if emit_summary:
+            print_overlay_summary(report, dedupe=summary_dedupe)
+        return {
+            'path': effective_path,
+            'effective_path': effective_path,
+            'base_path': board_base_ptab,
+            'project_root': resolved.get('project_root'),
+            'board': resolved.get('board'),
+            'chip': resolved.get('chip'),
+            'uses_overlay': True,
+            'overlay_paths': overlay_paths,
+            'report': report,
+            'merged_data': merged_data,
+            'ptab_obj': PtabV3(effective_path, merged_data),
+        }
+
+    path = board_base_ptab or resolved.get('board_fallback_ptab')
+    ptab_obj = load_ptab(path, fatal=validate) if path else None
+    validation = []
+    if validate and ptab_obj and ptab_obj.is_v3():
+        validation = _validate_effective_ptab_v3(
+            ptab_obj,
+            strict=strict_validation,
+            context=path,
+        )
+    return {
+        'path': path,
+        'effective_path': path,
+        'base_path': path,
+        'project_root': resolved.get('project_root'),
+        'board': resolved.get('board'),
+        'chip': resolved.get('chip'),
+        'uses_overlay': False,
+        'overlay_paths': overlay_paths,
+        'report': {
+            'base_path': path,
+            'overlay_paths': overlay_paths,
+            'effective_path': path,
+            'operations': [],
+            'validation': validation,
+        },
+        'merged_data': None,
+        'ptab_obj': ptab_obj,
+    }
+
+
 def load_ptab(path, fatal=False):
     """加载 ptab 文件
 
@@ -1293,12 +1862,24 @@ def _add_default_regions_52x(mems):
             if "name" in region and 'bootloader' == region['name']:
                 bootloader_img_found = True
 
-    for region in hpsys_ram_mem:
-        if "name" in region and 'bootloader' == region['name'] and 'type' in region and "app_exec" in region['type']:
-            bootloader_exec_found = True
+    if hpsys_ram_mem and isinstance(hpsys_ram_mem.get('regions'), list):
+        for region in hpsys_ram_mem['regions']:
+            if not isinstance(region, dict):
+                continue
 
-        if "name" in region and 'bootloader' == region['name']:
-            bootloader_data_found = True
+            region_name = region.get('name')
+            region_type = region.get('type', []) or []
+            region_tags = region.get('tags', []) or []
+
+            if region_name == 'bootloader' and 'app_exec' in region_type:
+                bootloader_exec_found = True
+            elif 'FLASH_BOOT_LOADER' in region_tags and 'app_exec' in region_type:
+                bootloader_exec_found = True
+
+            if region_name == 'bootloader':
+                bootloader_data_found = True
+            elif 'BOOTLOADER_RAM_DATA' in region_tags:
+                bootloader_data_found = True
 
     if not bootloader_exec_found:
         bootloader_region = {
