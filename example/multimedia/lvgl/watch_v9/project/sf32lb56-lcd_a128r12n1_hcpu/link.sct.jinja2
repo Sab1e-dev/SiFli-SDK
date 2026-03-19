@@ -134,6 +134,7 @@ LR_IROM2 {{ hex32(defines['HCPU_FLASH2_IMG_START_ADDR']) }} {{ hex32(defines['HC
 
 LR_IROM3 {{ hex32(defines['HCPU_FLASH2_FONT_START_ADDR']) }} {{ hex32(defines['HCPU_FLASH2_FONT_SIZE']) }}  {  ; load region size_region
   ER_IROM3 {{ hex32(defines['HCPU_FLASH2_FONT_START_ADDR']) }} {{ hex32(defines['HCPU_FLASH2_FONT_SIZE']) }}  {  ; RW data
+   *.o (.font_data*)
    lvsf_font_*.o  (.rodata.*)
    }
 }

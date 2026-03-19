@@ -540,6 +540,7 @@ SECTIONS
 
   .rom3 :
   {
+    *(.font_data*)
     *lvsf_font_*(.rodata*)
   } > ROM3
 {% endif %}
