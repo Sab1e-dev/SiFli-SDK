@@ -16,14 +16,14 @@ partitions:
     type: ftab
     region: mpi2
     offset: 0
-    size: 32KB
+    size: 128KB
 
   # Calibration data
   - name: calibration
     type: data
     subtype: calibration
     region: mpi2
-    offset: 0x8000
+    offset: 0x20000
     size: 8KB
 
   # Bootloader (存储在 Flash，执行在 RAM)
@@ -62,7 +62,7 @@ partitions:
     core: HCPU
 
   # DFU info region
-  - name: dfu_info
+  - name: dfu_info_region
     type: data
     subtype: raw
     region: mpi2
@@ -115,7 +115,7 @@ partitions:
     subtype: ram
     region: hpsys_ram
     offset: 0
-    size: 128KB
+    size: 0x0007FC00
 
   # Bootloader RAM data
   - name: bootloader_ram_data
