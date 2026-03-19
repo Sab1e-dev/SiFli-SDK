@@ -2508,7 +2508,13 @@ def SifliGccEnv(cpu):
     rtconfig.CFLAGS += ' -fno-unwind-tables -fno-exceptions'
     rtconfig.CFLAGS += ' -fno-common -fno-strict-aliasing'
     
-    rtconfig.CFLAGS += ' -Os'
+    if hasattr(rtconfig, 'OPT_LEVEL'):
+        rtconfig.CFLAGS += ' ' + rtconfig.OPT_LEVEL
+    elif GetConfigValue("OPT_LEVEL") != "":
+        rtconfig.CFLAGS += ' ' + GetConfigValue("OPT_LEVEL").replace('"', '')
+    else:
+        rtconfig.CFLAGS += ' -Os' 
+
     rtconfig.CXXFLAGS = rtconfig.CFLAGS
     if no_dsp_fp:
         rtconfig.CXXFLAGS += ' -fno-exceptions -fno-rtti'
