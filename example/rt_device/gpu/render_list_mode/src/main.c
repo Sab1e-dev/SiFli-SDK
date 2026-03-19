@@ -43,6 +43,32 @@ const static uint8_t ezip_data_argb565[] =
 #include "../assets/clock_simple_bg_565A.dat"
 };
 
+ALIGN(4)
+const static uint8_t ezip_data_60x60[] =
+{
+#include "../assets/ezip_60x60.dat"
+};
+
+#ifdef EPIC_SUPPORT_JPEGD
+ALIGN(4)
+const static uint8_t jpeg_data_454x454[] =
+{
+#include "../assets/jpeg_bg_454x454.dat"
+};
+
+ALIGN(4)
+const static uint8_t jpeg_data_400x400[] =
+{
+#include "../assets/jpeg_bg_400x400.dat"
+};
+
+ALIGN(4)
+static const uint8_t jpeg_human1_88x88[] =
+{
+#include "../assets/jpeg_human1_88x88.dat"
+};
+#endif /* EPIC_SUPPORT_JPEGD */
+
 const static uint8_t letter_data_27x30_si[] =
 {
 #include "../assets/letter_si.dat"
@@ -226,6 +252,52 @@ static void draw_img(drv_epic_render_buf *p_buf)
     drv_epic_commit_op(o);
 }
 
+#ifdef EPIC_SUPPORT_JPEGD
+static void draw_jpg_img(drv_epic_render_buf *p_buf)
+{
+    uint8_t idx = 0;
+    drv_epic_operation *o = drv_epic_alloc_op(p_buf);
+    RT_ASSERT(o != NULL);
+
+    o->op = DRV_EPIC_DRAW_IMAGE;
+    o->clip_area.x0 = 0;
+    o->clip_area.y0 = 0;
+    o->clip_area.x1 = LCD_HOR_RES_MAX - 1;
+    o->clip_area.y1 = LCD_VER_RES_MAX - 1;
+
+    HAL_EPIC_LayerConfigInit(&o->mask);
+    o->desc.blend.use_dest_as_bg = EPIC_BLEND_MODE_NORMAL;
+
+    EPIC_LayerConfigTypeDef *p_src_layer = &o->desc.blend.layer;
+    HAL_EPIC_LayerConfigInit(p_src_layer);
+    p_src_layer->alpha = 255;
+    p_src_layer->x_offset = 0;
+    p_src_layer->y_offset = 0;
+    p_src_layer->color_mode = EPIC_INPUT_JPEG; //EPIC_COLOR_JPEG
+    if (idx == 0)
+    {
+        p_src_layer->data = (uint8_t *)&jpeg_data_454x454[0];
+        p_src_layer->width = 454;
+        p_src_layer->total_width = 454;
+        p_src_layer->height = 454;
+        p_src_layer->data_size = sizeof(jpeg_data_454x454);
+    }
+    else
+    {
+        p_src_layer->data = (uint8_t *)&jpeg_data_400x400[0];
+        p_src_layer->width = 400;
+        p_src_layer->total_width = 400;
+        p_src_layer->height = 400;
+        p_src_layer->data_size = sizeof(jpeg_data_400x400);
+    }
+    p_src_layer->transform_cfg.scale_x = EPIC_INPUT_SCALE_NONE * p_src_layer->width / LCD_HOR_RES_MAX;
+    p_src_layer->transform_cfg.scale_y = EPIC_INPUT_SCALE_NONE * p_src_layer->height / LCD_VER_RES_MAX;
+
+    drv_epic_commit_op(o);
+
+    idx = !idx;
+}
+#endif /* EPIC_SUPPORT_JPEGD */
 static void draw_ezip_img(drv_epic_render_buf *p_buf)
 {
     drv_epic_operation *o = drv_epic_alloc_op(p_buf);
@@ -289,6 +361,72 @@ static void draw_rects(drv_epic_render_buf *p_buf)
         o->desc.rectangle.grad_color_en = is_grad;
         is_grad = !is_grad;
         drv_epic_commit_op(o);
+    }
+}
+
+
+static void draw_img_buttons(drv_epic_render_buf *p_buf)
+{
+    int16_t img_h = 60;
+    int16_t img_w = 60;
+
+    int16_t w = LCD_HOR_RES_MAX - 30;
+    int16_t h = img_h + 20;
+    uint8_t is_grad = 1;
+    int16_t buttons_left_x = 10;
+
+    for (uint16_t y = 10; y < LCD_VER_RES_MAX - h - 1; y += (h + 20))
+    {
+        //Draw button
+        drv_epic_operation *o1 = drv_epic_alloc_op(p_buf);
+        RT_ASSERT(o1 != NULL);
+
+        o1->op = DRV_EPIC_DRAW_RECT;
+        o1->clip_area.x0 = buttons_left_x;
+        o1->clip_area.y0 = y;
+        o1->clip_area.x1 = o1->clip_area.x0 + w - 1;
+        o1->clip_area.y1 = y + h - 1;
+
+        HAL_EPIC_LayerConfigInit(&o1->mask);
+
+        o1->desc.rectangle.area = o1->clip_area;
+
+        o1->desc.rectangle.radius = 20;
+        o1->desc.rectangle.top_fillet = 1;
+        o1->desc.rectangle.bot_fillet = 1;
+        o1->desc.rectangle.argb8888 = 0xFF808080;
+        o1->desc.rectangle.grad_color.tl = 0xFFFF0000;
+        o1->desc.rectangle.grad_color.tr = 0xFF00FF00;
+        o1->desc.rectangle.grad_color.bl = 0xFF0000FF;
+        o1->desc.rectangle.grad_color.br = 0xFFFFFF00;
+        o1->desc.rectangle.grad_color_en = is_grad;
+        is_grad = !is_grad;
+        drv_epic_commit_op(o1);
+
+
+        //Draw image
+        drv_epic_operation *o2 = drv_epic_alloc_op(p_buf);
+        RT_ASSERT(o2 != NULL);
+
+        o2->op = DRV_EPIC_DRAW_IMAGE;
+        memcpy(&o2->clip_area, &o1->clip_area, sizeof(EPIC_AreaTypeDef));
+
+        HAL_EPIC_LayerConfigInit(&o2->mask);
+        o2->desc.blend.use_dest_as_bg = EPIC_BLEND_MODE_NORMAL;
+
+        EPIC_LayerConfigTypeDef *p_src_layer = &o2->desc.blend.layer;
+        HAL_EPIC_LayerConfigInit(p_src_layer);
+        p_src_layer->alpha = 255;
+        p_src_layer->x_offset = buttons_left_x + 10;
+        p_src_layer->y_offset = y + 10;
+
+        p_src_layer->data = (uint8_t *)&ezip_data_60x60[0];
+        p_src_layer->color_mode = EPIC_INPUT_EZIP;
+        p_src_layer->width = img_w;
+        p_src_layer->total_width = img_w;
+        p_src_layer->height = img_h;
+        p_src_layer->data_size = sizeof(ezip_data_60x60);
+        drv_epic_commit_op(o2);
     }
 }
 
@@ -822,6 +960,7 @@ int main(void)
     rt_tick_t scene_start_tick = rt_tick_get();
 
     rt_kprintf("__main start\r\n");
+    rt_thread_delay(1000);
 
     uint8_t pixel_align;
     rt_device_t lcd_device = open_lcd(&pixel_align);
@@ -879,12 +1018,20 @@ int main(void)
             draw_fill(&virtual_render_buf);
             draw_lines(&virtual_render_buf);
             draw_polygon(&virtual_render_buf);
+            draw_arc_anim(&virtual_render_buf);
+            draw_letters(&virtual_render_buf);
             break;
 
         case 4:
             draw_fill(&virtual_render_buf);
             draw_img_3d_rotated(&virtual_render_buf);
             draw_img_3d_rotated_2(&virtual_render_buf);
+            break;
+
+        case 5:
+            draw_fill(&virtual_render_buf);
+            draw_jpg_img(&virtual_render_buf);
+            draw_img_buttons(&virtual_render_buf);
             break;
 
         case 0:
@@ -901,9 +1048,9 @@ int main(void)
         //Switch to next scene after 10 seconds
         if (scene_start_tick + rt_tick_from_millisecond(1000 * 10) < rt_tick_get())
         {
-            scene++;
             scene_start_tick = rt_tick_get();
             rt_kprintf("Showing scene %d \r\n", scene);
+            scene++;
         }
 
         /*Start rendering  and show the result on LCD*/

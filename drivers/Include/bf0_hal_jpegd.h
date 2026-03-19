@@ -110,6 +110,10 @@ typedef struct _JPEGD_HandleTypeDef
     uint32_t                    RunTime;
     uint32_t                    StartTime;
     uint32_t                    RunNum;
+
+    JPEGD_TypeDef               *RamInstance;                               /*!< JPEGD register on RAM. */
+    JPEGD_TypeDef               *HwInstance;                                /*!< Backup of JPEGD register base address. */
+    uint8_t                     RamInstance_used;
 } JPEGD_HandleTypeDef;
 
 
@@ -210,6 +214,9 @@ HAL_StatusTypeDef HAL_JPEGD_Decode(JPEGD_HandleTypeDef *hdl, JPEGD_DecodeConfigT
  */
 HAL_StatusTypeDef HAL_JPEGD_Decode_IT(JPEGD_HandleTypeDef *hdl, JPEGD_DecodeConfigTypeDef *config);
 
+
+HAL_StatusTypeDef HAL_JPEGD_DecodeFast_Init(JPEGD_HandleTypeDef *hdl);
+HAL_StatusTypeDef HAL_JPEGD_DecodeFast_IT(JPEGD_HandleTypeDef *hdl);
 
 /**
  * @brief  Check if JPEGD is idle

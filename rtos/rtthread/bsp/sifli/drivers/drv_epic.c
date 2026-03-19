@@ -93,6 +93,7 @@ void drv_gpu_open(void)
 #ifdef HAL_JPEGD_MODULE_ENABLED
         epic->hjpegd = &drv_epic.jpegd_handle;
         epic->hjpegd->Instance = hwp_jpegd;
+        epic->hjpegd->RamInstance = &drv_epic.RamJPEGD;
         HAL_JPEGD_Init(epic->hjpegd, NULL, NULL);
 #ifdef LV_HOR_RES_MAX
         max_img_width = ((LV_HOR_RES_MAX + 15 + 15) >> 4) << 4;
@@ -114,8 +115,12 @@ void drv_gpu_open(void)
         memcpy(&drv_epic.epic_handle2, &drv_epic.epic_handle, sizeof(drv_epic.epic_handle2));
 #ifdef HAL_EZIP_MODULE_ENABLED
         memcpy(&drv_epic.ezip_handle2, &drv_epic.ezip_handle, sizeof(drv_epic.ezip_handle2));
-#endif
         drv_epic.epic_handle2.hezip = &drv_epic.ezip_handle2;
+#endif
+#ifdef HAL_JPEGD_MODULE_ENABLED
+        memcpy(&drv_epic.jpegd_handle2, &drv_epic.jpegd_handle, sizeof(drv_epic.jpegd_handle2));
+        drv_epic.epic_handle2.hjpegd = &drv_epic.jpegd_handle2;
+#endif
 #else
         drv_epic_single_open(&drv_epic);
 #endif /* DRV_EPIC_NEW_API */
@@ -360,7 +365,7 @@ void print_gpu_error_info(void)
         LOG_E("Epic not ready %d, HW busy =%d, ErrorCode %d", epic->State, (epic->Instance->STATUS & EPIC_STATUS_IA_BUSY),
               epic->ErrorCode);
 
-        if (is_repeated_mem((uint32_t *) epic->Instance, (uint32_t *)(epic->Instance + 1)))
+        if (!HAL_RCC_IsModuleEnabled(RCC_MOD_EPIC))
         {
             LOG_E("Epic not open");
         }
@@ -428,6 +433,12 @@ void print_gpu_error_info(void)
             {
                 LOG_E("%d is Ezip(0:VL 1:L0 2:L1 3:L2)", (epic->Instance->COENG_CFG & EPIC_COENG_CFG_EZIP_CH_SEL_Msk) >> EPIC_COENG_CFG_EZIP_CH_SEL_Pos);
             }
+#ifdef EPIC_COENG_CFG_JPEG_EN
+            if (epic->Instance->COENG_CFG & EPIC_COENG_CFG_JPEG_EN)
+            {
+                LOG_E("%d is JPEG(0:VL 1:L0 2:L1 3:L2)", (epic->Instance->COENG_CFG & EPIC_COENG_CFG_EZIP_CH_SEL_Msk) >> EPIC_COENG_CFG_EZIP_CH_SEL_Pos);
+            }
+#endif
 #endif
         }
 
@@ -449,7 +460,18 @@ void print_gpu_error_info(void)
     {
         LOG_E("Ezip not ready %d, HW busy=%x, ErrorCode %xh", hezip->State, (hezip->Instance->EZIP_CTRL & EZIP_EZIP_CTRL_EZIP_CTRL),
               hezip->ErrorCode);
-        if (is_repeated_mem((uint32_t *) hezip->Instance, (uint32_t *)(hezip->Instance + 1)))
+
+#define EXAMINE_EZIP_ERROR(err) if(hezip->ErrorCode & err) {LOG_E("Ezip error("#err")");}
+
+        EXAMINE_EZIP_ERROR(EZIP_INT_STA_ROW_ERR_STA);
+        EXAMINE_EZIP_ERROR(EZIP_INT_STA_BTYPE_ERR_STA);
+        EXAMINE_EZIP_ERROR(EZIP_INT_STA_ETYPE_ERR_STA);
+#ifdef EZIP_INT_STA_FTYPE_ERR_STA
+        EXAMINE_EZIP_ERROR(EZIP_INT_STA_FTYPE_ERR_STA);
+        EXAMINE_EZIP_ERROR(EZIP_INT_STA_WIND_ERR_STA);
+#endif /* EZIP_INT_STA_FTYPE_ERR_STA */
+
+        if (!HAL_RCC_IsModuleEnabled(RCC_MOD_EZIP))
         {
             LOG_E("Ezip not open");
         }
@@ -476,6 +498,36 @@ void print_gpu_error_info(void)
     }
 
 #endif /* HAL_EZIP_MODULE_ENABLED */
+
+#ifdef HAL_JPEGD_MODULE_ENABLED
+    JPEGD_HandleTypeDef *hjpegd = epic->hjpegd;
+
+    RT_ASSERT(hjpegd != NULL);
+    if ((HAL_JPEGD_STATE_READY != hjpegd->State) || (hjpegd->Instance->JPEGD_EN & JPEGD_JPEGD_EN_JPEGD_EN))
+    {
+        LOG_E("JPEGD not ready %d, HW busy=%x, ErrorCode %xh", hjpegd->State, (hjpegd->Instance->JPEGD_EN & JPEGD_JPEGD_EN_JPEGD_EN),
+              hjpegd->ErrorCode);
+        if (!HAL_RCC_IsModuleEnabled(RCC_MOD_JPEGD))
+        {
+            LOG_E("JPEGD not open");
+        }
+        else
+        {
+            LOG_E("JPEGD src=%x, src_len=%x, area x0y0x1y1[%d,%d,%d,%d]",
+                  hjpegd->Instance->SRC_ADDR,                  hjpegd->Instance->SRC_LEN,
+                  hjpegd->Instance->START_POINT >> 16, hjpegd->Instance->START_POINT & 0xFFFF,
+                  hjpegd->Instance->END_POINT >> 16, hjpegd->Instance->END_POINT & 0xFFFF);
+
+            LOG_E("ouput %d (0: epic, 1: ahb), buf=%x",
+                  GET_REG_VAL2(hjpegd->Instance->JPEGD_PARA, JPEGD_JPEGD_PARA_OUT_SEL),
+                  hjpegd->Instance->BUF_ADDR);
+        }
+    }
+    else
+    {
+        LOG_E("JPEGD is ready");
+    }
+#endif /* HAL_JPEGD_MODULE_ENABLED */
 
 #ifdef EPIC_DEBUG
     print_epic_op_history();

@@ -117,6 +117,9 @@ static void wait_hw_done(void)
 #ifndef __DEBUG__
             gpu_reset();
 #else
+#ifndef BF0_ACPU //Print GPU error info in HCPU.
+            print_gpu_error_info();
+#endif
             RT_ASSERT(0); //Raise an assertion in debug mode.
 #endif /* __RELEASE__ */
         }

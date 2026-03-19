@@ -59,10 +59,13 @@
 
 #if defined(HAL_JPEGD_MODULE_ENABLED)||defined(_SIFLI_DOXYGEN_)
 
+#define IS_REAL_INSTANCE(handle) ((handle)->Instance == (handle)->HwInstance)
+
 /* As JPEGD share some modules from EZIP, EZIP clock needs to be enabled */
-#define JPEGD_ENABLE()                          \
+#define JPEGD_ENABLE(handle)                          \
     do                                          \
     {                                           \
+        if (!IS_REAL_INSTANCE(handle)) break; \
         HAL_RCC_EnableModule(RCC_MOD_JPEGD);    \
         HAL_RCC_EnableModule(RCC_MOD_EZIP);     \
     }                                           \
@@ -71,6 +74,7 @@
 #define JPEGD_DISABLE(handle)                   \
     do                                          \
     {                                           \
+        if (!IS_REAL_INSTANCE(handle)) break; \
         HAL_RCC_DisableModule(RCC_MOD_JPEGD);   \
         HAL_RCC_DisableModule(RCC_MOD_EZIP);    \
     }                                           \
@@ -184,6 +188,8 @@ HAL_StatusTypeDef HAL_JPEGD_Init(JPEGD_HandleTypeDef *hdl, JPEGD_CpltCallback cb
     hdl->State = HAL_JPEGD_STATE_READY;
     hdl->CpltCallback = cbk;
     hdl->UserData = user_data;
+    hdl->RamInstance_used = 0;
+    hdl->HwInstance = hdl->Instance;
     return HAL_OK;
 }
 
@@ -254,7 +260,7 @@ HAL_StatusTypeDef HAL_JPEGD_Decode(JPEGD_HandleTypeDef *hdl, JPEGD_DecodeConfigT
         goto __EXIT;
     }
 
-    JPEGD_ENABLE();
+    JPEGD_ENABLE(hdl);
 
     if (0 != hdl->Instance->JPEGD_EN)
     {
@@ -317,7 +323,7 @@ HAL_StatusTypeDef HAL_JPEGD_Decode_IT(JPEGD_HandleTypeDef *hdl, JPEGD_DecodeConf
         goto __EXIT;
     }
 
-    JPEGD_ENABLE();
+    JPEGD_ENABLE(hdl);
 
     hdl->State = HAL_JPEGD_STATE_BUSY;
 
@@ -345,6 +351,60 @@ __EXIT:
 
     return status;
 }
+
+
+HAL_StatusTypeDef HAL_JPEGD_DecodeFast_IT(JPEGD_HandleTypeDef *hdl)
+{
+    HAL_StatusTypeDef status;
+    HAL_ASSERT(NULL != hdl->HwInstance);
+    HAL_ASSERT(NULL != hdl->RamInstance);
+    HAL_ASSERT(hdl->RamInstance_used);
+
+
+    if (HAL_JPEGD_STATE_READY != hdl->State)
+    {
+        status = HAL_ERROR;
+        goto __EXIT;
+    }
+
+    hdl->Instance = hdl->HwInstance;
+
+
+    JPEGD_ENABLE(hdl);
+    hdl->State = HAL_JPEGD_STATE_BUSY;
+
+
+    hdl->RamInstance_used = 0;
+    hdl->Instance = hdl->HwInstance;
+
+    /* clear old status */
+    JPEGD_CLEAR_INT_STATUS(hdl->Instance);
+
+    memcpy((void *)&hdl->Instance->BUF_ADDR, (const void *)&hdl->RamInstance->BUF_ADDR,
+           ((uint32_t)&hdl->Instance->INT_STA) - ((uint32_t)&hdl->Instance->BUF_ADDR));
+
+    hdl->Instance->JPEGD_EN = JPEGD_JPEGD_EN_JPEGD_EN;
+
+    status = HAL_OK;
+
+__EXIT:
+
+    return status;
+}
+
+
+HAL_StatusTypeDef HAL_JPEGD_DecodeFast_Init(JPEGD_HandleTypeDef *hdl)
+{
+
+    hdl->RamInstance_used = 1;
+    hdl->Instance = hdl->RamInstance;
+    hdl->Instance->INT_EN = 0;
+
+    hdl->State = HAL_JPEGD_STATE_READY;
+
+    return HAL_OK;
+}
+
 
 HAL_StatusTypeDef HAL_JPEGD_CheckReady(JPEGD_HandleTypeDef *hdl)
 {

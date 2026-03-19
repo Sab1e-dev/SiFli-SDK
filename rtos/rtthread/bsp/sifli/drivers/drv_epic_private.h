@@ -177,6 +177,10 @@ typedef struct
 #ifdef HAL_EZIP_MODULE_ENABLED
     EZIP_HandleTypeDef ezip_handle2; //Shadow handle
 #endif
+#ifdef HAL_JPEGD_MODULE_ENABLED
+    JPEGD_TypeDef RamJPEGD;
+    JPEGD_HandleTypeDef jpegd_handle2; //Shadow handle
+#endif /* HAL_JPEGD_MODULE_ENABLED */
     epic_cbk_ctx_t  epic_cb_ctx;
     struct rt_semaphore render_sema;
     struct rt_semaphore rl_sema;
@@ -194,7 +198,7 @@ typedef struct
     uint8_t *cur_buf; //Current using ping-ping render
 
     uint8_t *mask_buf_pool; //Pool for draw mask
-    uint8_t *mask_buf2_pool; //Pool2 for draw mask
+    uint8_t *mask_buf2_pool; //Pool2 for circle mask
     uint8_t *rotate_buf;
 
     EPIC_HandleTypeDef *using_epic;

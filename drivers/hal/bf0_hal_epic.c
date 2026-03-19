@@ -4200,6 +4200,13 @@ static void EPIC_InitRamInstance(EPIC_HandleTypeDef *hepic)
         hepic->RamInstance->COEF0 = 0x12A19204;
         hepic->RamInstance->COEF1 = 0x000664D0;
 #endif /* EPIC_SUPPORT_YUV */
+#ifdef EPIC_SUPPORT_JPEGD
+        hepic->RamInstance->JPEG_ENG_CFG0 = 0x12A19204;
+        hepic->RamInstance->JPEG_ENG_CFG1 = 0x000664D0;
+#endif /* EPIC_SUPPORT_JPEGD */
+#ifdef EPIC_SUPPORT_GREYSCALE
+        hepic->RamInstance->GREY_CONV = 0x07496532;
+#endif /* EPIC_SUPPORT_GREYSCALE */
         hepic->RamInstance->SETTING |= EPIC_SETTING_AUTO_GATE_EN;
     }
 }
@@ -5685,6 +5692,10 @@ HAL_StatusTypeDef HAL_EPIC_BlendFastStart_Init(EPIC_HandleTypeDef *hepic)
     HAL_EZIP_DecodeFast_Init(hepic->hezip);
 #endif /* HAL_EZIP_MODULE_ENABLED */
 
+#ifdef HAL_JPEGD_MODULE_ENABLED
+    HAL_JPEGD_DecodeFast_Init(hepic->hjpegd);
+#endif /* HAL_JPEGD_MODULE_ENABLED */
+
     return HAL_OK;
 }
 
@@ -5724,7 +5735,7 @@ HAL_StatusTypeDef HAL_EPIC_BlendFastStart_IT(EPIC_HandleTypeDef *hepic, EPIC_Han
 
     EPIC_CommitInstance(hepic);
 #ifdef HAL_EZIP_MODULE_ENABLED
-    if ((int)HAL_EPIC_STATE_BUSY == (int)hepic_s->hezip->State)
+    if ((int)HAL_EZIP_STATE_BUSY == (int)hepic_s->hezip->State)
     {
         hepic->hezip->CpltCallback = hepic_s->hezip->CpltCallback;
         hepic->hezip->RamInstance_used = 1;
@@ -5734,6 +5745,18 @@ HAL_StatusTypeDef HAL_EPIC_BlendFastStart_IT(EPIC_HandleTypeDef *hepic, EPIC_Han
         HAL_ASSERT(res == HAL_OK);
     }
 #endif /* HAL_EZIP_MODULE_ENABLED */
+
+#ifdef HAL_JPEGD_MODULE_ENABLED
+    if ((int)HAL_JPEGD_STATE_BUSY == (int)hepic_s->hjpegd->State)
+    {
+        hepic->hjpegd->CpltCallback = hepic_s->hjpegd->CpltCallback;
+        hepic->hjpegd->RamInstance_used = 1;
+        hepic->hjpegd->UserData = (void *)hepic;
+        hepic_s->hjpegd->UserData = NULL; // clear user_data in hjpegd_s
+        res = HAL_JPEGD_DecodeFast_IT(hepic->hjpegd);
+        HAL_ASSERT(res == HAL_OK);
+    }
+#endif /* HAL_JPEGD_MODULE_ENABLED */
 
     hepic->user_data = hepic_s->user_data;
     hepic->IntXferCpltCallback = hepic_s->IntXferCpltCallback;
