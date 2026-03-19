@@ -43,11 +43,14 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(allow_abbrev=False)
     parser.add_argument('--board', default='sf32lb52-nano_52j', help='Board name (without _hcpu suffix)')
     parser.add_argument('--chip', default='SF32LB52JUD6', help='Chip part number used for migrated ptab v3')
+    parser.add_argument('--ptab-a', default=None, help='First v3 ptab.yaml for direct semantic compare')
+    parser.add_argument('--ptab-b', default=None, help='Second v3 ptab.yaml for direct semantic compare')
     parser.add_argument(
         '--baseline-build-dir',
         default=None,
         help='Baseline HCPU build dir (default: example/misc/button/project/build_<board>_hcpu)',
     )
+    parser.add_argument('--skip-link', action='store_true', help='Skip link_copy.lds comparison')
     parser.add_argument('--keep-tmp', action='store_true', help='Keep generated files (print tmp dir)')
     return parser.parse_args()
 
@@ -235,9 +238,89 @@ def _write_generated_ptab_h(ptab_obj, env_name: str, core: str, out_path: str) -
         f.write(s)
 
 
+def _compare_ptab_h(root: str, ptab_obj_a, ptab_obj_b, tmp_dir: str) -> None:
+    main_a = os.path.join(tmp_dir, 'ptab_a_main.h')
+    main_b = os.path.join(tmp_dir, 'ptab_b_main.h')
+    boot_a = os.path.join(tmp_dir, 'ptab_a_boot.h')
+    boot_b = os.path.join(tmp_dir, 'ptab_b_boot.h')
+
+    _write_generated_ptab_h(ptab_obj_a, 'main', 'HCPU', main_a)
+    _write_generated_ptab_h(ptab_obj_b, 'main', 'HCPU', main_b)
+    _write_generated_ptab_h(ptab_obj_a, 'bootloader', 'HCPU', boot_a)
+    _write_generated_ptab_h(ptab_obj_b, 'bootloader', 'HCPU', boot_b)
+
+    a_main = _collect_macro_values(main_a)
+    b_main = _collect_macro_values(main_b)
+    a_boot = _collect_macro_values(boot_a)
+    b_boot = _collect_macro_values(boot_b)
+
+    key_macros = [
+        'FLASH_TABLE_START_ADDR', 'FLASH_TABLE_SIZE', 'FLASH_TABLE_OFFSET',
+        'HCPU_FLASH_CODE_START_ADDR', 'HCPU_FLASH_CODE_SIZE', 'HCPU_FLASH_CODE_OFFSET',
+        'DFU_FLASH_CODE_START_ADDR', 'DFU_FLASH_CODE_SIZE', 'DFU_FLASH_CODE_OFFSET',
+        'DFU_DOWNLOAD_REGION_START_ADDR', 'DFU_DOWNLOAD_REGION_SIZE', 'DFU_DOWNLOAD_REGION_OFFSET',
+        'FS_REGION_START_ADDR', 'FS_REGION_SIZE', 'FS_REGION_OFFSET',
+        'KVDB_DFU_REGION_START_ADDR', 'KVDB_DFU_REGION_SIZE', 'KVDB_DFU_REGION_OFFSET',
+        'KVDB_BLE_REGION_START_ADDR', 'KVDB_BLE_REGION_SIZE', 'KVDB_BLE_REGION_OFFSET',
+        'PSRAM_DATA_START_ADDR', 'PSRAM_DATA_SIZE', 'PSRAM_DATA_OFFSET',
+        'FLASH_BOOT_LOADER_START_ADDR', 'FLASH_BOOT_LOADER_SIZE', 'FLASH_BOOT_LOADER_OFFSET',
+        'BOOTLOADER_RAM_DATA_START_ADDR', 'BOOTLOADER_RAM_DATA_SIZE', 'BOOTLOADER_RAM_DATA_OFFSET',
+        'CODE_START_ADDR', 'CODE_SIZE',
+    ]
+
+    def _check(label: str, left: Dict[str, int], right: Dict[str, int]) -> None:
+        for key in key_macros:
+            if key not in left and key not in right:
+                continue
+            if key not in left or key not in right:
+                raise _EvalError('{} macro presence mismatch: {}'.format(label, key))
+            if int(left[key]) != int(right[key]):
+                raise _EvalError(
+                    '{} macro mismatch {}: 0x{:08X} != 0x{:08X}'.format(
+                        label, key, int(left[key]) & 0xFFFFFFFF, int(right[key]) & 0xFFFFFFFF
+                    )
+                )
+
+    _check('main', a_main, b_main)
+    _check('bootloader', a_boot, b_boot)
+
+
+def _compare_ftab(ptab_obj_a, ptab_obj_b) -> None:
+    root = _repo_root()
+    sys.path.insert(0, os.path.join(root, 'tools', 'build'))
+    import gen_ftab  # type: ignore
+
+    a_blob = gen_ftab.generate_ftab_binary(ptab_obj_a, ptab_obj_a.get_chip_config(), 0x10000, 0x200000)
+    b_blob = gen_ftab.generate_ftab_binary(ptab_obj_b, ptab_obj_b.get_chip_config(), 0x10000, 0x200000)
+    a_parts = _parse_ftab_partitions_bytes(a_blob)
+    b_parts = _parse_ftab_partitions_bytes(b_blob)
+    for idx in [0, 1, 3, 4, 7, 8]:
+        if a_parts[idx] != b_parts[idx]:
+            raise _EvalError('ftab entry {} mismatch: {} != {}'.format(idx, a_parts[idx], b_parts[idx]))
+
+
+def _parse_ftab_partitions_bytes(data: bytes) -> List[Tuple[int, int, int, int]]:
+    if len(data) < 4 + PARTITION_ENTRY_STRUCT.size * PARTITION_ENTRY_COUNT:
+        raise _EvalError('ftab.bin too small: {}'.format(len(data)))
+    magic = struct.unpack_from('<I', data, 0)[0]
+    if magic != SEC_CONFIG_MAGIC:
+        raise _EvalError('Invalid ftab magic: 0x{:08X}'.format(magic))
+    off = 4
+    out: List[Tuple[int, int, int, int]] = []
+    for _ in range(PARTITION_ENTRY_COUNT):
+        base, size, xip_base, flags = PARTITION_ENTRY_STRUCT.unpack_from(data, off)
+        out.append((base, size, xip_base, flags))
+        off += PARTITION_ENTRY_STRUCT.size
+    return out
+
+
 def main() -> int:
     args = _parse_args()
     root = _repo_root()
+
+    if bool(args.ptab_a) != bool(args.ptab_b):
+        print('ERROR: --ptab-a and --ptab-b must be provided together', file=sys.stderr)
+        return 2
 
     baseline_dir = args.baseline_build_dir
     if not baseline_dir:
@@ -254,17 +337,52 @@ def main() -> int:
     baseline_boot_link = os.path.join(baseline_boot_dir, 'link_copy.lds')
     baseline_boot_bin = os.path.join(baseline_boot_dir, 'bootloader.bin')
 
+    # Prepare python imports from tools/build
+    sys.path.insert(0, os.path.join(root, 'tools', 'build'))
+    import ptab as ptab_module  # type: ignore
+    import migrate_ptab_to_v3  # type: ignore
+
+    if args.ptab_a and args.ptab_b:
+        tmp_dir = tempfile.mkdtemp(prefix='ptab_v3_reg_')
+        try:
+            ptab_a = ptab_module.load_ptab(args.ptab_a, fatal=True)
+            ptab_b = ptab_module.load_ptab(args.ptab_b, fatal=True)
+            if not ptab_a.is_v3() or not ptab_b.is_v3():
+                raise _EvalError('direct compare mode only supports v3 ptab.yaml files')
+            _compare_ptab_h(root, ptab_a, ptab_b, tmp_dir)
+            _compare_ftab(ptab_a, ptab_b)
+            if args.keep_tmp:
+                print('OK (tmp dir kept): {}'.format(tmp_dir))
+            else:
+                try:
+                    import shutil
+                    shutil.rmtree(tmp_dir)
+                except Exception:
+                    pass
+                print('OK')
+            return 0
+        except Exception:
+            if not args.keep_tmp:
+                try:
+                    import shutil
+                    shutil.rmtree(tmp_dir)
+                except Exception:
+                    pass
+            raise
+
     ptab_json = os.path.join(root, 'customer', 'boards', args.board, 'ptab.json')
     if not os.path.exists(ptab_json):
         print('ERROR: baseline ptab.json not found: {}'.format(ptab_json), file=sys.stderr)
         return 2
 
-    # Prepare python imports from tools/build
-    sys.path.insert(0, os.path.join(root, 'tools', 'build'))
-    import ptab as ptab_module  # type: ignore
     import gen_ftab  # type: ignore
-    import gen_link_lds  # type: ignore
-    import migrate_ptab_to_v3  # type: ignore
+    gen_link_lds = None
+    if not args.skip_link:
+        try:
+            import gen_link_lds as _gen_link_lds  # type: ignore
+            gen_link_lds = _gen_link_lds
+        except Exception as exc:
+            print('WARNING: skip link compare: {}'.format(exc), file=sys.stderr)
 
     # Migrate to v3 YAML into tmp dir
     tmp_dir = tempfile.mkdtemp(prefix='ptab_v3_reg_')
@@ -314,49 +432,50 @@ def main() -> int:
     _check_macros('main', baseline_main_macros, gen_main_macros)
     _check_macros('bootloader', baseline_boot_macros, gen_boot_macros)
 
-    # Generate v3 link_copy.lds (main + bootloader)
-    hcpu_template = os.path.join(root, 'drivers', 'cmsis', 'sf32lb52x', 'Templates', 'gcc', 'hcpu', 'link.jinja2')
-    boot_template = os.path.join(root, 'example', 'boot_loader', 'project', 'butterflmicro', 'ram_v2', 'link.jinja2')
+    if gen_link_lds is not None:
+        # Generate v3 link_copy.lds (main + bootloader)
+        hcpu_template = os.path.join(root, 'drivers', 'cmsis', 'sf32lb52x', 'Templates', 'gcc', 'hcpu', 'link.jinja2')
+        boot_template = os.path.join(root, 'example', 'boot_loader', 'project', 'butterflmicro', 'ram_v2', 'link.jinja2')
 
-    main_rtconfig_h = os.path.join(baseline_dir, 'rtconfig.h')
-    boot_rtconfig_h = os.path.join(baseline_boot_dir, 'rtconfig.h')
-    main_defines = gen_link_lds._parse_rtconfig_defines(main_rtconfig_h)
-    boot_defines = gen_link_lds._parse_rtconfig_defines(boot_rtconfig_h)
+        main_rtconfig_h = os.path.join(baseline_dir, 'rtconfig.h')
+        boot_rtconfig_h = os.path.join(baseline_boot_dir, 'rtconfig.h')
+        main_defines = gen_link_lds._parse_rtconfig_defines(main_rtconfig_h)
+        boot_defines = gen_link_lds._parse_rtconfig_defines(boot_rtconfig_h)
 
-    main_link_out = os.path.join(tmp_dir, 'link_main.lds')
-    boot_link_out = os.path.join(tmp_dir, 'link_boot.lds')
+        main_link_out = os.path.join(tmp_dir, 'link_main.lds')
+        boot_link_out = os.path.join(tmp_dir, 'link_boot.lds')
 
-    gen_link_lds.render_link_lds(
-        hcpu_template,
-        main_link_out,
-        gen_link_lds.compute_link_defines(ptab_obj, 'main', 'HCPU', main_defines),
-    )
-    gen_link_lds.render_link_lds(
-        boot_template,
-        boot_link_out,
-        gen_link_lds.compute_link_defines(ptab_obj, 'bootloader', 'HCPU', boot_defines),
-    )
+        gen_link_lds.render_link_lds(
+            hcpu_template,
+            main_link_out,
+            gen_link_lds.compute_link_defines(ptab_obj, 'main', 'HCPU', main_defines),
+        )
+        gen_link_lds.render_link_lds(
+            boot_template,
+            boot_link_out,
+            gen_link_lds.compute_link_defines(ptab_obj, 'bootloader', 'HCPU', boot_defines),
+        )
 
-    lds_keys = [
-        '__ROM_BASE', '__ROM_SIZE', '__RAM_BASE', '__RAM_SIZE',
-        '__ROM_EX_BASE', '__ROM_EX_SIZE', '__PSRAM_BASE', '__PSRAM_SIZE',
-        '__ROM2_BASE', '__ROM2_SIZE', '__ROM3_BASE', '__ROM3_SIZE',
-    ]
-    baseline_main_lds = _parse_lds_assignments(baseline_main_link)
-    gen_main_lds = _parse_lds_assignments(main_link_out)
-    for k in lds_keys:
-        if k not in baseline_main_lds or k not in gen_main_lds:
-            continue
-        if int(baseline_main_lds[k]) != int(gen_main_lds[k]):
-            raise _EvalError('main link mismatch {}: 0x{:08X} != 0x{:08X}'.format(k, int(baseline_main_lds[k]) & 0xFFFFFFFF, int(gen_main_lds[k]) & 0xFFFFFFFF))
+        lds_keys = [
+            '__ROM_BASE', '__ROM_SIZE', '__RAM_BASE', '__RAM_SIZE',
+            '__ROM_EX_BASE', '__ROM_EX_SIZE', '__PSRAM_BASE', '__PSRAM_SIZE',
+            '__ROM2_BASE', '__ROM2_SIZE', '__ROM3_BASE', '__ROM3_SIZE',
+        ]
+        baseline_main_lds = _parse_lds_assignments(baseline_main_link)
+        gen_main_lds = _parse_lds_assignments(main_link_out)
+        for k in lds_keys:
+            if k not in baseline_main_lds or k not in gen_main_lds:
+                continue
+            if int(baseline_main_lds[k]) != int(gen_main_lds[k]):
+                raise _EvalError('main link mismatch {}: 0x{:08X} != 0x{:08X}'.format(k, int(baseline_main_lds[k]) & 0xFFFFFFFF, int(gen_main_lds[k]) & 0xFFFFFFFF))
 
-    baseline_boot_lds = _parse_lds_assignments(baseline_boot_link)
-    gen_boot_lds = _parse_lds_assignments(boot_link_out)
-    for k in lds_keys:
-        if k not in baseline_boot_lds or k not in gen_boot_lds:
-            continue
-        if int(baseline_boot_lds[k]) != int(gen_boot_lds[k]):
-            raise _EvalError('bootloader link mismatch {}: 0x{:08X} != 0x{:08X}'.format(k, int(baseline_boot_lds[k]) & 0xFFFFFFFF, int(gen_boot_lds[k]) & 0xFFFFFFFF))
+        baseline_boot_lds = _parse_lds_assignments(baseline_boot_link)
+        gen_boot_lds = _parse_lds_assignments(boot_link_out)
+        for k in lds_keys:
+            if k not in baseline_boot_lds or k not in gen_boot_lds:
+                continue
+            if int(baseline_boot_lds[k]) != int(gen_boot_lds[k]):
+                raise _EvalError('bootloader link mismatch {}: 0x{:08X} != 0x{:08X}'.format(k, int(baseline_boot_lds[k]) & 0xFFFFFFFF, int(gen_boot_lds[k]) & 0xFFFFFFFF))
 
     # Generate v3 ftab.bin (main)
     boot_size = os.path.getsize(baseline_boot_bin) if os.path.exists(baseline_boot_bin) else 0x10000

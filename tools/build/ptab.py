@@ -144,6 +144,7 @@ class PtabV3:
         # NOTE: These partitions are chip-internal and should not be described
         #       in board-level ptab.yaml.
         self._inject_internal_partitions()
+        self._inject_default_partitions()
 
     @property
     def version(self):
@@ -172,6 +173,7 @@ class PtabV3:
         # Ensure internal partitions (e.g. PSRAM windows) are injected even if
         # build options weren't ready during __init__.
         self._inject_internal_partitions()
+        self._inject_default_partitions()
         return copy.deepcopy(self._partitions)
 
     def _normalize_partitions(self, partitions):
@@ -592,6 +594,35 @@ class PtabV3:
         if injected:
             self._partitions.extend(self._normalize_partitions(injected))
 
+    def _inject_default_partitions(self) -> None:
+        """Inject default partitions omitted from compact v3 YAML files.
+
+        These defaults preserve legacy SDK behaviour for:
+        - flash table / bootloader storage layout
+        - common RAM windows consumed by ptab.h / linker generation
+        """
+        try:
+            chip_config = self.get_chip_config()
+        except Exception:
+            return
+
+        existing = set()
+        for p in self._partitions:
+            if not isinstance(p, dict):
+                continue
+            name = str(p.get('name') or '').strip().lower()
+            if name:
+                existing.add(name)
+
+        injected: List[Dict[str, Any]] = []
+        for name, part in _infer_default_partitions_v3(self._partitions, chip_config, self.chip_series).items():
+            if name in existing:
+                continue
+            injected.append(part)
+
+        if injected:
+            self._partitions.extend(self._normalize_partitions(injected))
+
     def content_mems(self, clone=True):
         """转换为 v1/v2 兼容的 mems 格式，用于向后兼容"""
         return self._convert_to_mems(clone)
@@ -601,6 +632,7 @@ class PtabV3:
         # Some builders still consume v1/v2-style mems, so ensure internal
         # partitions are present before conversion.
         self._inject_internal_partitions()
+        self._inject_default_partitions()
         chip_config = self.get_chip_config()
         mems_dict = OrderedDict()
 
@@ -718,6 +750,268 @@ class PtabV3:
 
     def ensure_default_regions(self):
         return self.content_mems()
+
+
+# ============================================================================
+# ptab v3 default partition helpers
+# ============================================================================
+
+_PTAB_V3_SERIES_DEFAULTS: Dict[str, Dict[str, int]] = {
+    'sf32lb52': {
+        'hcpu_ram_size': 0x0007FC00,
+        'bootloader_ram_offset': 0x00040000,
+        'bootloader_ram_size': 0x00010000,
+        'lpsys_ram_size': 0x00006000,
+        'bootloader_exec_offset': 0x00020000,
+        'flash_table_nor_size': 0x00008000,
+        'flash_table_nand_size': 0x00020000,
+        'flash_table_sd_offset': 0x00001000,
+        'flash_table_sd_size': 0x00008000,
+        'bootloader_nor_offset': 0x00010000,
+        'bootloader_nand_offset': 0x00080000,
+        'bootloader_sd_offset': 0x00011000,
+        'bootloader_size': 0x00010000,
+    },
+    'sf32lb56': {
+        'flash_table_size': 0x00008000,
+        'bootloader_offset': 0x00020000,
+        'bootloader_size': 0x00020000,
+    },
+    'sf32lb58': {
+        'flash_table_size': 0x00005000,
+        'bootloader_offset': 0x00020000,
+        'bootloader_size': 0x00020000,
+    },
+}
+
+
+def _normalize_partition_core(core: Optional[str]) -> Optional[str]:
+    core_s = str(core or '').strip().upper()
+    return core_s or None
+
+
+def _partition_exec_signature(partition: Dict[str, Any]) -> Tuple[Optional[str], Optional[int]]:
+    exec_def = partition.get('exec')
+    if not isinstance(exec_def, dict):
+        return None, None
+    region = str(exec_def.get('region') or '').strip()
+    if not region:
+        return None, None
+    return region, parse_size(exec_def.get('offset', 0))
+
+
+def _partition_compare_key(partition: Dict[str, Any]) -> Tuple[Any, ...]:
+    exec_region, exec_offset = _partition_exec_signature(partition)
+    return (
+        str(partition.get('name') or '').strip().lower(),
+        str(partition.get('type') or '').strip().lower(),
+        str(partition.get('subtype') or '').strip().lower(),
+        str(partition.get('region') or '').strip().lower(),
+        parse_size(partition.get('offset', 0)),
+        parse_size(partition.get('size', 0)),
+        _normalize_partition_core(partition.get('core')),
+        exec_region.lower() if exec_region else None,
+        exec_offset,
+    )
+
+
+def _find_partition_v3(
+    partitions: List[Dict[str, Any]],
+    *,
+    name: Optional[str] = None,
+    ptype: Optional[str] = None,
+    subtype: Optional[str] = None,
+    core: Optional[str] = None,
+) -> Optional[Dict[str, Any]]:
+    for partition in partitions:
+        if not isinstance(partition, dict):
+            continue
+        if name and str(partition.get('name') or '').strip().lower() != str(name).strip().lower():
+            continue
+        if ptype and str(partition.get('type') or '').strip().lower() != str(ptype).strip().lower():
+            continue
+        if subtype and str(partition.get('subtype') or '').strip().lower() != str(subtype).strip().lower():
+            continue
+        if core and _normalize_partition_core(partition.get('core')) != _normalize_partition_core(core):
+            continue
+        return partition
+    return None
+
+
+def _infer_default_boot_region_v3(
+    partitions: List[Dict[str, Any]],
+    chip_config: Dict[str, Any],
+) -> Tuple[Optional[str], Optional[str]]:
+    candidates = [
+        _find_partition_v3(partitions, name='bootloader'),
+        _find_partition_v3(partitions, name='flash_table'),
+        _find_partition_v3(partitions, ptype='app', subtype='factory', core='HCPU'),
+        _find_partition_v3(partitions, ptype='app', core='HCPU'),
+        _find_partition_v3(partitions, ptype='app', subtype='factory'),
+        _find_partition_v3(partitions, ptype='app'),
+    ]
+
+    for partition in candidates:
+        if not partition:
+            continue
+        region = str(partition.get('region') or '').strip()
+        if not region:
+            continue
+        mem_type = _get_region_memory_type(region, chip_config).strip().lower()
+        if mem_type in ('nor', 'nand', 'sd'):
+            return region, mem_type
+
+    return None, None
+
+
+def _infer_default_partitions_v3(
+    partitions: List[Dict[str, Any]],
+    chip_config: Dict[str, Any],
+    chip_series: Optional[str],
+) -> "OrderedDict[str, Dict[str, Any]]":
+    defaults: "OrderedDict[str, Dict[str, Any]]" = OrderedDict()
+    series = str(chip_series or '').strip().lower()
+    cfg = _PTAB_V3_SERIES_DEFAULTS.get(series)
+    if not cfg:
+        return defaults
+
+    if series == 'sf32lb52':
+        boot_region, boot_mem_type = _infer_default_boot_region_v3(partitions, chip_config)
+        if boot_region and boot_mem_type in ('nor', 'nand', 'sd'):
+            if boot_mem_type == 'nand':
+                flash_table_offset = 0
+                flash_table_size = cfg['flash_table_nand_size']
+                bootloader_offset = cfg['bootloader_nand_offset']
+            elif boot_mem_type == 'sd':
+                flash_table_offset = cfg['flash_table_sd_offset']
+                flash_table_size = cfg['flash_table_sd_size']
+                bootloader_offset = cfg['bootloader_sd_offset']
+            else:
+                flash_table_offset = 0
+                flash_table_size = cfg['flash_table_nor_size']
+                bootloader_offset = cfg['bootloader_nor_offset']
+
+            defaults['flash_table'] = {
+                'name': 'flash_table',
+                'type': 'ftab',
+                'region': boot_region,
+                'offset': flash_table_offset,
+                'size': flash_table_size,
+            }
+            defaults['bootloader'] = {
+                'name': 'bootloader',
+                'type': 'bootloader',
+                'region': boot_region,
+                'offset': bootloader_offset,
+                'size': cfg['bootloader_size'],
+                'core': 'HCPU',
+                'exec': {
+                    'region': 'hpsys_ram',
+                    'offset': cfg['bootloader_exec_offset'],
+                },
+            }
+
+        defaults['hcpu_ram_data'] = {
+            'name': 'hcpu_ram_data',
+            'type': 'data',
+            'subtype': 'ram',
+            'region': 'hpsys_ram',
+            'offset': 0,
+            'size': cfg['hcpu_ram_size'],
+        }
+        defaults['bootloader_ram_data'] = {
+            'name': 'bootloader_ram_data',
+            'type': 'data',
+            'subtype': 'ram',
+            'region': 'hpsys_ram',
+            'offset': cfg['bootloader_ram_offset'],
+            'size': cfg['bootloader_ram_size'],
+        }
+        defaults['lpsys_ram'] = {
+            'name': 'lpsys_ram',
+            'type': 'data',
+            'subtype': 'ram',
+            'region': 'lpsys_ram',
+            'offset': 0,
+            'size': cfg['lpsys_ram_size'],
+        }
+        return defaults
+
+    defaults['flash_table'] = {
+        'name': 'flash_table',
+        'type': 'ftab',
+        'region': 'mpi5',
+        'offset': 0,
+        'size': cfg['flash_table_size'],
+    }
+    defaults['bootloader'] = {
+        'name': 'bootloader',
+        'type': 'bootloader',
+        'region': 'mpi5',
+        'offset': cfg['bootloader_offset'],
+        'size': cfg['bootloader_size'],
+        'core': 'HCPU',
+        'exec': {
+            'region': 'mpi5',
+            'offset': cfg['bootloader_offset'],
+        },
+    }
+    return defaults
+
+
+def partition_matches_default_v3(
+    partition: Dict[str, Any],
+    partitions: List[Dict[str, Any]],
+    chip_config: Dict[str, Any],
+    chip_series: Optional[str],
+) -> bool:
+    name = str(partition.get('name') or '').strip().lower()
+    if not name:
+        return False
+
+    defaults = _infer_default_partitions_v3(partitions, chip_config, chip_series)
+    default_partition = defaults.get(name)
+    if not default_partition:
+        return False
+
+    return _partition_compare_key(partition) == _partition_compare_key(default_partition)
+
+
+def prune_default_partitions_v3_data(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Remove explicit partitions that match ptab v3 defaults.
+
+    This is used by migration/cleanup helpers to keep YAML concise while
+    preserving behaviour via implicit default inference.
+    """
+    if not isinstance(data, dict):
+        return data
+
+    chip = str(data.get('chip') or '').strip()
+    if not chip:
+        return copy.deepcopy(data)
+
+    raw_partitions = data.get('partitions')
+    if not isinstance(raw_partitions, list):
+        return copy.deepcopy(data)
+
+    ptab_obj = PtabV3('<in-memory>', {
+        'version': data.get('version', 3),
+        'chip': chip,
+        'memory': copy.deepcopy(data.get('memory') or []),
+        'partitions': copy.deepcopy(raw_partitions),
+    })
+    chip_config = ptab_obj.get_chip_config()
+    normalized_raw = ptab_obj._normalize_partitions(copy.deepcopy(raw_partitions))
+
+    kept: List[Dict[str, Any]] = []
+    for raw_part, norm_part in zip(raw_partitions, normalized_raw):
+        if partition_matches_default_v3(norm_part, normalized_raw, chip_config, ptab_obj.chip_series):
+            continue
+        kept.append(copy.deepcopy(raw_part))
+
+    out = copy.deepcopy(data)
+    out['partitions'] = kept
+    return out
 
 
 # ============================================================================
@@ -1296,6 +1590,11 @@ def build_effective_ptab_v3(
     if not isinstance(partitions, list):
         raise ValueError(f"{base_ptab_path}: v3 ptab must define 'partitions' as a list")
     merged_data['partitions'] = partitions
+
+    # Materialize implicit defaults up front so project overlays can override
+    # omitted default partitions such as hcpu_ram_data / lpsys_ram.
+    merged_data['partitions'] = PtabV3(base_ptab_path, merged_data).partitions
+    partitions = merged_data['partitions']
 
     report = {
         'base_path': base_ptab_path,

@@ -14,14 +14,6 @@ memory:
     size: 134217728 # 128MB
 
 partitions:
-  # ---------------------------------------------------------------------------
-  # Internal flash (SiP) on mpi5
-  # ---------------------------------------------------------------------------
-  - name: flash_table
-    type: ftab
-    region: mpi5
-    offset: 0
-    size: 32KB
 
   - name: calibration
     type: data
@@ -30,19 +22,6 @@ partitions:
     offset: 0x8000
     size: 8KB
 
-  - name: bootloader
-    type: bootloader
-    region: mpi5
-    offset: 0x20000
-    size: 128KB
-    exec:
-      region: mpi5
-      offset: 0x20000
-    core: HCPU
-
-  # ---------------------------------------------------------------------------
-  # External NAND flash on mpi3 (load-to-PSRAM execution)
-  # ---------------------------------------------------------------------------
   - name: hcpu_flash_code
     type: app
     subtype: factory

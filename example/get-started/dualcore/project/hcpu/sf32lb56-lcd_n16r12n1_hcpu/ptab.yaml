@@ -22,17 +22,7 @@ partitions:
   region: mpi5
   offset: '0x00005000'
   size: '0x00002000'
-- name: bootloader
-  type: bootloader
-  region: mpi5
-  offset: '0x00020000'
-  size: '0x00020000'
-  exec:
-    region: mpi5
-    offset: '0x00020000'
-  core: HCPU
-  aliases:
-  - FLASH_BOOT_LOADER
+
 - name: psram_data
   type: data
   subtype: ram

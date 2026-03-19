@@ -11,26 +11,14 @@ memory:
   type: nor
   size: 16777216
 partitions:
-- name: flash_table
-  type: ftab
-  region: mpi2
-  offset: '0x00000000'
-  size: '0x00008000'
+
 - name: calibration
   type: data
   subtype: calibration
   region: mpi2
   offset: '0x00008000'
   size: '0x00002000'
-- name: bootloader
-  type: bootloader
-  region: mpi2
-  offset: '0x00010000'
-  size: '0x00010000'
-  core: HCPU
-  exec:
-    region: hpsys_ram
-    offset: '0x00020000'
+
 - name: hcpu_flash_code
   type: app
   subtype: factory
@@ -80,21 +68,3 @@ partitions:
   region: psram1
   offset: '0x00040000'
   size: '0x007C0000'
-- name: hcpu_ram_data
-  type: data
-  subtype: ram
-  region: hpsys_ram
-  offset: '0x00000000'
-  size: '0x0007FC00'
-- name: bootloader_ram_data
-  type: data
-  subtype: ram
-  region: hpsys_ram
-  offset: '0x00040000'
-  size: '0x00010000'
-- name: lpsys_ram
-  type: data
-  subtype: ram
-  region: lpsys_ram
-  offset: '0x00000000'
-  size: '0x00006000'

@@ -11,14 +11,7 @@ memory:
     size: 8388608 # 8MB
 
 partitions:
-  # Flash Table (ftab)
-  - name: flash_table
-    type: ftab
-    region: mpi2
-    offset: 0
-    size: 32KB
 
-  # TODO: Calibration data
   - name: calibration
     type: data
     subtype: calibration
@@ -26,18 +19,6 @@ partitions:
     offset: 0x8000
     size: 8KB
 
-  # Bootloader (存储在 Flash，执行在 RAM)
-  - name: bootloader
-    type: bootloader
-    region: mpi2
-    offset: 0x10000
-    size: 64KB
-    exec:
-      region: hpsys_ram
-      offset: 0x20000
-    core: HCPU
-
-  # Main application (XIP 执行)
   - name: hcpu_flash_code
     type: app
     subtype: factory
@@ -95,34 +76,9 @@ partitions:
     offset: 0
     size: 8MB
 
-  # HCPU RAM data
-  - name: hcpu_ram_data
-    type: data
-    subtype: ram
-    region: hpsys_ram
-    offset: 0
-    size: 511KB
-
-  # Bootloader RAM data
-  - name: bootloader_ram_data
-    type: data
-    subtype: ram
-    region: hpsys_ram
-    offset: 0x40000
-    size: 64KB
-
-  # HCPU RO data (Mailbox 区域)
   - name: hcpu_ro_data
     type: data
     subtype: ram
     region: hpsys_ram
     offset: 0x7FC00
     size: 1KB
-
-  # LPSYS RAM
-  - name: lpsys_ram
-    type: data
-    subtype: ram
-    region: lpsys_ram
-    offset: 0
-    size: 24KB

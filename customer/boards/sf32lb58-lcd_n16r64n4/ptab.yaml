@@ -14,12 +14,6 @@ memory:
     size: 16MB
 
 partitions:
-  # Boot flash on mpi5
-  - name: flash_table
-    type: ftab
-    region: mpi5
-    offset: 0x00000000
-    size: 0x00005000
 
   - name: calibration
     type: data
@@ -28,17 +22,6 @@ partitions:
     offset: 0x00005000
     size: 0x00002000
 
-  - name: bootloader
-    type: bootloader
-    region: mpi5
-    offset: 0x00020000
-    size: 0x00020000
-    exec:
-      region: mpi5
-      offset: 0x00020000
-    core: HCPU
-
-  # Main external NOR flash on mpi4
   - name: hcpu_flash_code
     type: app
     subtype: factory

@@ -25,6 +25,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
+import ptab as ptab_module
+
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -97,7 +99,7 @@ def _ensure_default_regions(ptab_json: List[Dict[str, Any]], chip: str) -> List[
         if not ftab_found:
             regions.insert(0, OrderedDict([
                 ('offset', '0x00000000'),
-                ('max_size', '0x00005000' if series == 'SF32LB58' else '0x00004000'),
+                ('max_size', '0x00005000' if series == 'SF32LB58' else '0x00008000'),
                 ('tags', ['FLASH_TABLE']),
                 ('name', 'ftab'),
                 ('type', ['app_img', 'app_exec']),
@@ -105,7 +107,7 @@ def _ensure_default_regions(ptab_json: List[Dict[str, Any]], chip: str) -> List[
         if not bootloader_found:
             regions.insert(1 if not ftab_found else 0, OrderedDict([
                 ('offset', '0x00020000'),
-                ('max_size', '0x00020000' if series == 'SF32LB58' else '0x0000C000'),
+                ('max_size', '0x00020000'),
                 ('tags', ['FLASH_BOOT_LOADER']),
                 ('name', 'bootloader'),
                 ('type', ['app_img', 'app_exec']),
@@ -553,7 +555,7 @@ def migrate_ptab_json_to_v3(ptab_json: List[Dict[str, Any]], chip: str, input_pa
     if memory:
         out['memory'] = memory
     out['partitions'] = partitions
-    return out
+    return ptab_module.prune_default_partitions_v3_data(out)
 
 
 class _OrderedDumper(yaml.SafeDumper):

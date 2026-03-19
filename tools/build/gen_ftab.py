@@ -332,15 +332,21 @@ def build_partition_table_entries(
     dfu_partition = roles['dfu_hcpu']
     extra_app_partitions = roles['extra_apps']
 
+    chip_u = str(chip or '').strip().upper()
+    bootloader_required = not chip_u.startswith('SF32LB55')
+    if ftab_partition is None:
+        raise ValueError("ftab partition missing; default inference failed")
+    if bootloader_required and bootloader_partition is None:
+        raise ValueError("bootloader partition missing; default inference failed")
+
     # Fill ftab entry
-    if ftab_partition:
-        size = ptab_module.parse_size(ftab_partition.get('size', 0))
-        region = ftab_partition.get('region', '')
-        offset = ptab_module.parse_size(ftab_partition.get('offset', 0))
-        sbus_addr, cbus_addr = ptab_module.resolve_region_address(region, offset, chip_config, core=ftab_partition.get('core'))
-        base_addr = _select_download_addr(region, sbus_addr, cbus_addr)
-        
-        entries[PartitionIndex.FLASH_PARTITION_TABLE] = (base_addr, size, 0, 0)
+    size = ptab_module.parse_size(ftab_partition.get('size', 0))
+    region = ftab_partition.get('region', '')
+    offset = ptab_module.parse_size(ftab_partition.get('offset', 0))
+    sbus_addr, cbus_addr = ptab_module.resolve_region_address(region, offset, chip_config, core=ftab_partition.get('core'))
+    base_addr = _select_download_addr(region, sbus_addr, cbus_addr)
+
+    entries[PartitionIndex.FLASH_PARTITION_TABLE] = (base_addr, size, 0, 0)
 
     # Fill calibration entry
     if calibration_partition:
