@@ -380,9 +380,14 @@ partitions:
 - overlay 只支持“分区级”修改，不支持 `memory`、`chip`、`version`
 - overlay 不支持删除分区
 - overlay 只能作用于板级 `ptab.yaml`（v3）；不能叠加到 `ptab.json`
+- 如果板级当前仍使用 `ptab.json`（v1/v2），且工程目录中没有命中任何完整 `ptab.yaml`，构建系统会忽略 `ptab.overlay.yaml`，输出 warning，并继续按非 overlay PTAB 路径处理
 - 如果工程已经提供完整 `ptab.yaml` / `ptab.json`，则不能再同时使用 `ptab.overlay.yaml`
 
 处理 overlay 时，构建系统会用 `rich` 输出重载摘要，并在 build 目录下生成最终生效的 `ptab.effective.yaml` 供检查。
+
+```{tip}
+当 overlay 因板级仍为 `ptab.json`（v1/v2）而被忽略时，不会生成 `ptab.effective.yaml`。这类 warning 仅表示当前构建继续沿用原有 v1/v2 PTAB 行为，并不表示 overlay 已生效。
+```
 
 ### 生成产物
 
@@ -391,7 +396,7 @@ partitions:
 | `ptab.h` | C 头文件，包含所有分区宏定义 |
 | `ftab.bin` | 二进制 Flash Table，用于 bootloader |
 | `link_copy.lds` | 链接脚本 |
-| `ptab.effective.yaml` | 命中 overlay 时生成的最终 PTAB V3 YAML |
+| `ptab.effective.yaml` | overlay 实际作用于板级 `ptab.yaml`（v3）时生成的最终 PTAB V3 YAML |
 
 ### ptab v3 与 custom_mem_map.h
 

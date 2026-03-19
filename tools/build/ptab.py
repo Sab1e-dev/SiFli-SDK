@@ -13,6 +13,7 @@ import yaml
 
 _PTAB_CACHE = {}
 _OVERLAY_SUMMARY_CACHE: Set[Tuple[str, str, str]] = set()
+_OVERLAY_IGNORE_WARNING_CACHE: Set[Tuple[str, str, str]] = set()
 
 _PTAB_OVERLAY_FILENAME = 'ptab.overlay.yaml'
 _PTAB_OVERLAY_TOP_KEYS = {'partitions'}
@@ -1105,6 +1106,16 @@ def _find_first_ptab_file(search_dirs: List[Optional[str]]) -> Optional[str]:
     return None
 
 
+def _find_first_ptab_yaml_file(search_dirs: List[Optional[str]]) -> Optional[str]:
+    for search_dir in search_dirs:
+        if not search_dir:
+            continue
+        yaml_path = os.path.join(search_dir, 'ptab.yaml')
+        if os.path.exists(yaml_path):
+            return os.path.abspath(yaml_path)
+    return None
+
+
 def resolve_project_ptab_paths(
     project_root: str,
     board: Optional[str],
@@ -1125,6 +1136,7 @@ def resolve_project_ptab_paths(
     project_search_dirs.append(project_root)
 
     project_full_ptab = _find_first_ptab_file(project_search_dirs)
+    project_yaml_ptab = _find_first_ptab_yaml_file(project_search_dirs)
     board_base_ptab = _find_first_ptab_file([board_path] if board_path else [])
 
     overlay_paths = {
@@ -1148,6 +1160,7 @@ def resolve_project_ptab_paths(
         'chip': chip,
         'board_path': board_path,
         'project_full_ptab': project_full_ptab,
+        'project_yaml_ptab': project_yaml_ptab,
         'board_base_ptab': board_base_ptab,
         'board_fallback_ptab': fallback_path,
         'overlay_paths': overlay_paths,
@@ -1457,6 +1470,40 @@ def print_overlay_summary(report: Dict[str, Any], dedupe: bool = True) -> None:
         console.print(addition_table)
 
 
+def _warn_overlay_ignored_for_v2_base(
+    base_ptab_path: Optional[str],
+    overlay_paths: Dict[str, Optional[str]],
+    dedupe: bool = True,
+) -> str:
+    """Warn once when v3 overlay is ignored for a v1/v2 PTAB base."""
+    overlay_paths = overlay_paths or {}
+    cache_key = (
+        str(os.path.abspath(base_ptab_path) if base_ptab_path else ''),
+        str(overlay_paths.get('chip') or ''),
+        str(overlay_paths.get('board') or ''),
+    )
+    message = (
+        "Ignoring project PTAB overlay because board base PTAB is v1/v2 and no project "
+        "ptab.yaml was found; continuing without overlay."
+    )
+    details = []
+    if base_ptab_path:
+        details.append(f"base={os.path.abspath(base_ptab_path)}")
+    if overlay_paths.get('chip'):
+        details.append(f"chip_overlay={overlay_paths.get('chip')}")
+    if overlay_paths.get('board'):
+        details.append(f"board_overlay={overlay_paths.get('board')}")
+    if details:
+        message = f"{message} ({', '.join(details)})"
+
+    if dedupe and cache_key in _OVERLAY_IGNORE_WARNING_CACHE:
+        return message
+
+    _OVERLAY_IGNORE_WARNING_CACHE.add(cache_key)
+    logging.warning(message)
+    return message
+
+
 def prepare_project_ptab(
     project_root: str,
     board: Optional[str],
@@ -1471,9 +1518,26 @@ def prepare_project_ptab(
     """Resolve the PTAB file used by a project and apply overlays if needed."""
     resolved = resolve_project_ptab_paths(project_root, board, chip, board_path=board_path)
     project_full_ptab = resolved.get('project_full_ptab')
+    project_yaml_ptab = resolved.get('project_yaml_ptab')
     board_base_ptab = resolved.get('board_base_ptab')
     overlay_paths = resolved.get('overlay_paths') or {}
     uses_overlay = bool(overlay_paths.get('chip') or overlay_paths.get('board'))
+    ignored_overlay = False
+    ignored_overlay_reason = None
+    board_base_ptab_obj = None
+
+    if uses_overlay:
+        if not board_base_ptab:
+            raise ValueError("Board-level ptab.yaml not found, cannot apply overlay")
+        board_base_ptab_obj = load_ptab(board_base_ptab, fatal=validate)
+        if board_base_ptab_obj and not board_base_ptab_obj.is_v3() and not project_yaml_ptab:
+            ignored_overlay = True
+            ignored_overlay_reason = _warn_overlay_ignored_for_v2_base(
+                board_base_ptab,
+                overlay_paths,
+                dedupe=summary_dedupe,
+            )
+            uses_overlay = False
 
     if project_full_ptab and uses_overlay:
         raise ValueError(
@@ -1497,6 +1561,8 @@ def prepare_project_ptab(
             'board': resolved.get('board'),
             'chip': resolved.get('chip'),
             'uses_overlay': False,
+            'ignored_overlay': ignored_overlay,
+            'ignored_overlay_reason': ignored_overlay_reason,
             'overlay_paths': overlay_paths,
             'report': {
                 'base_path': project_full_ptab,
@@ -1504,6 +1570,8 @@ def prepare_project_ptab(
                 'effective_path': project_full_ptab,
                 'operations': [],
                 'validation': validation,
+                'ignored_overlay': ignored_overlay,
+                'ignored_overlay_reason': ignored_overlay_reason,
             },
             'merged_data': None,
             'ptab_obj': ptab_obj,
@@ -1535,6 +1603,8 @@ def prepare_project_ptab(
             'board': resolved.get('board'),
             'chip': resolved.get('chip'),
             'uses_overlay': True,
+            'ignored_overlay': False,
+            'ignored_overlay_reason': None,
             'overlay_paths': overlay_paths,
             'report': report,
             'merged_data': merged_data,
@@ -1542,7 +1612,10 @@ def prepare_project_ptab(
         }
 
     path = board_base_ptab or resolved.get('board_fallback_ptab')
-    ptab_obj = load_ptab(path, fatal=validate) if path else None
+    if path and board_base_ptab_obj and path == board_base_ptab:
+        ptab_obj = board_base_ptab_obj
+    else:
+        ptab_obj = load_ptab(path, fatal=validate) if path else None
     validation = []
     if validate and ptab_obj and ptab_obj.is_v3():
         validation = _validate_effective_ptab_v3(
@@ -1558,6 +1631,8 @@ def prepare_project_ptab(
         'board': resolved.get('board'),
         'chip': resolved.get('chip'),
         'uses_overlay': False,
+        'ignored_overlay': ignored_overlay,
+        'ignored_overlay_reason': ignored_overlay_reason,
         'overlay_paths': overlay_paths,
         'report': {
             'base_path': path,
@@ -1565,6 +1640,8 @@ def prepare_project_ptab(
             'effective_path': path,
             'operations': [],
             'validation': validation,
+            'ignored_overlay': ignored_overlay,
+            'ignored_overlay_reason': ignored_overlay_reason,
         },
         'merged_data': None,
         'ptab_obj': ptab_obj,

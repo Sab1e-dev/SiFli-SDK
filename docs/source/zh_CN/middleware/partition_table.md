@@ -1,7 +1,7 @@
 # 分区表
-`partition_table`（分区表）模块是一个编译脚本工具，用于解析分区表描述文件`ptab.json`，生成头文件`ptab.h`，`ptab.h`中包含了与分区信息相关的一系列宏定义，该头文件可被工程引用以获取分区信息。
-分区表可以描述所有memory的地址规划，包括NOR Flash、NAND Flash、eMMC、TF卡、PSRAM和片内SRAM等。每个板子会有一个`ptab.json`，描述了该板子的分区信息，使用该板子编译的工程都遵循这个分区表定义的地址规划，
-工程也可以使用自定义的`ptab.json`以覆盖板子的默认配置。
+`partition_table`（分区表）模块是一个编译脚本工具，用于解析分区表描述文件并生成头文件`ptab.h`，`ptab.h`中包含了与分区信息相关的一系列宏定义，该头文件可被工程引用以获取分区信息。
+分区表可以描述所有memory的地址规划，包括NOR Flash、NAND Flash、eMMC、TF卡、PSRAM和片内SRAM等。每个板子会有自己的分区表描述，使用该板子编译的工程都遵循对应分区表定义的地址规划；
+工程也可以使用自定义 PTAB 覆盖板子的默认配置。
 
 ## 使能分区表
 选中middleware中的`Use partition table to manage all memory layout`使能分区表功能
@@ -18,8 +18,18 @@ config CUSTOM_MEM_MAP
 
 
 ## 分区表语法
-分区表描述文件`ptab.json`是一个json格式的文本文件，遵循json语法，可以使用任意文本编辑器编辑。分区表的语法有1.0和2.0两个版本，2.0版本的语法相比1.0做了简化，便于理解和维护，建议新项目都采用2.0的语法，
-具体语法参考[](partition_table_v1.md)和[](partition_table_v2.md)。
+SDK 目前同时支持两类 PTAB 语法：
+
+- v1/v2：使用 `ptab.json`
+- v3：使用 `ptab.yaml`
+
+其中，v3 提供了更清晰的 YAML 结构、芯片内部分区建模和工程级 `ptab.overlay.yaml` 支持。新项目推荐优先采用 v3。
+
+具体语法参考：
+
+- [](partition_table_v1.md)
+- [](partition_table_v2.md)
+- [](partition_table_v3.md)
 
 
 ```{toctree}
@@ -27,4 +37,5 @@ config CUSTOM_MEM_MAP
 
 partition_table_v1.md
 partition_table_v2.md
+partition_table_v3.md
 ```
