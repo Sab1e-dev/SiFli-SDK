@@ -81,7 +81,7 @@ partitions:
     core: HCPU
 
   # DFU info region
-  - name: dfu_info
+  - name: dfu_info_region
     type: data
     subtype: raw
     region: mpi2

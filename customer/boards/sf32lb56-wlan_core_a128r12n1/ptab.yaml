@@ -48,7 +48,7 @@ partitions:
       offset: 0
     core: HCPU
 
-  - name: dfu_info
+  - name: dfu_info_region
     type: data
     subtype: raw
     region: mpi3
