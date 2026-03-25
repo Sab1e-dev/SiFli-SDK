@@ -32,6 +32,7 @@ import string
 import subprocess
 import sys
 import logging
+from pathlib import Path
 
 import utils
 from mkdist import do_copy_file
@@ -2618,12 +2619,19 @@ def EndBuilding(target, program = None):
         if rtconfig.CROSS_TOOL == 'gcc':
             link_file = Env.LdsFile([File(rtconfig.LINK_SCRIPT_SRC + '.lds')])
         elif rtconfig.CROSS_TOOL == 'keil':
-            link_file = Env.LdsFile([File(rtconfig.LINK_SCRIPT_SRC + '.sct')])
+            generated_link = Path(rtconfig.OUTPUT_DIR, 'link_copy').as_posix()
+            if rtconfig.LINK_SCRIPT != generated_link:
+                link_file = File(rtconfig.LINK_SCRIPT + '.sct')
+                if "PTAB_HEADER" in Env:
+                    Depends(program, Env['PTAB_HEADER'])
+            else:
+                link_file = Env.LdsFile([File(rtconfig.LINK_SCRIPT_SRC + '.sct')])
 
         if link_file:
             Depends(program, link_file)
-            # always build link script as it would not get rebuilt when header file changes
-            AlwaysBuild(link_file)
+            if not (rtconfig.CROSS_TOOL == 'keil' and rtconfig.LINK_SCRIPT != Path(rtconfig.OUTPUT_DIR, 'link_copy').as_posix()):
+                # always build link script as it would not get rebuilt when header file changes
+                AlwaysBuild(link_file)
             if "ROM_SYM" in Env and Env['ROM_SYM']:
                 Depends(program, Env['ROM_SYM'])
 
@@ -2993,8 +3001,32 @@ def SifliKeilEnv(cpu, BSP_ROOT=''):
     else:
         no_dsp_fp = False
     
-    # Keil always links against a generated scatter file in the build dir.
-    rtconfig.LINK_SCRIPT = os.path.join(rtconfig.OUTPUT_DIR, 'link_copy').replace('\\', '/')
+    if not rtconfig.LINK_SCRIPT_TEMPLATE:
+        link_script_path = rtconfig.LINK_SCRIPT_SRC + '.sct'
+        with open(link_script_path, 'r', encoding='utf-8', errors='ignore') as f:
+            script = f.readlines()
+        if script and (
+            ('$SDK_ROOT' in script[0])
+            or ('$BSP_ROOT' in script[0])
+            or ('$BOARD_ROOT' in script[0])
+        ):
+            script[0] = script[0].replace('$SDK_ROOT', os.getenv('SIFLI_SDK'))
+            script[0] = script[0].replace('$BSP_ROOT', BSP_ROOT)
+            new_file_path = Path(rtconfig.OUTPUT_DIR, os.path.basename(rtconfig.LINK_SCRIPT_SRC) + '.sct')
+            if not os.path.exists(rtconfig.OUTPUT_DIR):
+                logging.debug('sct dir:{}'.format(rtconfig.OUTPUT_DIR))
+                Execute(Mkdir(rtconfig.OUTPUT_DIR))
+            with open(new_file_path, 'w', encoding='utf-8', newline='\n') as f:
+                f.writelines(script)
+            # Keep rooted scatter files in the build dir so relative includes
+            # still resolve against the generated rtconfig.h / ptab.h files.
+            rtconfig.LINK_SCRIPT = new_file_path.with_suffix('').as_posix()
+        else:
+            rtconfig.LINK_SCRIPT = Path(rtconfig.OUTPUT_DIR, 'link_copy').as_posix()
+    else:
+        # Keil links against a generated scatter file in the build dir when the
+        # selected source is rendered from a Jinja2 template.
+        rtconfig.LINK_SCRIPT = Path(rtconfig.OUTPUT_DIR, 'link_copy').as_posix()
     
     rtconfig.keil_version=SifliKeilVersion()
     logging.debug("Keil version %s"%(rtconfig.keil_version))
