@@ -30,3 +30,5 @@ cryptography
 json5
 crccheck
 Jinja2
+jsonschema
+questionary
