@@ -1,9 +1,67 @@
-# SiFli SDK Change Log v2.4.5
-## Main Changes
+# SiFli SDK Change Log v2.4.6
+## Change log since v2.4.5
+
+### Drivers
+#### Changed
+- mem_map: Changed both 58x A1 and A2 LPSYS_RAM_SIZE to 896KB
+
+### Bluetooth
+#### Fixed
+- bt: Fixed 52X revision B issues related to multi-link and 2SCO
+- bt: Fixed A2DP connection setup always fail in some corner cases
+- ble: Fixed a bug in serial transmission under multi-connection scenarios
+- Fixed multiple MUX ID bugs in RFCOMM
+
+#### Changed
+- ble: Optimized GATT service change behavior to prevent some phones from behaving abnormally in certain corner cases
+- bt: Optimized AAC/SBC decoding process
+
+#### Added
+- bt: Added two connections support for HFP
+- bt: Added two simultaneous A2DP connections with mixed CODECs (SBC/AAC) support
+- ble: Support Find My profile (The user must have obtained authorization from Apple)
+- bt: Added additional AT commands support for HFP
+- bt: Added cover art feature support for AVRCP
+
+
+### Examples
+#### Fixed
+- `rt_device/audprc`: Fixed the issue where the audprc routine failed to record using the rx device
+- `bt/test_example`: AAC using PSRAM
+
+#### Added
+- `bt/a2dp_multi_connect`: Added a2dp_multi_connection example
+
+### RTOS
+#### Fixed
+- alarm: Fixed one-shot alarm failed to start when reused
+
+### Middleware
+#### Fixed
+- mem_section: Fixed VC compilation errors
+- audio: Fixed deadlock problem caused by concurrent read and write operations among multiple threads
+
+#### Changed
+- audio: Optimize dual SBC/AAC decoding
+
+#### Added
+- faad2: Added faad2
+
+
+### BSP
+#### Fixed
+- opm060e9: Fixed `previous_frame` not placed in PSRAM as expected
+
+### Docs
+#### Added
+- Added copyright notice
+
+
+## Change log since v2.4.4
+### Main Changes
 - All examples now support sf32lb56-lcd and sf32lb58-lcd series boards
 - The default toolchain set by `set_env` has been changed to `gcc`. To compile using Keil, run `set_env keil` instead
 
-## Change log since v2.4.4
 
 ### Drivers
 #### Fixed
