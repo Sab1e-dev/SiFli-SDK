@@ -105,7 +105,8 @@ typedef struct
 #define ACPU_TASK_audio_3a_uplink        (12)
 #define ACPU_TASK_read                   (13)
 #define ACPU_TASK_write                  (14)
-#define ACPU_TASK_COUNT                  (15)
+#define ACPU_TASK_epic_rl                (15)
+#define ACPU_TASK_COUNT                  (16)
 
 /* Keep old names for backward compatibility */
 #define ACPU_TASK_anyka_open             ACPU_TASK_audio_3a_open

@@ -158,12 +158,16 @@ void musb_reset_post(void)
 
 void USBC_IRQHandler(void)
 {
+#ifdef BSP_USING_RTTHREAD    
     rt_interrupt_enter();
+#endif /* BSP_USING_RTTHREAD */    
 #ifdef PKG_CHERRYUSB_DEVICE
     USBD_IRQHandler(0);
 #endif
 #ifdef PKG_CHERRYUSB_HOST
     USBH_IRQHandler(0);
 #endif
+#ifdef BSP_USING_RTTHREAD    
     rt_interrupt_leave();
+#endif /* BSP_USING_RTTHREAD */    
 }
