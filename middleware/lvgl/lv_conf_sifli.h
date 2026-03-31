@@ -118,6 +118,13 @@
 
     #define LV_USE_GPU       LV_USE_GPU_SIFLI_EPIC
     #define LV_USE_DRAW_EPIC LV_USE_GPU_SIFLI_EPIC
+
+    /*
+    Enable dithering for YUV420 images when output format is RGB565
+    */
+    #if (16 == LV_COLOR_DEPTH)
+        #define EPIC_YUV420_DITHER_LEVEL_DEFAULT  EPIC_DITHER_LEVEL_MIDDLE
+    #endif /* LV_COLOR_DEPTH */
     /*=======================
     * FEATURE CONFIGURATION
     *=======================*/
@@ -198,6 +205,11 @@
     //Use assembled memcpy/memset
     #undef LV_USE_STDLIB_STRING
     #define LV_USE_STDLIB_STRING    LV_STDLIB_CLIB
+
+    #if defined(__CC_ARM) || defined(__ARMCC_VERSION)
+        #undef LV_USE_STDLIB_STRING
+        #define LV_USE_STDLIB_STRING    LV_STDLIB_RTTHREAD
+    #endif
 
     #undef LV_USE_STDLIB_SPRINTF
     #define LV_USE_STDLIB_SPRINTF   LV_STDLIB_CLIB
@@ -315,8 +327,8 @@
         #define lv_label_set_text_sel_end lv_label_set_text_selection_end
         #define lv_image_get_size_mode(obj) 0
         #define lv_image_set_size_mode(obj,mode)
-        #define lv_label_get_recolor(obj) 1
-        #define lv_label_set_recolor(obj,en)
+        // #define lv_label_get_recolor(obj) 1
+        // #define lv_label_set_recolor(obj,en)
         #define lv_indev_drv_t lv_indev_t
     #endif /* 0 */
 
@@ -353,5 +365,33 @@
     #endif
 
 #endif
+
+#define LV_USE_PROFILER 0
+#if LV_USE_PROFILER
+    /*Define custom profiler include*/
+    #define LV_PROFILER_INCLUDE "lv_conf_sifli.h"
+
+    /*Profiler definitions*/
+    #ifdef PKG_USING_SEGGER_RTT
+        extern void lv_debug_task_start_exec_v9(const void *func, const char *func_name);
+        extern void lv_debug_task_stop_exec_v9(const void *func);
+        extern void lv_debug_mark_start_v9(uint32_t id, const char *desc);
+        extern void lv_debug_mark_stop_v9(uint32_t id);
+
+        /*Profiler start point function*/
+        #define LV_PROFILER_BEGIN lv_debug_task_start_exec_v9(__func__, __func__)
+
+        /*Profiler end point function*/
+        #define LV_PROFILER_END lv_debug_task_stop_exec_v9(__func__)
+
+        /*Profiler start point function with custom tag*/
+        #define LV_PROFILER_BEGIN_TAG(tag) lv_debug_mark_start_v9((uint32_t)(tag), #tag)
+
+        /*Profiler end point function with custom tag*/
+        #define LV_PROFILER_END_TAG(tag) lv_debug_mark_stop_v9((uint32_t)(tag))
+
+    #endif /* PKG_USING_SEGGER_RTT */
+#endif /* LV_USE_PROFILER */
+
 
 #endif /*LV_CONF_SIFLI_H*/

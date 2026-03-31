@@ -17,12 +17,6 @@
     extern void bt_rf_cal(void);
 #endif
 
-#ifdef LXT_DISABLE
-    #define USE_LXT 0
-#else
-    #define USE_LXT 1
-#endif
-
 #if defined(SOC_BF0_HCPU)
 extern void lcpu_patch_install();
 extern void lcpu_patch_install_rev_b();
@@ -44,12 +38,17 @@ __WEAK void lcpu_img_install(void)
 void lcpu_rom_config_default(void)
 {
     uint8_t rev_id = __HAL_SYSCFG_GET_REVID();
-    uint8_t is_enable_lxt = USE_LXT;
-    uint8_t is_lcpu_rccal = 1 - USE_LXT;
+    uint8_t is_enable_lxt;
+    uint8_t is_lcpu_rccal = 0;
     uint32_t wdt_staus = 0xFF;
     uint32_t wdt_time = 10;
     uint16_t wdt_clk = 32768;
 
+    if (HAL_LXT_DISABLED())
+    {
+        is_lcpu_rccal = 1;
+    }
+    is_enable_lxt = 1 - is_lcpu_rccal;
     HAL_LCPU_CONFIG_set(HAL_LCPU_CONFIG_XTAL_ENABLED, &is_enable_lxt, 1);
     HAL_LCPU_CONFIG_set(HAL_LCPU_CONFIG_WDT_STATUS, &wdt_staus, 4);
     HAL_LCPU_CONFIG_set(HAL_LCPU_CONFIG_WDT_TIME, &wdt_time, 4);

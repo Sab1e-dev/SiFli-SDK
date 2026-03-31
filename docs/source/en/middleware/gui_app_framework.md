@@ -77,13 +77,13 @@ static int compass_data_callback(data_callback_arg_t *arg)
     {
         case MSG_SERVICE_SUBSCRIBE_RSP:
         {
-            data_rsp_t *rsp;
-            rsp = (data_rsp_t *)arg->data;
+            data_subscribe_rsp_t *rsp;
+            rsp = (data_subscribe_rsp_t *)arg->data;
             RT_ASSERT(rsp);
             /* Subscribe data error */
             if (rsp->result < 0)
             {
-                p_compass->srv_handle = DATA_CONN_INVALID_ID;
+                p_compass->srv_handle = DATA_CLIENT_INVALID_HANDLE;
             }
             else
             {
@@ -160,8 +160,11 @@ static void on_start(void)
     }
 
     /* Subscribe to service data */
-    p_compass->srv_handle = ui_datac_subscribe("COMP", 
-                                                compass_data_callback, 0);
+    p_compass->srv_handle = datac_open();
+    RT_ASSERT(DATA_CLIENT_INVALID_HANDLE != p_compass->srv_handle);
+    
+    ui_datac_subscribe(p_compass->srv_handle, "COMP", 
+                      compass_data_callback, 0);
 }
 
 static void on_pause(void)
@@ -197,10 +200,11 @@ static void on_resume(void)
 static void on_stop(void)
 {
     /* Unsubscribe from service before exiting app */
-    if (DATA_CONN_INVALID_ID != p_compass->srv_handle)
+    if (DATA_CLIENT_INVALID_HANDLE != p_compass->srv_handle)
     {
         datac_unsubscribe(p_compass->srv_handle);
-        p_compass->srv_handle = DATA_CONN_INVALID_ID;
+        datac_close(p_compass->srv_handle);
+        p_compass->srv_handle = DATA_CLIENT_INVALID_HANDLE;
     }
 
     if (NULL != p_compass)

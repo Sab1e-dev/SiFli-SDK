@@ -1,4 +1,4 @@
-# 基于AGif+LVGL(V9)的动画示例
+# 基于AGif/APNG+LVGL(V9)的动画示例
 
 源码路径：example/multimedia/agif/lvgl_v9
 
@@ -8,13 +8,14 @@
 
 ## 概述
 <!-- 例程简介 -->
-本例程包含两个带gif动画的表盘，用于示例基于agif + lvgl(V9)的动画实现，包含：
+本例程包含两个带gif动画的表盘+1一个带apng动画的表盘，用于示例基于agif/apng + lvgl(V9)的动画实现，包含：
 + .gif通过eZIP.exe转成.c：
     - 放置位置：`src/resource/images/common/gif/`
     - 资源处理：`src/resource/images/SConscript`会对上述路径下的.gif进行编译，编译生成的.c可在`project/build_xxx/src/resource/images/common/gif`路径中查看。
     ```{tip}
     资源也可以手动调用`/tools/png2ezip/eZIP.exe`处理，命令格式可以通过运行eZIP.exe查看帮助。
-    ```
+    ```  
+
 + gif显示
     - `src/gui_apps/clock/app_clock_agif.c`:
         * 资源声明：
@@ -76,6 +77,46 @@
         }
         ```
 
++ apng资源处理：
+    - 和png相同，放置位置：`src/resource/images/common/ezip/`
+    - apng图片制作：可以在线制作：`https://ezgif.com/` 
+
++ apng显示：
+    - `src/gui_apps/clock/app_clock_apng.c`:
+        * 资源声明：
+        ```c
+        /* Image decalration */
+        LV_IMG_DECLARE(apng_dice);
+        ```
+        * apng控件创建和配置：
+        ```c
+        /* Create apng. */
+        lv_obj_t *dice_img = lv_ezipa_create(parent);
+        RT_ASSERT(dice_img);
+        /* Set image source */
+        lv_ezipa_set_src(dice_img, apng_dice.data);
+        /* Set surface */
+        // lv_ezipa_set_surface(dice_img, xxx);
+        /* Set interval */
+        lv_ezipa_set_interval(dice_img, 60);
+        ```
+        * apng刷新暂停、恢复：
+        ```c
+        static rt_int32_t resume_callback(void)
+        {
+            /* Resume apng animation refresh */
+            lv_ezipa_resume(p_clk_apng->apng);
+            return RT_EOK;
+        }
+
+        static rt_int32_t pause_callback(void)
+        {
+            /* Pause apng animation refresh */
+            lv_ezipa_pause(p_clk_apng->apng);
+            return RT_EOK;
+        }
+        ```
+
 
 ## 例程的使用
 <!-- 说明如何使用例程，比如连接哪些硬件管脚观察波形，编译和烧写可以引用相关文档。
@@ -93,7 +134,9 @@
 2. 使能EPIC/EZIP：  
 ![EPIC](./assets/agif_cfg_epic.png)
 ![EZIP](./assets/agif_cfg_ezip.png)
-3. 根据使用的LCD配置屏驱。  
+3. 如果需要使用APNG，则需要使能`USING_EZIPA_DEC`：  
+![EZIPA](./assets/apng_cfg_ezipa_dec.png)  
+4. 根据使用的LCD配置屏驱。  
 
 ### 编译和烧录
 切换到例程project目录，运行scons命令执行编译：
@@ -114,8 +157,8 @@ please input the serial port num:5
 <!-- 说明例程运行结果，比如哪几个灯会亮，会打印哪些log，以便用户判断例程是否正常运行，运行结果可以结合代码分步骤说明 -->
 例程启动后：
 + 默认进入到`agif`表盘，`agif_icon.gif`循环刷新显示。
-+ 左右滑动可以在`aigf`和`agif02`表盘中切换。
-+ `agif.h`中也有提供一些其它控制API，可以基于例程修改看效果。
++ 左右滑动可以在`aigf` \ `agif02` \ `apng` 表盘中切换。
++ `agif.h` \ `lvsf_ezipa.h` 中也有提供一些其它控制API，可以基于例程修改看效果。
 
 ## 异常诊断
 

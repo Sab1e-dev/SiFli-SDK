@@ -184,7 +184,7 @@ static void video_decode_task(lv_timer_t *task)
 #ifdef SOC_SF32LB58X
     if (p_player->gpu_pic_fmt == e_sifli_fmt_argb8888)
     {
-        //EPIC not support YUV and NANOD return ARGB8888 fromat directly.
+        //EPIC not support YUV and decoder return ARGB8888 fromat directly.
         p_player->img_desc_clone.data = *((uint8_t **)p_player->img_desc.data);
     }
 #endif /* SOC_SF32LB58X */

@@ -17,7 +17,7 @@
 #undef USB_POWER_RESUME
 
 #ifndef CONFIG_USB_MUSB_SIFLI
-#error must define CONFIG_USB_MUSB_SIFLI when use sunxi chips
+#error must define CONFIG_USB_MUSB_SIFLI when use sifli chips
 #endif
 
 #include "bf0_hal.h"
@@ -158,10 +158,12 @@ void musb_reset_post(void)
 
 void USBC_IRQHandler(void)
 {
+    rt_interrupt_enter();
 #ifdef PKG_CHERRYUSB_DEVICE
     USBD_IRQHandler(0);
 #endif
 #ifdef PKG_CHERRYUSB_HOST
     USBH_IRQHandler(0);
 #endif
+    rt_interrupt_leave();
 }

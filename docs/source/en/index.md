@@ -45,9 +45,12 @@ hal/index
 drivers/index
 app_note/index
 middleware/index
+audio/index
 supported_boards/index
 bootloader
+tools/index
 example/index
 api/index
 contribute/index
+copyright/index
 ```

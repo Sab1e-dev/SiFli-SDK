@@ -28,14 +28,26 @@ extern "C" {
 #define GPTIM1_CC2_DMA_REQUEST                 DMA_REQUEST_11
 #define GPTIM1_CC3_DMA_REQUEST                 DMA_REQUEST_12
 #define GPTIM1_CC4_DMA_REQUEST                 DMA_REQUEST_13
+#define PWMT1_UPDATE_DMA_REQUEST               GPTIM1_UPDATE_DMA_REQUEST
+#define PWMT1_TRIGGER_DMA_REQUEST              GPTIM1_TRIGGER_DMA_REQUEST
+#define PWMT1_CC1_DMA_REQUEST                  GPTIM1_CC1_DMA_REQUEST
+#define PWMT1_CC2_DMA_REQUEST                  GPTIM1_CC2_DMA_REQUEST
+#define PWMT1_CC3_DMA_REQUEST                  GPTIM1_CC3_DMA_REQUEST
+#define PWMT1_CC4_DMA_REQUEST                  GPTIM1_CC4_DMA_REQUEST
 #define BTIM1_DMA_REQUEST                      DMA_REQUEST_14
 #define BTIM2_DMA_REQUEST                      DMA_REQUEST_15
 #define ATIM1_UPDATE_DMA_REQUEST               DMA_REQUEST_16
 #define ATIM1_TRIGGER_DMA_REQUEST              DMA_REQUEST_17
-#define PWMA1_CC1_DMA_REQUEST                  DMA_REQUEST_18//atime1_cc1
-#define PWMA1_CC2_DMA_REQUEST                  DMA_REQUEST_19//atime1_cc2
-#define PWMA1_CC3_DMA_REQUEST                  DMA_REQUEST_20//atime1_cc3
-#define PWMA1_CC4_DMA_REQUEST                  DMA_REQUEST_21//atime1_cc4
+#define ATIM1_CC1_DMA_REQUEST                  DMA_REQUEST_18
+#define ATIM1_CC2_DMA_REQUEST                  DMA_REQUEST_19
+#define ATIM1_CC3_DMA_REQUEST                  DMA_REQUEST_20
+#define ATIM1_CC4_DMA_REQUEST                  DMA_REQUEST_21
+#define PWMA1_UPDATE_DMA_REQUEST               ATIM1_UPDATE_DMA_REQUEST
+#define PWMA1_TRIGGER_DMA_REQUEST              ATIM1_TRIGGER_DMA_REQUEST
+#define PWMA1_CC1_DMA_REQUEST                  ATIM1_CC1_DMA_REQUEST
+#define PWMA1_CC2_DMA_REQUEST                  ATIM1_CC2_DMA_REQUEST
+#define PWMA1_CC3_DMA_REQUEST                  ATIM1_CC3_DMA_REQUEST
+#define PWMA1_CC4_DMA_REQUEST                  ATIM1_CC4_DMA_REQUEST
 #define I2C1_DMA_REQUEST                       DMA_REQUEST_22
 #define I2C2_DMA_REQUEST                       DMA_REQUEST_23
 #define I2C3_DMA_REQUEST                       DMA_REQUEST_24
@@ -59,6 +71,9 @@ extern "C" {
 #define GPTIM2_UPDATE_DMA_REQUEST              DMA_REQUEST_43
 #define GPTIM2_TRIGGER_DMA_REQUEST             DMA_REQUEST_44
 #define GPTIM2_CC1_DMA_REQUEST                 DMA_REQUEST_45
+#define PWMT2_UPDATE_DMA_REQUEST               GPTIM2_UPDATE_DMA_REQUEST
+#define PWMT2_TRIGGER_DMA_REQUEST              GPTIM2_TRIGGER_DMA_REQUEST
+#define PWMT2_CC1_DMA_REQUEST                  GPTIM2_CC1_DMA_REQUEST
 #define AUDPRC_TX_OUT1_DMA_REQUEST             DMA_REQUEST_46
 #define AUDPRC_TX_OUT0_DMA_REQUEST             DMA_REQUEST_47
 #define AUDPRC_TX3_DMA_REQUEST                 DMA_REQUEST_48
@@ -70,6 +85,9 @@ extern "C" {
 #define GPTIM2_CC2_DMA_REQUEST                 DMA_REQUEST_54
 #define GPTIM2_CC3_DMA_REQUEST                 DMA_REQUEST_55
 #define GPTIM2_CC4_DMA_REQUEST                 DMA_REQUEST_56
+#define PWMT2_CC2_DMA_REQUEST                  GPTIM2_CC2_DMA_REQUEST
+#define PWMT2_CC3_DMA_REQUEST                  GPTIM2_CC3_DMA_REQUEST
+#define PWMT2_CC4_DMA_REQUEST                  GPTIM2_CC4_DMA_REQUEST
 #define SDMMC2_DMA_REQUEST                     DMA_REQUEST_57
 
 /* DMA1 channel1 */
@@ -111,6 +129,144 @@ extern "C" {
 #define AUDPRC_RX0_DMA_INSTANCE                DMA1_Channel2
 #define AUDPRC_RX0_DMA_IRQ                     DMAC1_CH2_IRQn
 
+//GTIM1 PWMT1
+#if defined(BSP_PWMT1_UPDATE_USING_DMA) && !defined(PWMT1_UPDATE_DMA_INSTANCE)
+#define PWMT1_UPDATE_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define PWMT1_UPDATE_DMA_IRQ_PRIO                1
+#define PWMT1_UPDATE_DMA_INSTANCE                DMA1_Channel2
+#define PWMT1_UPDATE_DMA_IRQ                     DMAC1_CH2_IRQn
+#define PWMT1_UPDATE_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT1_UPDATE_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMT1_CC1_USING_DMA) && !defined(PWMT1_CC1_DMA_INSTANCE)
+#define PWMT1_CC1_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define PWMT1_CC1_DMA_IRQ_PRIO                1
+#define PWMT1_CC1_DMA_INSTANCE                DMA1_Channel2
+#define PWMT1_CC1_DMA_IRQ                     DMAC1_CH2_IRQn
+#define PWMT1_CC1_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT1_CC1_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMT1_CC2_USING_DMA) && !defined(PWMT1_CC2_DMA_INSTANCE)
+#define PWMT1_CC2_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define PWMT1_CC2_DMA_IRQ_PRIO                1
+#define PWMT1_CC2_DMA_INSTANCE                DMA1_Channel2
+#define PWMT1_CC2_DMA_IRQ                     DMAC1_CH2_IRQn
+#define PWMT1_CC2_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT1_CC2_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMT1_CC3_USING_DMA) && !defined(PWMT1_CC3_DMA_INSTANCE)
+#define PWMT1_CC3_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define PWMT1_CC3_DMA_IRQ_PRIO                1
+#define PWMT1_CC3_DMA_INSTANCE                DMA1_Channel2
+#define PWMT1_CC3_DMA_IRQ                     DMAC1_CH2_IRQn
+#define PWMT1_CC3_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT1_CC3_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMT1_CC4_USING_DMA) && !defined(PWMT1_CC4_DMA_INSTANCE)
+#define PWMT1_CC4_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define PWMT1_CC4_DMA_IRQ_PRIO                1
+#define PWMT1_CC4_DMA_INSTANCE                DMA1_Channel2
+#define PWMT1_CC4_DMA_IRQ                     DMAC1_CH2_IRQn
+#define PWMT1_CC4_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT1_CC4_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+//GTIM2 PWMT2
+#if defined(BSP_PWMT2_UPDATE_USING_DMA) && !defined(PWMT2_UPDATE_DMA_INSTANCE)
+#define PWMT2_UPDATE_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define PWMT2_UPDATE_DMA_IRQ_PRIO                1
+#define PWMT2_UPDATE_DMA_INSTANCE                DMA1_Channel2
+#define PWMT2_UPDATE_DMA_IRQ                     DMAC1_CH2_IRQn
+#define PWMT2_UPDATE_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT2_UPDATE_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMT2_CC1_USING_DMA) && !defined(PWMT2_CC1_DMA_INSTANCE)
+#define PWMT2_CC1_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define PWMT2_CC1_DMA_IRQ_PRIO                1
+#define PWMT2_CC1_DMA_INSTANCE                DMA1_Channel2
+#define PWMT2_CC1_DMA_IRQ                     DMAC1_CH2_IRQn
+#define PWMT2_CC1_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT2_CC1_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMT2_CC2_USING_DMA) && !defined(PWMT2_CC2_DMA_INSTANCE)
+#define PWMT2_CC2_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define PWMT2_CC2_DMA_IRQ_PRIO                1
+#define PWMT2_CC2_DMA_INSTANCE                DMA1_Channel2
+#define PWMT2_CC2_DMA_IRQ                     DMAC1_CH2_IRQn
+#define PWMT2_CC2_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT2_CC2_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMT2_CC3_USING_DMA) && !defined(PWMT2_CC3_DMA_INSTANCE)
+#define PWMT2_CC3_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define PWMT2_CC3_DMA_IRQ_PRIO                1
+#define PWMT2_CC3_DMA_INSTANCE                DMA1_Channel2
+#define PWMT2_CC3_DMA_IRQ                     DMAC1_CH2_IRQn
+#define PWMT2_CC3_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT2_CC3_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMT2_CC4_USING_DMA) && !defined(PWMT1_CC3_DMA_INSTANCE)
+#define PWMT2_CC4_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define PWMT2_CC4_DMA_IRQ_PRIO                1
+#define PWMT2_CC4_DMA_INSTANCE                DMA1_Channel2
+#define PWMT2_CC4_DMA_IRQ                     DMAC1_CH2_IRQn
+#define PWMT2_CC4_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT2_CC4_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+//ATIM1 PWMA1
+#if defined(BSP_PWMA1_UPDATE_USING_DMA) && !defined(PWMA1_UPDATE_DMA_INSTANCE)
+#define PWMA1_UPDATE_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define PWMA1_UPDATE_DMA_IRQ_PRIO                1
+#define PWMA1_UPDATE_DMA_INSTANCE                DMA1_Channel2
+#define PWMA1_UPDATE_DMA_IRQ                     DMAC1_CH2_IRQn
+#define PWMA1_UPDATE_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMA1_UPDATE_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMA1_CC1_USING_DMA) && !defined(PWMA1_CC1_DMA_INSTANCE)
+#define PWMA1_CC1_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define PWMA1_CC1_DMA_IRQ_PRIO                1
+#define PWMA1_CC1_DMA_INSTANCE                DMA1_Channel2
+#define PWMA1_CC1_DMA_IRQ                     DMAC1_CH2_IRQn
+#define PWMA1_CC1_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMA1_CC1_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMA1_CC2_USING_DMA) && !defined(PWMA1_CC2_DMA_INSTANCE)
+#define PWMA1_CC2_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define PWMA1_CC2_DMA_IRQ_PRIO                1
+#define PWMA1_CC2_DMA_INSTANCE                DMA1_Channel2
+#define PWMA1_CC2_DMA_IRQ                     DMAC1_CH2_IRQn
+#define PWMA1_CC2_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMA1_CC2_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMA1_CC3_USING_DMA) && !defined(PWMA1_CC3_DMA_INSTANCE)
+#define PWMA1_CC3_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define PWMA1_CC3_DMA_IRQ_PRIO                1
+#define PWMA1_CC3_DMA_INSTANCE                DMA1_Channel2
+#define PWMA1_CC3_DMA_IRQ                     DMAC1_CH2_IRQn
+#define PWMA1_CC3_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMA1_CC3_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMA1_CC4_USING_DMA) && !defined(PWMA1_CC4_DMA_INSTANCE)
+#define PWMA1_CC4_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define PWMA1_CC4_DMA_IRQ_PRIO                1
+#define PWMA1_CC4_DMA_INSTANCE                DMA1_Channel2
+#define PWMA1_CC4_DMA_IRQ                     DMAC1_CH2_IRQn
+#define PWMA1_CC4_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMA1_CC4_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
 /* DMA1 channel3 */
 #define FLASH3_IRQHandler              DMAC1_CH3_IRQHandler
 #define FLASH3_DMA_IRQ_PRIO            0
@@ -121,6 +277,11 @@ extern "C" {
 #define SDMMC2_DMA_IRQ_PRIO            0
 #define SDMMC2_DMA_INSTANCE            DMA1_Channel3
 #define SDMMC2_DMA_IRQ                 DMAC1_CH3_IRQn
+
+#define SPI1_DMA_RX_IRQHandler       DMAC1_CH3_IRQHandler
+#define SPI1_RX_DMA_IRQ_PRIO         0
+#define SPI1_RX_DMA_INSTANCE         DMA1_Channel3
+#define SPI1_RX_DMA_IRQ              DMAC1_CH3_IRQn
 
 /* DMA1 channel4  */
 //PDM1 L
@@ -133,6 +294,11 @@ extern "C" {
 #define I2S_TX_DMA_IRQ_PRIO                     0
 #define I2S_TX_DMA_INSTANCE                DMA1_Channel4
 #define I2S_TX_DMA_IRQ                     DMAC1_CH4_IRQn
+
+#define SPI1_DMA_TX_IRQHandler       DMAC1_CH4_IRQHandler
+#define SPI1_TX_DMA_IRQ_PRIO         0
+#define SPI1_TX_DMA_INSTANCE         DMA1_Channel4
+#define SPI1_TX_DMA_IRQ              DMAC1_CH4_IRQn
 
 /* DMA1 channel5 */
 #define UART1_DMA_TX_IRQHandler          DMAC1_CH5_IRQHandler
@@ -156,6 +322,11 @@ extern "C" {
 #define UART1_RX_DMA_IRQ_PRIO            0
 #define UART1_RX_DMA_INSTANCE            DMA1_Channel6
 #define UART1_RX_DMA_IRQ                 DMAC1_CH6_IRQn
+
+#define UART2_DMA_TX_IRQHandler          DMAC1_CH6_IRQHandler
+#define UART2_TX_DMA_IRQ_PRIO            0
+#define UART2_TX_DMA_INSTANCE            DMA1_Channel6
+#define UART2_TX_DMA_IRQ                 DMAC1_CH6_IRQn
 
 /* DMA1 channel7  */
 #define UART3_DMA_TX_IRQHandler         DMAC1_CH7_IRQHandler
@@ -201,9 +372,16 @@ extern "C" {
 #define GPTIM3_CC2_DMA_REQUEST                 DMA_REQUEST_11
 #define GPTIM3_CC3_DMA_REQUEST                 DMA_REQUEST_12
 #define GPTIM3_CC4_DMA_REQUEST                 DMA_REQUEST_13
-#define PWMT3_CC4_DMA_REQUEST                   DMA_REQUEST_13//GTIM3_CH4
+#define PWMT3_UPDATE_DMA_REQUEST               GPTIM3_UPDATE_DMA_REQUEST
+#define PWMT3_TRIGGER_DMA_REQUEST              GPTIM3_TRIGGER_DMA_REQUEST
+#define PWMT3_CC1_DMA_REQUEST                  GPTIM3_CC1_DMA_REQUEST
+#define PWMT3_CC2_DMA_REQUEST                  GPTIM3_CC2_DMA_REQUEST
+#define PWMT3_CC3_DMA_REQUEST                  GPTIM3_CC3_DMA_REQUEST
+#define PWMT3_CC4_DMA_REQUEST                  GPTIM3_CC4_DMA_REQUEST
 #define GPTIM5_UPDATE_DMA_REQUEST              DMA_REQUEST_14
 #define GPTIM5_TRIGGER_DMA_REQUEST             DMA_REQUEST_15
+#define PWMT5_UPDATE_DMA_REQUEST                GPTIM5_UPDATE_DMA_REQUEST
+#define PWMT5_TRIGGER_DMA_REQUEST               GPTIM5_TRIGGER_DMA_REQUEST
 #define SPI3_TX_DMA_REQUEST                    DMA_REQUEST_16
 #define SPI3_RX_DMA_REQUEST                    DMA_REQUEST_17
 #define SPI4_TX_DMA_REQUEST                    DMA_REQUEST_18
@@ -214,11 +392,17 @@ extern "C" {
 #define I2C7_DMA_REQUEST                       DMA_REQUEST_23
 #define GPTIM4_UPDATE_DMA_REQUEST              DMA_REQUEST_24
 #define GPTIM4_TRIGGER_DMA_REQUEST             DMA_REQUEST_25
-#define PWMT4_CC1_DMA_REQUEST                   DMA_REQUEST_26
 #define GPTIM4_CC1_DMA_REQUEST                 DMA_REQUEST_26
 #define GPTIM4_CC2_DMA_REQUEST                 DMA_REQUEST_27
 #define GPTIM4_CC3_DMA_REQUEST                 DMA_REQUEST_28
 #define GPTIM4_CC4_DMA_REQUEST                 DMA_REQUEST_29
+#define PWMT4_UPDATE_DMA_REQUEST               GPTIM4_UPDATE_DMA_REQUEST
+#define PWMT4_TRIGGER_DMA_REQUEST              GPTIM4_TRIGGER_DMA_REQUEST
+#define PWMT4_CC1_DMA_REQUEST                  GPTIM4_CC1_DMA_REQUEST
+#define PWMT4_CC2_DMA_REQUEST                  GPTIM4_CC2_DMA_REQUEST
+#define PWMT4_CC3_DMA_REQUEST                  GPTIM4_CC3_DMA_REQUEST
+#define PWMT4_CC4_DMA_REQUEST                  GPTIM4_CC4_DMA_REQUEST
+
 #define GPADC_DMA_REQUEST                      DMA_REQUEST_30
 
 /* DMA2 channel1  */
@@ -230,31 +414,107 @@ extern "C" {
 #endif
 /* DMA2 channel1  */
 
+//GTIM3 PWMT3
 #if defined(BSP_PWMT3_UPDATE_USING_DMA) && !defined(PWMT3_UPDATE_DMA_INSTANCE)
 #define PWMT3_UPDATE_DMA_IRQHandler              DMAC2_CH1_IRQHandler
 #define PWMT3_UPDATE_DMA_IRQ_PRIO                1
 #define PWMT3_UPDATE_DMA_INSTANCE                DMA2_Channel1
 #define PWMT3_UPDATE_DMA_IRQ                     DMAC2_CH1_IRQn
-#define PWMT3_UPDATE_DMA_PDATAALIGN                       DMA_PDATAALIGN_HALFWORD
-#define PWMT3_UPDATE_DMA_MDATAALIGN                       DMA_MDATAALIGN_HALFWORD
+#define PWMT3_UPDATE_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT3_UPDATE_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
 #endif
 
-#if defined(BSP_PWMT3_CC4_USING_DMA) && !defined(PWMT3_CC4_DMA_INSTANCE)//GTIM3_CH4
+#if defined(BSP_PWMT3_CC1_USING_DMA) && !defined(PWMT3_CC1_DMA_INSTANCE)
+#define PWMT3_CC1_DMA_IRQHandler              DMAC2_CH1_IRQHandler
+#define PWMT3_CC1_DMA_IRQ_PRIO                1
+#define PWMT3_CC1_DMA_INSTANCE                DMA2_Channel1
+#define PWMT3_CC1_DMA_IRQ                     DMAC2_CH1_IRQn
+#define PWMT3_CC1_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT3_CC1_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMT3_CC2_USING_DMA) && !defined(PWMT3_CC2_DMA_INSTANCE)
+#define PWMT3_CC2_DMA_IRQHandler              DMAC2_CH1_IRQHandler
+#define PWMT3_CC2_DMA_IRQ_PRIO                1
+#define PWMT3_CC2_DMA_INSTANCE                DMA2_Channel1
+#define PWMT3_CC2_DMA_IRQ                     DMAC2_CH1_IRQn
+#define PWMT3_CC2_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT3_CC2_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMT3_CC3_USING_DMA) && !defined(PWMT3_CC3_DMA_INSTANCE)
+#define PWMT3_CC3_DMA_IRQHandler              DMAC2_CH1_IRQHandler
+#define PWMT3_CC3_DMA_IRQ_PRIO                1
+#define PWMT3_CC3_DMA_INSTANCE                DMA2_Channel1
+#define PWMT3_CC3_DMA_IRQ                     DMAC2_CH1_IRQn
+#define PWMT3_CC3_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT3_CC3_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMT3_CC4_USING_DMA) && !defined(PWMT3_CC4_DMA_INSTANCE)
 #define PWMT3_CC4_DMA_IRQHandler              DMAC2_CH1_IRQHandler
 #define PWMT3_CC4_DMA_IRQ_PRIO                1
 #define PWMT3_CC4_DMA_INSTANCE                DMA2_Channel1
 #define PWMT3_CC4_DMA_IRQ                     DMAC2_CH1_IRQn
-#define PWMT3_CC4_DMA_PDATAALIGN                       DMA_PDATAALIGN_HALFWORD
-#define PWMT3_CC4_DMA_MDATAALIGN                       DMA_MDATAALIGN_HALFWORD
-#endif//lcd
-#if defined(BSP_PWMT4_CC1_USING_DMA) && !defined(PWMT4_CC1_DMA_INSTANCE)//GTIM4_CH1
+#define PWMT3_CC4_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT3_CC4_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+//GTIM4 PW5
+#if defined(BSP_PWMT4_UPDATE_USING_DMA) && !defined(PWMT4_UPDATE_DMA_INSTANCE)
+#define PWMT4_UPDATE_DMA_IRQHandler              DMAC2_CH1_IRQHandler
+#define PWMT4_UPDATE_DMA_IRQ_PRIO                1
+#define PWMT4_UPDATE_DMA_INSTANCE                DMA2_Channel1
+#define PWMT4_UPDATE_DMA_IRQ                     DMAC2_CH1_IRQn
+#define PWMT4_UPDATE_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT4_UPDATE_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMT4_CC1_USING_DMA) && !defined(PWMT4_CC1_DMA_INSTANCE)
 #define PWMT4_CC1_DMA_IRQHandler              DMAC2_CH1_IRQHandler
 #define PWMT4_CC1_DMA_IRQ_PRIO                1
 #define PWMT4_CC1_DMA_INSTANCE                DMA2_Channel1
 #define PWMT4_CC1_DMA_IRQ                     DMAC2_CH1_IRQn
-#define PWMT4_CC1_DMA_PDATAALIGN                       DMA_PDATAALIGN_HALFWORD
-#define PWMT4_CC1_DMA_MDATAALIGN                       DMA_MDATAALIGN_HALFWORD
-#endif//rgbled
+#define PWMT4_CC1_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT4_CC1_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMT4_CC2_USING_DMA) && !defined(PWMT4_CC2_DMA_INSTANCE)
+#define PWMT4_CC2_DMA_IRQHandler              DMAC2_CH1_IRQHandler
+#define PWMT4_CC2_DMA_IRQ_PRIO                1
+#define PWMT4_CC2_DMA_INSTANCE                DMA2_Channel1
+#define PWMT4_CC2_DMA_IRQ                     DMAC2_CH1_IRQn
+#define PWMT4_CC2_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT4_CC2_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMT4_CC3_USING_DMA) && !defined(PWMT4_CC3_DMA_INSTANCE)
+#define PWMT4_CC3_DMA_IRQHandler              DMAC2_CH1_IRQHandler
+#define PWMT4_CC3_DMA_IRQ_PRIO                1
+#define PWMT4_CC3_DMA_INSTANCE                DMA2_Channel1
+#define PWMT4_CC3_DMA_IRQ                     DMAC2_CH1_IRQn
+#define PWMT4_CC3_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT4_CC3_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+#if defined(BSP_PWMT4_CC4_USING_DMA) && !defined(PWMT4_CC4_DMA_INSTANCE)
+#define PWMT4_CC4_DMA_IRQHandler              DMAC2_CH1_IRQHandler
+#define PWMT4_CC4_DMA_IRQ_PRIO                1
+#define PWMT4_CC4_DMA_INSTANCE                DMA2_Channel1
+#define PWMT4_CC4_DMA_IRQ                     DMAC2_CH1_IRQn
+#define PWMT4_CC4_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT4_CC4_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
+
+//GTIM5 PW6
+#if defined(BSP_PWMT5_UPDATE_USING_DMA) && !defined(PWMT5_UPDATE_DMA_INSTANCE)
+#define PWMT5_UPDATE_DMA_IRQHandler              DMAC2_CH1_IRQHandler
+#define PWMT5_UPDATE_DMA_IRQ_PRIO                1
+#define PWMT5_UPDATE_DMA_INSTANCE                DMA2_Channel1
+#define PWMT5_UPDATE_DMA_IRQ                     DMAC2_CH1_IRQn
+#define PWMT5_UPDATE_DMA_PDATAALIGN              DMA_PDATAALIGN_HALFWORD
+#define PWMT5_UPDATE_DMA_MDATAALIGN              DMA_MDATAALIGN_HALFWORD
+#endif
 
 /* DMA2 channel2  */
 #if defined(BSP_UART4_RX_USING_DMA) && !defined(UART4_RX_DMA_INSTANCE)

@@ -340,7 +340,7 @@
 // #define MEMP_NUM_TCPIP_MSG_INPKT    16
 
 #ifdef RT_LWIP_ETHTHREAD_MBOX_SIZE
-#define MEMP_NUM_TCPIP_MSG_INPKT    RT_LWIP_ETHTHREAD_MBOX_SIZE
+    #define MEMP_NUM_TCPIP_MSG_INPKT    RT_LWIP_ETHTHREAD_MBOX_SIZE
 #endif
 
 /* ---------- Pbuf options ---------- */
@@ -568,7 +568,7 @@
  * names (read, write & close). (only used if you use sockets.c)
  */
 #ifndef LWIP_POSIX_SOCKETS_IO_NAMES
-    #define LWIP_POSIX_SOCKETS_IO_NAMES     0
+    #define LWIP_POSIX_SOCKETS_IO_NAMES     1
 #endif
 
 /**
@@ -674,5 +674,34 @@
      */
     #define LWIP_HOOK_UNKNOWN_ETH_PROTOCOL lwip_hook_unknown_eth_protocol
 #endif /* RT_LWIP_ENABLE_USER_HOOKS */
+
+/**
+ * LWIP_NETIF_EXT_STATUS_CALLBACK==1: Support an extended callback function
+ * for several netif related event that supports multiple subscribers.
+ * @see netif_ext_status_callback
+ */
+#if !defined LWIP_NETIF_EXT_STATUS_CALLBACK || defined __DOXYGEN__
+    #define LWIP_NETIF_EXT_STATUS_CALLBACK  1
+#endif
+
+/**
+ * LWIP_NUM_NETIF_CLIENT_DATA: Number of clients that may store
+ * data in client_data member array of struct netif (max. 256).
+ */
+#if !defined LWIP_NUM_NETIF_CLIENT_DATA || defined __DOXYGEN__
+    #define LWIP_NUM_NETIF_CLIENT_DATA      2
+#endif
+
+/**
+ * LWIP_SOCKET_OFFSET==n: Increases the file descriptor number created by LwIP with n.
+ * This can be useful when there are multiple APIs which create file descriptors.
+ * When they all start with a different offset and you won't make them overlap you can
+ * re implement read/write/close/ioctl/fnctl to send the requested action to the right
+ * library (sharing select will need more work though).
+ */
+#if !defined LWIP_SOCKET_OFFSET || defined __DOXYGEN__
+    #define LWIP_SOCKET_OFFSET              3
+#endif
+
 
 #endif /* __LWIPOPTS_H__ */

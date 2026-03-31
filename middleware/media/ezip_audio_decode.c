@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2019-2026 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <rtthread.h>
 
 #include "media_dec.h"
@@ -62,11 +68,6 @@ void ezip_audio_cache_deinit(ffmpeg_handle thiz)
         thiz->cfg.mem_free(cache->decode_out);
         cache->decode_out = NULL;
     }
-    if (cache->tws_out)
-    {
-        thiz->cfg.mem_free(cache->tws_out);
-        cache->tws_out = NULL;
-    }
 }
 
 ezip_audio_packet_t *ezip_audio_read_packet(ffmpeg_handle thiz, uint32_t size, uint32_t paddings)
@@ -111,6 +112,7 @@ ezip_audio_packet_t *ezip_audio_read_packet(ffmpeg_handle thiz, uint32_t size, u
             thiz->cfg.mem_free(p->buf);
         }
         p->buf = thiz->cfg.mem_malloc(size);
+        RT_ASSERT(p->buf);
         p->buf_size = size;
     }
     //LOG_I("empty size=%d size=%d paddings=%d", p->buf_size, size, paddings);
@@ -118,6 +120,10 @@ ezip_audio_packet_t *ezip_audio_read_packet(ffmpeg_handle thiz, uint32_t size, u
     if (thiz->is_nand)
     {
         len = ezip_flash_read(thiz, p->buf, size);
+    }
+    if (thiz->is_ram)
+    {
+        len = ezip_ram_read(thiz, p->buf, size);
     }
     else
     {
@@ -233,7 +239,7 @@ void ezip_audio_decode(ffmpeg_handle thiz, audio_server_callback_func callback, 
                 thiz->audio_data = (uint16_t *)thiz->cfg.mem_malloc(thiz->audio_data_size);
                 RT_ASSERT(thiz->audio_data != NULL);
             }
-            if (thiz->audio_handle == NULL)
+            if (thiz->audio_handle == NULL && !thiz->is_wait_for_resume)
             {
                 audio_parameter_t arg = {0};
                 arg.write_bits_per_sample = 16;
@@ -241,6 +247,7 @@ void ezip_audio_decode(ffmpeg_handle thiz, audio_server_callback_func callback, 
                 arg.write_channnel_num = thiz->audio_channel < 2 ? 1 : 2;
                 arg.write_cache_size = EZIP_AUDIO_CACHE_SIZE;
                 thiz->audio_data_period = thiz->audio_data_size / (thiz->audio_samplerate * arg.write_channnel_num * (arg.write_bits_per_sample >> 3) / 1000);
+
                 LOG_I("audio_frame_size=%d, sr=%d", thiz->audio_data_size, thiz->audio_samplerate);
                 LOG_I("audio_data_period=%d", thiz->audio_data_period);
                 thiz->audio_handle = audio_open(AUDIO_TYPE_LOCAL_MUSIC, AUDIO_TX, &arg, callback, thiz);
@@ -250,8 +257,10 @@ void ezip_audio_decode(ffmpeg_handle thiz, audio_server_callback_func callback, 
             uint32_t new_size = thiz->audio_frame->nb_samples * thiz->audio_frame->channels * sizeof(uint16_t);
             thiz->audio_data_period = new_size / (thiz->audio_samplerate * thiz->audio_frame->channels * 2 / 1000);
 
+            uint8_t data_size_changed = 0;
             if (new_size > thiz->audio_data_size)
             {
+                data_size_changed = 1;
                 thiz->cfg.mem_free(thiz->audio_data);
                 thiz->audio_data_size = new_size;
                 thiz->audio_data = (uint16_t *)thiz->cfg.mem_malloc(new_size);
@@ -261,7 +270,58 @@ void ezip_audio_decode(ffmpeg_handle thiz, audio_server_callback_func callback, 
             media_audio_get(thiz->audio_frame,  thiz->audio_data, thiz->audio_data_size);
             av_frame_unref(thiz->audio_frame);
 
-            while (0 == audio_write(thiz->audio_handle, (uint8_t *)thiz->audio_data, new_size))
+            uint32_t write_bytes = new_size;
+            uint8_t *write_ptr = thiz->audio_data;
+#if !TWS_MIX_ENABLE
+            if (audio_device_is_a2dp_sink())
+            {
+                if (data_size_changed || !thiz->audio_stereo)
+                {
+                    if (thiz->audio_stereo)
+                    {
+                        thiz->cfg.mem_free(thiz->audio_stereo);
+                        thiz->audio_stereo = NULL;
+                    }
+                    if (thiz->audio_channel != 2)
+                    {
+                        thiz->audio_stereo = (uint16_t *)thiz->cfg.mem_malloc(thiz->audio_data_size * 2);
+                        RT_ASSERT(thiz->audio_stereo);
+                    }
+                }
+                if (thiz->audio_samplerate != 44100)
+                {
+                    if (!thiz->resample)
+                    {
+                        thiz->resample = sifli_resample_open(2, thiz->audio_samplerate, 44100);
+                        RT_ASSERT(thiz->resample);
+
+                    }
+                }
+                if (thiz->audio_channel == 2)
+                {
+                    if (thiz->audio_samplerate != 44100)
+                    {
+                        write_bytes = sifli_resample_process(thiz->resample, (int16_t *)thiz->audio_data, new_size, 0);
+                        write_ptr = (uint8_t *)sifli_resample_get_output(thiz->resample);
+                    }
+                }
+                else
+                {
+                    mono2stereo((int16_t *)thiz->audio_data, new_size / 2, thiz->audio_stereo);
+                    if (thiz->audio_samplerate != 44100)
+                    {
+                        write_bytes = sifli_resample_process(thiz->resample, (int16_t *)thiz->audio_stereo, new_size * 2, 0);
+                        write_ptr = (uint8_t *)sifli_resample_get_output(thiz->resample);
+                    }
+                    else
+                    {
+                        write_bytes = new_size * 2;
+                        write_ptr = thiz->audio_stereo;
+                    }
+                }
+            }
+#endif
+            while (!thiz->is_wait_for_resume && 0 == audio_write(thiz->audio_handle, write_ptr, write_bytes))
             {
                 uint32_t    evt = 0;
                 uint32_t    wait_ticks = rt_tick_from_millisecond(thiz->audio_data_period);
@@ -331,45 +391,56 @@ void ezip_audio_decode(ffmpeg_handle thiz, audio_server_callback_func callback, 
                 RT_ASSERT(thiz->audio_handle);
             }
             TRACE_MARK_START(TRACEID_AUDIO_WRITE);
+
+            uint32_t write_bytes = thiz->audio_data_size;
+            uint8_t *write_ptr = (int16_t *)cache->decode_out;
+#if !TWS_MIX_ENABLE
             if (audio_device_is_a2dp_sink())
             {
-                MP3FrameInfo info;
-                if (thiz->audio_channel == 1)
+                if (!thiz->audio_stereo)
                 {
-                    if (!cache->tws_out)
+                    if (thiz->audio_stereo)
                     {
-                        cache->tws_out = thiz->cfg.mem_malloc(thiz->audio_data_size * 2);
-                        RT_ASSERT(cache->tws_out);
+                        thiz->cfg.mem_free(thiz->audio_stereo);
+                        thiz->audio_stereo = NULL;
                     }
-                    MP3GetLastFrameInfo(hMP3Decoder, &info);
-                    mono2stereo((int16_t *)cache->decode_out, info.outputSamps, (int16_t *)cache->tws_out);
-                    while (0 ==  audio_write(thiz->audio_handle, (uint8_t *)cache->tws_out, thiz->audio_data_size * 2))
+                    if (thiz->audio_channel != 2)
                     {
-                        uint32_t    evt = 0;
-                        uint32_t    wait_ticks = rt_tick_from_millisecond(thiz->audio_data_period);
-                        os_event_flags_wait(thiz->evt_audio, 1, OS_EVENT_FLAG_WAIT_ANY | OS_EVENT_FLAG_CLEAR, wait_ticks, &evt);
-                        if (thiz->is_ok == 0)
-                        {
-                            LOG_I("ezip_audio_decode exit1");
-                            break;
-                        }
+                        thiz->audio_stereo = (uint16_t *)thiz->cfg.mem_malloc(thiz->audio_data_size * 2);
+                        RT_ASSERT(thiz->audio_stereo);
                     }
                 }
+                if (thiz->audio_samplerate != 44100 && !thiz->resample)
+                {
+                    thiz->resample = sifli_resample_open(2, thiz->audio_samplerate, 44100);
+                    RT_ASSERT(thiz->resample);
+                }
+
+                if (thiz->audio_channel == 2 && thiz->audio_samplerate != 44100)
+                {
+                    write_bytes = sifli_resample_process(thiz->resample, (int16_t *)cache->decode_out, thiz->audio_data_size, 0);
+                    write_ptr = (uint8_t *)sifli_resample_get_output(thiz->resample);
+                }
+                else
+                {
+                    mono2stereo((int16_t *)thiz->audio_data, thiz->audio_data_size / 2, thiz->audio_stereo);
+                    write_bytes = sifli_resample_process(thiz->resample, (int16_t *)thiz->audio_stereo, thiz->audio_data_size * 2, 0);
+                    write_ptr = (uint8_t *)sifli_resample_get_output(thiz->resample);
+                }
             }
-            else
+#endif
+            while (!thiz->is_wait_for_resume && 0 == audio_write(thiz->audio_handle, write_ptr, write_bytes))
             {
-                while (0 == audio_write(thiz->audio_handle, cache->decode_out, thiz->audio_data_size))
+                uint32_t    evt = 0;
+                uint32_t    wait_ticks = rt_tick_from_millisecond(thiz->audio_data_period);
+                os_event_flags_wait(thiz->evt_audio, 1, OS_EVENT_FLAG_WAIT_ANY | OS_EVENT_FLAG_CLEAR, wait_ticks, &evt);
+                if (thiz->is_ok == 0)
                 {
-                    uint32_t    evt = 0;
-                    uint32_t    wait_ticks = rt_tick_from_millisecond(thiz->audio_data_period);
-                    os_event_flags_wait(thiz->evt_audio, 1, OS_EVENT_FLAG_WAIT_ANY | OS_EVENT_FLAG_CLEAR, wait_ticks, &evt);
-                    if (thiz->is_ok == 0)
-                    {
-                        LOG_I("ezip_audio_decode exit2");
-                        break;
-                    }
+                    LOG_I("ezip_audio_decode exit2");
+                    break;
                 }
             }
+
             TRACE_MARK_STOP(TRACEID_AUDIO_WRITE);
         }
         else

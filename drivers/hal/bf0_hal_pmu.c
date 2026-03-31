@@ -383,6 +383,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_EnableXTAL32(void)
     uint32_t val = hwp_pmuc->LXT_CR;
     hwp_pmuc->LXT_CR &= ~(PMUC_LXT_CR_EN | PMUC_LXT_CR_RSN);     // Disable LXT
 
+
 #ifdef BPS_V33_HAL
     //HAL_Delay_us(0);
     //HAL_Delay_us(10);

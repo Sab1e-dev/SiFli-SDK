@@ -1,25 +1,7 @@
 /*
- * File      : fal_cfg.h
- * This file is part of FAL (Flash Abstraction Layer) package
- * COPYRIGHT (C) 2006 - 2018, RT-Thread Development Team
+ * SPDX-FileCopyrightText: 2019-2025 SiFli Technologies(Nanjing) Co., Ltd
  *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License along
- *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- *
- * Change Logs:
- * Date           Author       Notes
- * 2018-05-17     armink       the first version
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 #ifndef _FAL_CFG_H_
@@ -27,6 +9,10 @@
 
 #include <rtconfig.h>
 #include <board.h>
+
+#ifdef PKG_USING_FLASHDB
+#include "fdb_def.h"
+#endif
 
 #define FAL_PART_HAS_TABLE_CFG
 
@@ -46,23 +32,47 @@
     #define NOR_FLASH4_DEV_NAME             "flash4"
 #endif /* NOR_FLASH4_DEV_NAME */
 
+#ifndef SDMMC1_DEV_NAME
+    #define SDMMC1_DEV_NAME                 "sd0"
+#endif /* SDMMC1_DEV_NAME */
 
+#ifndef SDMMC2_DEV_NAME
+    #define SDMMC2_DEV_NAME                 "sd1"
+#endif /* SDMMC2_DEV_NAME */
+
+#if defined (SOLUTION)
+#define FAL_PART_DEF(flash_part_id)      \
+    {FAL_PART_MAGIC_WORD,                \
+     FLASH_PART_NAME(flash_part_id),     \
+     FLASH_PART_DEVICE(flash_part_id),   \
+     FLASH_PART_RESET(flash_part_id),    \
+     FLASH_PART_PATH(flash_part_id),     \
+     FLASH_PART_OFFSET(flash_part_id),   \
+     FLASH_PART_SIZE(flash_part_id), 0}
+#define FAL_FS_PART_DEF(flash_part_id)   \
+    {FAL_PART_MAGIC_WORD,                \
+     FLASH_PART_NAME(flash_part_id),     \
+     FLASH_PART_DEVICE(flash_part_id),   \
+     FLASH_PART_RESET(flash_part_id),    \
+     FLASH_PART_PATH(flash_part_id),     \
+     FLASH_PART_OFFSET(flash_part_id),   \
+     FLASH_PART_SIZE(flash_part_id), FAL_FS_PART_FLAG}
+#else
 #define FAL_PART_DEF(flash_part_id)      \
     {FAL_PART_MAGIC_WORD,                \
      FLASH_PART_NAME(flash_part_id),     \
      FLASH_PART_DEVICE(flash_part_id),   \
      FLASH_PART_OFFSET(flash_part_id),   \
      FLASH_PART_SIZE(flash_part_id), 0}
-
-
-#define FAL_FS_PART_FLAG                 (1)
-
 #define FAL_FS_PART_DEF(flash_part_id)   \
     {FAL_PART_MAGIC_WORD,                \
      FLASH_PART_NAME(flash_part_id),     \
      FLASH_PART_DEVICE(flash_part_id),   \
      FLASH_PART_OFFSET(flash_part_id),   \
      FLASH_PART_SIZE(flash_part_id), FAL_FS_PART_FLAG}
+#endif
+
+#define FAL_FS_PART_FLAG                 (1)
 
 /* partition magic word */
 #define FAL_PART_MAGIC_WORD         0x45503130
@@ -74,6 +84,8 @@ extern const struct fal_flash_dev nor_flash1;
 extern const struct fal_flash_dev nor_flash2;
 extern const struct fal_flash_dev nor_flash3;
 extern const struct fal_flash_dev nor_flash4;
+extern const struct fal_flash_dev fal_sdmmc1;
+extern const struct fal_flash_dev fal_sdmmc2;
 
 #ifdef BSP_USING_PC_SIMULATOR
 /* flash device table */
@@ -83,12 +95,14 @@ extern const struct fal_flash_dev nor_flash4;
     &nor_flash2,                                                     \
     &nor_flash3,                                                     \
     &nor_flash4,                                                     \
+    &fal_sdmmc1,                                                     \
+    &fal_sdmmc2,                                                     \
 }
 #endif
 
 /* ====================== Partition Configuration ========================== */
 #ifdef FAL_PART_HAS_TABLE_CFG
-#ifndef SOLUTION_WATCH
+#ifndef SOLUTION
 /* customized FAL_PART_TABLE can be defined in board.h */
 #ifndef FAL_PART_TABLE
 /* partition table */
@@ -101,7 +115,7 @@ extern const struct fal_flash_dev nor_flash4;
 #endif /* !FAL_PART_TABLE */
 #else
 #include "flash_map.h"
-#endif /* !SOLUTION_WATCH */
+#endif /* !SOLUTION */
 #endif /* FAL_PART_HAS_TABLE_CFG */
 
 #endif /* _FAL_CFG_H_ */

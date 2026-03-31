@@ -15,6 +15,9 @@
 #include "ipc_queue.h"
 #include <string.h>
 #include "acpu_ctrl.h"
+#if defined(ANYKA_RUN_IN_ACPU) && defined(SOC_BF0_ACPU)
+    #include "audio_3a_anyka.h"
+#endif
 #include "acpu_ctrl_private.h"
 #include "bf0_mbox_common.h"
 static struct rt_semaphore acpu_task_done_sema;

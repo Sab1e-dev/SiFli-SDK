@@ -25,6 +25,32 @@ scons --board=sf32lb52-lcd_n16r8 --target=mdk5 -s
 It should be noted that the SDK uses multi-project compilation. The application project is the main project, which will trigger the compilation of corresponding sub-projects, such as the secondary bootloader, ftab, and others. However, using `--target` will only generate the Keil project corresponding to the main project. Directly compiling using this project might cause issues, and it can only be used for code review.
 ```
 
+## Export Codebase Index
+
+If you want to export all source files and header files used by the current project for external analysis tools, run the following command in the project directory:
+
+```shell
+sdk.py export-codebase --board=<board_name>
+```
+
+If the target board has already been saved with `sdk.py set-target`, you can omit the `--board` parameter:
+
+```shell
+sdk.py export-codebase
+```
+
+This command internally invokes `scons --target=json` and generates `codebase_index.json` in the build directory, for example `build_sf32lb52-lcd_n16r8_hcpu/codebase_index.json`.
+
+The exported JSON contains the following top-level fields:
+
+- `system_construction`: currently fixed to `scons`
+- `projects`: per-project file lists for the main project and its sub-projects
+- `all_sources`: merged list of all source files
+- `all_headers`: merged list of all header files
+- `all_files`: merged list of all source and header files
+- `all_include_paths`: merged list of include paths
+- `all_defines`: merged list of preprocessor definitions
+
 In addition to using the SDK’s built-in board configurations, you can use `--board_search_path` to specify a directory as a search path for third-party boards. This directory can be outside the SDK, and it can be either a relative or absolute path. When the search path is specified, the compiler will not only look for boards in the SDK’s board directory but will also check this directory for board configurations. If a board with the same name exists in both directories, the board in the `--board_search_path` specified directory will be used. For example, to compile using a relative path for the board search path in the `app1` project directory, you can run the following command:
 
 ```shell
@@ -61,9 +87,9 @@ The directory structure of the code is as follows. The above command is executed
 
 ## Project Settings
 
-The SDK uses `menuconfig`, a graphical interface tool from the kconfiglib package, to manage project settings. During compilation, all macro switches are read from `rtconfig.h`, which directs SCons on which modules to compile and their corresponding parameters. The corresponding Kconfig configuration is stored in `.config`. To address the issue mentioned earlier, the generic project directory no longer contains `rtconfig.h` and `.config`. Instead, these files are dynamically generated in the build directory during compilation based on the selected board. The generated `.config` is a merged result of Kconfig’s default values, `board.conf`, and `proj.conf`. Both `board.conf` and `proj.conf` contain modifications compared to the default values, with `proj.conf` taking precedence if the same configuration appears in both files.
+The SDK uses menuconfig (a graphical interface tool within the kconfiglib package) to manage project settings. During compilation, it reads all macro switches from `rtconfig.h` to instruct SCons on which modules to compile and their parameters. The corresponding kconfig configuration is stored in `.config`. To address the previously mentioned issues, `rtconfig.h` and `.config` are no longer stored in the generic project directory. Instead, these files are dynamically generated in the build directory during compilation based on the selected board. The generated `.config` file is merged from Kconfig's default values, `board.conf`, and `proj.conf`. `board.conf` and `proj.conf` document the configurations requiring modification (those differing from default values). If identical configurations appear in both `board.conf` and `proj.conf`, the settings defined in `proj.conf` take precedence.
 
-If you wish to modify `proj.conf`, you can execute `menuconfig --board=<board_name>` in the project directory. If the board name does not have the `_hcpu` suffix, it defaults to configuring for the HCPU. To use the LCPU configuration, the board name should include the `_lcpu` suffix, such as `sf32lb52-lcd_n16r8_lcpu`. The parameter settings displayed in the menuconfig interface are the same as those used during actual compilation. After making modifications, press {kbd}`D` to save the minimal configuration to `proj.conf`. If you want to modify `board.conf`, you need to switch to the board directory and execute `menuconfig` (without any parameters). For example, switch to the `boards/sf32lb52-lcd_n16r8/hcpu` directory and run `menuconfig`.
+To modify `proj.conf`, execute `sdk.py menuconfig --board=<board_name>` in the project directory. If `<board_name>` lacks the `_hcpu` suffix, it defaults to HCPU configuration. To use LCPU settings, append `_lcpu` to the board name, e.g., `sf32lb52-lcd_n16r8_lcpu`. The parameter settings displayed in the menuconfig interface are identical to those used during actual compilation. After modifying settings, press {kbd}`D` to save the minimal configuration to `proj.conf`. To modify `board.conf`, switch to the board directory and execute `sdk.py menuconfig` (no any param). For example, navigate to `boards/sf32lb52-lcd_n16r8/hcpu` and run `sdk.py menuconfig`.
 
 ```{note}
 If the configurations stored in `proj.conf` do not apply to all boards, you can create a subdirectory for the board in the project directory. Place the specific `proj.conf` for that board in this subdirectory for differentiated configuration. For more details, refer to [](../app_note/common_project.md).

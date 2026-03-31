@@ -1078,6 +1078,24 @@ HAL_DMA_StateTypeDef HAL_DMA_GetState(DMA_HandleTypeDef *hdma);
   * @retval DMA Error Code
   */
 uint32_t             HAL_DMA_GetError(DMA_HandleTypeDef *hdma);
+
+#ifdef DMA_SUPPORT_DYN_CHANNEL_ALLOC
+/**
+  * @brief  Allocates a DMA channel dynamically
+  * @param  hdma Pointer to a DMA_HandleTypeDef structure that contains
+  *               the configuration information for the specified DMA Channel.
+  * @retval HAL status
+  */
+HAL_StatusTypeDef HAL_DMA_AllocChannel(DMA_HandleTypeDef *hdma);
+
+/**
+  * @brief  Frees a previously allocated DMA channel
+  * @param  hdma Pointer to a DMA_HandleTypeDef structure that contains
+  *               the configuration information for the specified DMA Channel.
+  * @retval HAL status
+  */
+HAL_StatusTypeDef HAL_DMA_FreeChannel(DMA_HandleTypeDef *hdma);
+#endif /* DMA_SUPPORT_DYN_CHANNEL_ALLOC */
 /**
   * @} DMA_Exported_Functions_Group3
   */

@@ -1,4 +1,4 @@
-# AGIF+LVGL Animation Example
+# AGIF/APNG+LVGL Animation Example
 
 Source Code Path: example/multimedia/agif/lvgl
 
@@ -8,7 +8,7 @@ Source Code Path: example/multimedia/agif/lvgl
 
 ## Overview
 <!-- Brief introduction of the example -->
-This example contains two watch faces with GIF animations, demonstrating animation implementation based on agif + lvgl, including:
+This example contains two watch faces with GIF animations and one watch face with APNG animation, demonstrating animation implementation based on agif/apng + lvgl, including:
 + .gif conversion to .c using eZIP.exe:
     - Placement location: `src/resource/images/common/gif/`
     - Resource processing: `src/resource/images/SConscript` will compile .gif files in the above path. The generated .c files can be found in `project/build_xxx/src/resource/images/common/gif` path.
@@ -75,7 +75,45 @@ This example contains two watch faces with GIF animations, demonstrating animati
             }
         }
         ```
++ apng resource：
+    - Same as PNG, placed in: ` src/resource/images/common/ezip/`
+    - APNG image production: can be made online:` https://ezgif.com/ `
 
++ apng display：
+    - `src/gui_apps/clock/app_clock_apng.c`:
+        * Resource declaration：
+        ```c
+        /* Image decalration */
+        LV_IMG_DECLARE(apng_dice);
+        ```
+        * apng widget creation and configuration：
+        ```c
+        /* Create apng. */
+        lv_obj_t *dice_img = lv_ezipa_create(parent);
+        RT_ASSERT(dice_img);
+        /* Set image source */
+        lv_ezipa_set_src(dice_img, apng_dice.data);
+        /* Set surface */
+        // lv_ezipa_set_surface(dice_img, xxx);
+        /* Set interval */
+        lv_ezipa_set_interval(dice_img, 60);
+        ```
+        * apng refresh pause and resume：
+        ```c
+        static rt_int32_t resume_callback(void)
+        {
+            /* Resume apng animation refresh */
+            lv_ezipa_resume(p_clk_apng->apng);
+            return RT_EOK;
+        }
+
+        static rt_int32_t pause_callback(void)
+        {
+            /* Pause apng animation refresh */
+            lv_ezipa_pause(p_clk_apng->apng);
+            return RT_EOK;
+        }
+        ```  
 
 ## Example Usage
 <!-- Instructions on how to use the example, such as connecting hardware pins to observe waveforms. Compilation and flashing can reference related documents.
@@ -93,7 +131,9 @@ Running this example requires:
 2. Enable EPIC/EZIP:  
 ![EPIC](./assets/agif_cfg_epic.png)
 ![EZIP](./assets/agif_cfg_ezip.png)
-3. Configure the LCD driver according to the LCD used.  
+3. Enable `USING_EZIPA_DEC` (If apng is used.)：  
+![EZIPA](./assets/apng_cfg_ezipa_dec.png) 
+4. Configure the LCD driver according to the LCD used.  
 
 ### Compilation and Flashing
 Switch to the example project directory and run the scons command to compile:
@@ -113,9 +153,9 @@ For detailed compilation and download steps, please refer to the relevant introd
 ## Expected Results
 <!-- Explain the expected results of the example, such as which LEDs will light up and which logs will be printed, to help users judge whether the example is running normally. The running results can be explained step by step in combination with the code -->
 After the example starts:
-+ Defaults to the `agif` watch face, with `agif_icon.gif`循环刷新显示。
-+ Swipe left and right to switch between `aigf` and `agif02` watch faces.
-+ `agif.h` also provides some other control APIs that can be modified in the example to see效果。
++ Defaults to the `agif` watch face, with `agif_icon.gif` refreshing and displaying in a loop.
++ Swipe left and right to switch between `aigf` \ `agif02` \ `apng` watch faces.
++ `agif.h` \ `lvsf_ezipa.h` also provides some other control APIs that can be modified in the example to see the effects.
 
 ## Troubleshooting
 

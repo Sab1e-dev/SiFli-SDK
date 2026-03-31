@@ -65,19 +65,44 @@ For detailed compilation and downloading steps, please refer to the relevant sec
 After the example starts:
 1. It can be discovered and connected by a mobile BLE app.
 2. Compress the files to be transferred into a single .zip file and transfer this file to your mobile device.
-3. Use the SIFLI BLE app to search for and connect to the device, then on the watchface interface, select custom file and choose the file to transfer it to the device.
+3. Use the SIFLI BLE APP to search, connect the device, then go to the watchface interface, select the custom file, and then choose this file. This file can then be transferred to the file system of the development board.
 4. Mobile app operation steps:
-![APP1](./assets/app1.jpg)
-![APP2](./assets/app2.jpg)
-![APP3](./assets/app3.jpg)
-![APP4](./assets/app4.jpg)
-5. Transfer interface:
-Set file type to 3 (custom file)
-Check the withByteAlign option
-Future development can define different processing for various file types
-## Mobile SDK Integration
-https://github.com/OpenSiFli/SiFli_OTA_APP
+- Enable location permission for opening the feature
+![APP1](./assets/app0.png)
+- Click the query button at the bottom right corner to enter the Bluetooth scanning interface.
+![APP1](./assets/app1.png)
+- Click on "SCAN" to start the scan.
+![APP2](./assets/app2.png)
+- After finding the device, click on "SORT", and the broadcast named "SIFLI_APP-xx-xx-xx-xx-xx-xx" will be placed at the top.
+![APP3](./assets/app3.png)
+- Click on the broadcast name "SIFLI_APP-xx-xx-xx-xx-xx-xx" to enter the device interface.
+![APP4](./assets/app4.png)
+- Click on the upper right corner to enter the operation interface.
+![APP4](./assets/app5.png)
+- Click "CONNECT" to ensure that the State is "CONNECT"
+![APP4](./assets/app6.png)
+- Swipe up the last box, find File transfer WFPUSH2 and click to enter the file transfer interface
+![APP4](./assets/app7.png)
+- Click on "SELECT FILE" to select the pre-prepared zip file from your phone, and set the "File Type" to 3. Then, check the "With Byte Align" option, and finally click "START".
+![APP4](./assets/app8.png)
+
+- After the transmission is completed, execute the command in the console window to enter the "file_recv" folder, and then execute the "ls" command to view the list of files. Among them, the content of the zip file will be displayed.
+![APP4](./assets/app9.png)
+
+
+## Access to the mobile APP and DEMO project for use
+### Download address of Android's free software application
+https://www.pgyer.com/gurSBc
+
+### Android demo project
+https://github.com/OpenSiFli/SiFli_OTA_APP\
+The corresponding part is "3. SiFli-SDK OTA"
+
+### iOS demo工程
+https://github.com/OpenSiFli/SiFli_OTA_APP_IOS\
+The corresponding part is "SiFli-SDK OTA (Nor Offline)"
 SiFli-SDK file transfer
+
 ## Troubleshooting
 When the development board returns an error, check the ble_watchface_status_id_t enumeration in bf0_sibles_watchface.h
 ## Reference Documentation

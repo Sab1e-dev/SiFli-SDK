@@ -20,6 +20,8 @@
 - ec-lb587
 - eh-lb561
 - eh-lb563
+- sf32lb56-lcd系列
+- sf32lb58-lcd系列
 
 ### 硬件需求
 需要上述支持的开发板，无需额外硬件。
@@ -53,6 +55,15 @@ scons --board=<board_name> -j8
 通过控制台命令与服务交互：
 - 在HCPU控制台发送`request`命令发送请求消息
 - 在LCPU控制台发送`trigger`或`trigger2`命令触发通知消息
+
+HCPU和LCPU的log如下：
+![alt text](assets/image1.png)
+HCPU发送request命令
+![alt text](assets/image2.png)
+LCPU发送trigger命令
+![alt text](assets/image3.png)
+LCPU发送trigger2命令
+![alt text](assets/image4.png)
 
 ## 异常诊断
 暂无特定异常诊断信息。如遇问题，请参考SiFli-SDK官方文档或提交issue。

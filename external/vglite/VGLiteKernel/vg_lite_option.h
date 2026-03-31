@@ -22,35 +22,8 @@
 *    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 *    DEALINGS IN THE SOFTWARE.
 *
-*****************************************************************************
-*
-*    The GPL License (GPL)
-*
-*    Copyright (C) 2014 - 2022 Vivante Corporation
-*
-*    This program is free software; you can redistribute it and/or
-*    modify it under the terms of the GNU General Public License
-*    as published by the Free Software Foundation; either version 2
-*    of the License, or (at your option) any later version.
-*
-*    This program is distributed in the hope that it will be useful,
-*    but WITHOUT ANY WARRANTY; without even the implied warranty of
-*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*    GNU General Public License for more details.
-*
-*    You should have received a copy of the GNU General Public License
-*    along with this program; if not, write to the Free Software Foundation,
-*    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*
-*****************************************************************************
-*
-*    Note: This software is released under dual MIT and GPL licenses. A
-*    recipient may use this file under the terms of either the MIT license or
-*    GPL License. If you wish to use only one license not the other, you can
-*    indicate your decision by deleting one of the above license notices in your
-*    version of this file.
-*
 *****************************************************************************/
+
 
 #ifndef _vg_lite_option_h_
 #define _vg_lite_option_h_
@@ -75,6 +48,13 @@ extern "C" {
 #endif
 
 /*
+ * Backup command buffer by user
+*/
+#ifndef gcdVG_ENABLE_COMMAND_BUFFER_CACHE
+    #define gcdVG_ENABLE_COMMAND_BUFFER_CACHE            0
+#endif
+
+/*
  * Power management, only support Linux and RTOS
 */
 #ifndef gcdVG_ENABLE_POWER_MANAGEMENT
@@ -85,7 +65,7 @@ extern "C" {
  * when set to 1, vg_lite_hal_trace can use to print message
 */
 #ifndef gcdVG_ENABLE_DEBUG
-    #define gcdVG_ENABLE_DEBUG                           0
+    #define gcdVG_ENABLE_DEBUG                           1
 #endif
 
 /*
@@ -99,7 +79,7 @@ extern "C" {
  * when gpu hang, set 1 to open gpu reset function
 */
 #ifndef gcdVG_ENABLE_GPU_RESET
-    #define gcdVG_ENABLE_GPU_RESET                       1
+    #define gcdVG_ENABLE_GPU_RESET                       0
 #endif
 
 /*
@@ -107,6 +87,28 @@ extern "C" {
 */
 #ifndef gcdVG_ENABLE_AUTO_CLOCK_GATING
     #define gcdVG_ENABLE_AUTO_CLOCK_GATING               0
+#endif
+
+/*
+ * Set 1 to open dump debug register
+*/
+#ifndef gcdVG_DUMP_DEBUG_REGISTER
+    #define gcdVG_DUMP_DEBUG_REGISTER                    0
+#endif
+
+/*
+ * For zephyr system
+ * Set gcdVG_ENABLE_DELAY_RESUME to 1 to open delay resume feature.
+*/
+#ifndef gcdVG_ENABLE_DELAY_RESUME
+    #define gcdVG_ENABLE_DELAY_RESUME                    0
+#endif
+
+/*
+ * Set 1 to record GPU hardware running time.
+*/
+#ifndef gcdVG_RECORD_HARDWARE_RUNNING_TIME
+    #define gcdVG_RECORD_HARDWARE_RUNNING_TIME           0
 #endif
 
 #ifdef __cplusplus

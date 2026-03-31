@@ -118,6 +118,9 @@ static void key1_event_handler(int32_t pin, button_action_t action)
         default:
             break;
         }
+        break;
+    default:
+        break;
     }
 
     if (event != MUSIC_EVENT_MAX)
@@ -144,14 +147,16 @@ static void key2_event_handler(int32_t pin, button_action_t action)
 
 static bool key_init(void)
 {
-    button_cfg_t key1 = {
+    button_cfg_t key1 =
+    {
         .pin = 34,
         .active_state = BUTTON_ACTIVE_HIGH,
         .mode = PIN_MODE_INPUT,
         .button_handler = key1_event_handler,
     };
 
-    button_cfg_t key2 = {
+    button_cfg_t key2 =
+    {
         .pin = 43,
         .active_state = BUTTON_ACTIVE_HIGH,
         .mode = PIN_MODE_INPUT,
@@ -191,7 +196,7 @@ static bool list_music_files(void)
         {
             const char *prefix = "/music/";
             music_node_t *node = (music_node_t *)rt_malloc(
-                sizeof(music_node_t) + strlen(dir->d_name) + strlen(prefix) + 1);
+                                     sizeof(music_node_t) + strlen(dir->d_name) + strlen(prefix) + 1);
             if (node == NULL)
             {
                 LOG_E("Memory allocation failed for music node.\n");

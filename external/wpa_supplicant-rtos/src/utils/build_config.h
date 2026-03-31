@@ -15,13 +15,20 @@
 #ifndef BUILD_CONFIG_H
 #define BUILD_CONFIG_H
 
-#include <wifi_config_default.h>
+//#include <wifi_config_default.h>
 
 #if !CONFIG_WPA_SUPP
 #undef CONFIG_WPA_SUPP
 #define CONFIG_WPA_SUPP 1
 #endif
 
+#ifndef CONFIG_11AC
+    #define CONFIG_11AC 1
+#endif
+
+#ifndef CONFIG_11AX
+    #define CONFIG_11AX 0
+#endif
 #if defined(USE_RTOS) && defined(SDK_OS_FREE_RTOS)
 #define CONFIG_FREERTOS 1
 //#define CONFIG_KSDK_MBEDTLS 0

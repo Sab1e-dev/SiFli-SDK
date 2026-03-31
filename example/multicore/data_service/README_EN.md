@@ -20,6 +20,8 @@ This example can run on the following development boards:
 - ec-lb587
 - eh-lb561
 - eh-lb563
+- sf32lb56-lcd series
+- sf32lb58-lcd series
 
 ### Hardware Requirements
 The supported development boards mentioned above are required; no additional hardware is needed.
@@ -53,6 +55,15 @@ The compiled image files are stored in the HCPU's build_<board_name> directory.
 Interact with the service through console commands:
 - Send the `request` command in the HCPU console to send a request message
 - Send the `trigger` or `trigger2` command in the LCPU console to trigger notification messages
+
+The logs of HCPU and LCPU are as follows:
+![alt text](assets/image1.png)
+HCPU发送request命令
+![alt text](assets/image2.png)
+LCPU发送trigger命令
+![alt text](assets/image3.png)
+LCPU发送trigger2命令
+![alt text](assets/image4.png)
 
 ## Troubleshooting
 No specific troubleshooting information is available. If you encounter issues, please refer to the SiFli-SDK official documentation or submit an issue.

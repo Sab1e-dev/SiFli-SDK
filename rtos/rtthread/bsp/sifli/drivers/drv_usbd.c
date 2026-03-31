@@ -305,12 +305,20 @@ __weak void BSP_USB_Power_Up(void)
 }
 static void enabled_usb_protocol(void)
 {
+    PCD_HandleTypeDef *usb_pcd = &_sifli_pcd;
     BSP_USB_Power_Up();
     HAL_PCD_MspInit(NULL);
+
+    HAL_PCD_Init(usb_pcd);
+    HAL_PCD_Start(usb_pcd);
+#ifndef SOC_SF32LB55X
+    USB_ENABLE_PHY(usb_pcd);
+    USB_DISABLE_DOUBLE_BUFFER(usb_pcd);
+#endif
 }
 static void disabled_usb_protocol(void)
 {
-    //HAL_PCD_DisconnectCallback(NULL);
+    HAL_PCD_DisconnectCallback(NULL);
     HAL_PCD_MspDeInit(NULL);
     BSP_USB_Power_Down();
 }
@@ -324,8 +332,7 @@ static rt_err_t rt_usb_control(struct rt_device *dev, int cmd, void *args)
     {
     case RT_DEVICE_CTRL_RESUME:
     {
-        _init(dev);
-        HAL_PCD_MspDeInit(NULL);
+
     }
     break;
     case RT_DEVICE_CTRL_SUSPEND:

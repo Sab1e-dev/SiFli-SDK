@@ -194,8 +194,101 @@ Users should follow the following call sequence to use data services. In the SDK
 
 GUI systems like LVGL run in single-threaded mode and have their own LVGL task. To update data in the GUI thread, the data service defines specific interfaces that can be called from the GUI thread/task.
 
+### Working Principle
+
+Implementation mechanism of GUI data service:
+1. Register a message queue through `datac_subscribe_ex`
+2. All messages from the data service first enter this queue instead of calling back directly
+3. Start an LVGL timer (lv_timer) to periodically check this queue
+4. Retrieve messages from the queue and trigger callbacks in the LVGL task context
+
+This design meets the requirement that LVGL can only execute in a single thread, ensuring all GUI update operations are completed in the LVGL task, avoiding thread safety issues.
+
+### Usage Example
+
+The following demonstrates the core steps for using data services in a GUI application:
+
 ```c
+#include "ui_datasrv_subscriber.h"
+
+static datac_handle_t sensor_handle;
+
+/* Data service callback function - executes in LVGL task */
+static int sensor_data_callback(data_callback_arg_t *arg)
+{
+    switch (arg->msg_id)
+    {
+        case MSG_SERVICE_SUBSCRIBE_RSP:
+        {
+            data_subscribe_rsp_t *rsp = (data_subscribe_rsp_t *)arg->data;
+            if (rsp->result == 0)
+            {
+                /* Subscription successful, can start requesting data */
+            }
+            break;
+        }
+
+        case MSG_SERVICE_DATA_NTF_IND:
+        {
+            /* Received data notification, safely update LVGL widgets */
+            sensor_data_t *data = (sensor_data_t *)arg->data;
+            
+            // Update UI directly, no additional synchronization needed
+            lv_label_set_text_fmt(label, "Value: %d", data->value);
+            break;
+        }
+    }
+    return 0;
+}
+
+/* When application starts */
+void app_start(void)
+{
+    /* 1. Initialize GUI data service module (only once for the entire app) */
+    ui_datac_init();
+    
+    /* 2. Allocate client handle */
+    sensor_handle = datac_open();
+    RT_ASSERT(DATA_CLIENT_INVALID_HANDLE != sensor_handle);
+    
+    /* 3. Subscribe to service - callback will execute in LVGL task */
+    ui_datac_subscribe(sensor_handle, "SENSOR", 
+                      sensor_data_callback, 0);
+}
+
+/* When application stops */
+void app_stop(void)
+{
+    if (DATA_CLIENT_INVALID_HANDLE != sensor_handle)
+    {
+        datac_unsubscribe(sensor_handle);
+        datac_close(sensor_handle);
+        sensor_handle = DATA_CLIENT_INVALID_HANDLE;
+    }
+}
 ```
+
+**For a complete GUI application example**, please refer to the compass application in the [Graphical Application Framework](gui_app_framework.md#application-example) section, which demonstrates the full application lifecycle and data service integration.
+
+
+
+### Key Interface Description
+
+- **`ui_datac_init()`**: Initialize the GUI data service module, create message queue and start LVGL timer (15ms period). Should be called once during GUI initialization.
+
+- **`ui_datac_subscribe(handle, name, callback, user_data)`**: Subscribe to data service in GUI thread context. Unlike regular `datac_subscribe`, it ensures callbacks execute in the LVGL task through a message queue.
+
+- **Callback Execution Environment**: All callback functions registered through `ui_datac_subscribe` execute in the LVGL task, allowing safe calls to any LVGL API for interface updates.
+
+### Differences from Regular Subscription
+
+| Feature | datac_subscribe | ui_datac_subscribe |
+|---------|-----------------|-------------------|
+| Callback Execution Thread | Data service task | LVGL task |
+| Thread Safety | User handles synchronization | Framework automatically ensures |
+| Application Scenario | Non-GUI applications | GUI applications |
+| Can Update UI | No, requires additional sync | Yes, direct updates |
+
 
 ## API Reference
 [Middleware Data Service](middleware-data_service)

@@ -147,25 +147,44 @@ fatal error on thread: app_watc?
 
 
 #### 通过Ozone查看死机现场
-
+##### 使用Jlink（USB）连接配置
 如果日志打印没法分析出死机问题，则可以通过Ozone 这个Segger提供的调试工具分析。它在死机时比Keil更容易通过Jlink Attach到芯片(Keil的配置很容易使芯片重启，从而破坏死机现场).
 
 > Ozone 在板子没有死机的情况下，也可以通过以下方法Attach上去，并单步调试，类似Keil的功能。但是它的栈解析好像不如Keil的好。
-- 新建一个工程，选择适当的Device驱动(ButterFlier 是SF32LB6XX), CPU型号(ButterFlier 是CM33), 以及外设SVD文件(用于看外设寄存器内容，仅供Sifli内部使用，用户可以忽略，设为空)
+- 新建一个工程，选择适当的Device驱动(Cortex-M33), Register Set选择Cortex-M33 (with FPU), 以及外设SVD文件(根据芯片型号选择，路径在_$SDK_ROOT/tools/svd_external)
+
 ![](../../assets/Ozone_debug_Step1.png)
 
 - 下一步选择Jlink的连接方式，SWD接口
+
 ![](../../assets/Ozone_debug_Step2.png)
 
 - 选择烧录程序的ELF文件，读取符号信息
+
 ![](../../assets/Ozone_debug_Step3.png)
 
 - 工程建立完毕，然后将Ozone 通过Jlink Attach到死机的板子并且Halt住板子
+
 ![](../../assets/Ozone_debug_Step4.png)
 
 - 然后就可以通过菜单里面的功能，单步调试、变量查看、栈解析等操作，跟Keil类似。
+
 ![](../../assets/Ozone_debug_Step5.png)
 
+##### 使用串口连接方式配置
+- 新建一个工程，选择适当的Device驱动(Cortex-M33),  Register Set选择Cortex-M33 (with FPU), 以及外设SVD文件(根据芯片型号选择，路径为_$SDK_ROOT/tools/svd_external)
+
+- 打开_SifliUsartServer.exe_ 并点击连接，注意所需要调试的核心选择及核心对应的串口号
+
+![](../../assets/UsartServer.png)
+
+- 下一步OZone选择UART的连接方式，Host Interface选择IP, IP Address填写UartServer的SERVER
+
+![](../../assets/Ozone_uart_debug_Step1.png)
+
+- 选择烧录程序的ELF文件，读取符号信息
+
+![](../../assets/Ozone_debug_Step3.png)
 
 
 ## 3. 日志接口
@@ -205,20 +224,20 @@ UART口的pinmux配置此处不做赘述，详见 [](../hal/uart.md)
 
 void busmon_cbk()
 {
-    rt_kprintf("Busmon captured\n");        // 当总线特定访问时，产生回掉处理。用户可以在这里Assert，进一步调试分析。
+    rt_kprintf("Busmon captured\n");        // 当总线特定访问时，产生回调处理。用户可以在这里Assert，进一步调试分析。
 }
 
 ...
 
-    dbg_busmon_reg_callback(busmon_cbk);       // 注册回掉
+    dbg_busmon_reg_callback(busmon_cbk);       // 注册回调
     dbg_busmon_read(0x20080000,1);             // 第一次读取0x20080000地址的时候，触发总线监视器
     
     // 重新配置
-    dbg_busmon_reg_callback(busmon_cbk);       // 注册回掉
+    dbg_busmon_reg_callback(busmon_cbk);       // 注册回调
     dbg_busmon_write(0x20080004,3);            // 第三次写0x20080004地址的时候，触发总线监视器
 
     // 重新配置
-    dbg_busmon_reg_callback(busmon_cbk);       // 注册回掉
+    dbg_busmon_reg_callback(busmon_cbk);       // 注册回调
     dbg_busmon_write(0x20080008,2);            // 第二次读或者写0x20080008地址的时候，触发总线监视器
 
 ```

@@ -186,6 +186,12 @@ config RT_USING_RTC
                 config RTC_NTP_SYNC_PERIOD
                     int "NTP auto sync period(second)"
                     default 3600
+		config RTC_NTP_RETRY_SYNC_DELAY
+                    int "NTP sync fail retry delay time(second) network connect"
+                    default 30
+		config RTC_NTP_RETRY_TIMES
+                    int "NTP sync fail retry times"
+                    default 5
            endif
     endif
 
@@ -235,6 +241,11 @@ config RT_USING_SPI
             bool "Using SD/TF card driver with spi"
             select RT_USING_DFS
             default n
+            if RT_USING_SPI_MSD
+                config MSD_SPI_TF_INSERT_DETE_PIN
+                int "Hot swappable pins of TF card"
+                default -1 
+            endif
 
         config MSD_SPI_BUS_NAME
             string "SPI bus name for MSD driver"
@@ -247,7 +258,7 @@ config RT_USING_SPI
             depends on RT_USING_SPI_MSD
             bool "Force SPI TF enter idle after read/write"
             default n
-             
+
         config RT_USING_SFUD
             bool "Using Serial Flash Universal Driver"
             default n
@@ -296,6 +307,10 @@ config RT_USING_WDT
     depends on RT_USING_WDT
     int "Watch Dog timeout"
     default 30
+    config IWDT_SLEEP_TIMEOUT
+    depends on RT_USING_WDT
+    int "Watch Dog sleep timeout"
+    default 300	
 
 config RT_USING_AUDIO
     bool "Using Audio device drivers"
@@ -415,8 +430,8 @@ menu "Using USB"
     config RT_USING_USB_HOST
         bool "Using USB host"
         default n
-        select RT_USING_USB
-
+        depends on BSP_USING_USBH
+        default n if BSP_USING_USBH
         if RT_USING_USB_HOST
             config RT_USBH_MSTORAGE
                 bool "Enable Udisk Drivers"
@@ -449,7 +464,8 @@ menu "Using USB"
         
     config RT_USING_USB_DEVICE
         bool "Using USB device"
-        default n
+        depends on BSP_USING_USBD
+        default n if BSP_USING_USBD
         if RT_USING_USB_DEVICE || RT_USING_USB_HOST
             config RT_USBD_THREAD_STACK_SZ
                 int "usb thread stack size"
@@ -458,10 +474,18 @@ menu "Using USB"
         if RT_USING_USB_DEVICE
             config USB_VENDOR_ID
                 hex "USB Vendor ID"
-                default 0x0FFE
+                default 0x38F4
             config USB_PRODUCT_ID
                 hex "USB Product ID"
                 default 0x0001
+            if !SOC_SF32LB55X
+                config USB_TX_DMA_ENABLED
+                    bool "Enable USB TX DMA"
+                    default y
+                config USB_RX_DMA_ENABLED
+                    bool "Enable USB RX DMA"    
+                    default y
+            endif
 
             config RT_USB_DEVICE_COMPOSITE
                 bool "Enable composite device"

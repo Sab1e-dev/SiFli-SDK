@@ -241,11 +241,30 @@ Required tools:
 - `_SDK_ROOT/tools/crash_dump_analyser/simarm/t32marm.exe_`: Trace32 software tool to execute the recovery script
 
 ## 3. Saving the Context
-### Save Context Using BAT Script
+### 3.1 Save Context Using BAT Script
+
+#### 3.1.1 Accessing the chip's saved data via UART (currently only supports 52x and 56x)
+- Open _SifliUsartServer.exe_ and click Connect. Use DBGUART to simulate Jlink (only a serial connection is required on the hardware side)
+![](/assets/UsartServer.png)
+- Opening the _save_ram_55x.bat_ window will invoke Jlink.exe and fill the SERVER address in _SifliUsartServer.exe_ into the Identifier.
+![](/assets/Jlink_command.png)
+
+#### 3.1.2 Access the chip's saved data through Jlink
 For the 55x chip, follow these steps:
-- Connect the JLink debugger to the target board (for chips without JLink, use _SifliUsartServer.exe_ to simulate JLink)
+- Connect the JLink emulator to the target board
 - Double-click to execute the _tools/crash_dump_analyser/script/save_ram_55x.bat_ script to read data from the target board.
 - You can also do this in the command line. For example, in watch_demp, call _SDK_ROOT/tools/crash_dump_analyser/script/save_ram_55x.bat_,_$SDK_ROOT/example/watch_demo/project/eh-lb555/build_ from the SDK root directory to put the generated file into _SDK_ROOT/example/watch_demo/project/eh-lb555/build_
+
+**Possible reasons for the failure of preserving the scene**：
+- The selected method of preserving the scene does not match the executed script.
+
+```Using the UART hardware connection method or the Jlink hardware connection method to save the on-site data can all be achieved by calling JLink.exe and then executing the corresponding Jlink commands. You can compare the contents of the files named save_ram_55x.bat, sf32lb55x.jlink, and sf32lb52x.jlink to view the differences. "ip" indicates using the ip simulation method of SifliUsartServer.exe to save the on-site data, while "usb" indicates using the uab connection method to save the on-site data with the JLink emulator. Before saving the on-site data, you can first confirm the Jlink file and Jlink commands called in the executed bat file to prevent failure in saving the on-site data due to mismatch between the commands and the actual saving method.```
+![](/assets/dump_command.png)
+
+- Has the crash program been initiated on both the primary and secondary cores
+
+```In most cases, the secondary core is not activated. For example, in sf32lb55x.jlink, there is the line "w4 0x4004f000 1 // Switch to LCPU". However, if the program does not start the secondary core, the saved state will be lost and the operation will fail. Therefore, we need to comment out the commands issued to the secondary core to ensure the normal operation of the script.```
+![](/assets/dump_select.png)
 
 After success, the following files will be generated (depending on the content of the corresponding sf32lb55x.jlink):
 - _hcpu_ram.bin_: 1Mbyte of HCPU RAM data
@@ -264,7 +283,7 @@ After success, the following files will be generated (depending on the content o
 - _lcpu_dtcm.bin_: 16Kbyte LCPU DTCM data
 
 
-### Saving Context Using the AssertDumpUart Tool
+### 3.2 Save the scene using the AssertDumpUart tool
 This tool directly connects to the debug UART port and then executes the corresponding JLink script to save the context, without needing to simulate JLink using _SifliUsartServer.exe_.
 For example, with the 52x chip:
 - Open _\$SDK_ROOT/tools/crash_dump_analyser/script/AssertDumpUart.exe_.
@@ -292,7 +311,13 @@ Once loaded successfully, the following crash context information is displayed:
 
 You can switch between different windows from the Window menu.
 
+If the window is accidentally closed, you can also enter the command below "B::" to run the wake-up process.
+
+For example: From the information in the following picture, we can see the heapAllocation window, whose full name is _B::AREA.view heapAllocation_. We can input this command to open the corresponding window, or we can directly input _AREA.view heapAllocation_.
+
 ![](../../assets/crash_analysis_hcpu_window_select.png)
+
+`B::v.f /l /c `The window is the function call stack of the crash site.
 
 The heapAllocation window displays the allocation status of all heap pools in the system, including the system heap and memheap_pool:
 - system heap: Pool used by `rt_malloc` and `lv_mem_alloc`.
@@ -306,17 +331,21 @@ The fields in the allocation information list represent:
 - RETURN ADDR: The address of the caller.
 
 #### Handling Missing Crash Stack
-After completing the first three steps, sometimes the crash stack is not displayed, possibly because it was not saved in the dump or saved incorrectly. You can try the following two methods:
-- Load the crash stack from the JLink halt log.
+After completing the previous 3 steps, sometimes the crash scene stack will not be displayed, possibly because the dump content was not saved or was saved incorrectly. You can try the following methods:
+- 1. Load the scene stack from Jlink halt log information
   The HR (HCPU Registers) button is used to restore CPU registers that did not reach the exception handler.
   After clicking the button, select the exported _log.txt_ file, which will fill the 16 HCPU registers back into Trace32.
 
 ![](../../assets/crash_analysis_toolsbar_HR.png)
 
-- Alternatively, you can manually enter the 16 registers from the log into the Trace32 register window.
+
+- 2. From the 16 registers printed in the log, refill them into the register window of trace32
 
 ![](../../assets/crash_analysis_restore_registers_from_log.png)
 
+
+- 3. For gcc compilation, you can try modifying PC to be the same value as r14
+![](/assets/crash_analysis_toolsbar_HR2.png)
 ### 4.2 Restoring LCPU Context
 
 Restoring LCPU context is similar to HCPU, but first, you need to copy the required files (lcpu.axf and rom_axf files) to the script directory.

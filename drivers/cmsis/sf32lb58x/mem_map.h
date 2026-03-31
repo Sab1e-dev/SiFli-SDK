@@ -99,7 +99,16 @@
 #define LPSYS_ROM_SIZE      (768*1024)
 #define LPSYS_ITCM_SIZE     (16*1024)
 #define LPSYS_DTCM_SIZE     (16*1024)
-#define LPSYS_RAM_SIZE      (800*1024)
+#define LPSYS_SRAM0_SIZE     (128*1024)
+#define LPSYS_SRAM1_SIZE     (128*1024)
+#define LPSYS_SRAM2_SIZE     (256*1024)
+#define LPSYS_SRAM3_SIZE     (256*1024)
+#define LPSYS_SRAM4_SIZE     (128*1024)
+#define LPSYS_SRAM5_SIZE     (128*1024)
+#define LPSYS_SRAM_TOTAL_SIZE (LPSYS_SRAM0_SIZE+LPSYS_SRAM1_SIZE+LPSYS_SRAM2_SIZE+LPSYS_SRAM3_SIZE+LPSYS_SRAM4_SIZE+LPSYS_SRAM5_SIZE)
+/** available LCPU RAM size from SW perspective */
+#define LPSYS_RAM_SIZE      (896*1024)
+/** LPSYS EM size, space in SRAM5 excluding space used by software */
 #define LPSYS_EM_SIZE       (39*1024)
 #define LCPU_HCPU_AUDIO_MEM_SIZE         (1 * 1024)
 
@@ -157,7 +166,9 @@
 #define QSPI4_MAX_SIZE      (0x4000000)
 #define QSPI5_MAX_SIZE      (0x4000000)
 
-#define SDIO_LOGIC_ADDR     (QSPI4_MEM_BASE+HPSYS_MPI_MEM_CBUS_2_SBUS_OFFSET)
+//================== SDMMC Memory Card ==================
+#define SDMMC1_MEM_BASE     (0x68000000)
+#define SDMMC2_MEM_BASE     (0xA0000000)
 
 // Size
 #define FLASH_TABLE_SIZE            (20*1024)
@@ -289,7 +300,7 @@
 //================= HP subsys ROM =================
 // Size
 #define HCPU_CODE_SIZE                  (HPSYS_ROM_SIZE)
-#define HCPU_RO_DATA_SIZE               (16*1024)
+#define HCPU_RO_DATA_SIZE               (19*1024)
 #define HCPU_RAM_DATA_SIZE              (HPSYS_RAM_SIZE - HCPU_RO_DATA_SIZE - HPSYS_MBOX_BUF_SIZE)
 #define HCPU_CODE_START_ADDR            0 //(BOOTLOADER_CODE_END_ADDR+1)
 #define HCPU_CODE_END_ADDR              (END_ADDR(HCPU_CODE_START_ADDR, HCPU_CODE_SIZE))
@@ -500,8 +511,6 @@
     /* lpsys_ram */
     #undef  LPSYS_RAM_START_ADDR
     #define LPSYS_RAM_START_ADDR                               (0x20400000)
-    #undef  LPSYS_RAM_SIZE
-    #define LPSYS_RAM_SIZE                                     (0x00080000)
     #undef  LPSYS_RAM_OFFSET
     #define LPSYS_RAM_OFFSET                                   (0x00000000)
 

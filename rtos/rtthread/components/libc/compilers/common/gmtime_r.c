@@ -14,10 +14,11 @@
     #include <sys/time.h>
 #endif /* __CC_ARM || __CLANG_ARM || __IAR_SYSTEMS_ICC__ || __GNUC__ */
 
-#if defined(__CC_ARM) || defined(__CLANG_ARM) || defined (__IAR_SYSTEMS_ICC__)
+#if defined(__CC_ARM) || defined(__CLANG_ARM) || defined (__IAR_SYSTEMS_ICC__) || defined(__GNUC__)
 
 /* seconds per day */
 #define SPD 24*60*60
+static long int g_timezone;
 
 /* days per month -- nonleap! */
 const short __spm[13] =
@@ -89,6 +90,23 @@ struct tm *gmtime_r(const time_t *timep, struct tm *r)
     r->tm_mday += work - __spm[i];
     return r;
 }
+
+struct tm *localtime_r(const time_t *t, struct tm *r)
+{
+    time_t tmp;
+    struct timezone tz = {0};
+    gettimeofday(0, &tz);
+    g_timezone = tz.tz_minuteswest * 60L;
+    tmp = *t + g_timezone;
+    return gmtime_r(&tmp, r);
+}
+
+struct tm *localtime(const time_t *t)
+{
+    static struct tm tmp;
+    return localtime_r(t, &tmp);
+}
+
 #endif /* end of __CC_ARM or __CLANG_ARM or __IAR_SYSTEMS_ICC__ */
 
 #if defined(__CC_ARM) || defined(__CLANG_ARM) || defined (__IAR_SYSTEMS_ICC__) || defined(__GNUC__)
@@ -113,11 +131,15 @@ int gettimeofday(struct timeval *tp, struct timezone  *tz)
     time_t time;
     rt_device_t device;
 
-    device = rt_device_find("rtc");
-    RT_ASSERT(device != RT_NULL);
+
 
     if (tp)
+    {
+        device = rt_device_find("rtc");
+        RT_ASSERT(device != RT_NULL);
         rt_device_control(device, RT_DEVICE_CTRL_RTC_GET_TIMEVAL, tp);
+    }
+
     if (tz)
         memcpy(tz, &_current_timezone, sizeof(struct timezone));
     return time;

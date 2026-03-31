@@ -188,7 +188,6 @@ static struct scsi_cmd cmd_data[] =
     {SCSI_WRITE_10,        _write_10,        10, BLOCK_COUNT, 0, DIR_OUT},
     {SCSI_VERIFY_10,       _verify_10,       10, FIXED,       0, DIR_NONE},
 };
-
 static void _send_status(ufunction_t func)
 {
     struct mstorage *data;
@@ -1109,7 +1108,8 @@ ufunction_t rt_usbd_function_mstorage_create(udevice_t device)
     mass_desc = (umass_desc_t)setting->desc;
     data->ep_in = rt_usbd_endpoint_new(&mass_desc->ep_in_desc, _ep_in_handler);
     data->ep_out = rt_usbd_endpoint_new(&mass_desc->ep_out_desc, _ep_out_handler);
-
+    rt_kprintf("%s %d data: %p func: %p data->ep_in: %p data->ep_out: %p\n", __func__, __LINE__,
+               data, func, data->ep_in, data->ep_out);
     /* add the bulk out and bulk in endpoint to the alternate setting */
     rt_usbd_altsetting_add_endpoint(setting, data->ep_out);
     rt_usbd_altsetting_add_endpoint(setting, data->ep_in);

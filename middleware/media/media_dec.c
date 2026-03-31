@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2019-2026 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include <rtthread.h>
 #include "media_dec.h"
 #include "media_internal.h"
@@ -5,6 +11,8 @@
     #include "dfs_file.h"
     #include "dfs_posix.h"
 #endif
+
+
 #define DBG_TAG           "media_dec"
 //#define DBG_LVL           LOG_LVL_INFO
 #define _MODULE_NAME_ "h264"
@@ -14,13 +22,13 @@ bool media_video_need_decode(media_cache_t *cache)
 {
     bool ret = true;
 
-    rt_enter_critical();
+    rt_base_t level = rt_hw_interrupt_disable();
 
     if (rt_slist_isempty(&cache->empty_frame_slist))
     {
         ret = false;
     }
-    rt_exit_critical();
+    rt_hw_interrupt_enable(level);
 
     return ret;
 }
@@ -38,7 +46,7 @@ int media_decode_video(ffmpeg_handle thiz,
     AVCodecContext  *video_ctx = thiz->video_dec_ctx;
     //dropping frame must after decoded it
     //next frame may not be I frame, mostly P frame
-    rt_enter_critical();
+    rt_base_t level = rt_hw_interrupt_disable();
 
     if (rt_slist_isempty(&cache->empty_frame_slist))
     {
@@ -54,7 +62,7 @@ int media_decode_video(ffmpeg_handle thiz,
     }
     empty = rt_slist_first(&cache->empty_frame_slist);
 
-    rt_exit_critical();
+    rt_hw_interrupt_enable(level);
 
     if (is_drop_occured)
     {
@@ -102,10 +110,10 @@ int media_decode_video(ffmpeg_handle thiz,
         }
         else
         {
-            rt_enter_critical();
+            rt_base_t level = rt_hw_interrupt_disable();
             rt_slist_remove(&cache->empty_frame_slist, empty);
             rt_slist_append(&cache->decoded_frame_slist, empty);
-            rt_exit_critical();
+            rt_hw_interrupt_enable(level);
         }
     }
 
@@ -272,13 +280,13 @@ bool ezip_video_need_decode(ffmpeg_handle thiz)
 {
     bool ret = true;
 
-    rt_enter_critical();
+    rt_base_t level = rt_hw_interrupt_disable();
 
     if (rt_slist_isempty(&thiz->ezip_video_cache.empty_video_slist))
     {
         ret = false;
     }
-    rt_exit_critical();
+    rt_hw_interrupt_enable(level);
 
     return ret;
 }
@@ -292,7 +300,7 @@ int ezip_video_decode(ffmpeg_handle thiz,        uint32_t size, uint32_t padding
     empty_root = &thiz->ezip_video_cache.empty_video_slist;
     decoded_root = &thiz->ezip_video_cache.decoded_video_slist;
 
-    rt_enter_critical();
+    rt_base_t level = rt_hw_interrupt_disable();
 
     empty = rt_slist_first(empty_root);
     if (empty)
@@ -307,12 +315,15 @@ int ezip_video_decode(ffmpeg_handle thiz,        uint32_t size, uint32_t padding
         rt_slist_remove(decoded_root, empty);
     }
 
-    rt_exit_critical();
+    rt_hw_interrupt_enable(level);
 
+#if __DEBUG__
     if (is_drop)
     {
         LOG_I("ezip video drop");
     }
+#endif
+
     if (empty)
     {
         ezip_video_packet_t *pkt = rt_container_of(empty, ezip_video_packet_t, snode);
@@ -328,14 +339,18 @@ int ezip_video_decode(ffmpeg_handle thiz,        uint32_t size, uint32_t padding
         {
             ezip_flash_read(thiz, pkt->buffer, size);
         }
+        else if (thiz->is_ram)
+        {
+            ezip_ram_read(thiz, pkt->buffer, size);
+        }
         else
         {
             read(thiz->ezip_fd, pkt->buffer, size);
         }
         pkt->data_len = size - paddings;
-        rt_enter_critical();
+        rt_base_t level = rt_hw_interrupt_disable();
         rt_slist_append(decoded_root, empty);
-        rt_exit_critical();
+        rt_hw_interrupt_enable(level);
         return 0;
     }
     else
@@ -472,7 +487,7 @@ int media_video_get(media_cache_t *cache, int fmt, uint8_t *data, uint8_t is_ezi
     rt_slist_t *decoded;
     rt_slist_t *display;
 
-    rt_enter_critical();
+    rt_base_t level = rt_hw_interrupt_disable();
     decoded = rt_slist_first(&cache->decoded_frame_slist);
     if (decoded)
     {
@@ -487,7 +502,7 @@ int media_video_get(media_cache_t *cache, int fmt, uint8_t *data, uint8_t is_ezi
         rt_slist_append(&cache->display_frame_slist, decoded);
     }
 
-    rt_exit_critical();
+    rt_hw_interrupt_enable(level);
 
     if (!decoded)
     {

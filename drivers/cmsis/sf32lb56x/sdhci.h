@@ -4,29 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/*
- *  linux/drivers/mmc/host/sdhci.h - Secure Digital Host Controller Interface driver
- *
- *  Copyright (C) 2005-2008 Pierre Ossman, All Rights Reserved.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or (at
- * your option) any later version.
- */
+
 #ifndef __SDHCI_H
 #define __SDHCI_H
-
-//#include <linux/scatterlist.h>
-//#include <linux/compiler.h>
-//#include <linux/types.h>
-//#include <linux/io.h>
-//#include <host.h>
-
-//#include "/home/SD3.0/mmc/test/test.h"
-/*
- * Controller registers
- */
 
 #define SDHCI_DMA_ADDRESS    0x00
 

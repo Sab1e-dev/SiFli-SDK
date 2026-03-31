@@ -57,7 +57,14 @@
     #define LPSYS_ROM_SIZE      (384*1024)
     #define LPSYS_ITCM_SIZE     (16*1024)
     #define LPSYS_DTCM_SIZE     (16*1024)
+    #define LPSYS_SRAM0_SIZE    (64*1024)
+    #define LPSYS_SRAM1_SIZE    (32*1024)
+    #define LPSYS_SRAM2_SIZE    (32*1024)
+    /** LPSYS SRAM size in total (SRAM0+SRAM1+SRAM2) */
+    #define LPSYS_SRAM_TOTAL_SIZE (LPSYS_SRAM0_SIZE+LPSYS_SRAM1_SIZE+LPSYS_SRAM2_SIZE)
+    /** available LCPU RAM size from SW perspective */
     #define LPSYS_RAM_SIZE      (96*1024)
+    /** LPSYS EM size, space in SRAM2 excluding space used by software */
     #define LPSYS_EM_SIZE       (32*1024)
     #define LCPU_PATCH_RAM_SIZE              (1 * 1024)
     #define LCPU_HCPU_AUDIO_MEM_SIZE         (1 * 1024)
@@ -114,6 +121,10 @@
     #define QSPI3_MAX_SIZE      (0x8000000)
     #define QSPI4_MAX_SIZE      (0x4000000)
     #define QSPI5_MAX_SIZE      (0x4000000)
+
+    //================== SDMMC Memory Card ==================
+    #define SDMMC1_MEM_BASE     (0xA0000000)
+    #define SDMMC2_MEM_BASE     (0x64000000)
 
 
     // Size
@@ -244,10 +255,10 @@
     // Size
     #define HCPU_CODE_SIZE                  (HPSYS_ROM_SIZE)
     #define HCPU_RO_DATA_SIZE               (16*1024)
-    #define HCPU_RAM_DATA_SIZE              (HPSYS_RAM_SIZE - HCPU_RO_DATA_SIZE - HPSYS_MBOX_BUF_SIZE - HPSYS_RETM_SIZE)
+    #define HCPU_RAM_DATA_SIZE              (HPSYS_RAM_SIZE - HCPU_RO_DATA_SIZE - HPSYS_MBOX_BUF_SIZE)
     #define HCPU_CODE_START_ADDR            0 //(BOOTLOADER_CODE_END_ADDR+1)
     #define HCPU_CODE_END_ADDR              (END_ADDR(HCPU_CODE_START_ADDR, HCPU_CODE_SIZE))
-    #define HCPU_RAM_DATA_START_ADDR        (HPSYS_RAM1_BASE)         /* 0x20020000 */
+    #define HCPU_RAM_DATA_START_ADDR        (HPSYS_RAM0_BASE)         /* 0x20000000 */
     #define HCPU_RAM_DATA_END_ADDR          (END_ADDR(HCPU_RAM_DATA_START_ADDR, HCPU_RAM_DATA_SIZE))
     #define HCPU_RO_DATA_START_ADDR         (HCPU_RAM_DATA_END_ADDR+1)
     #define HCPU_RO_DATA_END_ADDR           (END_ADDR(HCPU_RO_DATA_START_ADDR, HCPU_RO_DATA_SIZE))

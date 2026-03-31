@@ -7,6 +7,8 @@
 #ifndef __ACPU_CTRL_H__
 #define __ACPU_CTRL_H__
 
+#include <stdint.h>
+
 
 
 /**
@@ -97,10 +99,19 @@ typedef struct
 #define ACPU_TASK_opus_decoder_init      (6)
 #define ACPU_TASK_opus_decoder_ctl       (7)
 #define ACPU_TASK_opus_decode            (8)
-#define ACPU_TASK_read                   (9)
-#define ACPU_TASK_write                  (10)
-#define ACPU_TASK_epic_rl                (11)
-#define ACPU_TASK_COUNT                  (12)
+#define ACPU_TASK_audio_3a_open          (9)
+#define ACPU_TASK_audio_3a_close         (10)
+#define ACPU_TASK_audio_3a_downlink      (11)
+#define ACPU_TASK_audio_3a_uplink        (12)
+#define ACPU_TASK_read                   (13)
+#define ACPU_TASK_write                  (14)
+#define ACPU_TASK_COUNT                  (15)
+
+/* Keep old names for backward compatibility */
+#define ACPU_TASK_anyka_open             ACPU_TASK_audio_3a_open
+#define ACPU_TASK_anyka_close            ACPU_TASK_audio_3a_close
+#define ACPU_TASK_anyka_downlink         ACPU_TASK_audio_3a_downlink
+#define ACPU_TASK_anyka_uplink           ACPU_TASK_audio_3a_uplink
 
 /** HCPU task name */
 #define HCPU_TASK_INVALID                (0)

@@ -138,6 +138,10 @@ cd ~/OpenSiFli/SiFli-SDK
 ./install.sh
 ```
 
+```{warning} 
+It should be noted that the pyenv tool should not be used to manage the Python environment of the system. Otherwise, errors may occur during the subsequent process.
+```
+
 For domestic users in China, you can use the following commands to add domestic mirror sources:
 
 ```bash

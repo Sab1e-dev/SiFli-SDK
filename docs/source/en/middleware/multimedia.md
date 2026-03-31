@@ -1,4 +1,4 @@
-# Multimedia
+# Audio document
 ## Standard
    When developing third-party libraries, avoid directly calling interfaces like audio_open() in the library, as header files and structures may change. Instead, encapsulate an adaptor to invoke multimedia interfaces. After the library is released, some structures in the header files may be modified. Only recompile the adaptor code without recompiling the released library.
 ## 1 Audio
@@ -188,7 +188,91 @@ typedef int (*audio_server_callback_func)(audio_server_callback_cmt_t cmd,
 **exmaple for mp3 record**
 在$(sdk_root)\middleware\audio\audio_local_music\audio_recorder.c
 ** **
-**1.5 Example of collecting mic data and playing it back to the speaker**
+
+**1.5 play pcm file**
+```c
+#include <rtthread.h>
+#include <string.h>
+#include <stdlib.h>
+#include "audio_server.h"
+
+#define DBG_TAG           "audio"
+#define DBG_LVL           LOG_LVL_INFO
+#include "log.h"
+
+static int fd;
+static in is_cache_full;
+#define WRITE_CACHE_SIZE    8192
+
+/*
+   look TX_DMA_SIZE in audio_server.c,
+   WRITE_CACHE_SIZE should >= TX_DMA_SIZE * 2;
+*/
+
+int16_t pcm_buffer[WRITE_CACHE_SIZE/2/sizeof(int16_t)];
+
+static int speaker_callback(audio_server_callback_cmt_t cmd,
+                    void *callback_userdata,
+                    uint32_t reserved)
+{
+    audio_client_t client = *((audio_client_t *)callback_userdata);
+    if (cmd == as_callback_cmd_cache_half_empty
+           ||cmd == as_callback_cmd_cache_empty)
+    {
+        if (!is_cache_full)
+        {
+            memset(pcm_buffer, 0, sizeof(pcm_buffer));
+            int len = read(fd, pcm_buffer, sizeof(pcm_buffer));
+            if (len < sizeof(pcm_buffer) && len >= 0)
+            {
+                //file end;
+            }
+        }
+        int ret = audio_write(client, (uint8_t *)&pcm_buffer[0], sizeof(pcm_buffer));
+        if (ret == 0)
+        {
+            is_cache_full = 1;
+            LOG_I("cache full");
+        }
+    }
+    return 0;
+}
+static void speaker(uint8_t argc, char **argv)
+{
+    uint32_t record_seconds = 0;
+    is_cache_full = 0;
+    audio_parameter_t pa = {0};
+    pa.write_bits_per_sample = 16;
+    pa.write_channnel_num = 1;
+    pa.write_samplerate = 16000;
+    pa.read_bits_per_sample = 16;
+    pa.read_channnel_num = 1;
+    pa.read_samplerate = 16000;
+    pa.write_cache_size = WRITE_CACHE_SIZE;
+    fd = open("/test.pcm", O_RDONLY | O_BINARY);
+    RT_ASSERT(fd >= 0);
+    audio_client_t client = NULL;
+    audio_server_set_private_volume(AUDIO_TYPE_LOCAL_MUSIC, 15);
+    client = audio_open(AUDIO_TYPE_LOCAL_MUSIC,
+                        AUDIO_TX,
+                        &pa,
+                        speaker_callback,
+                        &client);
+    RT_ASSERT(client);
+
+    while (record_seconds < 10)
+    {
+        rt_thread_mdelay(1000);
+        record_seconds++;
+    }
+    audio_close(client); //cannot be called in mic2speaker_callback, it will cause a deadlock.
+    close(fd);
+}
+
+MSH_CMD_EXPORT(speaker, pcm2speaker test);
+```
+
+**1.6 Example of collecting mic data and playing it back to the speaker**
 
 ```c
 #include <rtthread.h>
@@ -261,7 +345,7 @@ static void mic2speaker(uint8_t argc, char **argv)
 MSH_CMD_EXPORT(mic2speaker, mic2speaker test);
 ```
 
-**1.6 audio write**
+**1.7 audio write**
 
 if data_len is larger than the write cache size, it will not be written and will keep returning 0.
 ```c
@@ -279,7 +363,7 @@ return:
     0:  write cache is full, should sleep than try again
 */
 ```
-**1.7 audio ioctl**
+**1.8 audio ioctl**
 ```c
 int audio_ioctl(audio_client_t handle, int cmd, void *parameter);
 /*
@@ -302,13 +386,13 @@ cmd value and parameter:
 */
 
 ```
-**1.8 audio close**
+**1.9 audio close**
 ```c
 int audio_close(audio_client_t handle);
 ```
 Except for audio_write(), the functions above are synchronous and are best called within a single thread. Especially audio_close(), this function cannot be called in the callback function of audio_open(), as it will cause a deadlock.
 
-**1.9 hardware device**
+**1.10 hardware device**
 ```c
 //Legacy code, only for the system MP3 playback plugin, do not use in the app
 bool audio_device_is_a2dp_sink()
@@ -376,7 +460,7 @@ int audio_server_select_private_audio_device(audio_type_t audio_type,
 #endif
 }
 ```
-**1.10 register a hardware device in audio server**
+**1.11 register a hardware device in audio server**
 This app does not require attention; it is already implemented within the system. It mainly registers some hardware or virtual hardware devices such as speakers and BT, for selecting devices during playback. If necessary, refer to the places in the system where it is invoked.
 ```c
 int audio_server_register_audio_device(audio_device_e audio_device,
@@ -384,9 +468,9 @@ int audio_server_register_audio_device(audio_device_e audio_device,
 audio_device -    [in] audio device Type
 p_audio_device -  [in] device config and callback
 ```
-**1.11 audio volume**
+**1.12 audio volume**
 
-1.11.1 **Get Max Volume**
+1.12.1 **Get Max Volume**
 Currently, the volume level ranges from 0 to 15, and the following function will return 15.
 ```c
 //return Max voluem 15
@@ -421,7 +505,7 @@ int audio_server_set_public_speaker_mute(uint8_t is_mute);
 //return 1 if mutted, 0 umutted
 uint8_t audio_server_get_public_speaker_mute(void);
 ```
-**1.12 one DMA frame size**
+**1.13 one DMA frame size**
 The change in data length currently does not provide an interface for dynamically modifying the recording size; it is configured by macro definitions.
 
 The CFG_AUDIO_RECORD_PIPE_SIZE macro in audio.h represents the data size of a single DMA interrupt during recording. If it is 320, then for a 16kHz mono microphone, data is generated every 10ms, and the audio_open callback is triggered.In audio_server.c, CODEC_DATA_UNIT_LEN should have the same value as CFG_AUDIO_RECORD_PIPE_SIZE. Currently, there is no interface provided to modify it dynamically.
@@ -617,7 +701,7 @@ The EQ parameters are in drv_audprc.c. They should ideally be generated using th
 mic_gain
 pdm_gain (if PDM is configured)
 Sometimes, volume is manually adjusted. Volume testing must meet hardware requirements; the maximum volume should not exceed the speaker's power to avoid damaging it. The maximum volume should be determined through hardware testing to meet power requirements.
-
+```c
 int8_t g_adc_volume = 0; // mic gain
 /*Maximum volume protection for phone calls, unit: 0.5db.
 If the values in g_tel_vol_level[] multiplied by 2 exceed this value, this value will be used as the speaker gain.
@@ -629,15 +713,4 @@ If the values in g_music_vol_level[] multiplied by 2 exceed this value, this val
 */
 int8_t g_music_max_vol = 0;
 int8_t g_music_vol_level[16] = {-55, -34, -32, -30, -28, -26, -24, -22, -20, -17, -14, -11, -10, -8, -6, -4};
-
-## how to dump audio data
-   ......
-
-## Video
-The video uses ffmpeg, so ffmpeg needs to be configured; see exernal/ffmpeg/Kconfig. It encapsulates interfaces for using ffmpeg. To improve playback speed, the MP4 file encoding format needs to be converted using the video tools provided by sifli. 
-
-[GraphicsTool](https://wiki.sifli.com/tools/index.html)
-
-It also supports automatically recognizing videos in sifli's custom ezip format, for which the MP4 file needs to be converted to ezip using the tools provided by sifli.For API reference, see the descriptions in media_dec.h.
-    
-
+```

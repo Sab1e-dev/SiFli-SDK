@@ -1601,8 +1601,9 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Transmit_DMA(SPI_HandleTypeDef *hspi, u
     }
 
     __HAL_SPI_ENABLE_IT(hspi, (SPI_IT_TXE));
-    hspi->Instance->FIFO_CTRL |= SPI_FIFO_CTRL_TSRE;
-    hspi->Instance->FIFO_CTRL &= ~SPI_FIFO_CTRL_RSRE;
+    SET_BIT(hspi->Instance->FIFO_CTRL, SPI_FIFO_CTRL_TSRE);
+    CLEAR_BIT(hspi->Instance->FIFO_CTRL, SPI_FIFO_CTRL_RSRE);
+    CLEAR_BIT(hspi->Instance->FIFO_CTRL, SPI_FIFO_CTRL_RXFIFO_AUTO_FULL_CTRL);
     hspi->Instance->FIFO_CTRL &= ~SPI_FIFO_CTRL_RXFIFO_AUTO_FULL_CTRL;
 
     /* Enable the Tx DMA Stream/Channel */
@@ -1763,8 +1764,8 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_Receive_DMA(SPI_HandleTypeDef *hspi, ui
     hspi->hdmarx->XferAbortCallback = NULL;
 
     __HAL_SPI_ENABLE_IT(hspi, (SPI_IT_RXNE));
-    hspi->Instance->FIFO_CTRL |= SPI_FIFO_CTRL_RSRE;
-    hspi->Instance->FIFO_CTRL &= ~SPI_FIFO_CTRL_TSRE;
+    SET_BIT(hspi->Instance->FIFO_CTRL, SPI_FIFO_CTRL_RSRE);
+    CLEAR_BIT(hspi->Instance->FIFO_CTRL, SPI_FIFO_CTRL_TSRE);
 
     /* Enable the Rx DMA Stream/Channel  */
     HAL_DMA_Start_IT(hspi->hdmarx, (uint32_t)&hspi->Instance->DATA, (uint32_t)hspi->pRxBuffPtr, hspi->RxXferCount);
@@ -1917,7 +1918,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_TransmitReceive_DMA(SPI_HandleTypeDef *
     hspi->hdmarx->XferAbortCallback = NULL;
 
     __HAL_SPI_ENABLE_IT(hspi, (SPI_IT_RXNE));
-    hspi->Instance->FIFO_CTRL |= SPI_FIFO_CTRL_RSRE;
+    SET_BIT(hspi->Instance->FIFO_CTRL, SPI_FIFO_CTRL_RSRE);
 
     /* Enable the Rx DMA Stream/Channel  */
     HAL_DMA_Start_IT(hspi->hdmarx, (uint32_t)&hspi->Instance->DATA, (uint32_t)hspi->pRxBuffPtr, hspi->RxXferCount);
@@ -1930,7 +1931,8 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_TransmitReceive_DMA(SPI_HandleTypeDef *
     hspi->hdmatx->XferAbortCallback    = NULL;
 
     __HAL_SPI_ENABLE_IT(hspi, (SPI_IT_TXE));
-    hspi->Instance->FIFO_CTRL |= SPI_FIFO_CTRL_TSRE | SPI_FIFO_CTRL_RXFIFO_AUTO_FULL_CTRL;
+    SET_BIT(hspi->Instance->FIFO_CTRL, SPI_FIFO_CTRL_TSRE 
+                                     | SPI_FIFO_CTRL_RXFIFO_AUTO_FULL_CTRL);
     /* Enable the Tx DMA Stream/Channel  */
     HAL_DMA_Start_IT(hspi->hdmatx, (uint32_t)hspi->pTxBuffPtr, (uint32_t)&hspi->Instance->DATA, hspi->TxXferCount);
 

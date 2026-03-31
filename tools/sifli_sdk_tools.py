@@ -919,15 +919,15 @@ class SiFliSDKTool(object):
 
     def get_preferred_installed_version(self) -> Optional[str]:
         """
-        Get the preferred installed version of the tool. If more versions installed, return the highest.
+        Get the preferred installed version of the tool. Prefer recommended versions, otherwise
+        use the newest installed version compatible with the current platform.
         """
-        recommended_versions = [k for k in self.versions_installed
-                                if self.versions[k].status == SiFliSDKToolVersion.STATUS_RECOMMENDED
-                                and self.versions[k].compatible_with_platform(self._platform)]
-        assert len(recommended_versions) <= 1
-        if recommended_versions:
-            return recommended_versions[0]
-        return None
+        compatible_installed = [k for k in self.versions_installed
+                                if self.versions[k].compatible_with_platform(self._platform)]
+        if not compatible_installed:
+            return None
+        compatible_installed_sorted = sorted(compatible_installed, key=self.versions.get, reverse=True)  # type: ignore
+        return compatible_installed_sorted[0]
 
     def find_installed_versions(self) -> None:
         """
@@ -1934,23 +1934,6 @@ def action_check(args):  # type: ignore
 
 
 # The following function is used in process_tool which is a part of the action_export.
-def handle_recommended_version_to_use(
-    tool: SiFliSDKTool,
-    tool_name: str,
-    version_to_use: str,
-    prefer_system_hint: str,
-) -> Tuple[list, dict]:
-    """
-    If there is unsupported tools version in PATH, prints info about that.
-    """
-    tool_export_paths = tool.get_export_paths(version_to_use)
-    tool_export_vars = tool.get_export_vars(version_to_use)
-    if tool.version_in_path and tool.version_in_path not in tool.versions:
-        info(f'Not using an unsupported version of tool {tool.name} found in PATH: {tool.version_in_path}.' + prefer_system_hint, f=sys.stderr)
-    return tool_export_paths, tool_export_vars
-
-
-# The following function is used in process_tool which is a part of the action_export.
 def handle_supported_or_deprecated_version(tool: SiFliSDKTool, tool_name: str) -> None:
     """
     Prints info if supported, but not recommended or deprecated version of the tool is used.
@@ -1963,6 +1946,40 @@ def handle_supported_or_deprecated_version(tool: SiFliSDKTool, tool_name: str) -
              f=sys.stderr)
     elif version_obj.status == SiFliSDKToolVersion.STATUS_DEPRECATED:
         warn(f'using a deprecated version of tool {tool_name} found in PATH: {tool.version_in_path}')
+
+
+def warn_if_not_recommended(tool: SiFliSDKTool, tool_name: str, version_to_use: str) -> None:
+    """
+    Warn if a version other than the recommended one is being used.
+    """
+    version_obj = tool.versions.get(version_to_use)
+    if not version_obj:
+        return
+    recommended_version = tool.get_recommended_version()
+    if version_obj.status == SiFliSDKToolVersion.STATUS_SUPPORTED:
+        info(f'Using a supported version of tool {tool_name}: {version_to_use}.', f=sys.stderr)
+        if recommended_version and recommended_version != version_to_use:
+            info(f'However the recommended version is {recommended_version}.', f=sys.stderr)
+    elif version_obj.status == SiFliSDKToolVersion.STATUS_DEPRECATED:
+        warn(f'using a deprecated version of tool {tool_name}: {version_to_use}')
+
+
+# The following function is used in process_tool which is a part of the action_export.
+def handle_version_to_use(
+    tool: SiFliSDKTool,
+    tool_name: str,
+    version_to_use: str,
+    prefer_system_hint: str,
+) -> Tuple[list, dict]:
+    """
+    Prepare export paths/vars for the selected installed version and emit warnings when needed.
+    """
+    tool_export_paths = tool.get_export_paths(version_to_use)
+    tool_export_vars = tool.get_export_vars(version_to_use)
+    warn_if_not_recommended(tool, tool_name, version_to_use)
+    if tool.version_in_path and tool.version_in_path not in tool.versions:
+        info(f'Not using an unsupported version of tool {tool.name} found in PATH: {tool.version_in_path}.' + prefer_system_hint, f=sys.stderr)
+    return tool_export_paths, tool_export_vars
 
 
 # The following function is used in process_tool which is a part of the action_export.
@@ -2010,15 +2027,16 @@ def process_tool(
         tool.find_installed_versions()
     except ToolBinaryError:
         pass
-    recommended_version_to_use = tool.get_preferred_installed_version()
+    selected_version_to_use = tool.get_preferred_installed_version()
 
-    if not tool.is_executable and recommended_version_to_use:
-        tool_export_vars = tool.get_export_vars(recommended_version_to_use)
+    if not tool.is_executable and selected_version_to_use:
+        warn_if_not_recommended(tool, tool_name, selected_version_to_use)
+        tool_export_vars = tool.get_export_vars(selected_version_to_use)
         return tool_export_paths, tool_export_vars, tool_found
 
-    if recommended_version_to_use and not args.prefer_system:
-        tool_export_paths, tool_export_vars = handle_recommended_version_to_use(
-            tool, tool_name, recommended_version_to_use, prefer_system_hint
+    if selected_version_to_use and not args.prefer_system:
+        tool_export_paths, tool_export_vars = handle_version_to_use(
+            tool, tool_name, selected_version_to_use, prefer_system_hint
         )
         return tool_export_paths, tool_export_vars, tool_found
 
@@ -2237,6 +2255,55 @@ def get_tools_spec_and_platform_info(selected_platform: str, targets: List[str],
 
     return tools_spec, tools_info_for_platform
 
+def get_conan_config(sdk_version: str, online: bool = True) -> str:
+    """
+    Download conan_config file for specified SiFli SDK version if it was not downloaded recently (1 day),
+    check success and place it in conan_config file location.
+    """
+    sdk_download_url = get_sifli_sdk_download_url_apply_mirrors()
+    conan_config_file = f'sdk.conan-config.v{sdk_version}.zip'
+    conan_config_path = os.path.join(g.sifli_sdk_tools_path, conan_config_file)
+    conan_config_file_url = '/'.join([sdk_download_url, conan_config_file])
+    temp_path = f'{conan_config_path}.tmp'
+    if not online:
+        if os.path.isfile(conan_config_path):
+            return conan_config_path
+        else:
+            fatal(f'{conan_config_path} doesn\'t exist. Perhaps you\'ve forgotten to run the install scripts. '
+                  f'Please check the installation guide for more information.')
+            raise SystemExit(1)
+    
+    mkdir_p(os.path.dirname(temp_path))
+
+    try:
+        age = datetime.date.today() - datetime.date.fromtimestamp(os.path.getmtime(conan_config_path))
+        if age < datetime.timedelta(days=1):
+            info(f'Skipping the download of {conan_config_path} because it was downloaded recently.')
+            return conan_config_path
+    except OSError:
+        # doesn't exist or inaccessible
+        pass
+
+    for _ in range(DOWNLOAD_RETRY_COUNT):
+        err = download(conan_config_file_url, temp_path)
+        if not os.path.isfile(temp_path):
+            warn(f'Download failure: {err}')
+            warn(f'Failed to download {conan_config_file_url} to {temp_path}')
+            continue
+        if os.path.isfile(conan_config_path):
+            # Windows cannot rename to existing file. It needs to be deleted.
+            os.remove(conan_config_path)
+        rename_with_retry(temp_path, conan_config_path)
+        return conan_config_path
+
+    if os.path.isfile(conan_config_path):
+        warn('Failed to download, retry count has expired, using a previously downloaded version')
+        return conan_config_path
+    else:
+        fatal('Failed to download, and retry count has expired')
+        print_hints_on_download_error(str(err))
+        info('See the help on how to disable constraints in order to work around this issue.')
+        raise SystemExit(1)
 
 def action_download(args):  # type: ignore
     """
@@ -2351,6 +2418,24 @@ def action_install(args):  # type: ignore
 
         tool_obj.download(tool_version)
         tool_obj.install(tool_version)
+    conan_config_path = get_conan_config(get_sifli_sdk_version())
+    # run conan config install <path>
+    try:
+        _, sifli_sdk_python_export_path, _, _ = get_python_env_path()
+        conan_path = os.path.join(sifli_sdk_python_export_path, 'conan')
+        subprocess.check_call([conan_path, 'config', 'install', conan_config_path],
+                              stdout=sys.stdout, stderr=sys.stderr)
+    except subprocess.CalledProcessError as e:
+        fatal(f'Failed to run conan config install {conan_config_path} with error: {e}')
+        raise SystemExit(1)
+    try:
+        subprocess.check_call([conan_path, 'remote', 'add', 'artifactory', 'https://jfrog.sifli.com/artifactory/api/conan/conan-local', '--force'],
+                              stdout=sys.stdout, stderr=sys.stderr)
+    except subprocess.CalledProcessError as e:
+        fatal(f'Failed to run conan remote add artifactory with error: {e}')
+        raise SystemExit(1)
+    
+
 
 
 def get_wheels_dir() -> Optional[str]:
@@ -3154,6 +3239,8 @@ def main(argv: List[str]) -> None:
     os.environ['SIFLI_SDK_PATH'] = g.sifli_sdk_path
 
     g.sifli_sdk_tools_path = os.environ.get('SIFLI_SDK_TOOLS_PATH') or os.path.expanduser(SIFLI_SDK_TOOLS_PATH_DEFAULT)
+
+    os.environ['CONAN_HOME'] = os.path.join(g.sifli_sdk_tools_path, 'conan')
 
     # On macOS, unset __PYVENV_LAUNCHER__ variable if it is set.
     # Otherwise sys.executable keeps pointing to the system Python, even when a python binary from a virtualenv is invoked.

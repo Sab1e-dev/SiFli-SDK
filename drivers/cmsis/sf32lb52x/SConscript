@@ -34,6 +34,7 @@ if GetDepend(['BF0_HCPU']) and not GetDepend(['CFG_BOOTLOADER']):
     src += ['bf0_lcpu_init.c']
     if not GetDepend(['CFG_FACTORY_DEBUG']):
         src += ['bt_rf_test.c']
+        src += ['bt_afh_test.c']
     if GetDepend(['FPGA']):
         src += ['ble_rf_fulcal_ad9364.c']
         src += ['spi_tst_drv.c']

@@ -25,6 +25,8 @@ menu "Sifli middleware"
         bool "Cell Transform Algo"
         default n
 
+    source "$SIFLI_SDK/middleware/coredump/Kconfig"
+
     config USING_GAUSS_BLUR
         bool "Gauss Blurring Library"
         default n    
@@ -172,6 +174,11 @@ menu "Sifli middleware"
             default n
             depends on SECBOOT_USING_APP_IMG_SIG_VERIFIY
     endif
+    
+    menuconfig USING_DFU_PAN
+        bool "Using dfu pan"
+        depends on BF0_HCPU
+        default n
 
     menuconfig BSP_USING_DFU
         bool "Device firmware update support functions"
@@ -390,6 +397,10 @@ menu "Sifli middleware"
         depends on RT_USING_MODULE
         depends on RT_USING_XIP_MODULE
 
+    config USING_BATTERY_CALCULATOR
+        bool "Enable Battery Calculator"
+        default n
+
     menuconfig USING_CPU_USAGE_PROFILER
         bool "Enable CPU Usage Profiler"
         default n   
@@ -476,6 +487,7 @@ menu "Sifli middleware"
     source "$SIFLI_SDK/middleware/file_logger/Kconfig"
 
     source "$SIFLI_SDK/middleware/audio/Kconfig"
+    source "$SIFLI_SDK/middleware/audio/anyka/Kconfig"
     config USING_PARTITION_TABLE
         bool "Use partition table to manage all memory layout"
         default y if KCONFIG_V2
@@ -494,3 +506,4 @@ menu "Sifli middleware"
     source "$SIFLI_SDK/middleware/crypto/Kconfig"    
 
 endmenu
+

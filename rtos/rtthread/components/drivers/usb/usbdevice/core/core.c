@@ -962,6 +962,7 @@ static rt_err_t _stop_notify(udevice_t device)
 static rt_size_t rt_usbd_ep_write(udevice_t device, uep_t ep, void *buffer, rt_size_t size)
 {
     rt_uint16_t maxpacket;
+    uint16_t count = 0;
 
     RT_ASSERT(device != RT_NULL);
     RT_ASSERT(device->dcd != RT_NULL);
@@ -971,10 +972,14 @@ static rt_size_t rt_usbd_ep_write(udevice_t device, uep_t ep, void *buffer, rt_s
     maxpacket = EP_MAXPACKET(ep);
     if (ep->request.remain_size >= maxpacket)
     {
-        uint16_t packet_count = ep->request.remain_size / maxpacket;
-        dcd_ep_write(device->dcd, EP_ADDRESS(ep), ep->request.buffer, maxpacket * packet_count);
-        ep->request.remain_size -= maxpacket * packet_count;
-        ep->request.buffer += maxpacket * packet_count;
+#if defined(USB_TX_DMA_ENABLED)
+        count = ep->request.remain_size / maxpacket;
+#else
+        count = 1;
+#endif
+        dcd_ep_write(device->dcd, EP_ADDRESS(ep), ep->request.buffer, count * maxpacket);
+        ep->request.remain_size -= count * maxpacket;
+        ep->request.buffer += count * maxpacket;
     }
     else
     {
@@ -2220,7 +2225,7 @@ L1_NON_RET_BSS_SECT(usb_thread_stack, static rt_uint8_t usb_thread_stack[RT_USBD
 L1_NON_RET_BSS_SECT_END
 static struct rt_thread usb_thread;
 #define USBD_MQ_MSG_SZ  32
-#define USBD_MQ_MAX_MSG 16
+#define USBD_MQ_MAX_MSG 64
 /* internal of the message queue: every message is associated with a pointer,
  * so in order to recveive USBD_MQ_MAX_MSG messages, we have to allocate more
  * than USBD_MQ_MSG_SZ*USBD_MQ_MAX_MSG memery. */

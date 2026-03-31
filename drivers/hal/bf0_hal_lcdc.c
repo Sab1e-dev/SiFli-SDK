@@ -748,7 +748,7 @@ static HAL_StatusTypeDef SetOutFormat(LCDC_HandleTypeDef *lcdc, HAL_LCDC_PixelFo
         break;
 
 #ifndef SF32LB55X
-    case LCDC_PIXEL_FORMAT_RGB565_SWAP:
+    case LCDC_PIXEL_FORMAT_BGR565_SWAP:
         reg_v |= (0 << LCD_IF_LCD_CONF_AHB_FORMAT_Pos)                // AHB LCD/RAM
                  | (1 << LCD_IF_LCD_CONF_DPI_LCD_FORMAT_Pos)           // DPI LCD
                  | (1 << LCD_IF_LCD_CONF_SPI_LCD_FORMAT_Pos)           // SPI LCD
@@ -1917,7 +1917,8 @@ static HAL_StatusTypeDef _SendLayerData(LCDC_HandleTypeDef *lcdc, LCDC_AsyncMode
         lcdc->Instance->SETTING |= LCD_IF_SETTING_JDI_PARL_INTR_MASK | LCD_IF_SETTING_EOF_MASK;
         //Pull up rst
         lcdc->Instance->JDI_PAR_CTRL |= LCD_IF_JDI_PAR_CTRL_XRST;
-        HAL_Delay_us(35);
+        if (jdi_cfg->customer_timing_en) HAL_Delay_us(jdi_cfg->VST_dly_us);
+        else HAL_Delay_us(35);
         lcdc->Instance->JDI_PAR_CTRL |=  LCD_IF_JDI_PAR_CTRL_ENABLE; //send data
         HAL_Delay_us(1); //Wait digital start send data
 
@@ -2122,7 +2123,7 @@ static void LCDC_TransErrCallback(LCDC_HandleTypeDef *lcdc, HAL_StatusTypeDef er
 static void HAL_LCDC_JDIParallelInit(LCDC_HandleTypeDef *lcdc)
 {
     uint32_t lcdc_clk_Hz = HAL_RCC_GetHCLKFreq(GET_LCDC_SYSID(lcdc));
-    uint32_t lcdc_pclk_Hz = HAL_RCC_GetPCLKFreq(GET_LCDC_SYSID(lcdc), 1);
+    // uint32_t lcdc_pclk_Hz = HAL_RCC_GetPCLKFreq(GET_LCDC_SYSID(lcdc), 1);
     JDI_LCD_CFG *jdi_cfg = &(lcdc->Init.cfg.jdi);
 
     uint32_t max_col, max_line;
@@ -2137,9 +2138,18 @@ static void HAL_LCDC_JDIParallelInit(LCDC_HandleTypeDef *lcdc)
     uint32_t hck_dly_tk = hck_tk / 2;
 
     uint32_t vck_tk     = hck_tk * max_col;
-    uint32_t vst_tk     = vck_tk;
-    uint32_t vck_dly_tk = vck_tk / 2;
+    uint32_t vst_tk, vck_dly_tk;
 
+    if (jdi_cfg->customer_timing_en)
+    {
+        vst_tk     = lcdc_clk_Hz * jdi_cfg->VST_width_0p1us / 10000000;
+        vck_dly_tk = lcdc_clk_Hz * jdi_cfg->VCK_dly_0p1us / 10000000;
+    }
+    else
+    {
+        vst_tk     = vck_tk;
+        vck_dly_tk = vck_tk / 2;
+    }
 
     HAL_LCDC_ASSERT(hst_tk <= GET_REG_VAL(LCD_IF_JDI_PAR_CONF4_HST_WIDTH_Msk, LCD_IF_JDI_PAR_CONF4_HST_WIDTH_Msk, LCD_IF_JDI_PAR_CONF4_HST_WIDTH_Pos));
     HAL_LCDC_ASSERT(hck_tk <= GET_REG_VAL(LCD_IF_JDI_PAR_CONF4_HCK_WIDTH_Msk, LCD_IF_JDI_PAR_CONF4_HCK_WIDTH_Msk, LCD_IF_JDI_PAR_CONF4_HCK_WIDTH_Pos));
@@ -2788,7 +2798,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_ReadDatas(LCDC_HandleTypeDef *lcdc, ui
 
     //HAL_LCDC_ASSERT((lcdc->Instance->STATUS&LCD_IF_STATUS_LCD_BUSY) == 0x0);
     HAL_LCDC_ASSERT((NULL != lcdc) && (NULL != p_data));
-    HAL_LCDC_ASSERT((addr_len > 0) && (addr_len <= 4));
+    HAL_LCDC_ASSERT(addr_len <= 4);
 
     if (0 == data_len) return HAL_OK;
 
@@ -3518,11 +3528,12 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_SendLayerData2Reg(LCDC_HandleTypeDef *
 #define PTC_btim   hwp_btim2
 #define BTIM_RCC_MOD  RCC_MOD_BTIM2
 #ifdef SF32LB58X
-    #define  p_DMACH0  DMA1_Channel7
-    #define PTC_DMACH0_TC PTC_HCPU_DMAC1_DONE7
+#define  p_DMACH0  DMA1_Channel7
+#define PTC_DMACH0_TC PTC_HCPU_DMAC1_DONE7
 #else
-    #define  p_DMACH0  DMA1_Channel5
-    #define PTC_DMACH0_TC PTC_HCPU_DMAC1_DONE5
+static DMA_HandleTypeDef hdma_ptc_ch0 = {0};
+static DMA_Channel_TypeDef *p_DMACH0 = NULL;
+static uint8_t PTC_DMACH0_TC = 0xFF;
 #endif /* SF32LB58X */
 
 #define  p_extDMA  hwp_extdma
@@ -3827,7 +3838,7 @@ static void SPI_AUX_HW_FSM_START(LCDC_HandleTypeDef *lcdc)
 
 
     //Start!!!
-    memcpy((void *) & (hwp_ptc1->TCR1), (void *)PTC_PHASE_ADDR(0), PTC_TABLE_BYTE);
+    word_memcpy((void *) & (hwp_ptc1->TCR1), (void *)PTC_PHASE_ADDR(0), PTC_TABLE_BYTE / 4);
     NVIC_EnableIRQ(PTC_IRQ_NUM);
     hwp_ptc1->TCR1 |= PTC_TCR1_SWTRIG;
 
@@ -4154,6 +4165,9 @@ static HAL_StatusTypeDef RAMLESS_HW_FSM_WRITE_DATAS_END(LCDC_HandleTypeDef *lcdc
     return err;
 }
 
+
+
+
 #ifdef LCDC_SUPPORT_DPI
 static void DPI_HW_FSM_START(LCDC_HandleTypeDef *lcdc)
 {
@@ -4168,6 +4182,35 @@ static void DPI_HW_FSM_START(LCDC_HandleTypeDef *lcdc)
 #else
     HAL_LCDC_ASSERT(0);//Fix me!
 #endif /* SF32LB56X */
+
+
+#ifdef SF32LB58X
+
+#else
+#ifdef DMA_SUPPORT_DYN_CHANNEL_ALLOC
+
+    /*Dynamic allocation of DMA channels*/
+    memset(&hdma_ptc_ch0, 0, sizeof(hdma_ptc_ch0));
+
+    hdma_ptc_ch0.Instance = DMA1_Channel5;
+    HAL_DMA_Init(&hdma_ptc_ch0);
+    if (HAL_DMA_AllocChannel(&hdma_ptc_ch0) != HAL_OK)
+    {
+        HAL_LCDC_ASSERT(0); //DMA channel allocation failed
+    }
+
+
+    p_DMACH0 = hdma_ptc_ch0.Instance;
+    uint32_t channel_num = (hdma_ptc_ch0.ChannelIndex >> 2) + 1;
+    PTC_DMACH0_TC = PTC_HCPU_DMAC1_DONE1 + (channel_num - 1);
+    /*DMA channel init end*/
+
+#else
+    p_DMACH0 = DMA1_Channel5;
+    PTC_DMACH0_TC = PTC_HCPU_DMAC1_DONE5;
+#endif /*DMA_SUPPORT_DYN_CHANNEL_ALLOC*/
+
+#endif /* SF32LB58X */
 
     uint32_t psram_data;
     uint32_t vsh0_hsw_cfg1;//Only Hsync cfg
@@ -4521,7 +4564,8 @@ static void DPI_HW_FSM_START(LCDC_HandleTypeDef *lcdc)
 
 
     //Start!!!
-    memcpy((void *) & (hwp_ptc1->TCR1), (void *)PTC_PHASE_ADDR(0), PTC_TABLE_BYTE);
+    word_memcpy((void *) & (hwp_ptc1->TCR1), (void *)PTC_PHASE_ADDR(0), PTC_TABLE_BYTE / 4);
+
     hwp_ptc1->TCR1 |= PTC_TCR1_SWTRIG;
 #endif /* !defined(SF32LB57X)*/
 }
@@ -4540,6 +4584,32 @@ static void DPI_HW_FSM_STOP(LCDC_HandleTypeDef *lcdc)
 
     NVIC_DisableIRQ(PTC_IRQ_NUM);
 #endif /* hwp_ptc1 */
+
+
+#ifdef SF32LB58X
+
+#else
+#ifdef DMA_SUPPORT_DYN_CHANNEL_ALLOC
+    memset(&hdma_ptc_ch0, 0, sizeof(hdma_ptc_ch0));
+
+    /* Clear the DMAC configuration channel*/
+    if (p_DMACH0)
+    {
+
+
+        hdma_ptc_ch0.Instance = p_DMACH0;
+        HAL_DMA_DeInit(&hdma_ptc_ch0);
+        if (HAL_DMA_FreeChannel(&hdma_ptc_ch0) != HAL_OK)
+        {
+            HAL_LCDC_ASSERT(0); //DMA channel free failed
+        }
+
+        p_DMACH0 = NULL;
+        PTC_DMACH0_TC = 0xFF;
+    }
+#endif /*DMA_SUPPORT_DYN_CHANNEL_ALLOC*/
+
+#endif /* SF32LB58X */
 }
 
 static void DPI_HW_FSM_UPDATE_LAYER_DATA(LCDC_HandleTypeDef *lcdc)
@@ -4945,8 +5015,8 @@ static void SPI_AUX_HW_FSM_START(LCDC_HandleTypeDef *lcdc)
     PTC_CODE(PTC_DMACH0_TC,  &(p_DMACH0->CNDTR),          PTC_OP_WRITE, PTC_TABLE_WORD);    //jump to phase 0,
     PTC_PHASE_ENDS(15);
 
-
-    memcpy((void *) & (hwp_ptc1->TCR1), (void *)PTC_PHASE_ADDR(0), PTC_TABLE_BYTE);
+    //Start!!!
+    word_memcpy((void *) & (hwp_ptc1->TCR1), (void *)PTC_PHASE_ADDR(0), PTC_TABLE_BYTE / 4);
     NVIC_EnableIRQ(PTC_IRQ_NUM);
 
     hwp_btim2->ARR = porch_interval;

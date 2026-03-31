@@ -21,7 +21,7 @@ config CUSTOM_MEM_MAP
 
 ## Partition Table Syntax
 
-The partition table description file `ptab.json` is a text file in JSON format. It follows standard JSON syntax and can be edited with any text editor. There are two versions of the partition table syntax: 1.0 and 2.0. For detailed syntax, refer to [](partition_table_v1.md) and [](partition_table_v2.md).
+The partition table description file `ptab.json` is a text file in JSON format. It follows standard JSON syntax and can be edited with any text editor. There are two versions of the partition table syntax: 1.0 and 2.0. The 2.0 version simplifies the syntax compared to 1.0, making it easier to understand and maintain. It is recommended that new projects adopt the 2.0 syntax. For detailed syntax, refer to [](partition_table_v1.md) and [](partition_table_v2.md).
 
 ```{toctree}
 :hidden:

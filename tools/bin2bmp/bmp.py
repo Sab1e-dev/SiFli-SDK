@@ -105,6 +105,7 @@ class bmp:
 
 
     def bin_format_depth(self, bin_format):
+        bin_format = bin_format.lower()
         if bin_format == "a8" or bin_format == "rgb332":
             return 8
         elif bin_format == "a4":
@@ -118,7 +119,7 @@ class bmp:
         elif bin_format == "argb8888" or bin_format == "rgba8888":
             return 32
         else:
-            return 0
+            raise ValueError("Unsupported bin format: {}".format(bin_format))
 
     #bin_format       - bin format
     #bin_array - bin array
@@ -141,7 +142,7 @@ class bmp:
         bit_mask = 0
         bit_pos  = 0
         for y in range(self.h-1,-1,-1):
-
+            bin_format = bin_format.lower()
             if bin_format == "a4":
                 bit_mask = 0x0F
             elif bin_format == "a2":
@@ -243,9 +244,7 @@ class bmp:
                     r = (bin_array[index+3])
                     index=index+4
                 else:
-                    r = 0
-                    g = 0
-                    b = 0
+                    raise ValueError("Unsupported bin format: {}".format(bin_format))
 
                 #mix with background
                 bg_r = 0

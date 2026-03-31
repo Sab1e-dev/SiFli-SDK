@@ -46,6 +46,9 @@
 #include "tiff.h"
 #include "exif.h"
 #include "bytestream.h"
+#ifdef USING_JPEG_DEC
+#include "jpeg_dec.h"
+#endif /* USING_JPEG_DEC */
 
 #define DBG_TAG           "mjpegd"
 //#define DBG_LVL           LOG_LVL_INFO
@@ -2526,19 +2529,7 @@ static void decode_flush(AVCodecContext *avctx)
     s->got_picture = 0;
 }
 
-#ifdef USING_JPEG_NANODEC
-extern int jpeg_nanod_decode_test(uint8_t *byteStrmStart, uint32_t streamTotalLen, const char *out_cf);
-extern int jpeg_nanod_decode2(uint8_t *byteStrmStart, 
-                uint32_t streamTotalLen, 
-                const char *out_cf,
-                uint8_t *out_buf,
-                uint32_t out_buf_len);
-
-
-extern     int jpeg_nanod_decode_init(void);
-extern     int jpeg_nanod_decode_get_dimension(uint8_t *byteStrmStart, uint32_t streamTotalLen, uint32_t *width, uint32_t *height);
-extern int jpeg_nanod_decode_deinit(void);
-
+#ifdef USING_JPEG_DEC
 av_cold int ff_mjpeg_hwdecode_init(AVCodecContext *avctx)
 {
     MJpegDecodeContext *s = avctx->priv_data;
@@ -2569,9 +2560,9 @@ int ff_mjpeg_hwdecode_frame(AVCodecContext *avctx, void *data, int *got_frame,
 
     if(s->first_picture)
     {
-        jpeg_nanod_decode_init();
-        ret = jpeg_nanod_decode_get_dimension(buf_ptr, buf_size, &width, &height);
-        jpeg_nanod_decode_deinit();
+        jpeg_decode_init();
+        ret = jpeg_decode_get_dimension(buf_ptr, buf_size, &width, &height);
+        jpeg_decode_deinit();
         
         if(0 != ret)
             return ret;
@@ -2608,7 +2599,7 @@ int ff_mjpeg_hwdecode_frame(AVCodecContext *avctx, void *data, int *got_frame,
         
         //static uint8_t color = 0;
         //memset(s->picture_ptr->data[0], color++, out_buf_len);
-        ret = jpeg_nanod_decode2(buf_ptr, buf_size, decode_format, out_buf,out_buf_len);
+        ret = jpeg_decode2(buf_ptr, buf_size, decode_format, out_buf,out_buf_len);
         *got_frame = 1;
     }
     else
@@ -2629,7 +2620,7 @@ static void hwdecode_flush(AVCodecContext *avctx)
 {
 }
 
-#endif /*USING_JPEG_NANODEC*/
+#endif /*USING_JPEG_DEC*/
 
 #ifdef HAL_JPEGD_MODULE_ENABLED
 av_cold int ff_mjpeg_hwdecode_init(AVCodecContext *avctx)
@@ -2773,7 +2764,7 @@ AVCodec ff_mjpeg_decoder = {
     .type           = AVMEDIA_TYPE_VIDEO,
     .id             = AV_CODEC_ID_MJPEG,
     .priv_data_size = sizeof(MJpegDecodeContext),
-#ifdef USING_JPEG_NANODEC
+#ifdef USING_JPEG_DEC
     .init           = ff_mjpeg_hwdecode_init,
     .close          = ff_mjpeg_hwdecode_end,
     .decode         = ff_mjpeg_hwdecode_frame,
@@ -2788,7 +2779,7 @@ AVCodec ff_mjpeg_decoder = {
     .close          = ff_mjpeg_decode_end,
     .decode         = ff_mjpeg_decode_frame,
     .flush          = decode_flush,
-#endif /* USING_JPEG_NANODEC */
+#endif /* USING_JPEG_DEC */
     .capabilities   = AV_CODEC_CAP_DR1,
     .max_lowres     = 3,
     .priv_class     = &mjpegdec_class,

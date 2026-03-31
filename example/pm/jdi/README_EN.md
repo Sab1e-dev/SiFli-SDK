@@ -1,6 +1,6 @@
 # JDI Power Consumption Test Example
 
-Source code path: example/pm_jdi
+Source code path: example/pm/jdi
 
 ### Supported Development Boards
 This example can run on the following development boards:
@@ -8,6 +8,15 @@ This example can run on the following development boards:
 
 ## Overview
 After powering on, the screen refreshes for 5 seconds and then enters sleep mode. It can be awakened by pressing Key1. After awakening, the JDI screen refreshes for another 5 seconds. Additionally, a timed wake-up is set to occur every 1 minute to refresh the screen once before entering sleep mode again. This tests power consumption in both sleep and awake states.
+
+* Data Summary (using 200mAh battery capacity as an example)
+
+|          |Screen-on during Wake-up  |Screen-off Sleep      |Daily Consumption      |Usable Days |
+|:---      |:---                      |:---                  |:---                  |:---        |
+|100 times/day|0.64mAh               |1.34mAh              |1.98mAh               |101 days    |
+|300 times/day|1.93mAh               |1.32mAh              |3.25mAh               |61.5 days   |
+|500 times/day|3.22mAh               |1.31mAh              |4.53mAh               |44.1 days   |
+|**Average Current in Two Modes**|**Sleep Power Consumption:** 56uA |**Wake-up Power Consumption:** 4.64mA  |  | |
 
 ## Hardware Connections
 During low power consumption testing, the board is no longer powered via USB but requires 5V power supply to the board's VCC_5V through a power consumption detection tool. Therefore, the following operations need to be performed for power consumption testing.
@@ -155,9 +164,9 @@ please input the serial port num:19
 ![alt text](assets/wakeup.png)
 
 * Power consumption used in one day
-    100 times: 4.64 * 100 * 5 / 3600 = 0.64 (mAh)
-    300 times: 4.64 * 300 * 5 / 3600 = 1.93 (mAh) 
-    500 times: 4.64 * 500 * 5 / 3600 = 3.22 (mAh)
+   - 100 times: 4.64 * 100 * 5 / 3600 = 0.64 (mAh)
+   - 300 times: 4.64 * 300 * 5 / 3600 = 1.93 (mAh) 
+   - 500 times: 4.64 * 500 * 5 / 3600 = 3.22 (mAh)
 
 ### Sleep Power Consumption
 * The average current in sleep mode is: 56uA
@@ -170,9 +179,9 @@ please input the serial port num:19
     56 / 1000 * 1 = 0.056 (mAh)
 
 * Total daily consumption calculation as follows:
-    100 times: 0.056 * (24 * 3600 - 100 * 5) / 3600 + 0.64 = 1.98 (mAh)  
-    300 times: 0.056 * (24 * 3600 - 300 * 5) / 3600 + 1.93 = 3.25 (mAh)
-    500 times: 0.056 * (24 * 3600 - 500 * 5) / 3600 + 3.22 = 4.53 (mAh)
+   - 100 times: 0.056 * (24 * 3600 - 100 * 5) / 3600 + 0.64 = 1.98 (mAh)  
+   - 300 times: 0.056 * (24 * 3600 - 300 * 5) / 3600 + 1.93 = 3.25 (mAh)
+   - 500 times: 0.056 * (24 * 3600 - 500 * 5) / 3600 + 3.22 = 4.53 (mAh)
 
 3. Data Summary
 | |Screen On When Waking Up|Screen Off During Sleep|Daily Consumption|Usable Days|

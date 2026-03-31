@@ -568,6 +568,7 @@ static void app_clock_load_dyn_wf(void)
 /**********************regist app clock to app manager****************************/
 extern void app_clock_agif_register(void);
 extern void app_clock_agif02_register(void);
+extern void app_clock_apng_register(void);
 
 void app_clock_reset_time(void)
 {
@@ -598,6 +599,7 @@ static void on_start(void)
 
     app_clock_agif_register();
     app_clock_agif02_register();
+    app_clock_apng_register();
 
     gui_script_watch_face_register();
 

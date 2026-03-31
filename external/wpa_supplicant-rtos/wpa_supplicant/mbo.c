@@ -11,7 +11,6 @@
  */
 
 #include "utils/includes.h"
-
 #ifdef CONFIG_MBO
 
 #include "utils/common.h"

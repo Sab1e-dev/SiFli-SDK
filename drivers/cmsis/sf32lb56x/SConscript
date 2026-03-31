@@ -35,6 +35,8 @@ if GetDepend(['BF0_HCPU']):
     if not GetDepend(['CFG_BOOTLOADER']):
         src += ['bt_rf_cw_config.c']
         src += ['bt_power_config.c']
+        if not GetDepend(['CFG_FACTORY_DEBUG']):
+            src += ['bt_afh_test.c']
 
 
 ASFLAGS = ''

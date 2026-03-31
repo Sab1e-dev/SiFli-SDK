@@ -337,15 +337,15 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_I2S_Config_Transmit(I2S_HandleTypeDef *hi2s
     hi2s->Instance->AUDIO_TX_LRCK_DIV = (cfg->clk_div->lr_clk_duty_low << I2S_AUDIO_TX_LRCK_DIV_DUTY_LOW_Pos) |
                                         (cfg->clk_div->lr_clk_duty_high << I2S_AUDIO_TX_LRCK_DIV_DUTY_HIGH_Pos);
 
-    hi2s->Instance->AUDIO_SERIAL_TIMING = (0 << I2S_AUDIO_SERIAL_TIMING_TIMING_Pos) |
+    hi2s->Instance->AUDIO_SERIAL_TIMING = (0 << I2S_AUDIO_SERIAL_TIMING_TIMING_Pos) | /* 0 I2S mode, 1 left justified, 2 right justifiled */
                                           ((cfg->slave_mode & 0x1) << I2S_AUDIO_SERIAL_TIMING_SLAVE_EN_Pos) |
                                           ((cfg->lrck_invert & 0x1) << I2S_AUDIO_SERIAL_TIMING_LRCK_POL_Pos);
     if (cfg->slave_mode)
         hi2s->Instance->AUDIO_I2S_SL_MERGE = 0x1 << I2S_AUDIO_I2S_SL_MERGE_SLAVE_TIMING_MERGE_Pos;
     hi2s->Instance->AUDIO_TX_FORMAT = (cfg->pcm_dw << I2S_AUDIO_TX_FORMAT_PCM_DATA_WIDTH_Pos);
     hi2s->Instance->TX_PCM_FORMAT =
-        (((cfg->data_dw & 0x1f)) << I2S_TX_PCM_FORMAT_DW_Pos) |             // dw
-        ((cfg->track & 0x1) << I2S_TX_PCM_FORMAT_TRACK_FLAG_Pos);              // Mono or storeo
+        (((cfg->data_dw & 0x1f)) << I2S_TX_PCM_FORMAT_DW_Pos) |
+        ((cfg->track & 0x1) << I2S_TX_PCM_FORMAT_TRACK_FLAG_Pos); /* Mono or storeo */
     hi2s->Instance->TX_PCM_CH_SEL = cfg->chnl_sel;
     hi2s->Instance->TX_VOL_CTRL = (cfg->vol & 0xf) << I2S_TX_VOL_CTRL_VOL_Pos;
 
@@ -373,13 +373,13 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_I2S_Config_Receive(I2S_HandleTypeDef *hi2s,
                                         (cfg->clk_div->lr_clk_duty_high << I2S_AUDIO_RX_LRCK_DIV_DUTY_HIGH_Pos);
 
 
-    hi2s->Instance->AUDIO_RX_SERIAL_TIMING = (0 << I2S_AUDIO_RX_SERIAL_TIMING_TIMING_Pos) |
+    hi2s->Instance->AUDIO_RX_SERIAL_TIMING = (0 << I2S_AUDIO_RX_SERIAL_TIMING_TIMING_Pos) | /* 0 I2S mode, 1 left justified, 2 right justifiled */
             ((cfg->slave_mode & 0x1) << I2S_AUDIO_RX_SERIAL_TIMING_SLAVE_EN_Pos) |
             ((cfg->lrck_invert & 0x1) << I2S_AUDIO_RX_SERIAL_TIMING_LRCK_POL_Pos);
-    hi2s->Instance->AUDIO_RX_PCM_DW = (cfg->pcm_dw << I2S_AUDIO_RX_PCM_DW_PCM_DATA_WIDTH_Pos);//(cfg->data_dw << I2S_AUDIO_RX_PCM_DW_PCM_DATA_WIDTH_Pos);
+    hi2s->Instance->AUDIO_RX_PCM_DW = (cfg->pcm_dw << I2S_AUDIO_RX_PCM_DW_PCM_DATA_WIDTH_Pos);
     hi2s->Instance->RECORD_FORMAT =
-        (((cfg->data_dw >> 4) & 0x1) << I2S_RECORD_FORMAT_DW_Pos) |              // dw
-        ((cfg->track & 0x1) << I2S_RECORD_FORMAT_TRACK_Pos);              // Mono or storeo
+        (((cfg->data_dw >> 4) & 0x1) << I2S_RECORD_FORMAT_DW_Pos) |
+        ((cfg->track & 0x1) << I2S_RECORD_FORMAT_TRACK_Pos); // Mono or storeo
     hi2s->Instance->RX_CH_SEL = cfg->chnl_sel;
 
     return HAL_OK;

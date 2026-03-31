@@ -7,7 +7,7 @@
 
 #include "bf0_hal.h"
 #include "bf0_hal_usb_common.h"
-
+#include "rtconfig.h"
 
 /** @addtogroup BF0_HAL_Driver
   * @{
@@ -15,10 +15,6 @@
 
 #if defined(HAL_PCD_MODULE_ENABLED)||defined(_SIFLI_DOXYGEN_)
 
-#ifndef SF32LB55X
-    #define USB_TX_DMA_ENABLED 1
-    #define USB_RX_DMA_ENABLED 1
-#endif
 
 /** @defgroup PCD USB Device
   * @brief PCD HAL module driver
@@ -35,7 +31,7 @@
   */
 static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd);
 static const char *ep0_state_str(uint8_t state);
-static uint8_t tx_packet_max = 0;
+static volatile uint8_t s_tx_packet_max[16] = {0};
 
 #define ep0_state_change(hpcd,new_state) \
 { \
@@ -126,7 +122,14 @@ HAL_StatusTypeDef HAL_PCD_Init(PCD_HandleTypeDef *hpcd)
     /* , start software connection */
     {
         uint8_t power = hpcd->Instance->power;
-        //power &= ~USB_POWER_HSENAB;
+        if (hpcd->Init.speed == PCD_SPEED_HIGH)
+        {
+            power |= USB_POWER_HSENAB;
+        }
+        else
+        {
+            power &= ~USB_POWER_HSENAB;
+        }
         power |= USB_POWER_SOFTCONN;
         hpcd->Instance->power = power;
     }
@@ -549,8 +552,8 @@ HAL_StatusTypeDef HAL_PCD_EP_Open(PCD_HandleTypeDef *hpcd, uint8_t ep_addr, uint
             csr = USB_RXCSR_FLUSHFIFO | USB_RXCSR_CLRDATATOG ;
             // USB_RXCSR_AUTOCLEAR
 
-            if (ep->type == PCD_EP_TYPE_INTR)
-                csr |= USB_RXCSR_DISNYET;
+            //if (ep->type == PCD_EP_TYPE_INTR)
+            csr |= USB_RXCSR_DISNYET;
             // Set twice in case of double buffering.
             hpcd->Instance->rxcsr = csr;
             hpcd->Instance->rxcsr = csr;
@@ -651,13 +654,6 @@ uint32_t HAL_PCD_EP_Receive(PCD_HandleTypeDef *hpcd, uint8_t ep_addr, uint8_t *p
                 r = epn->rxcount;
                 for (i = 0; i < r; i++)
                     *(pBuf + i) = *fifox;
-                epn->rxcsr = 0;
-#endif
-
-#if  defined(SF32LB58X) || defined(SF32LB55X)
-                /* 58 Because it is 480MHz, it is necessary to clear USB-RXCSR-RXPKTRDY here.*/
-                if (HAL_PCD_Get_RxbuffControl(ep->num)) //Control the receiving data flow of the channel 1:Control the receiving data flow of the channel;0 Stop receiving
-                    epn->rxcsr = 0;
 #endif
             }
             ep->xfer_count = 0;
@@ -718,6 +714,9 @@ HAL_StatusTypeDef HAL_PCD_EP_Prepare_Receive(PCD_HandleTypeDef *hpcd, uint8_t ep
 
         HAL_DBG_printf("Prepare_read on pipe %d:%p,len %d, is_in=%d\n", ep->num, pBuf, len, ep->is_in);
         csr = epn->rxcsr;
+        /*Delay ACK here to solve the BUG of 58 transferring large files*/
+        if (HAL_PCD_Get_RxbuffControl(ep->num)) //Control the receiving data flow of the channel 1:Control the receiving data flow of the channel;0 Stop receiving
+            epn->rxcsr = 0;
     }
     else
         ep0_state_change(hpcd, HAL_PCD_EP0_RX);
@@ -773,7 +772,7 @@ HAL_StatusTypeDef HAL_PCD_EP_Transmit(PCD_HandleTypeDef *hpcd, uint8_t ep_addr, 
 #if USB_TX_DMA_ENABLED
         if (IS_DCACHED_RAM((uint32_t)pBuf))
             mpu_dcache_clean((void *)pBuf, len);
-
+        s_tx_packet_max[ep->num] = (len > ep->maxpacket) ? 1 : 0;
 
         struct musb_dma_regs *dma = (struct musb_dma_regs *) & (hpcd->Instance->dma[ep->num]);
         dma->addr = (REG32)pBuf;
@@ -783,16 +782,14 @@ HAL_StatusTypeDef HAL_PCD_EP_Transmit(PCD_HandleTypeDef *hpcd, uint8_t ep_addr, 
             //(0 << USB_DMACTRL_MODE1_SHIFT)    |
             (ep->num << USB_DMACTRL_ENDPOINT_SHIFT) |
             (1 << USB_DMACTRL_IRQENABLE_SHIFT);
-        if ((len / ep->maxpacket) > 1)
+        if (s_tx_packet_max[ep->num])
         {
             dma->cntl |= (1 << USB_DMACTRL_ENABLE_SHIFT) | (1 << USB_DMACTRL_MODE1_SHIFT);
             csr |= USB_TXCSR_DMAENAB | USB_TXCSR_AUTOSET;
-            tx_packet_max = 1;
         }
         else
         {
             dma->cntl |= (1 << USB_DMACTRL_ENABLE_SHIFT) | (0 << USB_DMACTRL_MODE1_SHIFT);
-            tx_packet_max = 0;
         }
         epn->txcsr = csr;
 
@@ -802,17 +799,21 @@ HAL_StatusTypeDef HAL_PCD_EP_Transmit(PCD_HandleTypeDef *hpcd, uint8_t ep_addr, 
         if (csr & USB_TXCSR_TXPKTRDY)
         {
             //LOG_W("old packet still ready, txcsr %03x\n", csr);
+            while (epn->txcsr & USB_TXCSR_TXPKTRDY)
+            {
+                // Wait for the previous packet to be sent
+            }
         }
         if (csr & USB_TXCSR_P_SENDSTALL)
         {
             //LOG_W("ep stalling, txcsr %03x\n", csr);
         }
-        for (int i = 0; i < len; i++) // REVISIT: Use 16bits/32bits FIFO to speed up
+        uint32_t max_len = (len > ep->maxpacket) ? ep->maxpacket : len;
+        ep->xfer_count = max_len;
+        for (int i = 0; i < max_len; i++) // REVISIT: Use 16bits/32bits FIFO to speed up
             *fifox = *(pBuf + i);
         csr &= ~USB_TXCSR_P_UNDERRUN;
-        csr |= USB_TXCSR_AUTOSET;
-        if (len <= ep->maxpacket)
-            csr |= USB_TXCSR_TXPKTRDY;
+        csr |= USB_TXCSR_TXPKTRDY;
 
         epn->txcsr = csr;
 #endif
@@ -1311,7 +1312,11 @@ setup:
             struct urequest *req = (struct urequest *)p;
             int i;
 
-            HAL_ASSERT(len <= 12 * sizeof(uint32_t));
+
+            if (len > 16 * sizeof(uint32_t))
+            {
+                len = 8;
+            }
             for (i = 0; i < len; i++)
                 *(p + i) = *fifox;
             HAL_DBG_printf("Setup rx:%d", len);
@@ -1320,7 +1325,8 @@ setup:
             {
                 ep0->csr0 = USB_CSR0_P_SVDSETUPEND;
                 while ((ep0->csr0 & USB_CSR0_P_SETUPEND) != 0);
-                hpcd->ackpend = USB_CSR0_P_SVDRXPKTRDY;
+
+                hpcd->ackpend = USB_CSR0_P_SVDRXPKTRDY | USB_CSR0_FLUSHFIFO;
                 if (req->wLength == 0)
                 {
                     if (req->request_type & USB_REQ_TYPE_DIR_IN)
@@ -1330,7 +1336,7 @@ setup:
                 else if (req->request_type & USB_REQ_TYPE_DIR_IN)
                 {
                     ep0_state_change(hpcd, HAL_PCD_EP0_TX);
-                    ep0->csr0 = USB_CSR0_P_SVDRXPKTRDY;
+                    ep0->csr0 = USB_CSR0_P_SVDRXPKTRDY | USB_CSR0_FLUSHFIFO;
                     while ((ep0->csr0 & USB_CSR0_RXPKTRDY) != 0);
                     hpcd->ackpend = 0;
                 }
@@ -1397,6 +1403,9 @@ static int musbd_stage0_irq(PCD_HandleTypeDef *hpcd, uint8_t int_usb)
         default:
             HAL_ASSERT(0);        // Incorrect resume.
         }
+
+        if (int_usb & USB_INTR_SUSPEND)
+            int_usb &= ~USB_INTR_SUSPEND;
     }
 
     if (int_usb & USB_INTR_SESSREQ)
@@ -1414,6 +1423,25 @@ static int musbd_stage0_irq(PCD_HandleTypeDef *hpcd, uint8_t int_usb)
     {
         HAL_ASSERT(0);
         r = 1;
+    }
+
+    if (int_usb & USB_INTR_RESET)
+    {
+        r = 1;
+        switch (hpcd->phy_state)
+        {
+        case OTG_STATE_B_WAIT_ACON:
+        case OTG_STATE_B_PERIPHERALS:
+        case OTG_STATE_B_IDLE:
+            hpcd->phy_state = OTG_STATE_B_PERIPHERALS;
+            ep0_state_change(hpcd, HAL_PCD_EP0_IDLE);
+            HAL_PCD_ResetCallback(hpcd);
+            break;
+        default:
+            HAL_ASSERT(0);
+        }
+        if (int_usb & USB_INTR_SUSPEND)
+            int_usb &= ~USB_INTR_SUSPEND;
     }
 
     if (int_usb & USB_INTR_SUSPEND)
@@ -1447,22 +1475,6 @@ static int musbd_stage0_irq(PCD_HandleTypeDef *hpcd, uint8_t int_usb)
         HAL_PCD_DisconnectCallback(hpcd);
         hpcd->Instance->devctl = USB_DEVCTL_SESSION;
         hpcd->phy_state = OTG_STATE_B_IDLE;
-    }
-    if (int_usb & USB_INTR_RESET)
-    {
-        r = 1;
-        switch (hpcd->phy_state)
-        {
-        case OTG_STATE_B_WAIT_ACON:
-        case OTG_STATE_B_PERIPHERALS:
-        case OTG_STATE_B_IDLE:
-            hpcd->phy_state = OTG_STATE_B_PERIPHERALS;
-            ep0_state_change(hpcd, HAL_PCD_EP0_IDLE);
-            HAL_PCD_ResetCallback(hpcd);
-            break;
-        default:
-            HAL_ASSERT(0);
-        }
     }
 
     return r;
@@ -1510,14 +1522,16 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
             if (ep->is_in)
             {
                 //TX
-                if (0 == tx_packet_max)
+                if (0 == s_tx_packet_max[ep_num])
                 {
                     uint16_t csr = epn->txcsr;
                     csr &= ~USB_TXCSR_P_UNDERRUN;
-                    csr |= USB_TXCSR_AUTOSET;
+                    //csr |= USB_TXCSR_AUTOSET;
                     if (ep->xfer_len <= ep->maxpacket)
                         csr |= USB_TXCSR_TXPKTRDY;
                     epn->txcsr = csr;
+                    /*When occasional TX occurs, there will be no TX interruption, so TX callback can be performed directly here*/
+                    //HAL_PCD_DataInStageCallback(hpcd, ep_num);
                 }
                 else
                 {
@@ -1526,12 +1540,6 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
             }
             else
             {
-#ifndef SF32LB58X
-                /*Clear RXPKTRDY and send an ACK to the host. 58 cannot be cleared here because there is no time to react.
-                                            52/56 can be cleared here to increase the rate*/
-                if (HAL_PCD_Get_RxbuffControl(ep->num)) //Control the receiving data flow of the channel 1:Control the receiving data flow of the channel;0 Stop receiving
-                    epn->rxcsr = 0;
-#endif
                 HAL_PCD_DataOutStageCallback(hpcd, ep_num); //RX
             }
 
@@ -1547,11 +1555,11 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
     {
         if (reg & 1)
         {
-#if USB_RX_DMA_ENABLED
             PCD_EPTypeDef *ep = &hpcd->OUT_ep[ep_num];
-            struct musb_dma_regs *dma = (struct musb_dma_regs *) & (hpcd->Instance->dma[ep->num]);
             __IO struct musb_epN_regs *epn = &(hpcd->Instance->ep[ep->num].epN);
+#if USB_RX_DMA_ENABLED
 
+            struct musb_dma_regs *dma = (struct musb_dma_regs *) & (hpcd->Instance->dma[ep->num]);
             HAL_DBG_printf("DMA RX pipe=%d, len=%d\n", ep->num,  epn->rxcount);
             if (epn->rxcount)
             {
@@ -1567,7 +1575,13 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
                             (ep->num << USB_DMACTRL_ENDPOINT_SHIFT) |
                             (1 << USB_DMACTRL_IRQENABLE_SHIFT);
             }
+            else
+            {
+                ep->xfer_count = epn->rxcount;
+                HAL_PCD_DataOutStageCallback(hpcd, ep_num);
+            }
 #else
+            ep->xfer_count = epn->rxcount;
             HAL_PCD_DataOutStageCallback(hpcd, ep_num);
 #endif
 
@@ -1576,12 +1590,11 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
         reg >>= 1;
     }
 
-
     reg = (int_tx >> 1);
     ep_num = 1;
     while (reg)
     {
-        if ((reg & 1) && (0 == tx_packet_max))
+        if ((reg & 1) && (0 == s_tx_packet_max[ep_num]))
             HAL_PCD_DataInStageCallback(hpcd, ep_num);
         ep_num++;
         reg >>= 1;

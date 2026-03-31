@@ -343,15 +343,15 @@ static int elm_trans_out(char *file_path, char *file_size)
         goto FUNC_END;
     }
 
-    rt_kprintf("elm_trans_out START\n");
+    local_log_pause(1);
+
+    rt_device_write(pDev, 0, "elm_trans_out START\n", strlen("elm_trans_out START\n"));
 
     if (pDev->open_flag & RT_DEVICE_FLAG_STREAM)
     {
         pDev->open_flag &= ~RT_DEVICE_FLAG_STREAM;
         flag = 1;
     }
-
-    local_log_pause(1);
 
     off = 0;
     while (1)

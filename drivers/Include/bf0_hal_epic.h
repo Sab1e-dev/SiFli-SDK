@@ -251,6 +251,13 @@ typedef enum
     ALPHA_BLEND_OVERWRITE          = 0x02U,    /*!< Replace the background's alpha                        */
 } Alpha_BlendTypeDef;
 
+typedef enum
+{
+    EPIC_DITHER_LEVEL_DISABLE = 0,   /**< Dither disable */
+    EPIC_DITHER_LEVEL_MIN = 1,   /**< Dither minimal level*/
+    EPIC_DITHER_LEVEL_MIDDLE = 2,   /**< Dither middle level */
+    EPIC_DITHER_LEVEL_MAX = 3,   /**< Dither maximum level*/
+} EPIC_DitherLevelTypeDef;
 
 typedef struct
 {
@@ -403,6 +410,9 @@ typedef struct
     EPIC_YUVCfgTypeDef  yuv;  /**< YUV data*/
 
     uint16_t lookup_table_size;  /**< Lookup table color numbers*/
+
+    uint32_t dither_level : 2;  /**< Dither level for this layer, refer to #EPIC_DITHER_LEVEL_XXX */
+    uint32_t reserved  : 30;   /**< Reserved */
     /** 4x5 color matrix (4 rows, 5 columns) :
      *
      *  | Ra    Rb    Rc   Rd   Re|
@@ -464,6 +474,9 @@ typedef struct
     EPIC_YUVCfgTypeDef  yuv;  /**< YUV data*/
 
     uint16_t lookup_table_size;  /**< Lookup table color numbers, maximum is 'EPIC_MAX_LOOKUP_TABLE_CNT' */
+
+    uint32_t dither_level : 2;  /**< Dither level for this layer, refer to #EPIC_DITHER_LEVEL_XXX */
+    uint32_t reserved  : 30;   /**< Reserved */
     /** 4x5 color matrix (4 rows, 5 columns) :
      *
      *  | Ra    Rb    Rc   Rd   Re|
@@ -690,8 +703,7 @@ typedef struct __EPIC_HandleTypeDef
     uint32_t   start_tick;
     uint32_t   end_tick;
 
-    uint32_t    dither_enable : 1;
-    uint32_t    reserved : 31;
+    uint32_t    reserved : 32;          /* Reserved bits */
 
     EPIC_ApiEnumType  api_type;
     union

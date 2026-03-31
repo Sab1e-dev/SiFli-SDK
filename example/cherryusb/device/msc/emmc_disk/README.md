@@ -1,10 +1,10 @@
-# usb_audio_class_example
+# USB 大容量存储设备示例（EMMC）
 
-源码路径：example\cherryusb\device\emmc_disk
+源码路径：example/cherryusb/device/msc/emmc_disk
 
 ## 支持的平台
 <!-- 支持哪些板子和芯片平台 -->
-+ sf32lb52-lcd_n16r8
+sf32lb52-core_e8r16
 
 ## 概述
 <!-- 例程简介 -->

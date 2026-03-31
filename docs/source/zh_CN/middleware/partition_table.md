@@ -18,7 +18,8 @@ config CUSTOM_MEM_MAP
 
 
 ## 分区表语法
-分区表描述文件`ptab.json`是一个json格式的文本文件，遵循json语法，可以使用任意文本编辑器编辑。分区表的语法有1.0和2.0两个版本，具体语法参考[](partition_table_v1.md)和[](partition_table_v2.md)。
+分区表描述文件`ptab.json`是一个json格式的文本文件，遵循json语法，可以使用任意文本编辑器编辑。分区表的语法有1.0和2.0两个版本，2.0版本的语法相比1.0做了简化，便于理解和维护，建议新项目都采用2.0的语法，
+具体语法参考[](partition_table_v1.md)和[](partition_table_v2.md)。
 
 
 ```{toctree}

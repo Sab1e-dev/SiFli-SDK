@@ -75,20 +75,42 @@ please input the serial port num:5
 例程启动后：
 1. 可以被手机BLE APP搜到并连接。
 2. 将需要传输的一个或者多个文件，使用zip格式进行压缩，压缩后只有一个.zip文件，将该文件传入手机
-3. 使用SIFLI BLE APP搜索，连接该设备，然后再watchface界面，选择自定义文件，然后选择该文件，该文件就可以传输到手机
-4. 手机使用步骤 \
-![APP1](./assets/app1.jpg)
-![APP2](./assets/app2.jpg)
-![APP3](./assets/app3.jpg)
-![APP4](./assets/app4.jpg)
-5. 传输界面 \
-file tpye填3，自定义文件 \
-withByteAlign需要勾选 \
-后续开发可以自行定义各种类型的不同处理
+3. 使用SIFLI BLE APP搜索，连接该设备，然后再watchface界面，选择自定义文件，然后选择该文件，该文件就可以传输到开发板的文件系统中
+4. 手机使用步骤 :
+- 开启位置允许使用权限
+![APP1](./assets/app0.png)
+- 点击右下角查询按钮进入到扫描蓝牙界面
+![APP1](./assets/app1.png)
+- 点击SCAN进行扫描
+![APP2](./assets/app2.png)
+- 搜索到设备后，点击SORT,会将广播名为SIFLI_APP-xx-xx-xx-xx-xx-xx放置前排
+![APP3](./assets/app3.png)
+- 点击SIFLI_APP-xx-xx-xx-xx-xx-xx广播名进入设备界面
+![APP4](./assets/app4.png)
+- 点击右上角进入操作界面
+![APP4](./assets/app5.png)
+- 点击CONNECT确保State 为CONNECT
+![APP4](./assets/app6.png)
+- 上滑最后一栏框，找到文件传输 WFPUSH2点击进入文件传输界面
+![APP4](./assets/app7.png)
+- 点击SELECT FILE选择手机里面事先准备好的zip文件，并把File Type设置为3, 勾选With Byte Align,最后点击START
+![APP4](./assets/app8.png)
+
+- 传输完成后，在console窗口执行命令进入file_recv文件夹，并执行ls命令查看文件列表,其中就是zip文件内容的显示
+![APP4](./assets/app9.png)
 
 
-## 手机SDK接入说明
-https://github.com/OpenSiFli/SiFli_OTA_APP
+## 手机APP和DEMO工程获取使用
+### Android sifli ble app下载地址
+https://www.pgyer.com/gurSBc
+
+### Android demo工程
+https://github.com/OpenSiFli/SiFli_OTA_APP\
+对应的部分在"3. SiFli-SDK OTA"
+
+### iOS demo工程
+https://github.com/OpenSiFli/SiFli_OTA_APP_IOS\
+对应的部分在"SiFli-SDK OTA (Nor Offline)"
 SiFli-SDK file transfer
 
 ## 异常诊断

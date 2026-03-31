@@ -9,9 +9,9 @@
 
 // 分配显存空间
 L2_NON_RET_BSS_SECT_BEGIN(epic_buffers)
-ALIGN(64) static uint8_t buffer0[BUFFER_SIZE]; // 蓝色矩形
-ALIGN(64) static uint8_t buffer1[BUFFER_SIZE]; // 红色矩形
-ALIGN(64) static uint8_t buffer2[BUFFER_SIZE];
+L2_NON_RET_BSS_SECT(epic_buffers, ALIGN(64) static uint8_t buffer0[BUFFER_SIZE]);
+L2_NON_RET_BSS_SECT(epic_buffers, ALIGN(64) static uint8_t buffer1[BUFFER_SIZE]);
+L2_NON_RET_BSS_SECT(epic_buffers, ALIGN(64) static uint8_t buffer2[BUFFER_SIZE]);
 L2_NON_RET_BSS_SECT_END
 
 static EPIC_HandleTypeDef epic_handle;

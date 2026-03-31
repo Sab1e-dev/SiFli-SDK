@@ -23,6 +23,28 @@
 extern "C" {
 #endif
 
+/**
+ * @brief Battery lookup point structure.
+ */
+struct battery_lookup_point
+{
+    uint8_t  percent; /**< Battery percentage. */
+    uint32_t voltage; /**< Voltage value in mV. */
+};
+typedef struct battery_lookup_point battery_lookup_point_t;
+
+/** @brief Discharge curve table for battery percentage calculation. */
+extern const battery_lookup_point_t discharge_curve_table[];
+
+/** @brief Charging curve table for battery percentage calculation. */
+extern const battery_lookup_point_t charging_curve_table[];
+
+/** @brief Size of the discharge curve table. */
+extern const uint32_t discharge_curve_table_size;
+
+/** @brief Size of the charging curve table. */
+extern const uint32_t charging_curve_table_size;
+
 void HAL_MspInit(void);
 
 /**
@@ -106,7 +128,10 @@ int BSP_Flash_Init(void);
  */
 void BSP_SD_PowerUp(void);
 
+void BSP_SD2_PowerUp(void);
+
 void BSP_GPIO_Set(int pin, int val, int is_porta);
+
 
 /**
  * @brief PSRAM

@@ -61,10 +61,13 @@ typedef union {
  */
 
 #ifdef HAVE_AV_CONFIG_H
-
 #include "config.h"
 #undef ARCH_ARM
+#ifdef WIN32
+#define ARCH_ARM    0
+#else
 #define ARCH_ARM    1
+#endif
 #if   ARCH_ARM
 #   include "arm/intreadwrite.h"
 #elif ARCH_AVR32

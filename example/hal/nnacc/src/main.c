@@ -244,7 +244,8 @@ int main(void)
     ret = HAL_NNACC_Init(&nn_acc);
     if (HAL_OK == ret)
     {
-        printf("fill_with_random_data. %x %x %x  %x, sp=%x\n", config.wt, config.bias, config.input, config.output, &ret);
+        printf("fill_with_random_data. %p %p %p  %p, sp=%p\n",
+               (void *)config.wt, (void *)config.bias, (void *)config.input, (void *)config.output, (void *)&ret);
 
         /*Fill random data for test*/
         fill_with_random_data((uint8_t *)config.wt,      NNACC_KER_ARRAY_SIZE);

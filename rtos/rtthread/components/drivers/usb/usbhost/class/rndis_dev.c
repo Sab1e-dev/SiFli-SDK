@@ -17,6 +17,7 @@
     /* RT-Thread LWIP ethernet interface */
     #include <netif/ethernetif.h>
     #include <netdev.h>
+    #include <string.h>
 #endif
 
 #ifdef RT_USBH_RNDIS_DEV

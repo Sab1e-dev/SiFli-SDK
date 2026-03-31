@@ -3616,6 +3616,9 @@ int avformat_find_stream_info(AVFormatContext *ic, AVDictionary **options)
                    "Could not find codec parameters for stream %d (%s): %s\n"
                    "Consider increasing the value for the 'analyzeduration' and 'probesize' options\n",
                    i, buf, errmsg);
+#ifdef  USING_JPEG_DEC
+            ret = 0;
+#endif
         } else {
             ret = 0;
         }

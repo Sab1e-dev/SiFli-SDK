@@ -1,5 +1,5 @@
 pipeline {
-   agent { label 'sdk' }
+    agent { label 'sdk' }
     stages {
         stage('Print CI Info') {
             steps {
@@ -53,13 +53,20 @@ pipeline {
                 } 
             }
         }
-         stage('Archive files') {
+        stage('Copyright Check') {
+            steps {
+                bat'''
+                tools\\autotest\\copyright_check.bat
+                '''
+            }
+        }
+        stage('Archive files') {
              steps {
                  archiveArtifacts artifacts: 'example\\boot_loader\\project\\sf32lb57x\\rom\\build\\bootloader.*', fingerprint: true, onlyIfSuccessful: true
                  //  archiveArtifacts artifacts: 'example\\boot_loader\\project\\sf32lb57x\\rom\\build\\bootloader.*,example\\rom_bin\\lcpu_boot_loader\\lcpu_rom_micro.*,example\\rom_bin\\lcpu_boot_loader\\rom_micro.sym,example\\rom_bin\\lcpu_boot_loader\\rom_micro_internal.sym', fingerprint: true, onlyIfSuccessful: true
                  echo "Archive files success"
             }
-         }
+        }
     }
 }
 

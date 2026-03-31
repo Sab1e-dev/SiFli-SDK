@@ -191,9 +191,102 @@ int unsubscribe(void(
 
 ## 在 GUI 中使用数据服务
 
-像 LVGL 这样的 GUI 系统以单线程模式运行，它有自己的 LVGL 任务。 为了在 GUI 线程中更新数据，数据服务定义了可以从 GUI 线程/任务调用的特定接口 。
+像 LVGL 这样的 GUI 系统以单线程模式运行，它有自己的 LVGL 任务。 为了在 GUI 线程中更新数据，数据服务定义了可以从 GUI 线程/任务调用的特定接口。
+
+### 工作原理
+
+GUI数据服务的实现机制：
+1. 通过 `datac_subscribe_ex` 注册一个消息队列（queue）
+2. 数据服务的所有消息先进入这个队列，而不是直接回调
+3. 启动一个LVGL定时器（lv_timer）定期检查这个队列
+4. 在LVGL任务上下文中从队列取出消息并触发回调
+
+这种设计满足了LVGL只能单线程执行的要求，确保所有GUI更新操作都在LVGL任务中完成，避免了线程安全问题。
+
+### 使用示例
+
+以下是在GUI应用中使用数据服务的核心步骤：
+
 ```c
-``` 
+#include "ui_datasrv_subscriber.h"
+
+static datac_handle_t sensor_handle;
+
+/* 数据服务回调函数 - 在LVGL任务中执行 */
+static int sensor_data_callback(data_callback_arg_t *arg)
+{
+    switch (arg->msg_id)
+    {
+        case MSG_SERVICE_SUBSCRIBE_RSP:
+        {
+            data_subscribe_rsp_t *rsp = (data_subscribe_rsp_t *)arg->data;
+            if (rsp->result == 0)
+            {
+                /* 订阅成功，可以开始请求数据 */
+            }
+            break;
+        }
+
+        case MSG_SERVICE_DATA_NTF_IND:
+        {
+            /* 收到数据通知，安全地更新LVGL控件 */
+            sensor_data_t *data = (sensor_data_t *)arg->data;
+            
+            // 直接更新UI，无需额外同步
+            lv_label_set_text_fmt(label, "Value: %d", data->value);
+            break;
+        }
+    }
+    return 0;
+}
+
+/* 应用启动时 */
+void app_start(void)
+{
+    /* 1. 初始化GUI数据服务模块（整个应用只需初始化一次） */
+    ui_datac_init();
+    
+    /* 2. 分配客户端句柄 */
+    sensor_handle = datac_open();
+    RT_ASSERT(DATA_CLIENT_INVALID_HANDLE != sensor_handle);
+    
+    /* 3. 订阅服务 - 回调将在LVGL任务中执行 */
+    ui_datac_subscribe(sensor_handle, "SENSOR", 
+                      sensor_data_callback, 0);
+}
+
+/* 应用停止时 */
+void app_stop(void)
+{
+    if (DATA_CLIENT_INVALID_HANDLE != sensor_handle)
+    {
+        datac_unsubscribe(sensor_handle);
+        datac_close(sensor_handle);
+        sensor_handle = DATA_CLIENT_INVALID_HANDLE;
+    }
+}
+```
+
+**完整的GUI应用示例**请参考[图形应用框架](gui_app_framework.md#应用示例)章节中的指南针应用，该示例展示了完整的应用生命周期和数据服务集成。
+
+
+
+### 关键接口说明
+
+- **`ui_datac_init()`**: 初始化GUI数据服务模块，创建消息队列并启动LVGL定时器（15ms周期）。应在GUI初始化时调用一次。
+
+- **`ui_datac_subscribe(handle, name, callback, user_data)`**: 在GUI线程上下文中订阅数据服务。与普通的 `datac_subscribe` 不同，它通过消息队列确保回调在LVGL任务中执行。
+
+- **回调函数执行环境**: 所有通过 `ui_datac_subscribe` 注册的回调函数都在LVGL任务中执行，可以安全地调用任何LVGL API更新界面。
+
+### 与普通订阅的区别
+
+| 特性 | datac_subscribe | ui_datac_subscribe |
+|------|-----------------|-------------------|
+| 回调执行线程 | 数据服务任务 | LVGL任务 |
+| 线程安全性 | 需要用户处理同步 | 框架自动保证 |
+| 适用场景 | 非GUI应用 | GUI应用 |
+| 是否可更新UI | 否，需额外同步 | 是，直接更新 |
 
 
 ## API参考

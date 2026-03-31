@@ -138,6 +138,10 @@ cd ~/OpenSiFli/SiFli-SDK
 ./install.sh
 ```
 
+```{warning} 
+需要注意的是，不能使用pyenv工具管理系统的python环境，否则在后续的过程中可能会发生错误。
+```
+
 对于国内用户来说，可以使用如下命令来添加国内镜像源：
 
 ```bash

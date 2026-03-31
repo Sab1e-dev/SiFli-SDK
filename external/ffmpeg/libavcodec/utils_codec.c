@@ -2475,6 +2475,10 @@ int attribute_align_arg avcodec_decode_audio4(AVCodecContext *avctx,
         int *got_frame_ptr,
         const AVPacket *avpkt)
 {
+    if (!avctx)
+    {
+        return AVERROR(EINVAL);
+    }
     AVCodecInternal *avci = avctx->internal;
     int ret = 0;
 

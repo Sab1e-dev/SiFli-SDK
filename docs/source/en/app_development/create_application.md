@@ -1,7 +1,7 @@
 
 # Creating an Application
 
-The fastest way to create an application is to copy an existing example. Below, we will explain how to create a new application based on the `hello_world` example.
+The fastest way to create an application is to copy an existing example. Below, we will explain how to create a new application based on the `hello_world` example.Here, the Windows platform is used as an example; the approaches for macOS and Linux are analogous.
 
 ## Copy the Example
 
@@ -27,12 +27,13 @@ The fastest way to create an application is to copy an existing example. Below, 
             SConscript
     ```
 
-2. Open the Env command line window: Right-click on the SDK root directory and open the Env command line window, then run `set_env gcc` to set the environment parameters.
-3. Change to the project directory: `cd c:\work\ws\hello_world\project` to switch to the copied example project directory.
-4. Compile: `scons --board=sf32lb52-lcd_n16r8 -j8`. The selected board is `sf32lb52-lcd_n16r8`, refer to [supported_boards/index.md](../supported_boards/index.md).
+2. Open the PowerShell command line window: Press the Win key or click the Windows icon on the lower left corner, type "powershell", and then open the PowerShell terminal.
+3. Set environment variables: `cd c:\OpenSiFli\SiFli-SDK` to switch to the root directory of the SDK, and then enter `.\export.ps1`.The path used here is just an example. The actual path should be based on the user's local directory.
+4. Change to the project directory: `cd c:\work\ws\hello_world\project` to switch to the copied example project directory.
+5. Compile: `scons --board=sf32lb52-lcd_n16r8 -j8`. The selected board is `sf32lb52-lcd_n16r8`, refer to [supported_boards/index.md](../supported_boards/index.md).
     
     ![Alt text](../../assets/create_app_and_build.png)`
-5. Flash: `build_sf32lb52-lcd_n16r8_hcpu\uart_download`.
+6. Flash: `build_sf32lb52-lcd_n16r8_hcpu\uart_download`.
 
 At this point, a new `hello_world` program has been created, and the compilation and flashing methods for the new project are identical to those of the SDK’s built-in examples.
 
@@ -99,7 +100,7 @@ Return('group')
 
 The `hello_world` example only has basic print functionality, and many components are not enabled. Even if you include the headers for these components in `main.c`, their corresponding functions cannot be called unless you modify the project configuration using the `menuconfig` tool.
 
-To modify the configuration, run `menuconfig --board=<board_name>` in the project directory. Replace `<board_name>` with the name of the board you are using, such as `menuconfig --board=sf32lb52-lcd_n16r8`. This is similar to specifying the board during `scons` compilation. By default, `hcpu` is used, meaning that `menuconfig --board=sf32lb52-lcd_n16r8` and `menuconfig --board=sf32lb52-lcd_n16r8_hcpu` will have the same effect, both configuring the current project for the `sf32lb52-lcd_n16r8` board's HCPU.
+To modify the configuration, run `sdk.py menuconfig --board=<board_name>` in the project directory. Replace `<board_name>` with the name of the board you are using, such as `sdk.py menuconfig --board=sf32lb52-lcd_n16r8`. This is similar to specifying the board during `scons` compilation. By default, `hcpu` is used, meaning that `sdk.py menuconfig --board=sf32lb52-lcd_n16r8` and `sdk.py menuconfig --board=sf32lb52-lcd_n16r8_hcpu` will have the same effect, both configuring the current project for the `sf32lb52-lcd_n16r8` board's HCPU.
 
 After executing `menuconfig`, a screen like the following will appear. You can use the {kbd}`⇧` and {kbd}`⇩` arrow keys to navigate between menu items, press {kbd}`Enter` to enter submenus, and press {kbd}`Space` to select menu items. Once all changes are complete, press {kbd}`D` to save the minimal configuration to the `proj.conf` file in the project directory (`project\proj.conf`). This file is a text file and can be opened to view the differences before and after modifications. For detailed usage of `menuconfig`, refer to [menuconfig.md](../app_note/menuconfig.md).
 

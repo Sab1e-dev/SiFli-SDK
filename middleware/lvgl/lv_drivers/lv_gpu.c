@@ -402,6 +402,8 @@ void img_rotate_opa_frac2(lv_img_dsc_t *dest, lv_img_dsc_t *src, int16_t angle, 
         input_layers[1].yuv.y_buf = input_layers[1].data;
         input_layers[1].yuv.u_buf = input_layers[1].yuv.y_buf + xres * yres;
         input_layers[1].yuv.v_buf = input_layers[1].yuv.u_buf + xres * yres / 4;
+
+        input_layers[1].dither_level = EPIC_YUV420_DITHER_LEVEL_DEFAULT;
     }
     else if (LV_IMG_CF_YUV420_PLANAR2 == src->header.cf)
     {
@@ -409,6 +411,8 @@ void img_rotate_opa_frac2(lv_img_dsc_t *dest, lv_img_dsc_t *src, int16_t angle, 
         input_layers[1].yuv.y_buf = yuv[0];
         input_layers[1].yuv.u_buf = yuv[1];
         input_layers[1].yuv.v_buf = yuv[2];
+
+        input_layers[1].dither_level = EPIC_YUV420_DITHER_LEVEL_DEFAULT;
     }
     else if ((LV_IMG_CF_YUV422_PACKED_YUYV == src->header.cf) || (LV_IMG_CF_YUV422_PACKED_UYVY == src->header.cf))
     {
@@ -464,7 +468,7 @@ void img_transform(lv_img_dsc_t *dest, const lv_img_dsc_t *src, int16_t angle,
                    const lv_area_t *output_coords, lv_opa_t opa, lv_color_t ax_color,
                    lv_point_t *pivot, lv_coord_t pivot_z,  lv_coord_t src_z, uint16_t src_zoom,
                    lv_img_cf_t mask_cf, const lv_opa_t *mask_map, const lv_area_t *mask_coords,
-                   uint8_t type)
+                   uint8_t type, lv_coord_t dst_z, lv_point_t *viewpoint)
 {
     EPIC_LayerConfigTypeDef input_layers[3];
     EPIC_LayerConfigTypeDef output_canvas;
@@ -590,9 +594,18 @@ void img_transform(lv_img_dsc_t *dest, const lv_img_dsc_t *src, int16_t angle,
     input_layers[1].transform_cfg.scale_x = LV_IMG_ZOOM_NONE * EPIC_INPUT_SCALE_NONE / (uint32_t)src_zoom;
     input_layers[1].transform_cfg.scale_y = input_layers[1].transform_cfg.scale_x;
 
-    input_layers[1].transform_cfg.vp_x_offset = input_layers[1].transform_cfg.pivot_x;
-    input_layers[1].transform_cfg.vp_y_offset = input_layers[1].transform_cfg.pivot_y;
-    input_layers[1].transform_cfg.dst_z_offset = input_layers[1].transform_cfg.z_offset;
+    if (!viewpoint)
+    {
+        input_layers[1].transform_cfg.vp_x_offset = input_layers[1].transform_cfg.pivot_x;
+        input_layers[1].transform_cfg.vp_y_offset = input_layers[1].transform_cfg.pivot_y;
+        input_layers[1].transform_cfg.dst_z_offset = dst_z;
+    }
+    else
+    {
+        input_layers[1].transform_cfg.vp_x_offset = viewpoint->x;
+        input_layers[1].transform_cfg.vp_y_offset = viewpoint->y;
+        input_layers[1].transform_cfg.dst_z_offset = dst_z;
+    }
 
 
     /*Setup bg layer*/
@@ -642,7 +655,7 @@ void img_rotate_adv1(lv_img_dsc_t *dest, const lv_img_dsc_t *src, int16_t angle,
 {
     img_transform(dest, src, angle, p_src_coords, p_dst_coords,
                   p_output_coords, opa, ax_color, pivot, pivot_z, src_z, src_zoom,
-                  0, NULL, NULL, 1);
+                  0, NULL, NULL, 1, src_z, NULL);
 }
 
 void img_rotate_adv2(lv_img_dsc_t *dest, const lv_img_dsc_t *src, int16_t angle,
@@ -652,7 +665,7 @@ void img_rotate_adv2(lv_img_dsc_t *dest, const lv_img_dsc_t *src, int16_t angle,
 {
     img_transform(dest, src, angle, p_src_coords, p_dst_coords,
                   p_output_coords, opa, ax_color, pivot, pivot_z, src_z, src_zoom,
-                  0, NULL, NULL, 2);
+                  0, NULL, NULL, 2, src_z, NULL);
 }
 
 
@@ -662,7 +675,10 @@ void img_rotate_adv2_vp(lv_img_dsc_t *dest, const lv_img_dsc_t *src, int16_t ang
                         lv_point_t *pivot, lv_coord_t pivot_z, lv_coord_t src_z, uint16_t src_zoom,
                         lv_coord_t dst_z, lv_point_t *viewpoint, lv_area_t *src_new_area)
 {
-
+    LV_UNUSED(src_new_area);
+    img_transform(dest, src, angle, p_src_coords, p_dst_coords,
+                  p_output_coords, opa, ax_color, pivot, pivot_z, src_z, src_zoom,
+                  0, NULL, NULL, 2, dst_z, viewpoint);
 }
 
 extern void HAL_EPIC_Adv_Log(uint32_t level);
@@ -1346,12 +1362,11 @@ static lv_res_t my_decode_and_draw(lv_draw_ctx_t *draw_ctx, const lv_draw_img_ds
 
     if (cdsc == NULL || (!EPIC_SUPPORTED_CF(cdsc->dec_dsc.header.cf))) return LV_RES_INV;
 
-    /*
-        lv_img_cf_t cf;
-        if(lv_img_cf_is_chroma_keyed(cdsc->dec_dsc.header.cf)) cf = LV_IMG_CF_TRUE_COLOR_CHROMA_KEYED;
-        else if(lv_img_cf_has_alpha(cdsc->dec_dsc.header.cf)) cf = LV_IMG_CF_TRUE_COLOR_ALPHA;
-        else cf = LV_IMG_CF_TRUE_COLOR;
-    */
+    lv_img_cf_t cf;
+    if (lv_img_cf_is_chroma_keyed(cdsc->dec_dsc.header.cf)) cf = LV_IMG_CF_TRUE_COLOR_CHROMA_KEYED;
+    else if (lv_img_cf_has_alpha(cdsc->dec_dsc.header.cf)) cf = LV_IMG_CF_TRUE_COLOR_ALPHA;
+    else cf = LV_IMG_CF_TRUE_COLOR;
+
     if (cdsc->dec_dsc.error_msg != NULL)
     {
         LV_LOG_WARN("Image draw error");
@@ -1389,7 +1404,58 @@ static lv_res_t my_decode_and_draw(lv_draw_ctx_t *draw_ctx, const lv_draw_img_ds
 
         draw_img(draw_ctx, draw_dsc, coords, &cdsc->dec_dsc);
     }
+    else
+    {
+        /* compressed image, fallback to software default decoder */
+        lv_area_t mask_com; /*Common area of mask and coords*/
+        bool union_ok;
+        union_ok = _lv_area_intersect(&mask_com, draw_ctx->clip_area, coords);
+        /*Out of mask. There is nothing to draw so the image is drawn successfully.*/
+        if (union_ok == false)
+        {
+            my_draw_cleanup(cdsc);
+            return LV_RES_OK;
+        }
 
+        int32_t width = lv_area_get_width(&mask_com);
+
+        uint8_t   *buf = lv_mem_buf_get(lv_area_get_width(&mask_com) *
+                                        LV_IMG_PX_SIZE_ALPHA_BYTE);  /*+1 because of the possible alpha byte*/
+
+        const lv_area_t *clip_area_ori = draw_ctx->clip_area;
+        lv_area_t line;
+        lv_area_copy(&line, &mask_com);
+        lv_area_set_height(&line, 1);
+        int32_t x = mask_com.x1 - coords->x1;
+        int32_t y = mask_com.y1 - coords->y1;
+        int32_t row;
+        lv_res_t read_res;
+        for (row = mask_com.y1; row <= mask_com.y2; row++)
+        {
+            lv_area_t mask_line;
+            union_ok = _lv_area_intersect(&mask_line, clip_area_ori, &line);
+            if (union_ok == false) continue;
+
+            read_res = lv_img_decoder_read_line(&cdsc->dec_dsc, x, y, width, buf);
+            if (read_res != LV_RES_OK)
+            {
+                lv_img_decoder_close(&cdsc->dec_dsc);
+                LV_LOG_WARN("Image draw can't read the line");
+                lv_mem_buf_release(buf);
+                my_draw_cleanup(cdsc);
+                draw_ctx->clip_area = clip_area_ori;
+                return LV_RES_INV;
+            }
+
+            draw_ctx->clip_area = &mask_line;
+            lv_draw_img_decoded(draw_ctx, draw_dsc, &line, buf, cf);
+            line.y1++;
+            line.y2++;
+            y++;
+        }
+        draw_ctx->clip_area = clip_area_ori;
+        lv_mem_buf_release(buf);
+    }
 
     my_draw_cleanup(cdsc);
     return LV_RES_OK;

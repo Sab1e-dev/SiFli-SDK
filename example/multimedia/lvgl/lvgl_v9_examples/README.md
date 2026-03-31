@@ -21,8 +21,11 @@
 源码路径：SiFli-SDK\example\multimedia\lvgl\lvgl_v9_examples
 ### 支持的平台
 例程可以运行在以下开发板
-* sf32lb52-lchspi-ulp
-* sf32lb52-lcd_n16r8
++ sf32lb52-lchspi-ulp
++ sf32lb52-lcd系列
++ sf32lb56-lcd系列
++ sf32lb58-lcd系列
+
 
 
 ### 概述
@@ -88,6 +91,28 @@ menuconfig --board=sf32lb52-lchspi-ulp
 * 开启lvgl的文件系统接口，配置盘符,并且开启解码器
 
 ![alt text](assets/V9_posix.png)
+
+### tjpgd（拓展）
+
+### 概述
+* 通过使用tjpgd解码器进行对LV_IMAGE_SRC_VARIABLE类型进行解码
+
+### 图片格式转换
+* 首先需要将.jpg图片转换成RAW数据，转换的工具可以使用eez_studio进行转换，具体操作参考如下
+![alt text](assets/jpg_awitch_RAW.png)
+
+![alt text](assets/build_raw.png)
+
+![alt text](assets/copy_raw.png)
+
+* 然后将图片数组设置进去，jpegd解码器将根据设置的类型选择相应的解码方式
+
+### 配置流程
+* 通过`menuconfig`进行如下配置，具体操作如下：
+开启LV_USE_FS_MEMFS宏
+![alt text](assets/use_fs_memfs.png)
+
+例程中已经将`img_lvgl_logo.jpg`转换成了RAW数据`ui_image_logo.c`
 
 ### 异常诊断
 * 异常log
