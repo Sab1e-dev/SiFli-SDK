@@ -23,6 +23,9 @@
 #ifdef PKG_LIB_OPUS
     #include "opus.h"
 #endif
+#if defined(ANYKA_RUN_IN_ACPU)
+    #include "audio_3a_anyka.h"
+#endif
 
 static rt_mailbox_t g_call_mb;
 static acpu_ctrl_ipc_msg_t *p_received_msg;
