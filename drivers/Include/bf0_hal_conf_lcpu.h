@@ -70,9 +70,9 @@ extern "C" {
 
 #define HAL_CRC_MODULE_ENABLED
 #define HAL_MPI_MODULE_ENABLED
-#if !defined(SF32LB52X) || !defined(SF32LB57X)
+#if !defined(SF32LB52X) && !defined(SF32LB57X)
 #define HAL_SYSTEM_CONFIG_ENABLED
-#endif
+#endif /* !SF32LB52X && SF32LB57X */
 #endif /* SF32LB55X */
 
 #ifdef SF32LB58X
