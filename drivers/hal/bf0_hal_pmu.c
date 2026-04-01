@@ -100,13 +100,13 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_SelectWakeupPin(uint8_t pin, uint8_t ao
 
     MODIFY_REG(hwp_pmuc->CR, mask, val);
 
-#if defined(SF32LB52X)
+#if defined(SF32LB52X) && defined(hwp_pbr)
     /* PBR0~PBR3 reuse PAD_PA24~PAD_PA27 */
     if (HAL_PBR_MAX >= aon_wakeup_pin)
     {
         HAL_PBR_ConfigMode(aon_wakeup_pin, false);
     }
-#endif /* SF32LB52X */
+#endif /* SF32LB52X && hwp_pbr */
 
 #ifdef RTC_PAWK0R_IE
     /* enable IE */
