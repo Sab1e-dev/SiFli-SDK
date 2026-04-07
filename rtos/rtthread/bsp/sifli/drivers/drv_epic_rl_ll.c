@@ -107,6 +107,7 @@ static void wait_hw_done(void)
 {
     __DEBUG_RENDER_LIST_WAIT_EPIC_START__;
     rt_err_t err;
+    uint32_t start_ms = rt_tick_get_millisecond();
     do
     {
         err = rt_sem_take(&epic_sema, rt_tick_from_millisecond(GPU_BLEND_EXP_MS));
@@ -125,6 +126,7 @@ static void wait_hw_done(void)
         }
     }
     while (RT_EOK != err);
+    gp_drv_epic->rd_epic_async_wait  += rt_tick_get_millisecond() - start_ms;
     __DEBUG_RENDER_LIST_WAIT_EPIC_END__;
 }
 

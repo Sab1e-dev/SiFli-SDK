@@ -159,6 +159,8 @@ typedef struct
     EPIC_OpHistTypeDef epic_op_hist;
 #endif
 
+    uint32_t hclk_freq_Mhz;
+    uint32_t gpu_timeout_cnt;
 
 #ifndef DRV_EPIC_NEW_API
     EPIC_LayerConfigTypeDef input_layers[MAX_EPIC_LAYER];
@@ -171,6 +173,12 @@ typedef struct
 
     bool cont_mode;
 
+    uint32_t gpu_last_op;
+    uint32_t gpu_fg_addr;
+    uint32_t gpu_bg_addr;
+    uint32_t gpu_mask_addr;
+    uint32_t gpu_output_addr;
+    uint32_t gpu_output_size;
 #else /*DRV_EPIC_NEW_API*/
 
     EPIC_HandleTypeDef epic_handle2; //Shadow handle
@@ -182,8 +190,6 @@ typedef struct
     JPEGD_HandleTypeDef jpegd_handle2; //Shadow handle
 #endif /* HAL_JPEGD_MODULE_ENABLED */
     epic_cbk_ctx_t  epic_cb_ctx;
-    struct rt_semaphore render_sema;
-    struct rt_semaphore rl_sema;
     priv_render_list_t *render_list_pool;
     priv_render_list_t *using_rl_stack[render_list_pool_max]; //Committing rl stack
     uint32_t using_rl_count; //Committing rl stack depth
@@ -230,24 +236,10 @@ typedef struct
     uint32_t last_rd_operation_start_epic_cnt;
 
 
-    struct rt_thread task;
-    rt_mq_t  mq;
+
     uint8_t task_idle; //1: task is idle, 0: task is busy
     drv_epic_rotate_t rotated; //Whether rotation is supported
-#endif /* DRV_EPIC_NEW_API */
 
-    uint32_t hclk_freq_Mhz;
-
-    uint32_t gpu_last_op;
-    uint32_t gpu_fg_addr;
-    uint32_t gpu_bg_addr;
-    uint32_t gpu_mask_addr;
-    uint32_t gpu_output_addr;
-    uint32_t gpu_output_size;
-    uint32_t gpu_log_level;
-    uint32_t gpu_timeout_cnt;
-
-#ifdef DRV_EPIC_NEW_API
     uint32_t dbg_flag_dis_ram_instance: 1;
     uint32_t dbg_flag_print_rl : 1;//Show render list before start
     uint32_t dbg_flag_print_exe_detail : 1; //Show render operation execute detail
@@ -258,9 +250,16 @@ typedef struct
     uint32_t dbg_src_addr;
     uint32_t dbg_mask_buf_pool_max;
     uint32_t dbg_render_buf_max;
-#endif /* DRV_EPIC_NEW_API */
+
 
     uint32_t magic_num; /* Magic number to check whether the handle is valid,the vaule should be 0xBEEFBEEF*/
+
+    /* Put OS related variables after magic_num to avoid different OS data structure between HCPU&ACPU*/
+    struct rt_semaphore render_sema;
+    struct rt_semaphore rl_sema;
+    struct rt_thread task;
+    rt_mq_t  mq;
+#endif /* DRV_EPIC_NEW_API */
 } EPIC_DrvTypeDef;
 
 #define EPIC_DRV_MAGIC_NUM 0xBEEFBEEF
