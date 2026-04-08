@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2019-2026 SiFli
+# SPDX-License-Identifier: Apache-2.0
+
 import codecs
 import glob
 import json
@@ -654,6 +657,18 @@ def PtabGetMemType(mem, base):
     else:
         return ""
 
+
+def PtabGetMemType(mem, base):
+    if "flash" in mem and (base >= 0x10000000) and (base <= 0x1FFFFFFF):
+        return "HAL_MEM_TYPE_NOR_FLASH"
+    elif "flash" in mem and (base >= 0x60000000) and (base <= 0x6FFFFFFF):
+        return "HAL_MEM_TYPE_NAND_FLASH"
+    elif "emmc" in mem:
+        return "HAL_MEM_TYPE_SDMMC_STORAGE"
+    elif "psram" in mem:
+        return "HAL_MEM_TYPE_PSRAM"
+    else:
+        return "HAL_MEM_TYPE_UNKNOWN"
 
 def GenPartitionTableHeaderContentV2(env, mems):
     s =  ''

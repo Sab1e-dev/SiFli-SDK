@@ -1,4 +1,4 @@
-# Record示例
+# Opus 示例
 
 源码路径：example/multimedia/audio/opus
 

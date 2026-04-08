@@ -14,7 +14,7 @@
             },      
             {
                 "offset": "0x00020000", 
-                "max_size": "0x000E0000",
+                "max_size": "0x000F0000",
                 "tags": [
                     "HCPU_FLASH_CODE"
                 ], 
@@ -29,8 +29,8 @@
                 }
             },
             {
-                "offset": "0x00100000",
-                "max_size": "0x00040000",
+                "offset": "0x00110000",
+                "max_size": "0x00060000",
                 "tags": [
                     "DFU_FLASH_CODE"
                 ],
@@ -45,21 +45,21 @@
                 }
             },
             {
-                "offset": "0x00140000",
+                "offset": "0x00170000",
                 "max_size": "0x00060000",
                 "tags": [
                     "DFU_DOWNLOAD_REGION"
                 ]
             },
             {
-                "offset": "0x001a0000", 
+                "offset": "0x001D0000", 
                 "max_size": "0x00004000", 
                 "tags": [
                     "KVDB_DFU_REGION"
                 ]
             }, 
             {
-                "offset": "0x001a4000", 
+                "offset": "0x001D4000", 
                 "max_size": "0x00004000", 
                 "tags": [
                     "KVDB_BLE_REGION"

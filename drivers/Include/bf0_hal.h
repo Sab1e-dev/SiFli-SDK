@@ -358,6 +358,14 @@ void HAL_Delay_us(uint32_t us);
 void HAL_Delay_us_(__IO uint32_t us);
 
 /**
+  * @brief This function provides the function that will copy memory content from source address to destination according to word alignment.
+  * @param dest the address of destination memory
+  * @param src  the address of source memory
+  * @param n the copied length, unit:word
+  * @retval None
+  */
+void word_memcpy(void *dest, const void *src, size_t n);
+/**
   * @brief Provide a tick value in millisecond.
   * @note This function is declared as __weak to be overwritten in case of other
   *       implementations in user file.

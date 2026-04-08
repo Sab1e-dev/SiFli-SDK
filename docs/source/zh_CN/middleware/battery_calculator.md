@@ -92,19 +92,22 @@ rt_kprintf("Battery: %d%%\n", percentage);
 ## 使用示例
 
 先在menuconfig中开启需要的宏开关
-
-1.开启电量计算器功能
+1.使能ADC进行电池电压读取
+![Battery Calculator](../../assets/enable_adc.png)
+2.开启电量计算器功能
 ![Battery Calculator](../../assets/battery_open1.png)
-2.开启charge
+3.开启charge
 ![Battery Calculator](../../assets/battery_open2.png)
-3.选择自己板子的充电芯片，如果没有，可以使用simple charge
+4.选择自己板子的充电芯片，如果没有，可以使用simple charge
 ![Battery Calculator](../../assets/battery_open4.png)
-4.配置插拔检测引脚,对应当前板子的插拔检测引脚
+5.配置插拔检测引脚,对应当前板子的插拔检测引脚
 ![Battery Calculator](../../assets/battery_open3.png)
-5.选择当前板子插拔引脚的极性(根据实际情况选择)。 
+6.选择当前板子插拔引脚的极性(根据实际情况选择)。 
 ![Battery Calculator](../../assets/charge_pin_2.png)
 选中即代表启用了 `BSP_CHARGER_INT_PIN_ACTIVE_HIGH` 宏，这个宏的作用是定义充电器检测引脚的电平极性,当定义了 `BSP_CHARGER_INT_PIN_ACTIVE_HIGH `时，表示充电器插入状态由高电平表示，当未定义此宏时，默认使用低电平表示充电器插入状态。
 ![Battery Calculator](../../assets/charge_pin.png)
+
+
 
 ### 应用层完整示例代码
 ```c

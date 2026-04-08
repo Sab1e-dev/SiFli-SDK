@@ -47,12 +47,21 @@
 
 #if defined(__CC_ARM) || defined(__CLANG_ARM)
 #elif defined(__GNUC__)
-    /* workaround large bin size produced by arm-none-eabi-gcc xpack version
-    * see https://github.com/xpack-dev-tools/arm-none-eabi-gcc-xpack/discussions/23
-    */
-    __WEAK int __aeabi_unwind_cpp_pr0(void) { return 0; }
-    __WEAK int __aeabi_unwind_cpp_pr1(void) { return 0; }
-    __WEAK int __aeabi_unwind_cpp_pr2(void) { return 0; }
+/* workaround large bin size produced by arm-none-eabi-gcc xpack version
+* see https://github.com/xpack-dev-tools/arm-none-eabi-gcc-xpack/discussions/23
+*/
+__WEAK int __aeabi_unwind_cpp_pr0(void)
+{
+    return 0;
+}
+__WEAK int __aeabi_unwind_cpp_pr1(void)
+{
+    return 0;
+}
+__WEAK int __aeabi_unwind_cpp_pr2(void)
+{
+    return 0;
+}
 #endif
 
 /** @defgroup HAL_Exported_Variables HAL Exported Variables
@@ -453,7 +462,16 @@ __weak void HAL_Delay_us(uint32_t us)
     }
 }
 
-
+__weak void word_memcpy(void *dest, const void *src, size_t n)
+{
+    if (!dest || !src || !n) return;
+    unsigned int *d = (unsigned int *)dest;
+    const unsigned int *s = (const unsigned int *)src;
+    for (size_t i = 0; i < n; i++)
+    {
+        d[i] = s[i];
+    }
+}
 /**
   * @brief This function provides minimum delay (in milliseconds) based
   *        on variable incremented.

@@ -92,16 +92,17 @@ rt_kprintf("Battery: %d%%\n", percentage);
 ## Usage Example
 
 First, enable the required macro switches in menuconfig
-
-1. Enable battery calculator function
+1. Enable the ADC to read the battery voltage.
+![Battery Calculator](../../assets/enable_adc.png)
+2. Enable battery calculator function
 ![Battery Calculator](../../assets/battery_open1.png)
-2. Enable charge
+3. Enable charge
 ![Battery Calculator](../../assets/battery_open2.png)
-3. Select the charging chip for your board. If not available, use simple charge
+4. Select the charging chip for your board. If not available, use simple charge
 ![Battery Calculator](../../assets/battery_open4.png)
-4. Configure plug/unplug detection pin corresponding to your board's detection pin
+5. Configure plug/unplug detection pin corresponding to your board's detection pin
 ![Battery Calculator](../../assets/battery_open3.png)
-5. Select the polarity of the plug/unplug detection pin for the current board (choose according to actual situation).
+6. Select the polarity of the plug/unplug detection pin for the current board (choose according to actual situation).
 ![Battery Calculator](../../assets/charge_pin_2.png)
 Selecting this option means enabling the `BSP_CHARGER_INT_PIN_ACTIVE_HIGH` macro. This macro defines the polarity of the charger detection pin. When `BSP_CHARGER_INT_PIN_ACTIVE_HIGH` is defined, it indicates that the charger insertion state is represented by a high level. When this macro is not defined, the default is to use a low level to represent the charger insertion state.
 ![Battery Calculator](../../assets/charge_pin.png)

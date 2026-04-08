@@ -2,10 +2,10 @@
 源码路径:example/hal/uart
 ## 支持的平台
 例程可以运行在以下开发板.
-* sf32lb52-nano_a128n16
-* sf32lb52-lcd_n16r8
-* sf32lb58-lcd_n16r64n4
-* sf32lb56-lcd_n16r12n1
+* sf32lb52-nano系列
+* sf32lb52-lcd系列
+* sf32lb58-lcd系列
+* sf32lb56-lcd系列
 
 ## 概述
 * 操作UART hal函数采用RX DMA方式,操作UART2检验其串口的收发能力
@@ -65,7 +65,7 @@ please input the serial port num:5
 |--------|------------|---------------|-------------------|
 |52_nano  | UART2     | PAD_PA28（11）    | PAD_PA25（12）  |
 |525    | UART2     | PAD_PA27（8）    | PAD_PA20（10）    |   
-|587  | UART2     | PAD_PA28 (CONN2 5)  |PAD_PA29 (CONN2 3)  |
+|58  | UART2     | PAD_PA28 (CONN2 5)  |PAD_PA29 (CONN2 3)  |
 |56  | UART2     | PAD_PA37 (38)   |PAD_PA36 (40)  |
 
 

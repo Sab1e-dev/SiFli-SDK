@@ -4,8 +4,10 @@
 
 ## 支持的平台
 <!-- 支持哪些板子和芯片平台 -->
-+ sf32lb52-lcd_n16r8
-+ eh-lb523
++ sf32lb52-nano系列
++ sf32lb52-lcd系列
++ sf32lb56-lcd系列
++ sf32lb58-lcd系列
 
 ## 概述
 <!-- 例程简介 -->
@@ -40,7 +42,7 @@
      + Nand 使用`FILE MODE`(`FDB Mode` 配置为`Use File POSIX Mode`), 通过文件系统存储。
      + Nor 使用`FAL MODE`(`FDB Mode` 配置为`Use FAL Mode`), 直接操作Flash。
      ```
-2. 配置`FAT`文件系统（当`FDB Mode`配置为`Use FAL Mode`时需要）   
+2. 配置`FAT`文件系统（当`FDB Mode`配置为`Use File LIBC Mode`或`Use File POSIX Mode`时需要）   
 ![RT_USING_DFS_ELMFAT](./assets/mc_fat.png)
 
      ```{tip}
@@ -64,42 +66,43 @@
       aliases:
         - KVDB_TST_REGION
     - op: add
-          name: tsdb_tst
-          type: data
-          subtype: flashdb_kv
-          region: mpi3
-          offset: 0x0060C000
-          size: 0x00004000
-          aliases:
-            - TSDB_TST_REGION
+      name: tsdb_tst
+      type: data
+      subtype: flashdb_kv
+      region: mpi3
+      offset: 0x0060C000
+      size: 0x00004000
+      aliases:
+        - TSDB_TST_REGION
   ```
 
 + `sf32lb58-lcd_n16r64n4_hcpu` 的 overlay 还会额外调整 `hcpu_flash_code/fs_region/fs_ex_region/acpu`
   的 offset 或 size，以便插入 `kvdb_tst/tsdb_tst` 分区。
 
-+ 其它 board 目录目前仍保留 `ptab.json`（v2）。例如：
-  `project/nor/sf32lb52-lcd_n16r8_hcpu/ptab.json`
++ 对尚未迁到 v3 的工程，仍可沿用 board variant 目录下的 `ptab.json` / `custom_mem_map.h`。
++ 例如：
+  - `project/nor/sf32lb52-lcd_n16r8_hcpu/ptab.json`
+  - `project/nor/sf32lb58-lcd_n16r32n1_dsi_hcpu/custom_mem_map.h`
      ```c
-     - name: kvdb_tst
-       type: data
-       subtype: flashdb_kv
-       region: mpi2
-       offset: 0x00620000
-       size: 0x00004000
-       aliases:
-         - KVDB_TST_REGION
-     - name: tsdb_tst
-       type: data
-       subtype: flashdb_kv
-       region: mpi2
-       offset: 0x00624000
-       size: 0x00004000
-       aliases:
-         - TSDB_TST_REGION
+     {
+         "offset": "0x00620000",
+         "max_size": "0x00004000",
+         "tags": [
+             "KVDB_TST_REGION"
+         ]
+     },
+     {
+         "offset": "0x00624000",
+         "max_size": "0x00004000",
+         "tags": [
+             "TSDB_TST_REGION"
+         ]
+     }
      ```  
 
      ```{tip}
-     FDB初始化时需指定Flash分区名（比如本例程中是"kvdb_tst"/"tsdb_tst"）。`ptab.h` 会自动生成 `KVDB_TST_REGION_*` / `TSDB_TST_REGION_*` 兼容宏，以及对应的 `FAL_PART_TABLE` 条目，不再需要 `custom_mem_map.h`。
+     FDB初始化时需指定Flash分区名（比如本例程中是"kvdb_tst"/"tsdb_tst"）。
+     对于 v3 工程，`ptab.h` 会自动生成 `KVDB_TST_REGION_*` / `TSDB_TST_REGION_*` 兼容宏，以及对应的 `FAL_PART_TABLE` 条目，不再需要 `custom_mem_map.h`。
      ```
 
      ```{tip}

@@ -280,8 +280,6 @@ config BSP_USING_RAMLESS_LCD
     def_bool n
 config BSP_LCDC_USING_JDI_PARALLEL
     def_bool n
-config BSP_LCDC_USING_EPD_8BIT
-    def_bool n
 
 # LCD backlight
 config LCD_USING_PWM_AS_BACKLIGHT
@@ -337,9 +335,6 @@ menuconfig BSP_USING_SPI_CAMERA
     bool "Enable SPI Camera"
     default n
 
-menuconfig BSP_WIFI_SWT6621
-    bool "Enable swt 6621 wifi mode"
-    default n
 
 
 

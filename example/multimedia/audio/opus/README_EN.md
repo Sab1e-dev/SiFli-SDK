@@ -1,4 +1,4 @@
-# Record Example
+# Opus Example
 
 Source code path: example/multimedia/audio/opus
 

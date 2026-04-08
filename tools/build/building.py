@@ -1,28 +1,6 @@
-#
-# File      : building.py
-# This file is part of RT-Thread RTOS
-# COPYRIGHT (C) 2006 - 2015, RT-Thread Development Team
-#
-#  This program is free software; you can redistribute it and/or modify
-#  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
-#  (at your option) any later version.
-#
-#  This program is distributed in the hope that it will be useful,
-#  but WITHOUT ANY WARRANTY; without even the implied warranty of
-#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#  GNU General Public License for more details.
-#
-#  You should have received a copy of the GNU General Public License along
-#  with this program; if not, write to the Free Software Foundation, Inc.,
-#  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-#
-# Change Logs:
-# Date           Author       Notes
-# 2015-01-20     Bernard      Add copyright information
-# 2015-07-25     Bernard      Add LOCAL_CCFLAGS/LOCAL_CPPPATH/LOCAL_CPPDEFINES for
-#                             group definition.
-#
+# SPDX-FileCopyrightText: 2006-2015 RT-Thread Development Team
+# SPDX-FileCopyrightText: 2019-2026 SiFli Technologies(Nanjing) Co., Ltd
+# SPDX-License-Identifier: GPL-2.0-or-later
 
 import importlib
 import os
@@ -33,6 +11,7 @@ import subprocess
 import sys
 import logging
 from pathlib import Path
+import atexit
 
 import utils
 from mkdist import do_copy_file
@@ -48,6 +27,10 @@ EnvList = []
 ParentProjStack = [{'name': 'main'}]
 CustomImgList = []
 BOARD_SEARCH_PATH = os.path.abspath(os.environ.get('SIFLI_SDK_BOARD_SEARCH_PATH', '')) if 'SIFLI_SDK_BOARD_SEARCH_PATH' in os.environ else None
+_sdk_size_registered = False
+_main_build_dir = None
+_build_success = False
+_json_export_registered = False
 
 def is_verbose():
     if (logging.root.level<=logging.DEBUG):
@@ -190,6 +173,20 @@ def ImgFileBuilder(target, source, env):
         # 现在将转换后的真实的.c文件转为.tmp.c后缀以让scons后续编译能正常进行
         shutil.move('{}'.format(target[0]).replace(".tmp.c", ".c"), '{}'.format(target[0])) 
 
+            
+
+def BinFileBuilder(target, source, env):
+    """A builder specifically designed for generating binary.ezip files"""
+    SIFLI_SDK = os.getenv('SIFLI_SDK')
+    EZIP_PATH = os.path.join(SIFLI_SDK, f"tools/png2ezip/ezip{env['tool_suffix']}")
+    filename = os.path.basename("{}".format(target[0]))
+    tgt_directory = os.path.dirname("{}".format(target[0]))
+
+    logging.info('BinFileBuilder= '+env['FLAGS'])
+    cmd = EZIP_PATH + ' -convert ' + str(source[0]) + ' ' + env['FLAGS'] + ' -outdir {}'.format(tgt_directory)
+
+    subprocess.run(cmd, shell=True, check=True)
+
 def FontConvertBuild(target, source, env):
     """
     Build action to convert font files to C array using the internal converter
@@ -298,7 +295,12 @@ def ConvertFont(env, source, flags):
 def ImgResource(env, source, flags):
     target = []
     for s in source:
-        t = env.ImgFile(s, FLAGS = flags)
+        if '-binfile' in flags:
+            # If the -binfile parameter is included, use the binary builder.
+            t = env.BinFile(s, FLAGS=flags)
+        else:
+            # Otherwise, use the default C file builder
+            t = env.ImgFile(s, FLAGS=flags)
         target.extend(t)
     
     return target
@@ -817,8 +819,17 @@ def ModifyLdsTargets(target, source, env):
             raise SystemExit(1)
         source = [File(template_path)]
     elif src0 and not os.path.exists(src0) and template_path and os.path.exists(template_path):
-        logging.error(f"ptab v1/v2 does not support jinja2-only link template: {template_path}")
-        raise SystemExit(1)
+        fallback = _get_chip_link_fallback(src0, env)
+        if fallback:
+            logging.warning(
+                "ptab v1/v2 fallback to chip legacy link script: %s (skip template-only override %s)",
+                fallback,
+                template_path,
+            )
+            source = [File(fallback)]
+        else:
+            logging.error(f"ptab v1/v2 does not support jinja2-only link template: {template_path}")
+            raise SystemExit(1)
 
     return target, source
 
@@ -1055,6 +1066,38 @@ def _get_link_template_path(link_source):
         return link_source + '.jinja2'
     base, _ = os.path.splitext(link_source)
     return base + '.jinja2'
+
+
+def _get_chip_link_fallback(link_source, env):
+    import rtconfig
+
+    link_source = str(link_source or '')
+    ext = os.path.splitext(link_source)[1].lower()
+    if ext not in ('.lds', '.sct'):
+        return None
+
+    sifli_sdk = os.getenv('SIFLI_SDK')
+    if not sifli_sdk:
+        return None
+
+    if GetDepend('SOC_SF32LB52X'):
+        chip = 'sf32lb52x'
+    elif GetDepend('SOC_SF32LB55X'):
+        chip = 'sf32lb55x'
+    elif GetDepend('SOC_SF32LB56X'):
+        chip = 'sf32lb56x'
+    elif GetDepend('SOC_SF32LB58X'):
+        chip = 'sf32lb58x'
+    else:
+        return None
+
+    core = _infer_build_core(env, getattr(rtconfig, 'CORE', 'HCPU')).lower()
+    if ext == '.lds':
+        fallback = os.path.join(sifli_sdk, 'drivers', 'cmsis', chip, 'Templates', 'gcc', core, 'link' + ext)
+    else:
+        fallback = os.path.join(sifli_sdk, 'drivers', 'cmsis', chip, 'Templates', 'arm', core, 'link' + ext)
+
+    return fallback if os.path.exists(fallback) else None
 
 
 def _select_link_script_base(candidates, ext):
@@ -1464,7 +1507,7 @@ def PrepareBuilding(env, has_libcpu=False, remove_components=[], buildlib=None):
         AddOption('--target',
                           dest = 'target',
                           type = 'string',
-                          help = 'set target project: mdk/mdk4/mdk5/iar/vs/vsc/ua/cdk/ses/makefile/eclipse/si')
+                          help = 'set target project: mdk/mdk4/mdk5/iar/vs/vsc/ua/cdk/ses/makefile/eclipse/si/json')
         AddOption('--genconfig',
                     dest = 'genconfig',
                     action = 'store_true',
@@ -1692,6 +1735,11 @@ def PrepareBuilding(env, has_libcpu=False, remove_components=[], buildlib=None):
     img_file_action = SCons.Action.Action(ImgFileBuilder, 'GenImgFile $TARGET')
     bld = Builder(action = img_file_action, suffix = '.tmp.c', src_suffix = '.c')
     Env.Append(BUILDERS = {"ImgFile": bld})
+    
+    bin_file_action = SCons.Action.Action(BinFileBuilder, 'GenBinFile $TARGET')
+    bin_bld = Builder(action = bin_file_action)
+    Env.Append(BUILDERS = {"BinFile": bin_bld})
+
     Env.AddMethod(ImgResource, "ImgResource")
 
     # add font builder
@@ -2543,6 +2591,18 @@ def GenTargetProject(program = None):
         from sourceinsight import TargetSI
         TargetSI(Env)
 
+    if GetOption('target') == 'json':
+        global _json_export_registered
+        if not _json_export_registered:
+            main_env = Env
+
+            def export_project_json_at_exit():
+                from json_export import TargetJSON
+                TargetJSON(main_env, EnvList)
+
+            atexit.register(export_project_json_at_exit)
+            _json_export_registered = True
+
 def GenCppdefineFiles():
     build_dir = Env['build_dir']    
     
@@ -2634,6 +2694,42 @@ def EndBuilding(target, program = None):
                 AlwaysBuild(link_file)
             if "ROM_SYM" in Env and Env['ROM_SYM']:
                 Depends(program, Env['ROM_SYM'])
+            
+            # Register sdk_size.py to run once at program exit after all builds complete
+            # Only register for main project (not child projects) to get consolidated report
+            if not IsChildProjEnv():
+                global _sdk_size_registered, _main_build_dir
+                if not _sdk_size_registered:
+                    _main_build_dir = Env['build_dir']
+                    _sdk_size_registered = True
+                    
+                    def run_sdk_size_analysis_at_exit():
+                        # Only run if build was successful
+                        if not _build_success:
+                            return
+                        SIFLI_SDK = os.getenv('SIFLI_SDK')
+                        sdk_size_script = os.path.join(SIFLI_SDK, 'tools', 'sdk_size', 'sdk_size.py')
+                        if os.path.exists(sdk_size_script) and _main_build_dir:
+                            print("\n" + "="*80)
+                            print("Memory Usage Analysis")
+                            print("="*80)
+                            try:
+                                cmd = [sys.executable, sdk_size_script, _main_build_dir]
+                                result = subprocess.run(cmd)
+                                print("="*80 + "\n")
+                                if result.returncode != 0:
+                                    logging.warning("sdk_size.py returned non-zero exit code: " + str(result.returncode))
+                            except Exception as e:
+                                logging.warning(f"Failed to run sdk_size.py: {e}")
+                    
+                    atexit.register(run_sdk_size_analysis_at_exit)
+                
+                # Mark build as successful after program generation
+                def mark_build_success(target, source, env):
+                    global _build_success
+                    _build_success = True
+                
+                Env.AddPostAction(program, mark_build_success)
 
 def SrcRemove(src, remove):
     if not src:
@@ -3353,7 +3449,7 @@ def AddDFU(SIFLI_SDK):
 
 def AddDFU_PAN(SIFLI_SDK):
     proj_path = None
-    proj_name = 'dfu_pan'
+    proj_name = 'dfu'
     proj_path = os.path.join(SIFLI_SDK, 'example/dfu_pan/project')
     AddChildProj(proj_name, proj_path, False)
 

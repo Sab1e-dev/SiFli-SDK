@@ -10,17 +10,20 @@ Provides commands to parse and display ftab.bin content in human-readable format
 import json
 import os
 import struct
-import sys
 from enum import IntEnum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import click
-from click.core import Context
 
+from sdk_py_actions.cli.context import SdkContext
+from sdk_py_actions.cli.registry import CommandRegistry
 from sdk_py_actions.errors import FatalError
-from sdk_py_actions.global_options import global_options
-from sdk_py_actions.tools import merge_action_lists, PropertyDict
+
+EXTENSION_ID = "ftab"
+EXTENSION_VERSION = "2.1.0"
+EXTENSION_API_VERSION = 2
+MIN_SDK_VERSION = None
 
 
 class PartitionIndex(IntEnum):
@@ -404,69 +407,56 @@ def print_ftab_json(ftab_data: Dict[str, Any], pretty: bool = True) -> None:
         print(json.dumps(output))
 
 
-def action_extensions(base_actions: Dict, project_path: str) -> Any:
-    """Register ftab-related actions."""
+def ftab_dump_callback(
+    sdk_ctx: SdkContext,
+    ftab_path: Optional[str] = None,
+    output_format: str = "table",
+) -> None:
+    """Parse and display ftab.bin content."""
 
-    def ftab_dump_callback(
-        target_name: str,
-        ctx: Context,
-        args: PropertyDict,
-        ftab_path: str,
-        output_format: str,
-    ) -> None:
-        """Parse and display ftab.bin content."""
+    if not ftab_path:
+        possible_paths = list(Path(sdk_ctx.project_dir).glob("build_*/ftab.bin"))
+        if not possible_paths:
+            raise FatalError(
+                "No ftab.bin found. Please specify path with --path or build the project first."
+            )
+        ftab_path = str(possible_paths[0])
+        print(f"Using: {ftab_path}")
 
-        # Resolve ftab path
-        if not ftab_path:
-            # Try to find ftab.bin in build directories
-            project_dir = args.project_dir
-            possible_paths = list(Path(project_dir).glob("build_*/ftab.bin"))
-            if not possible_paths:
-                raise FatalError(
-                    "No ftab.bin found. Please specify path with --path or build the project first."
-                )
-            ftab_path = str(possible_paths[0])
-            print(f"Using: {ftab_path}")
+    if not os.path.exists(ftab_path):
+        raise FatalError(f"ftab.bin not found: {ftab_path}")
 
-        if not os.path.exists(ftab_path):
-            raise FatalError(f"ftab.bin not found: {ftab_path}")
+    with open(ftab_path, "rb") as f:
+        data = f.read()
 
-        # Read and parse
-        with open(ftab_path, "rb") as f:
-            data = f.read()
+    try:
+        ftab_data = parse_ftab_bin(data)
+    except ValueError as e:
+        raise FatalError(f"Failed to parse ftab.bin: {e}")
 
-        try:
-            ftab_data = parse_ftab_bin(data)
-        except ValueError as e:
-            raise FatalError(f"Failed to parse ftab.bin: {e}")
+    if output_format == "json":
+        print_ftab_json(ftab_data, pretty=True)
+    else:
+        print_ftab_table(ftab_data)
 
-        # Output
-        if output_format == "json":
-            print_ftab_json(ftab_data, pretty=True)
-        else:
-            print_ftab_table(ftab_data)
 
-    ftab_actions = {
-        "actions": {
-            "ftab-dump": {
-                "callback": ftab_dump_callback,
-                "help": "Parse and display ftab.bin content in human-readable format.",
-                "options": global_options + [
-                    {
-                        "names": ["--path", "-p", "ftab_path"],
-                        "help": "Path to ftab.bin file. If not specified, searches in build directories.",
-                        "type": click.Path(exists=False),
-                        "default": None,
-                    },
-                    {
-                        "names": ["--format", "-f", "output_format"],
-                        "help": "Output format: table (default) or json.",
-                        "type": click.Choice(["table", "json"]),
-                        "default": "table",
-                    },
-                ],
+def register(registry: CommandRegistry) -> None:
+    registry.command(
+        path="ftab-dump",
+        callback=ftab_dump_callback,
+        help="Parse and display ftab.bin content in human-readable format.",
+        options=[
+            {
+                "names": ["--path", "-p", "ftab_path"],
+                "help": "Path to ftab.bin file. If not specified, searches in build directories.",
+                "type": click.Path(exists=False),
+                "default": None,
             },
-        }
-    }
-
-    return ftab_actions
+            {
+                "names": ["--format", "-f", "output_format"],
+                "help": "Output format: table (default) or json.",
+                "type": click.Choice(["table", "json"]),
+                "default": "table",
+            },
+        ],
+    )

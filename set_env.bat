@@ -35,7 +35,7 @@ if defined REG_KEIL_PATH (
 if "%1"=="gcc" goto :SET_GCC
 if "%1"=="iar" goto :SET_IAR
 if "%1"=="keil" goto :CHECK
-if "%1"==""    goto :CHECK
+if "%1"==""    goto :SET_GCC
 
 echo Unsupported toolchain: %1.
 echo Supported toolchain: keil, iar, gcc.
