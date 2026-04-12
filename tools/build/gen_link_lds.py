@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Copyright (c) 2026 SiFli Technologies(Nanjing) Co., Ltd
 # SPDX-License-Identifier: Apache-2.0
 
 import ast
@@ -805,6 +806,7 @@ def compute_link_defines(ptab_obj, build_name: str, build_core: str, rtconfig_de
                 'name_upper': name_upper,
                 'base': int(base),
                 'size': int(size),
+                'legacy_kind': ptab_module.get_legacy_int_res_kind_v3(p) or '',
             }
         )
     out['INT_RES_PARTS'] = int_res_parts

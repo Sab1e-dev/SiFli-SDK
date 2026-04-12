@@ -1,3 +1,6 @@
+# Copyright (c) 2026 SiFli Technologies(Nanjing) Co., Ltd
+# SPDX-License-Identifier: Apache-2.0
+
 from __future__ import annotations
 
 import copy
@@ -1273,12 +1276,34 @@ def get_download_addr_v3(
     return cbus_addr if mem_type == 'nor' else sbus_addr
 
 
+def get_legacy_int_res_kind_v3(partition: Any) -> Optional[str]:
+    """Return legacy int_res kind for watch-style PTAB v3 partitions."""
+    if not isinstance(partition, dict):
+        return None
+    if partition.get('type') != 'data':
+        return None
+
+    name = str(partition.get('name') or '').strip().lower()
+    if name == 'hcpu_flash2_img':
+        return 'flash2_img'
+    if name == 'hcpu_flash2_font':
+        return 'flash2_font'
+
+    for alias in partition.get('aliases') or []:
+        alias_u = str(alias or '').strip().upper()
+        if alias_u == 'HCPU_FLASH2_IMG':
+            return 'flash2_img'
+        if alias_u == 'HCPU_FLASH2_FONT':
+            return 'flash2_font'
+    return None
+
+
 def iter_int_res_partitions_v3(ptab_obj: Any, core: Optional[str] = None) -> List[Dict[str, Any]]:
     """Iterate `int_res` partitions for ptab v3.
 
     Filters:
     - type == 'data'
-    - subtype == 'int_res'
+    - subtype == 'int_res', or a legacy flash2 resource partition
     - core matches (default: 'HCPU')
     """
     if not ptab_obj or not hasattr(ptab_obj, 'is_v3') or not ptab_obj.is_v3():
@@ -1289,7 +1314,10 @@ def iter_int_res_partitions_v3(ptab_obj: Any, core: Optional[str] = None) -> Lis
     for p in getattr(ptab_obj, 'partitions', []) or []:
         if not isinstance(p, dict):
             continue
-        if p.get('type') != 'data' or p.get('subtype') != 'int_res':
+        if p.get('type') != 'data':
+            continue
+        subtype = str(p.get('subtype') or '').strip().lower()
+        if subtype != 'int_res' and get_legacy_int_res_kind_v3(p) is None:
             continue
         pcore = (p.get('core') or 'HCPU').strip().upper()
         if pcore != core_u:
