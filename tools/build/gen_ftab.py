@@ -177,6 +177,7 @@ def build_partition_table_entries(
     - entry.xip_base uses the execution view:
       - NOR/PSRAM: XIP (cbus)
       - NAND/RAM: base (sbus)
+      - SF32LB56/SF32LB58 NAND images with `exec`: exec region base window
     - For app/bootloader partitions with `exec`, xip_base comes from exec.{region,offset}.
 
     Returns:
@@ -185,6 +186,17 @@ def build_partition_table_entries(
     """
     entries = [(0, 0, 0, 0)] * PARTITION_ENTRY_COUNT
     extra_image_flash_ids: Dict[str, int] = {}
+    chip_series = str(chip_config.get('series') or '').strip().lower()
+    if not chip_series:
+        chip_u = str(chip or '').strip().upper()
+        if chip_u.startswith('SF32LB52'):
+            chip_series = 'sf32lb52'
+        elif chip_u.startswith('SF32LB56'):
+            chip_series = 'sf32lb56'
+        elif chip_u.startswith('SF32LB58'):
+            chip_series = 'sf32lb58'
+        elif chip_u.startswith('SF32LB55'):
+            chip_series = 'sf32lb55'
 
     def _mpi_name_from_region(region: str) -> Optional[str]:
         if not region:
@@ -215,6 +227,18 @@ def build_partition_table_entries(
     def _select_exec_addr(region: str, sbus_addr: int, cbus_addr: int) -> int:
         mem_type = _get_region_mem_type(region)
         return sbus_addr if mem_type in ('ram', 'nand') else cbus_addr
+
+    def _select_ftab_exec_addr(
+        storage_region: str,
+        exec_region: str,
+        exec_sbus_addr: int,
+        exec_cbus_addr: int,
+    ) -> int:
+        if chip_series in ('sf32lb56', 'sf32lb58') and _get_region_mem_type(storage_region) == 'nand':
+            # Keep 56/58 NAND ftab.xip_base aligned with the legacy exec-region
+            # window while leaving linker script generation unchanged.
+            return exec_sbus_addr
+        return _select_exec_addr(exec_region, exec_sbus_addr, exec_cbus_addr)
 
     def _get_flash_boot_loader_size_default() -> Optional[int]:
         try:
@@ -309,10 +333,10 @@ def build_partition_table_entries(
                     xip_addr = int(host_addr)
                 else:
                     exec_sbus_addr, exec_cbus_addr = ptab_module.resolve_region_address(exec_region, exec_offset, chip_config, core=core)
-                    xip_addr = int(_select_exec_addr(exec_region, exec_sbus_addr, exec_cbus_addr))
+                    xip_addr = int(_select_ftab_exec_addr(region, exec_region, exec_sbus_addr, exec_cbus_addr))
             else:
                 exec_sbus_addr, exec_cbus_addr = ptab_module.resolve_region_address(exec_region, exec_offset, chip_config, core=core)
-                xip_addr = int(_select_exec_addr(exec_region, exec_sbus_addr, exec_cbus_addr))
+                xip_addr = int(_select_ftab_exec_addr(region, exec_region, exec_sbus_addr, exec_cbus_addr))
         else:
             mem_type = _get_region_mem_type(region)
             if mem_type == 'nand':
