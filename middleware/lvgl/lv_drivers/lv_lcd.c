@@ -95,17 +95,6 @@ FRAME_BUFFER_BSS_SECT_END
 /**************************************************
    2. Defination of LCD buffer(s) on PSRAM
 ****************************************************/
-#ifdef LCD_FB_USING_AUTO
-    #if   defined(BSP_USING_RAMLESS_LCD) && defined(DRV_LCD_COMPRESSED_BUF_AVALIABLE)
-        #define LCD_FB_USING_TWO_COMPRESSED
-    #elif defined(BSP_USING_RAMLESS_LCD) && !defined(DRV_LCD_COMPRESSED_BUF_AVALIABLE)
-        #define LCD_FB_USING_TWO_UNCOMPRESSED
-    #elif !defined(BSP_USING_RAMLESS_LCD) && defined(DRV_LCD_COMPRESSED_BUF_AVALIABLE)
-        #define LCD_FB_USING_ONE_COMPRESSED
-    #elif !defined(BSP_USING_RAMLESS_LCD) && !defined(DRV_LCD_COMPRESSED_BUF_AVALIABLE)
-        #define LCD_FB_USING_ONE_UNCOMPRESSED
-    #endif
-#endif /* LCD_FB_USING_AUTO */
 
 #ifdef LCD_FB_USING_NONE
     #if defined(LV_FB_ONE_SCREEN_SIZE)

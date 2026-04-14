@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2019-2026 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 /*********************
  *      INCLUDES
  *********************/
@@ -16,7 +21,7 @@
 #include "bf0_lib.h"
 #include "cell_transform.h"
 #include "log.h"
-#include "custom_trans_anim.h"
+
 #include "lv_display.h"
 #include "lv_types.h"
 
@@ -1292,7 +1297,7 @@ static void mainmenu_cell_read_app_icons(lv_obj_t *page)
         while (1)
         {
             //Fix 1st icon for clock
-            p_builtin_app = gui_script_app_list_get_next(p_builtin_app);
+            p_builtin_app = gui_script_app_list_get_next(p_builtin_app, 1);
             if (p_builtin_app == NULL)
                 break;
             idx = mainmenu_cell_reorder_wf_icon(idx, clock_idx, p_builtin_app, page);
@@ -1538,7 +1543,8 @@ static int app_mainmenu(intent_t i)
 
 
 
-BUILTIN_APP_EXPORT(LV_EXT_STR_ID(mainmenu), NULL, APP_ID, app_mainmenu);
+BUILTIN_APP_EXPORT(LV_EXT_STR_ID(mainmenu), NULL, APP_ID, app_mainmenu, 1);
+BUILTIN_APP_EXPORT(LV_EXT_STR_ID(mainmenu), NULL, APP_ID, app_mainmenu, 2);
 
 
 

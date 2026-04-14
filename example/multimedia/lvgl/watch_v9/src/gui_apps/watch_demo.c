@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2019-2026 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 /*********************
  *      INCLUDES
  *********************/
@@ -465,7 +470,7 @@ void app_watch_entry(void *parameter)
 
     lv_ex_data_pool_init();
     resource_init();
-    gui_app_init();
+    gui_app_init(1);
 
 #ifdef BSP_USING_PM
     button_event_task = lv_timer_create(button_event_task_entry, 30, 0);

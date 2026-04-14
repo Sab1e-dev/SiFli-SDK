@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2019-2026 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 /*********************
  *      INCLUDES
  *********************/
@@ -59,7 +64,7 @@ void app_watch_entry(void *parameter)
 #if LV_USING_FREETYPE_ENGINE
     lv_freetype_open_font(true);                                /* open freetype */
 #endif
-    gui_app_init();
+    gui_app_init(1);
 
     gui_app_run("clock");
     lv_disp_trig_activity(NULL);

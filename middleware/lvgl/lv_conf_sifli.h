@@ -194,7 +194,30 @@
     /*--END OF LV_CONF_SIFLI_H--*/
 
 #endif /*__RTTHREAD__*/
+#ifndef BSP_USING_PC_SIMULATOR
+    #include "rtconfig.h"
+    #include "drv_lcd.h"
 
+
+    /**************************************************
+    2. Defination of LCD buffer(s) on PSRAM
+    ****************************************************/
+    #ifdef LCD_FB_USING_AUTO
+        #if   defined(BSP_USING_RAMLESS_LCD) && defined(DRV_LCD_COMPRESSED_BUF_AVALIABLE)
+            #define LCD_FB_USING_TWO_COMPRESSED
+        #elif defined(BSP_USING_RAMLESS_LCD) && !defined(DRV_LCD_COMPRESSED_BUF_AVALIABLE)
+            #define LCD_FB_USING_TWO_UNCOMPRESSED
+        #elif !defined(BSP_USING_RAMLESS_LCD) && defined(DRV_LCD_COMPRESSED_BUF_AVALIABLE)
+            #define LCD_FB_USING_ONE_COMPRESSED
+        #elif !defined(BSP_USING_RAMLESS_LCD) && !defined(DRV_LCD_COMPRESSED_BUF_AVALIABLE)
+            #if defined (DRV_EPIC_NEW_API)
+                #define LCD_FB_USING_TWO_UNCOMPRESSED
+            #else
+                #define LCD_FB_USING_ONE_UNCOMPRESSED
+            #endif
+        #endif
+    #endif /* LCD_FB_USING_AUTO */
+#endif // !BSP_USING_PC_SIMULATOR
 
 
 #ifdef DISABLE_LVGL_V8

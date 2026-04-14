@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2019-2026 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 /*********************
  *      INCLUDES
  *********************/
@@ -6,7 +11,7 @@
 #include "littlevgl2rtt.h"
 #include "lvgl.h"
 #include "gui_app_fwk.h"
-#include "custom_trans_anim.h"
+
 
 
 #ifdef APP_TRANS_ANIMATION_SCALE

@@ -7,6 +7,7 @@
 #ifndef LVSF_SWITCHANIM_H
 #define LVSF_SWITCHANIM_H
 
+#if 1//LVSF_USING_SWITCHANIM != 0
 
 #ifdef __cplusplus
 extern "C" {
@@ -306,7 +307,8 @@ lv_baseanim_cb *lv_switchanim_find_anim(uint32_t major);
 
 #ifdef __cplusplus
 }
-#endif
+#endif // 
 
+#endif
 
 #endif
