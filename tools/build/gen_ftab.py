@@ -177,7 +177,7 @@ def build_partition_table_entries(
     - entry.xip_base uses the execution view:
       - NOR/PSRAM: XIP (cbus)
       - NAND/RAM: base (sbus)
-      - SF32LB56/SF32LB58 NAND images with `exec`: exec region base window
+      - NAND images with `exec`: exec region base window
     - For app/bootloader partitions with `exec`, xip_base comes from exec.{region,offset}.
 
     Returns:
@@ -234,8 +234,8 @@ def build_partition_table_entries(
         exec_sbus_addr: int,
         exec_cbus_addr: int,
     ) -> int:
-        if chip_series in ('sf32lb56', 'sf32lb58') and _get_region_mem_type(storage_region) == 'nand':
-            # Keep 56/58 NAND ftab.xip_base aligned with the legacy exec-region
+        if _get_region_mem_type(storage_region) == 'nand':
+            # Keep NAND ftab.xip_base aligned with the legacy exec-region
             # window while leaving linker script generation unchanged.
             return exec_sbus_addr
         return _select_exec_addr(exec_region, exec_sbus_addr, exec_cbus_addr)
