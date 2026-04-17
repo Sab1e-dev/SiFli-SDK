@@ -134,6 +134,10 @@ You can just include register.h which includes bf0_hal.h also"
 #define HAL_AUDCODEC_MODULE_ENABLED
 #endif /* AUDCODEC_HP_BASE */
 
+#ifdef CAN1_BASE
+#define HAL_CAN_MODULE_ENABLED
+#endif /* CAN1_BASE */
+
 #ifdef HASH_ACC_BASE
 #define HAL_HASH_MODULE_ENABLED
 #endif /* HASH_ACC_BASE */

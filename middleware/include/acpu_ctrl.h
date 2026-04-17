@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
+ * SPDX-FileCopyrightText: 2019-2026 SiFli Technologies(Nanjing) Co., Ltd
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -8,8 +8,6 @@
 #define __ACPU_CTRL_H__
 
 #include <stdint.h>
-
-
 
 /**
 ****************************************************************************************
@@ -107,12 +105,6 @@ typedef struct
 #define ACPU_TASK_write                  (14)
 #define ACPU_TASK_epic_rl                (15)
 #define ACPU_TASK_COUNT                  (16)
-
-/* Keep old names for backward compatibility */
-#define ACPU_TASK_anyka_open             ACPU_TASK_audio_3a_open
-#define ACPU_TASK_anyka_close            ACPU_TASK_audio_3a_close
-#define ACPU_TASK_anyka_downlink         ACPU_TASK_audio_3a_downlink
-#define ACPU_TASK_anyka_uplink           ACPU_TASK_audio_3a_uplink
 
 /** HCPU task name */
 #define HCPU_TASK_INVALID                (0)

@@ -1,0 +1,34 @@
+# ptab v3 - Partition Table
+# Board: {{ board_name }}
+# Chip: {{ chip_model }}
+
+version: 3
+chip: {{ chip_model }}
+{% if memory_entries %}
+
+memory:
+{% for entry in memory_entries %}
+  - mpi: {{ entry.mpi }}
+    type: {{ entry.type }}
+    size: {{ entry.size }}
+{% endfor %}
+{% endif %}
+
+partitions:
+{% for part in partitions %}
+
+  - name: {{ part.name }}
+    type: {{ part.part_type }}
+{% if part.subtype %}    subtype: {{ part.subtype }}
+{% endif %}    region: {{ part.region }}
+    offset: {{ part.offset }}
+    size: {{ part.size }}
+{% if part.core %}    core: {{ part.core }}
+{% endif %}{% if part.aliases %}    aliases:
+{% for alias in part.aliases %}      - {{ alias }}
+{% endfor %}{% endif %}{% if part.exec_region %}    exec:
+      region: {{ part.exec_region }}
+      offset: {{ part.exec_offset }}
+{% endif %}{% if part.attrs %}    attrs:
+{% for key, value in part.attrs.items() %}      {{ key }}: {{ value }}
+{% endfor %}{% endif %}{% endfor %}

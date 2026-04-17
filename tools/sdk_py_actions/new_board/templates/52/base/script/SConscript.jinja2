@@ -1,0 +1,14 @@
+from building import *
+import os
+
+cwd = GetCurrentDir()
+
+base_source_dir = r'{{ base_source_dir }}'
+src = [os.path.join(base_source_dir, name) for name in os.listdir(base_source_dir) if name.endswith('.c')]
+
+path =  [base_source_dir,
+         os.path.join(base_source_dir, '../include')]
+
+group = DefineGroup('Drivers', src, depend = [], CPPPATH = path)
+
+Return('group')
