@@ -2142,6 +2142,10 @@ def _get_depend(name):
     return building.GetDepend(name)
 
 
+def _get_config_value(name):
+    import building
+    return building.GetConfigValue(name)
+
 def convert_to_cbus_addr(addr, offset, core=None):
     if _get_depend("SOC_SF32LB55X"):
         return addr, offset
@@ -2162,6 +2166,14 @@ def convert_to_cbus_addr(addr, offset, core=None):
     if _get_depend("SOC_SF32LB52X"):
         if (addr >= 0x60000000) and (addr <= 0x6FFFFFFF):
             return addr - 0x50000000, offset
+        return addr, offset
+    if _get_depend("SOC_SF32LB57X"):
+        if (addr >= 0x60000000) and (addr <= 0x6FFFFFFF):
+            if (core is None) or (core.lower() != "acpu"):
+                return addr - 0x50000000, offset
+        elif (addr >= 0x10000000) and (addr <= 0x1FFFFFFF) and core and (core.lower() == "acpu"):
+            # ACPU use sbus address
+            return addr + 0x50000000, offset
         return addr, offset
     raise Exception("unknown chip")
 
@@ -2189,6 +2201,8 @@ def add_default_regions(mems):
         _add_default_regions_58x(mems)
     elif _get_depend("SOC_SF32LB52X"):
         _add_default_regions_52x(mems)
+    elif _get_depend("SOC_SF32LB57X"):
+        _add_default_regions_57x(mems)
     else:
         raise Exception("unknown chip")
 
@@ -2452,8 +2466,141 @@ def _add_default_regions_52x(mems):
                     "type": ["app_img"]
                 }
             elif "nand" == boot_dev_type:
+                if _get_config_value("FLASH_CONFIG_PAGE_SIZE") != '' and _get_config_value("FLASH_CONFIG_BLOCK_SIZE") != '':
+                    block_size = int(_get_config_value("FLASH_CONFIG_BLOCK_SIZE"))
+                else:
+                    block_size = 128*1024
                 bootloader_region = {
-                    "offset": "0x00080000",
+                    "offset": "0x{:08X}".format(4 * block_size), # block0: ftab, block1: ftab_bak, block2: calibration data, block3: reserved
+                    "max_size": "0x00010000",
+                    "tags": [],
+                    "name": "bootloader",
+                    "type": ["app_img"]
+                }
+            else:
+                raise Exception(f"unknown type {boot_dev_type}")
+            boot_mem['regions'].insert(0, bootloader_region)
+
+def _add_default_regions_57x(mems):
+    ftab_found = False
+    bootloader_exec_found = False
+    bootloader_img_found = False
+    bootloader_data_found = False
+    boot_mem = None
+    hpsys_ram_mem = None
+    boot_dev_type = None
+
+    for mem in mems:
+        # guess boot_dev_type and boot_mem by memory name and address
+        if "flash1" == mem['mem']:
+            boot_mem = mem
+            boot_dev_type = "nor"
+        elif "flash2" == mem['mem']:
+            boot_mem = mem
+            boot_dev_type = "nor"
+        elif "flash3" == mem['mem']:
+            boot_mem = mem
+            if "0x14000000" == mem['base']:
+                boot_dev_type = "nor"
+            else:
+                boot_dev_type = "nand"
+        elif "sd1" == mem['mem']:
+            boot_mem = mem
+            boot_dev_type = 'sd'
+
+        if "hpsys_ram" == mem['mem']:
+            hpsys_ram_mem = mem
+            continue
+
+        for region in mem['regions']:
+            if "name" in region and 'ftab' == region['name']:
+                ftab_found = True
+            if "name" in region and 'bootloader' == region['name']:
+                bootloader_img_found = True
+
+    if hpsys_ram_mem and isinstance(hpsys_ram_mem.get('regions'), list):
+        for region in hpsys_ram_mem['regions']:
+            if not isinstance(region, dict):
+                continue
+
+            region_name = region.get('name')
+            region_type = region.get('type', []) or []
+            region_tags = region.get('tags', []) or []
+
+            if region_name == 'bootloader' and 'app_exec' in region_type:
+                bootloader_exec_found = True
+            elif 'FLASH_BOOT_LOADER' in region_tags and 'app_exec' in region_type:
+                bootloader_exec_found = True
+
+            if region_name == 'bootloader':
+                bootloader_data_found = True
+            elif 'BOOTLOADER_RAM_DATA' in region_tags:
+                bootloader_data_found = True
+
+    if not bootloader_exec_found:
+        bootloader_region = {
+            "offset": "0x00020000",
+            "max_size": "0x00010000",
+            "name": "bootloader",
+            "type": ["app_exec"],
+            "tags": ["FLASH_BOOT_LOADER"]
+        }
+        hpsys_ram_mem["regions"].insert(0, bootloader_region)
+
+    if not bootloader_data_found:
+        bootloader_region = {
+            "offset": "0x00040000",
+            "max_size": "0x00010000",
+            "tags": ["BOOTLOADER_RAM_DATA"]
+        }
+        hpsys_ram_mem['regions'].insert(0, bootloader_region)
+
+    if (not ftab_found) or (not bootloader_img_found):
+        if not ftab_found:
+            if "sd" == boot_dev_type:
+                # MBR uses first 4096 bytes
+                ftab_region = {
+                    "offset": "0x00001000",
+                    "max_size": "0x00008000",
+                    "tags": ["FLASH_TABLE"],
+                    "name": "ftab",
+                    "type": ["app_img", "app_exec"]
+                }
+            else:
+                ftab_region = {
+                    "offset": "0x00000000",
+                    "max_size": "0x00008000",
+                    "tags": ["FLASH_TABLE"],
+                    "name": "ftab",
+                    "type": ["app_img", "app_exec"]
+                }
+
+            boot_mem['regions'].insert(0, ftab_region)
+
+        if not bootloader_img_found:
+            if "sd" == boot_dev_type:
+                bootloader_region = {
+                    "offset": "0x00011000",
+                    "max_size": "0x00010000",
+                    "tags": [],
+                    "name": "bootloader",
+                    "type": ["app_img"]
+                }
+            elif "nor" == boot_dev_type:
+                bootloader_region = {
+                    "offset": "0x00010000",
+                    "max_size": "0x00010000",
+                    "tags": [],
+                    "name": "bootloader",
+                    "type": ["app_img"]
+                }
+            elif "nand" == boot_dev_type:
+                if _get_config_value("FLASH_CONFIG_PAGE_SIZE") != '' and _get_config_value("FLASH_CONFIG_BLOCK_SIZE") != '':
+                    block_size = int(_get_config_value("FLASH_CONFIG_BLOCK_SIZE"))
+                else:
+                    block_size = 128*1024
+                bootloader_region = {
+                    "offset": "0x{:08X}".format(4 * block_size), # block0: ftab, block1: ftab_bak, block2: calibration data, block3: reserved
                     "max_size": "0x00010000",
                     "tags": [],
                     "name": "bootloader",
