@@ -1557,6 +1557,15 @@ L1_RET_CODE_SECT(sifli_standby_handler_core, __ROM_USED void sifli_standby_handl
     HAL_LPAON_DISABLE_AON_PAD();
 #endif /* PM_WAKEUP_PIN_AS_OUTPUT_IN_SLEEP */
 
+#ifdef PM_USE_RC48
+    /* For RC48 low-power mode, switch SYSCLK to HRC48 and clear HXT48 request before standby.
+     * It's to fix voltage drop issue if HXT48 is enabled and disabed within short time after wakeup.
+     * Check: https://support.sifli.com/issues/10607
+     */
+    HAL_RCC_LCPU_ClockSelect(RCC_CLK_MOD_SYS, RCC_SYSCLK_HRC48);
+    HAL_LPAON_DisableXT48();
+#endif /* PM_USE_RC48 */
+
     HAL_LPAON_EnterStandby(g_sbcr);
 
     save_core_greg();
