@@ -151,6 +151,7 @@ typedef struct
     EZIP_HandleTypeDef ezip_handle;
 #endif /* HAL_EZIP_MODULE_ENABLED */
 #ifdef HAL_JPEGD_MODULE_ENABLED
+    JPEGD_TypeDef RamJPEGD;
     JPEGD_HandleTypeDef jpegd_handle;
 #endif /* HAL_JPEGD_MODULE_ENABLED */
 
@@ -186,7 +187,6 @@ typedef struct
     EZIP_HandleTypeDef ezip_handle2; //Shadow handle
 #endif
 #ifdef HAL_JPEGD_MODULE_ENABLED
-    JPEGD_TypeDef RamJPEGD;
     JPEGD_HandleTypeDef jpegd_handle2; //Shadow handle
 #endif /* HAL_JPEGD_MODULE_ENABLED */
     epic_cbk_ctx_t  epic_cb_ctx;
