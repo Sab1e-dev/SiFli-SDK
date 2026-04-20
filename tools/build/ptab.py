@@ -2189,6 +2189,10 @@ def convert_to_sbus_addr(addr, offset, core=None):
         if (addr >= 0x10000000) and (addr < 0x14000000):
             return addr + 0x50000000, offset
         return addr, offset
+    if _get_depend("SOC_SF32LB57X"):
+        if (addr >= 0x10000000) and (addr < 0x1FFFFFFF):
+            return addr + 0x50000000, offset
+        return addr, offset
     raise Exception("unknown chip")
 
 
