@@ -1,6 +1,7 @@
 from building import *
 Import('rtconfig')
 import os
+import sdk_resource
 import logging
 cwd = GetCurrentDir()
 env = GetCurrentEnv()
@@ -25,7 +26,7 @@ if GetDepend('USING_PARTITION_TABLE'):
             src_file = os.path.join(env['PARTITION_TABLE'])
             output_dir = os.path.join(env['BSP_ROOT'], './linker_scripts')
         else:
-            # 浼樺厛 yaml
+            # 优先 yaml
             yaml_path = os.path.join(env['BSP_ROOT'], './linker_scripts/ptab.yaml')
             json_path = os.path.join(env['BSP_ROOT'], './linker_scripts/ptab.json')
             if os.path.exists(yaml_path):
@@ -70,7 +71,7 @@ if GetDepend('USING_PARTITION_TABLE'):
     ptab_header = env.PtabHeader(os.path.join(output_dir, 'ptab.h'), File(src_file))
     env['PTAB_HEADER'] = ptab_header
 
-    # 鐢熸垚 ftab.bin锛堜粎 ptab v3 + 涓婚」鐩腑锛岄伩鍏嶄笌瀛愰」鐩啿绐侊級
+    # 生成 ftab.bin（仅 ptab v3 + 主项目中，避免与子项目冲突）
     if not IsChildProjEnv():
         if ptab_obj and ptab_obj.is_v3():
             imgs_info = []

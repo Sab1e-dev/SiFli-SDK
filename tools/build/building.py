@@ -308,13 +308,13 @@ def ImgResource(env, source, flags):
     return target
 
 def LangBuild(target, source, env):
-    import resource
+    import sdk_resource
     
     src_path = os.path.dirname(str(source[0]))
     dst_path = os.path.dirname(str(target[0]))
-    resource.ns = True
-    resource.default_language = env['DEFAULT_LANG']  
-    resource.GenerateStrRes(src_path, dst_path)
+    sdk_resource.ns = True
+    sdk_resource.default_language = env['DEFAULT_LANG']
+    sdk_resource.GenerateStrRes(src_path, dst_path)
     
 def ModifyLangTargets(target, source, env):
     target = []
@@ -976,7 +976,7 @@ def EmbeddedImgCFileBuild(target, source, env):
 
 
 def FtabCFileBuild(target, source, env):
-    import resource
+    import sdk_resource
     import ptab as ptab_module
 
     src_file = str(source[0])
@@ -994,7 +994,7 @@ def FtabCFileBuild(target, source, env):
             raise SystemExit(1)
 
         # v1/v2: use legacy C generation flow (ftab subproject)
-        resource.GenFtabCFile(src_file, target_file, env['IMGS_INFO'])
+        sdk_resource.GenFtabCFile(src_file, target_file, env['IMGS_INFO'])
 
 
 def FtabBinBuild(target, source, env):
@@ -1091,7 +1091,6 @@ def FtabBinBuild(target, source, env):
        
 
 def FileCopyBuild(target, source, env):
-    import resource
     src_file = str(source[0])
     target_file = str(target[0])
     shutil.copy(src_file, target_file)
@@ -1114,7 +1113,7 @@ def GetCustomImgList():
     return CustomImgList
 
 def GenDownloadScript(main_env):
-    import resource
+    import sdk_resource
     import rtconfig
     
     if rtconfig.ARCH=='sim':
@@ -1146,9 +1145,9 @@ def GenDownloadScript(main_env):
     #Depends(target, dependent_files)
 
 def DownloadScriptBuild(target, source, env):
-    import resource
+    import sdk_resource
 
-    resource.BuildJLinkLoadScript(env)
+    sdk_resource.BuildJLinkLoadScript(env)
 
 def FileSystemBuild(source, env):
     if GetDepend('RT_USING_DFS_ELMFAT'):

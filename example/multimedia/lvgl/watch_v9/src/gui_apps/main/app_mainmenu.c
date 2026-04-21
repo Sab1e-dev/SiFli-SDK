@@ -651,7 +651,8 @@ static lv_obj_t *mainmenu_cell_add_icons(lv_obj_t *parent, const char *cmd, cons
 
 #ifdef DEBUG_APP_MAINMENU_DISPLAY_ICON_COORDINATE
     lv_obj_t *label = lv_label_create(parent);
-    lv_ext_set_local_font(label, FONT_SMALL, LV_COLOR_WHITE);
+    lv_obj_set_style_text_font(label, LV_FONT_DEFAULT, LV_PART_MAIN);
+    lv_obj_set_style_text_color(label, LV_COLOR_WHITE, LV_PART_MAIN);
 
     *mainmenu_cell_get_label_obj(row_idx, col_idx) = label;
 #endif
@@ -1545,7 +1546,6 @@ static int app_mainmenu(intent_t i)
 
 BUILTIN_APP_EXPORT(LV_EXT_STR_ID(mainmenu), NULL, APP_ID, app_mainmenu, 1);
 BUILTIN_APP_EXPORT(LV_EXT_STR_ID(mainmenu), NULL, APP_ID, app_mainmenu, 2);
-
 
 
 

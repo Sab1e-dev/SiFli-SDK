@@ -227,21 +227,21 @@ def _write_generated_ptab_h(ptab_obj, env_name: str, core: str, out_path: str) -
     rt.CORE = core
     sys.modules['rtconfig'] = rt
 
-    import resource  # type: ignore
+    import sdk_resource  # type: ignore
 
-    resource.InitIndentation()
+    sdk_resource.InitIndentation()
     env = {'name': env_name}
     s = ''
-    s += resource.MakeLine('#ifndef __PTAB__H__')
-    s += resource.MakeLine('#define __PTAB__H__')
-    s += resource.MakeLine('')
-    s += resource.MakeLine('')
-    s += resource.GenPartitionTableHeaderContentV3(env, ptab_obj)
-    s += resource.MakeLine('')
-    s += resource.MakeLine('')
-    s += resource.MakeLine('')
-    s += resource.MakeLine('#endif')
-
+    s += sdk_resource.MakeLine('#ifndef __PTAB__H__')
+    s += sdk_resource.MakeLine('#define __PTAB__H__')
+    s += sdk_resource.MakeLine('')
+    s += sdk_resource.MakeLine('')
+    s += sdk_resource.GenPartitionTableHeaderContentV3(env, ptab_obj)
+    s += sdk_resource.MakeLine('')
+    s += sdk_resource.MakeLine('')
+    s += sdk_resource.MakeLine('')
+    s += sdk_resource.MakeLine('#endif')
+sdk_
     with open(out_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(s)
 

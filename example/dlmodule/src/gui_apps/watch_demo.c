@@ -16,7 +16,7 @@
 #include "lv_ex_data.h"
 #include "app_mem.h"
 #include "log.h"
-#include "lv_freetype.h"
+#include "lvsf/lv_freetype.h"
 
 #ifdef BSP_USING_PM
     #include "bf0_pm.h"

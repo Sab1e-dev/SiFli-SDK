@@ -2627,12 +2627,12 @@ def get_ptab(env):
 
 
 def _ptab_header_build(target, source, env):
-    import resource
+    import sdk_resource
     src_file = str(source[0])
     target_file = str(target[0])
     output_dir = os.path.dirname(target_file)
     output_name = os.path.splitext(os.path.basename(target_file))[0]
-    resource.GenPartitionTableHeaderFile(src_file, output_dir, output_name, env=env)
+    sdk_resource.GenPartitionTableHeaderFile(src_file, output_dir, output_name, env=env)
 
 
 def generate(env):
