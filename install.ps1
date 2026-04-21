@@ -16,5 +16,5 @@ if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
-& uv run --with rich --with tomli_w --python 3.13.0 --no-project "$SIFLI_SDK_PATH/tools/sdk_env.py" install @args
+& uv run --with rich --with tomli_w --python 3.13.11 --no-project "$SIFLI_SDK_PATH/tools/sdk_env.py" install @args
 exit $LASTEXITCODE

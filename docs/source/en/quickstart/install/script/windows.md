@@ -195,7 +195,7 @@ If you have recorded a Keil root with `install.ps1 --keil`, switch to Keil/ARMCL
 .\export.ps1 -t keil
 ```
 
-`export.ps1` now reads the installed profile bootstrap information from `${SIFLI_SDK_TOOLS_PATH}/sifli-sdk-env.json` and uses the Python virtual environment recorded there. If that profile environment has not been installed yet, the state file is missing, or the installation record is from an older incompatible layout, `export.ps1` will fail immediately and ask you to run `.\install.ps1` again.
+`export.ps1` now invokes `tools/sdk_env.py export` through `uv run`. The environment manager resolves the current `profile + lock` snapshot to the matching SDK environment instance and uses the Python virtual environment recorded there. If that instance is missing or invalid, `export.ps1` will either reconcile it according to the saved preference or fail and ask you to run `.\install.ps1` again.
 
 ````{note}
 If you have set a custom tool installation path according to the above instructions, then you **must** set the `SIFLI_SDK_TOOLS_PATH` variable before running the `export.ps1` script
@@ -211,7 +211,9 @@ Each time you open a new terminal window, you need to run the `export.ps1` scrip
 ```
 
 ```{note}
-`export.ps1` now validates the current profile state before exporting the environment. If the local Python environment, tools, or Conan config drift from the repo lock, `export.ps1` may prompt to reconcile the environment or fail deterministically in non-interactive shells.
+`export.ps1` now validates the resolved environment instance before exporting. If the local Python environment, tools, or Conan config do not match the current repo lock, `export.ps1` may prompt to reconcile the environment or fail deterministically in non-interactive shells.
+
+`export.ps1` requires `uv` in PATH because it launches `tools/sdk_env.py` through `uv run`.
 ```
 
 ### Windows Terminal Quick Configuration

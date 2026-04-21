@@ -18,7 +18,7 @@ To install SiFli-SDK, you need to install some software packages according to yo
 :::{tab-item} Ubuntu and Debian
 
 ```bash
-sudo apt-get install git wget flex bison gperf python3 python3-pip python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0 jq
+sudo apt-get install git wget flex bison gperf python3 python3-pip python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
 ```
 
 :::
@@ -26,7 +26,7 @@ sudo apt-get install git wget flex bison gperf python3 python3-pip python3-venv 
 :::{tab-item} CentOS 7 & 8
 
 ```bash
-sudo yum -y update && sudo yum install git wget flex bison gperf python3 python3-setuptools cmake ninja-build ccache dfu-util libusbx jq
+sudo yum -y update && sudo yum install git wget flex bison gperf python3 python3-setuptools cmake ninja-build ccache dfu-util libusbx
 ```
 
 :::
@@ -34,7 +34,7 @@ sudo yum -y update && sudo yum install git wget flex bison gperf python3 python3
 :::{tab-item} Arch
 
 ```bash
-sudo pacman -S --needed gcc git make flex bison gperf python cmake ninja ccache dfu-util libusb python-pip jq
+sudo pacman -S --needed gcc git make flex bison gperf python cmake ninja ccache dfu-util libusb python-pip
 ```
 
 :::
@@ -52,13 +52,13 @@ SiFli-SDK no longer relies on the system Python installation. `install.sh` uses 
   - Homebrew users:
 
         ```bash
-        brew install cmake ninja jq
+        brew install cmake ninja
         ```
 
   - MacPort users
 
         ```bash
-        sudo port install cmake ninja jq
+        sudo port install cmake ninja
         ```
 
   - Neither of the above
@@ -88,14 +88,6 @@ uv --version
 
 ```{note}
 `uv` is an extremely fast Python package and project management tool written in Rust. For installation instructions, refer to the [official uv documentation](https://docs.astral.sh/uv/getting-started/installation).
-```
-
-## Install `jq`
-
-`export.sh` reads the installed profile bootstrap information from `${SIFLI_SDK_TOOLS_PATH}/sifli-sdk-env.json`. Please install `jq` first and ensure the following command works in your terminal:
-
-```bash
-jq --version
 ```
 
 ## Get SiFli-SDK
@@ -165,7 +157,8 @@ cd ~/OpenSiFli/SiFli-SDK
 - use `uv` to provision the locked Python runtime
 - sync the locked Python dependency graph from `tools/locks/default/pyproject.toml` and `tools/locks/default/uv.lock`
 - install the SDK toolchain versions bound by `tools/locks/default/lock.json`
-- initialize the profile-specific Conan home under `SIFLI_SDK_TOOLS_PATH`
+- instantiate the current profile environment under `SIFLI_SDK_TOOLS_PATH` based on the active lock snapshot
+- initialize the environment-specific Conan home under `SIFLI_SDK_TOOLS_PATH`
 
 Keil/ARMCLANG path recording and `export -t keil` are Windows-only; the macOS and Linux scripts export the GCC toolchain by default.
 
@@ -213,7 +206,7 @@ Please run the following command in terminal windows where you need to use compi
 . export.sh
 ```
 
-`export.sh` now reads the installed profile bootstrap information from `${SIFLI_SDK_TOOLS_PATH}/sifli-sdk-env.json` and uses the Python virtual environment recorded there. If that profile environment has not been installed yet, the state file is missing, or the installation record is from an older incompatible layout, `export.sh` will fail immediately and ask you to run `./install.sh` again.
+`export.sh` now invokes `tools/sdk_env.py export` through `uv run`. The environment manager resolves the current `profile + lock` snapshot to the matching SDK environment instance. If that instance is missing or invalid, `export.sh` will either reconcile it according to the saved preference or fail and ask you to run `./install.sh` again.
 
 ````{note}
 If you have set a custom tool installation path according to the above instructions, then you **must** set the `SIFLI_SDK_TOOLS_PATH` variable before running the `export.sh` script
@@ -225,9 +218,9 @@ export SIFLI_SDK_TOOLS_PATH="$HOME/required_sdk_tools_path"
 ````
 
 ```{note}
-`export.sh` now validates the current profile state before exporting the environment. If the local Python environment, tools, or Conan config drift from the repo lock, `export.sh` may prompt to reconcile the environment or fail deterministically in non-interactive shells.
+`export.sh` now validates the resolved environment instance before exporting. If the local Python environment, tools, or Conan config do not match the current repo lock, `export.sh` may prompt to reconcile the environment or fail deterministically in non-interactive shells.
 
-`export.sh` also requires `jq` in PATH because the bootstrap information is stored in `${SIFLI_SDK_TOOLS_PATH}/sifli-sdk-env.json`.
+`export.sh` requires `uv` in PATH because it launches `tools/sdk_env.py` through `uv run`.
 ```
 
 If you need to run SiFli-SDK frequently, you can create an alias for executing export.sh by following these steps:

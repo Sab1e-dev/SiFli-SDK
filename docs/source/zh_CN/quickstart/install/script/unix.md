@@ -18,7 +18,7 @@
 :::{tab-item} Ubuntu 和 Debian
 
 ```bash
-sudo apt-get install git wget flex bison gperf python3 python3-pip python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0 jq
+sudo apt-get install git wget flex bison gperf python3 python3-pip python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
 ```
 
 :::
@@ -26,7 +26,7 @@ sudo apt-get install git wget flex bison gperf python3 python3-pip python3-venv 
 :::{tab-item} CentOS 7 & 8
 
 ```bash
-sudo yum -y update && sudo yum install git wget flex bison gperf python3 python3-setuptools cmake ninja-build ccache dfu-util libusbx jq
+sudo yum -y update && sudo yum install git wget flex bison gperf python3 python3-setuptools cmake ninja-build ccache dfu-util libusbx
 ```
 
 :::
@@ -34,7 +34,7 @@ sudo yum -y update && sudo yum install git wget flex bison gperf python3 python3
 :::{tab-item} Arch
 
 ```bash
-sudo pacman -S --needed gcc git make flex bison gperf python cmake ninja ccache dfu-util libusb python-pip jq
+sudo pacman -S --needed gcc git make flex bison gperf python cmake ninja ccache dfu-util libusb python-pip
 ```
 
 :::
@@ -52,13 +52,13 @@ sudo pacman -S --needed gcc git make flex bison gperf python cmake ninja ccache 
   - Homebrew 用户：
 
         ```bash
-        brew install cmake ninja jq
+        brew install cmake ninja
         ```
 
   - MacPort 用户
 
         ```bash
-        sudo port install cmake ninja jq
+        sudo port install cmake ninja
         ```
 
   - 都不是
@@ -157,7 +157,8 @@ cd ~/OpenSiFli/SiFli-SDK
 - 通过 `uv` 准备锁定的 Python 运行时
 - 根据 `tools/locks/default/pyproject.toml` 和 `tools/locks/default/uv.lock` 同步锁定的 Python 依赖
 - 根据 `tools/locks/default/lock.json` 安装当前 profile 绑定的工具版本
-- 在 `SIFLI_SDK_TOOLS_PATH` 下初始化 profile 级别的 Conan 环境
+- 根据当前 lock 快照在 `SIFLI_SDK_TOOLS_PATH` 下实例化当前 profile 对应的环境
+- 在 `SIFLI_SDK_TOOLS_PATH` 下初始化该环境实例对应的 Conan 环境
 
 Keil/ARMCLANG 路径记录和 `export -t keil` 仅支持 Windows；macOS 和 Linux 的脚本默认导出 GCC 工具链。
 
@@ -205,7 +206,7 @@ export SIFLI_SDK_TOOLS_PATH="$HOME/required_sdk_tools_path"
 . export.sh
 ```
 
-`export.sh` 现在会从 `${SIFLI_SDK_TOOLS_PATH}/sifli-sdk-env.json` 读取 bootstrap 信息，并使用其中记录的 Python 虚拟环境。如果当前 profile 的虚拟环境尚未安装、本地 state 文件缺失，或者安装记录来自旧的不兼容布局，`export.sh` 会立即失败，并提示重新执行 `./install.sh`。
+`export.sh` 现在会通过 `uv run` 调用 `tools/sdk_env.py export`。环境管理器会根据当前 `profile + lock` 快照解析目标 SDK 环境实例；如果该实例不存在或已损坏，`export.sh` 会按已保存的偏好自动修复，或者直接失败并提示重新执行 `./install.sh`。
 
 ````{note}
 如果按照上述说明设置过自定义工具安装路径，那么在运行 `export.sh` 脚本之前**必须**设置`SIFLI_SDK_TOOLS_PATH` 变量
@@ -217,9 +218,9 @@ export SIFLI_SDK_TOOLS_PATH="$HOME/required_sdk_tools_path"
 ````
 
 ```{note}
-`export.sh` 现在会在导出环境前检查当前 profile 的 Python 环境、工具版本和 Conan 配置是否仍与仓库锁文件一致。如果检测到漂移，交互式终端可能会提示修复；非交互场景下会直接以确定性错误退出。
+`export.sh` 现在会在导出环境前检查当前解析出来的环境实例是否仍与仓库锁文件一致。如果本地 Python 环境、工具版本或 Conan 配置不匹配，交互式终端可能会提示修复；非交互场景下会直接以确定性错误退出。
 
-`export.sh` 还要求 PATH 中存在 `jq`，因为 bootstrap 信息保存在 `${SIFLI_SDK_TOOLS_PATH}/sifli-sdk-env.json` 中。
+`export.sh` 需要 PATH 中存在 `uv`，因为它会通过 `uv run` 启动 `tools/sdk_env.py`。
 ```
 
 如果需要经常运行 SiFli-SDK，可以为执行 export.sh 创建一个别名，具体步骤如下：

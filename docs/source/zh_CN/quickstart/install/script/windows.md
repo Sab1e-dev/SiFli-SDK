@@ -195,7 +195,7 @@ cd C:\OpenSiFli\SiFli-SDK
 .\export.ps1 -t keil
 ```
 
-`export.ps1` 现在会从 `${SIFLI_SDK_TOOLS_PATH}/sifli-sdk-env.json` 读取已安装 profile 的 bootstrap 信息，并使用其中记录的 Python 虚拟环境。如果当前 profile 的虚拟环境尚未安装、本地 state 文件缺失，或者安装记录来自旧的不兼容布局，`export.ps1` 会立即失败，并提示重新执行 `.\install.ps1`。
+`export.ps1` 现在会通过 `uv run` 调用 `tools/sdk_env.py export`。环境管理器会根据当前 `profile + lock` 快照解析目标 SDK 环境实例，并使用其中记录的 Python 虚拟环境；如果该实例不存在或已损坏，`export.ps1` 会按已保存的偏好自动修复，或者直接失败并提示重新执行 `.\install.ps1`。
 
 ````{note}
 如果按照上述说明设置过自定义工具安装路径，那么在运行 `export.ps1` 脚本之前**必须**设置`SIFLI_SDK_TOOLS_PATH` 变量
@@ -211,7 +211,9 @@ $env:SIFLI_SDK_TOOLS_PATH="D:\SIFLI\tools"
 ```
 
 ```{note}
-`export.ps1` 现在会在导出环境前检查当前 profile 的 Python 环境、工具版本和 Conan 配置是否仍与仓库锁文件一致。如果检测到漂移，交互式终端可能会提示修复；非交互场景下会直接以确定性错误退出。
+`export.ps1` 现在会在导出环境前检查当前解析出来的环境实例是否仍与仓库锁文件一致。如果本地 Python 环境、工具版本或 Conan 配置不匹配，交互式终端可能会提示修复；非交互场景下会直接以确定性错误退出。
+
+`export.ps1` 需要 PATH 中存在 `uv`，因为它会通过 `uv run` 启动 `tools/sdk_env.py`。
 ```
 
 ### Windows Terminal 快捷配置
