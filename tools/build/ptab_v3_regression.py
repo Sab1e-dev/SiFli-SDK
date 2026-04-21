@@ -182,6 +182,69 @@ def _collect_macro_values(path: str) -> Dict[str, int]:
     return out
 
 
+def _collect_fal_part_entries(path: str) -> List[Tuple[str, str, int, int]]:
+    entry_re = re.compile(
+        r'\{FAL_PART_MAGIC_WORD,\s*"([^"]+)",\s*([A-Z0-9_]+),\s*0x([0-9A-Fa-f]+),\s*0x([0-9A-Fa-f]+),\s*0\}'
+    )
+    with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+        text = f.read()
+    out: List[Tuple[str, str, int, int]] = []
+    for name, dev_name, offset_hex, size_hex in entry_re.findall(text):
+        out.append((name, dev_name, int(offset_hex, 16), int(size_hex, 16)))
+    return out
+
+
+def _expected_fal_part_entries(ptab_obj) -> List[Tuple[str, str, int, int]]:
+    root = _repo_root()
+    sys.path.insert(0, os.path.join(root, 'tools', 'build'))
+    import ptab as ptab_module  # type: ignore
+
+    def _is_auto_fal_partition(partition: Dict[str, Any]) -> bool:
+        ptype = str(partition.get('type') or '').strip()
+        subtype = str(partition.get('subtype') or '').strip()
+        if ptype == 'data':
+            return subtype in ('flashdb_kv', 'filesystem')
+        if ptype == 'app':
+            return subtype != 'ex'
+        return False
+
+    def _fal_device_macro_for_region(region: str) -> Optional[str]:
+        region = str(region or '').strip().lower()
+        match = re.match(r'^mpi([1-5])$', region)
+        if match:
+            return 'NOR_FLASH{}_DEV_NAME'.format(match.group(1))
+        if region == 'sdmmc1':
+            return 'SDMMC1_DEV_NAME'
+        if region == 'sdmmc2':
+            return 'SDMMC2_DEV_NAME'
+        return None
+
+    out: List[Tuple[str, str, int, int]] = []
+    for partition in getattr(ptab_obj, 'partitions', []) or []:
+        if not isinstance(partition, dict) or not _is_auto_fal_partition(partition):
+            continue
+        name = str(partition.get('name') or '').strip()
+        if not name:
+            continue
+        dev_name = _fal_device_macro_for_region(str(partition.get('region') or '').strip())
+        if not dev_name:
+            raise _EvalError("partition '{}' uses unsupported auto-FAL region '{}'".format(
+                name, partition.get('region')
+            ))
+        offset = ptab_module.parse_size(partition.get('offset', 0))
+        size = ptab_module.parse_size(partition.get('size', 0))
+        out.append((name, dev_name, offset, size))
+    return out
+
+
+def _check_generated_fal_part_table(ptab_obj, header_path: str, label: str) -> List[Tuple[str, str, int, int]]:
+    actual = sorted(_collect_fal_part_entries(header_path))
+    expected = sorted(_expected_fal_part_entries(ptab_obj))
+    if actual != expected:
+        raise _EvalError('{} FAL_PART_TABLE mismatch: {} != {}'.format(label, actual, expected))
+    return actual
+
+
 def _parse_lds_assignments(path: str) -> Dict[str, int]:
     assign_re = re.compile(r'^\s*(__[A-Za-z0-9_]+)\s*=\s*(.+?);')
     out: Dict[str, int] = {}
@@ -241,7 +304,6 @@ def _write_generated_ptab_h(ptab_obj, env_name: str, core: str, out_path: str) -
     s += sdk_resource.MakeLine('')
     s += sdk_resource.MakeLine('')
     s += sdk_resource.MakeLine('#endif')
-sdk_
     with open(out_path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(s)
 
@@ -291,6 +353,11 @@ def _compare_ptab_h(root: str, ptab_obj_a, ptab_obj_b, tmp_dir: str) -> None:
 
     _check('main', a_main, b_main)
     _check('bootloader', a_boot, b_boot)
+
+    fal_main_a = _check_generated_fal_part_table(ptab_obj_a, main_a, 'main-a')
+    fal_main_b = _check_generated_fal_part_table(ptab_obj_b, main_b, 'main-b')
+    if fal_main_a != fal_main_b:
+        raise _EvalError('main FAL_PART_TABLE mismatch: {} != {}'.format(fal_main_a, fal_main_b))
 
 
 def _compare_ftab(ptab_obj_a, ptab_obj_b) -> None:
@@ -415,6 +482,7 @@ def main() -> int:
     gen_boot_ptab_h = os.path.join(tmp_dir, 'ptab_boot.h')
     _write_generated_ptab_h(ptab_obj, 'main', 'HCPU', gen_main_ptab_h)
     _write_generated_ptab_h(ptab_obj, 'bootloader', 'HCPU', gen_boot_ptab_h)
+    _check_generated_fal_part_table(ptab_obj, gen_main_ptab_h, 'generated main')
 
     # Compare ptab.h (numeric)
     baseline_main_macros = _collect_macro_values(baseline_main_ptab_h)

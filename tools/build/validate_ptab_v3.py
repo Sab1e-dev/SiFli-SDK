@@ -36,6 +36,23 @@ class ValidationError:
         return f"[{self.severity.upper()}] {self.message}"
 
 
+def _is_auto_fal_partition(partition: Dict[str, Any]) -> bool:
+    ptype = str(partition.get('type') or '').strip()
+    subtype = str(partition.get('subtype') or '').strip()
+    if ptype == 'data':
+        return subtype in ('flashdb_kv', 'filesystem')
+    if ptype == 'app':
+        return subtype != 'ex'
+    return False
+
+
+def _auto_fal_region_supported(region: str) -> bool:
+    region = str(region or '').strip().lower()
+    if re.match(r'^mpi[1-5]$', region):
+        return True
+    return region in ('sdmmc1', 'sdmmc2')
+
+
 def validate_name(name: str, partition_idx: int) -> List[ValidationError]:
     """Validate partition name format"""
     errors = []
@@ -411,7 +428,15 @@ def validate_ptab_v3(ptab_obj) -> List[ValidationError]:
         errors.extend(validate_exec(p.get('exec'), pname, chip_config, p.get('core')))
         errors.extend(validate_sections(p.get('sections'), p))
 
-        # flashdb_kv partitions must live on an mpiN region for FAL_PART_TABLE generation
+        # Auto-exported FAL partitions must live on a region that maps to a
+        # known FAL device macro.
+        if _is_auto_fal_partition(p):
+            region = str(p.get('region', '') or '').strip()
+            if not _auto_fal_region_supported(region):
+                errors.append(ValidationError(
+                    f"Partition '{pname}': partitions that auto-generate FAL_PART_TABLE entries must use region 'mpi1'..'mpi5' or 'sdmmc1'/'sdmmc2' (got '{region}')"
+                ))
+
         if p.get('type') == 'data' and p.get('subtype') == 'flashdb_kv':
             # Partition `name` is used as the FlashDB KV DB name and the FAL
             # partition name string. Legacy names like `kvdb_dfu_region` are
@@ -427,12 +452,6 @@ def validate_ptab_v3(ptab_obj) -> List[ValidationError]:
                     errors.append(ValidationError(
                         f"Partition '{pname}': flashdb_kv name must be the DB/FAL partition name (e.g. 'dfu', 'ble'), not legacy '{pname}'"
                     ))
-
-            region = str(p.get('region', '') or '').strip()
-            if not re.match(r'^mpi\d+$', region, flags=re.IGNORECASE):
-                errors.append(ValidationError(
-                    f"Partition '{pname}': flashdb_kv must use region 'mpiN' (got '{region}')"
-                ))
 
     # Global validations
     errors.extend(validate_bootloader_unique(partitions))

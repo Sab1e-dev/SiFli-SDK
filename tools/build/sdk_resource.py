@@ -817,6 +817,7 @@ def GenPartitionTableHeaderContentV3(env, ptab_obj):
     - Alias macros: <ALIAS>_START_ADDR/_SIZE/_OFFSET
     - Alias macros: <ALIAS>_MEM_TYPE where memory type is known
     - FS_REGION_* for filesystem-like partitions
+    - FAL_PART_TABLE for auto-exported FAL partitions
     - FLASH_BOOT_LOADER_* from bootloader.exec (execution address)
     - HCPU_FLASH_CODE_* from HCPU factory app.exec (execution address)
     - ACPU_CODE_REGION<N>[_SBUS]_* from ACPU factory app.exec
@@ -869,6 +870,28 @@ def GenPartitionTableHeaderContentV3(env, ptab_obj):
         # - NOR/PSRAM: XIP
         mem_type = _get_region_mem_type(region)
         return sbus_addr if mem_type in ('ram', 'nand') else cbus_addr
+
+    def _is_auto_fal_partition(partition):
+        if not isinstance(partition, dict):
+            return False
+        ptype = str(partition.get('type') or '').strip()
+        subtype = str(partition.get('subtype') or '').strip()
+        if ptype == 'data':
+            return subtype in ('flashdb_kv', 'filesystem')
+        if ptype == 'app':
+            return subtype != 'ex'
+        return False
+
+    def _fal_device_macro_for_region(region):
+        region = str(region or '').strip().lower()
+        match = re.match(r'^mpi([1-5])$', region)
+        if match:
+            return 'NOR_FLASH{}_DEV_NAME'.format(match.group(1))
+        if region == 'sdmmc1':
+            return 'SDMMC1_DEV_NAME'
+        if region == 'sdmmc2':
+            return 'SDMMC2_DEV_NAME'
+        return None
 
     def _define_u32(name, value):
         out = ''
@@ -948,8 +971,8 @@ def GenPartitionTableHeaderContentV3(env, ptab_obj):
         if ptype == 'app' and subtype == 'dfu' and core not in dfu_by_core:
             dfu_by_core[core] = p
 
-    # Collect flashdb_kv partitions for FAL_PART_TABLE generation
-    flashdb_kv_partitions = []
+    # Collect auto-exported FAL partitions for FAL_PART_TABLE generation
+    fal_partitions = []
 
     # Group partitions by region for readability
     region_groups = {}
@@ -1006,7 +1029,7 @@ def GenPartitionTableHeaderContentV3(env, ptab_obj):
                 s += _define_u32('FS_REGION_OFFSET', offset)
                 s += _define_mem_type('FS_REGION', region_mem_type)
 
-            # FlashDB KV macros + FAL_PART_TABLE collection
+            # FlashDB KV macros
             if ptype == 'data' and subtype == 'flashdb_kv':
                 # NOTE: `name` is the FlashDB KV DB name and also the FAL
                 # partition name string (e.g. `dfu`, `ble`).
@@ -1015,8 +1038,11 @@ def GenPartitionTableHeaderContentV3(env, ptab_obj):
                 s += _define_u32('{}_OFFSET'.format(kv_base), offset)
                 s += _define_u32('{}_SIZE'.format(kv_base), size)
                 s += _define_mem_type(kv_base, region_mem_type)
-                flashdb_kv_partitions.append({
-                    'db_name': name,
+
+            # Auto-export selected partitions into FAL_PART_TABLE.
+            if _is_auto_fal_partition(partition):
+                fal_partitions.append({
+                    'name': name,
                     'region': region,
                     'offset': offset,
                     'size': size,
@@ -1152,38 +1178,34 @@ def GenPartitionTableHeaderContentV3(env, ptab_obj):
             s += _define_u32('CODE_START_ADDR', exec_addr)
             s += _define_u32('CODE_SIZE', size)
 
-    # Generate FAL_PART_TABLE if flashdb_kv partitions exist
-    if flashdb_kv_partitions:
+    # Generate FAL_PART_TABLE if auto-exported partitions exist
+    if fal_partitions:
         s += MakeLine('')
         s += MakeLine('')
-        s += MakeLine('/* FAL Partition Table for FlashDB */')
+        s += MakeLine('/* FAL Partition Table */')
         s += MakeLine('#ifndef FAL_PART_TABLE')
         s += MakeLine('#define FAL_PART_TABLE \\')
         s += MakeLine('{ \\')
-        for idx, fdb_part in enumerate(flashdb_kv_partitions):
-            # Determine NOR_FLASHx_DEV_NAME from region (mpi1->1, mpi2->2, etc.)
-            fdb_region = fdb_part['region']
-            match = re.match(r'^mpi(\d+)$', str(fdb_region).strip(), flags=re.IGNORECASE)
-            if not match:
+        for idx, fal_part in enumerate(fal_partitions):
+            dev_name = _fal_device_macro_for_region(fal_part['region'])
+            if not dev_name:
                 raise ValueError(
-                    "flashdb_kv partition '{}' must be in an mpiN region for FAL_PART_TABLE generation (got region '{}')".format(
-                        fdb_part.get('db_name') or '?', fdb_region
+                    "partition '{}' must use region mpi1..mpi5 or sdmmc1/sdmmc2 for FAL_PART_TABLE generation (got region '{}')".format(
+                        fal_part.get('name') or '?', fal_part.get('region')
                     )
                 )
-            flash_num = match.group(1)
-            dev_name = 'NOR_FLASH{}_DEV_NAME'.format(flash_num)
-            
-            fdb_name = fdb_part['db_name']
-            fdb_offset = fdb_part['offset']
-            fdb_size = fdb_part['size']
-            
+
+            part_name = fal_part['name']
+            part_offset = fal_part['offset']
+            part_size = fal_part['size']
+
             # Last entry doesn't have trailing comma
-            if idx == len(flashdb_kv_partitions) - 1:
+            if idx == len(fal_partitions) - 1:
                 s += MakeLine('    {{FAL_PART_MAGIC_WORD, "{}", {}, 0x{:08X}, 0x{:08X}, 0}} \\'.format(
-                    fdb_name, dev_name, fdb_offset, fdb_size))
+                    part_name, dev_name, part_offset, part_size))
             else:
                 s += MakeLine('    {{FAL_PART_MAGIC_WORD, "{}", {}, 0x{:08X}, 0x{:08X}, 0}}, \\'.format(
-                    fdb_name, dev_name, fdb_offset, fdb_size))
+                    part_name, dev_name, part_offset, part_size))
         s += MakeLine('}')
         s += MakeLine('#endif /* FAL_PART_TABLE */')
 
