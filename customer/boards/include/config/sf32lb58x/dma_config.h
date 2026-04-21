@@ -72,6 +72,16 @@ extern "C" {
 #define FLASH2_DMA_INSTANCE            DMA1_Channel2
 #define FLASH2_DMA_IRQ                 DMAC1_CH2_IRQn
 
+#define I2C1_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define I2C1_DMA_IRQ_PRIO                1
+#define I2C1_DMA_INSTANCE                DMA1_Channel2
+#define I2C1_DMA_IRQ                     DMAC1_CH2_IRQn
+
+#define I2C2_DMA_IRQHandler              DMAC1_CH2_IRQHandler
+#define I2C2_DMA_IRQ_PRIO                1
+#define I2C2_DMA_INSTANCE                DMA1_Channel2
+#define I2C2_DMA_IRQ                     DMAC1_CH2_IRQn
+
 #define I2C3_DMA_IRQHandler              DMAC1_CH2_IRQHandler
 #define I2C3_DMA_IRQ_PRIO                1
 #define I2C3_DMA_INSTANCE                DMA1_Channel2
