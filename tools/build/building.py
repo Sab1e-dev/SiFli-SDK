@@ -509,25 +509,102 @@ def GetPtabV3CodeArtifactCandidates(output_dir: str, base_name: str, ext: str):
     ]
 
 
-def ResolvePtabV3CodeArtifact(output_dir: str, base_name: str, ext: str) -> str:
-    """Resolve the actual ptab v3 code artifact path from the output directory."""
+def _ptab_v3_artifact_has_payload(path: str, ext: str) -> bool:
+    """Return True when a candidate artifact exists and contains data."""
+    if not os.path.isfile(path):
+        return False
+    if os.path.getsize(path) <= 0:
+        return False
+    if ext.lower() == '.hex':
+        return _ihex_has_data(path)
+    return True
+
+
+def GetLegacyMultiImageArtifactPaths(output_dir: str, ext: str):
+    """Return legacy ER_IROMN artifacts from a flat output directory."""
+    if not os.path.isdir(output_dir):
+        return []
+
+    matched = []
+    pattern = re.compile(r'^(?:.+\.)?ER_IROM(\d+){}$'.format(re.escape(ext)), re.IGNORECASE)
+    for name in os.listdir(output_dir):
+        m = pattern.match(name)
+        if not m:
+            continue
+        idx = int(m.group(1), 10)
+        path = os.path.join(output_dir, name)
+        if _ptab_v3_artifact_has_payload(path, ext):
+            matched.append((idx, path))
+
+    matched.sort(key=lambda item: item[0])
+    return [path for _, path in matched]
+
+
+def _resolve_standard_ptab_v3_artifact(output_dir: str, base_name: str, ext: str, require_payload: bool) -> str:
     candidates = GetPtabV3CodeArtifactCandidates(output_dir, base_name, ext)
     for candidate in candidates:
-        if os.path.isfile(candidate) and os.path.getsize(candidate) > 0:
+        if _ptab_v3_artifact_has_payload(candidate, ext):
             return candidate
+    if require_payload:
+        return ''
     for candidate in candidates:
         if os.path.exists(candidate):
             return candidate
-    return candidates[-1]
+    return ''
+
+
+def ResolvePtabV3CodeArtifact(output_dir: str, base_name: str, ext: str) -> str:
+    """Resolve the primary code artifact from a ptab v3 or legacy multi-image output dir."""
+    standard = _resolve_standard_ptab_v3_artifact(output_dir, base_name, ext, True)
+    if standard:
+        return standard
+
+    legacy = GetLegacyMultiImageArtifactPaths(output_dir, ext)
+    if legacy:
+        prefixed = GetPtabV3ArtifactPath(output_dir, base_name, ext, 'ER_IROM1')
+        legacy_name = os.path.join(output_dir, 'ER_IROM1{}'.format(ext))
+        for preferred in (prefixed, legacy_name):
+            if preferred in legacy:
+                return preferred
+        return legacy[0]
+
+    standard = _resolve_standard_ptab_v3_artifact(output_dir, base_name, ext, False)
+    if standard:
+        return standard
+    return GetPtabV3CodeArtifactCandidates(output_dir, base_name, ext)[-1]
+
+
+def ResolvePtabV3ArtifactContainer(output_dir: str, base_name: str, ext: str) -> str:
+    """Resolve a file or directory that callers may need to iterate/load."""
+    standard = _resolve_standard_ptab_v3_artifact(output_dir, base_name, ext, True)
+    if standard:
+        return standard
+    if GetLegacyMultiImageArtifactPaths(output_dir, ext):
+        return output_dir
+
+    standard = _resolve_standard_ptab_v3_artifact(output_dir, base_name, ext, False)
+    if standard:
+        return standard
+    return GetPtabV3CodeArtifactCandidates(output_dir, base_name, ext)[-1]
 
 
 def ResolvePtabV3CodeArtifactFromRef(path: str, base_name: str, ext: str) -> str:
-    """Resolve a real code artifact path from a ptab v3 stamp/output reference."""
+    """Resolve a primary code artifact file from a stamp or output directory reference."""
     path = str(path)
     if IsPtabV3ArtifactStampPath(path):
         return ResolvePtabV3CodeArtifact(os.path.dirname(path), base_name, ext)
     if os.path.isdir(path):
         return ResolvePtabV3CodeArtifact(path, base_name, ext)
+    return path
+
+
+def ResolvePtabV3ArtifactContainerFromRef(path: str, base_name: str, ext: str) -> str:
+    """Resolve a file or iterable output directory from a stamp/output reference."""
+    path = str(path)
+    if IsPtabV3ArtifactStampPath(path):
+        return ResolvePtabV3ArtifactContainer(os.path.dirname(path), base_name, ext)
+    if os.path.isdir(path):
+        return ResolvePtabV3ArtifactContainer(path, base_name, ext)
     return path
 
 
@@ -586,9 +663,6 @@ def ModifyProgramBinaryTargets(target, source, env):
         ptab_obj = ptab_module.load_ptab(env['PARTITION_TABLE'], fatal=False)
 
     if rtconfig.PLATFORM == 'gcc' and ptab_obj and ptab_obj.is_v3():
-        core = _infer_build_core(env, getattr(rtconfig, 'CORE', 'HCPU'))
-        if core == 'LCPU' and env.get('IMG_EMBEDDED'):
-            return target, source
         elf_path = str(source[0]) if source else ''
         out_dir = GetPtabV3ArtifactOutputDir(elf_path)
         target = [os.path.join(out_dir, PTAB_V3_PROGRAM_BINARY_STAMP)]
@@ -604,9 +678,6 @@ def ModifyProgramHexTargets(target, source, env):
         ptab_obj = ptab_module.load_ptab(env['PARTITION_TABLE'], fatal=False)
 
     if rtconfig.PLATFORM == 'gcc' and ptab_obj and ptab_obj.is_v3():
-        core = _infer_build_core(env, getattr(rtconfig, 'CORE', 'HCPU'))
-        if core == 'LCPU' and env.get('IMG_EMBEDDED'):
-            return target, source
         elf_path = str(source[0]) if source else ''
         out_dir = GetPtabV3ArtifactOutputDir(elf_path)
         target = [os.path.join(out_dir, PTAB_V3_PROGRAM_HEX_STAMP)]
@@ -629,9 +700,50 @@ def ProgramBinaryBuild(target, source, env):
     if ptab_obj is None and 'PARTITION_TABLE' in env:
         ptab_obj = ptab_module.load_ptab(env['PARTITION_TABLE'], fatal=False)
 
-    # ptab v3 (gcc): split app/ex sections and emit final artifacts into `output/`
     core = _infer_build_core(env, getattr(rtconfig, 'CORE', 'HCPU'))
-    if rtconfig.PLATFORM == 'gcc' and ptab_obj and ptab_obj.is_v3() and not (core == 'LCPU' and env.get('IMG_EMBEDDED')):
+    # ptab v3 (gcc): embedded LCPU keeps ER_IROMN sections, but uses the same
+    # output naming rule as other multi-artifact projects: <base>.ER_IROMN.ext.
+    if rtconfig.PLATFORM == 'gcc' and ptab_obj and ptab_obj.is_v3() and core == 'LCPU' and env.get('IMG_EMBEDDED'):
+        base_name = GetPtabV3ArtifactBaseName(env, program_file)
+        stamp_path = code_bin_path
+        out_dir = os.path.dirname(stamp_path)
+        _cleanup_ptab_v3_output_dir(out_dir, '.bin', PTAB_V3_PROGRAM_BINARY_STAMP)
+        _cleanup_ptab_v3_legacy_artifacts(program_file, '.bin')
+
+        shutil.copy(str(source[0]), str(source[0]) + '.strip.elf')
+        subprocess.run([rtconfig.STRIP, str(source[0]) + '.strip.elf'], check=True)
+
+        ex_imgs = []
+        tempfile_path = os.path.join(target_path, 'rom_temp.bin')
+        for i in range(2, 2 + MAX_EX_IMG_NUM):
+            subprocess.run([rtconfig.OBJCPY, '-Obinary', '-j.rom{}'.format(i), str(source[0]), tempfile_path], check=True)
+            size = os.path.getsize(tempfile_path)
+            os.remove(tempfile_path)
+            if size > 0:
+                ex_imgs.append(i)
+
+        if len(ex_imgs) == 0:
+            code_bin_path = GetPtabV3ArtifactPath(out_dir, base_name, '.bin')
+            _remove_file_or_dir(code_bin_path)
+            subprocess.run([rtconfig.OBJCPY, '-Obinary', str(source[0]), code_bin_path], check=True)
+        else:
+            exclude_ex_imgs = []
+            for i in ex_imgs:
+                ex_img_path = GetPtabV3ArtifactPath(out_dir, base_name, '.bin', 'ER_IROM{}'.format(i))
+                _remove_file_or_dir(ex_img_path)
+                subprocess.run([rtconfig.OBJCPY, '-Obinary', '-j.rom{}'.format(i), str(source[0]), ex_img_path], check=True)
+                exclude_ex_imgs += ['-R.rom{}'.format(i)]
+
+            code_bin_path = GetPtabV3ArtifactPath(out_dir, base_name, '.bin', 'ER_IROM1')
+            _remove_file_or_dir(code_bin_path)
+            subprocess.run([rtconfig.OBJCPY, '-Obinary'] + exclude_ex_imgs + [str(source[0]), code_bin_path], check=True)
+
+        with open(stamp_path, 'w', encoding='utf-8', newline='\n') as f:
+            f.write(code_bin_path + '\n')
+        return
+
+    # ptab v3 (gcc): split app/ex sections and emit final artifacts into `output/`
+    if rtconfig.PLATFORM == 'gcc' and ptab_obj and ptab_obj.is_v3():
         base_name = GetPtabV3ArtifactBaseName(env, program_file)
         stamp_path = code_bin_path
         out_dir = os.path.dirname(stamp_path)
@@ -739,9 +851,47 @@ def ProgramHexBuild(target, source, env):
     if ptab_obj is None and 'PARTITION_TABLE' in env:
         ptab_obj = ptab_module.load_ptab(env['PARTITION_TABLE'], fatal=False)
 
-    # ptab v3 (gcc): split app/ex sections and emit final artifacts into `output/`
     core = _infer_build_core(env, getattr(rtconfig, 'CORE', 'HCPU'))
-    if rtconfig.PLATFORM == 'gcc' and ptab_obj and ptab_obj.is_v3() and not (core == 'LCPU' and env.get('IMG_EMBEDDED')):
+    # ptab v3 (gcc): embedded LCPU keeps ER_IROMN sections, but uses the same
+    # output naming rule as other multi-artifact projects: <base>.ER_IROMN.ext.
+    if rtconfig.PLATFORM == 'gcc' and ptab_obj and ptab_obj.is_v3() and core == 'LCPU' and env.get('IMG_EMBEDDED'):
+        base_name = GetPtabV3ArtifactBaseName(env, program_file)
+        stamp_path = code_hex_path
+        out_dir = os.path.dirname(stamp_path)
+        _cleanup_ptab_v3_output_dir(out_dir, '.hex', PTAB_V3_PROGRAM_HEX_STAMP)
+        _cleanup_ptab_v3_legacy_artifacts(program_file, '.hex')
+
+        ex_imgs = []
+        tempfile_path = os.path.join(target_path, 'rom_temp.hex')
+        for i in range(2, 2 + MAX_EX_IMG_NUM):
+            subprocess.run([rtconfig.OBJCPY, '-Obinary', '-j.rom{}'.format(i), str(source[0]), tempfile_path], check=True)
+            size = os.path.getsize(tempfile_path)
+            os.remove(tempfile_path)
+            if size > 0:
+                ex_imgs.append(i)
+
+        if len(ex_imgs) == 0:
+            code_hex_path = GetPtabV3ArtifactPath(out_dir, base_name, '.hex')
+            _remove_file_or_dir(code_hex_path)
+            subprocess.run([rtconfig.OBJCPY, '-O', 'ihex', str(source[0]), code_hex_path], check=True)
+        else:
+            exclude_ex_imgs = []
+            for i in ex_imgs:
+                ex_img_path = GetPtabV3ArtifactPath(out_dir, base_name, '.hex', 'ER_IROM{}'.format(i))
+                _remove_file_or_dir(ex_img_path)
+                subprocess.run([rtconfig.OBJCPY, '-O', 'ihex', '-j.rom{}'.format(i), str(source[0]), ex_img_path], check=True)
+                exclude_ex_imgs += ['-R.rom{}'.format(i)]
+
+            code_hex_path = GetPtabV3ArtifactPath(out_dir, base_name, '.hex', 'ER_IROM1')
+            _remove_file_or_dir(code_hex_path)
+            subprocess.run([rtconfig.OBJCPY, '-O', 'ihex'] + exclude_ex_imgs + [str(source[0]), code_hex_path], check=True)
+
+        with open(stamp_path, 'w', encoding='utf-8', newline='\n') as f:
+            f.write(code_hex_path + '\n')
+        return
+
+    # ptab v3 (gcc): split app/ex sections and emit final artifacts into `output/`
+    if rtconfig.PLATFORM == 'gcc' and ptab_obj and ptab_obj.is_v3():
         base_name = GetPtabV3ArtifactBaseName(env, program_file)
         stamp_path = code_hex_path
         out_dir = os.path.dirname(stamp_path)
@@ -963,9 +1113,7 @@ def EmbeddedImgCFileBuild(target, source, env):
     SIFLI_SDK = os.getenv('SIFLI_SDK')
     GEN_SRC_PATH = os.path.join(SIFLI_SDK, "tools/patch/gen_src.py")
     s = str(source[0])
-    if os.path.isdir(s):
-        s = os.path.join(s, 'ER_IROM1.bin')
-    elif IsPtabV3ArtifactStampPath(s):
+    if os.path.isdir(s) or IsPtabV3ArtifactStampPath(s):
         s = ResolvePtabV3CodeArtifactFromRef(s, GetPtabV3ArtifactBaseName(env), '.bin')
     if "acpu" in s:
         subprocess.run(['python', GEN_SRC_PATH, 'general', s, target_path, "acpu"], check=True)
@@ -1031,7 +1179,7 @@ def FtabBinBuild(target, source, env):
 
     def _calc_binary_size(path, base_name='main'):
         path = str(path)
-        if IsPtabV3ArtifactStampPath(path):
+        if IsPtabV3ArtifactStampPath(path) or os.path.isdir(path):
             path = ResolvePtabV3CodeArtifactFromRef(path, base_name, '.bin')
         if os.path.isfile(path):
             return os.path.getsize(path)

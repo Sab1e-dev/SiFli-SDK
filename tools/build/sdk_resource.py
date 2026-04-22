@@ -1745,7 +1745,7 @@ def BuildJLinkLoadScript(main_env):
             hex_file = str(env['program_hex'][0])
             # load address is not defined, load hex
             if is_ptab_v3:
-                hex_file = building.ResolvePtabV3CodeArtifactFromRef(
+                hex_file = building.ResolvePtabV3ArtifactContainerFromRef(
                     hex_file,
                     building.GetPtabV3ArtifactBaseName(env),
                     '.hex',
@@ -1753,6 +1753,8 @@ def BuildJLinkLoadScript(main_env):
             if os.path.isdir(hex_file):
                 dir_list = os.listdir(hex_file)
                 for d in dir_list:
+                    if not d.lower().endswith('.hex'):
+                        continue
                     if building.IsEmbeddedProjEnv(env) and 'ER_IROM1' in d:
                         # ER_IROM1 is embedded in parent, others need to be downloaded
                         continue
@@ -1838,6 +1840,8 @@ def BuildJLinkLoadScript(main_env):
             if os.path.isdir(hex_file):
                 dir_list = os.listdir(hex_file)
                 for d in dir_list:
+                    if not d.lower().endswith('.hex'):
+                        continue
                     if building.IsEmbeddedProjEnv(env) and 'ER_IROM1' in d:
                         # ER_IROM1 is embedded in parent, others need to be downloaded
                         continue
