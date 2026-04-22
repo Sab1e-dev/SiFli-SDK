@@ -175,12 +175,14 @@ def build_partition_table_entries(
     v3 address rules:
     - entry.base uses the "download/storage" view:
       - NOR: XIP (cbus)
-      - NAND/RAM/PSRAM: base (sbus)
+      - NAND/RAM/PSRAM/SDMMC: base (sbus)
     - entry.xip_base uses the execution view:
-      - NOR/PSRAM: XIP (cbus)
-      - NAND/RAM: base (sbus)
-      - NAND images with `exec`: exec region base window
-    - For app/bootloader partitions with `exec`, xip_base comes from exec.{region,offset}.
+      - Partitions with explicit `exec`: always use exec SBUS address
+      - Partitions without `exec`: keep legacy XIP selection
+        - NOR/PSRAM: XIP (cbus)
+        - NAND/RAM: base (sbus)
+    - For app/bootloader partitions with `exec`, xip_base comes from
+      exec.{region,offset} and is always encoded as the target SBUS address.
 
     Returns:
         - List of (base, size, xip_base, flags) tuples
@@ -216,6 +218,10 @@ def build_partition_table_entries(
     def _get_region_mem_type(region: str) -> str:
         if region == 'hpsys_ram' or region.startswith('hpsys') or region == 'lpsys_ram' or region.startswith('lpsys'):
             return 'ram'
+        if region.startswith('sdmmc'):
+            info = chip_config.get('memory_info', {}).get(region, {})
+            mtype = info.get('type')
+            return str(mtype).lower() if mtype is not None else 'sd'
         mpi_name = _mpi_name_from_region(region)
         if mpi_name:
             info = chip_config.get('memory_info', {}).get(mpi_name, {})
@@ -230,17 +236,11 @@ def build_partition_table_entries(
         mem_type = _get_region_mem_type(region)
         return sbus_addr if mem_type in ('ram', 'nand') else cbus_addr
 
-    def _select_ftab_exec_addr(
-        storage_region: str,
-        exec_region: str,
-        exec_sbus_addr: int,
-        exec_cbus_addr: int,
-    ) -> int:
-        if _get_region_mem_type(storage_region) == 'nand':
-            # Keep NAND ftab.xip_base aligned with the legacy exec-region
-            # window while leaving linker script generation unchanged.
-            return exec_sbus_addr
-        return _select_exec_addr(exec_region, exec_sbus_addr, exec_cbus_addr)
+    def _select_ftab_exec_addr(exec_sbus_addr: int) -> int:
+        # In ftab, xip_base is the boot/DFU destination address for any
+        # partition with explicit exec metadata. Always emit the SBUS view so
+        # storage type does not affect the copy target encoding.
+        return int(exec_sbus_addr)
 
     def _get_flash_boot_loader_size_default() -> Optional[int]:
         try:
@@ -334,11 +334,11 @@ def build_partition_table_entries(
                 if host_addr is not None:
                     xip_addr = int(host_addr)
                 else:
-                    exec_sbus_addr, exec_cbus_addr = ptab_module.resolve_region_address(exec_region, exec_offset, chip_config, core=core)
-                    xip_addr = int(_select_ftab_exec_addr(region, exec_region, exec_sbus_addr, exec_cbus_addr))
+                    exec_sbus_addr, _ = ptab_module.resolve_region_address(exec_region, exec_offset, chip_config, core=core)
+                    xip_addr = _select_ftab_exec_addr(exec_sbus_addr)
             else:
-                exec_sbus_addr, exec_cbus_addr = ptab_module.resolve_region_address(exec_region, exec_offset, chip_config, core=core)
-                xip_addr = int(_select_ftab_exec_addr(region, exec_region, exec_sbus_addr, exec_cbus_addr))
+                exec_sbus_addr, _ = ptab_module.resolve_region_address(exec_region, exec_offset, chip_config, core=core)
+                xip_addr = _select_ftab_exec_addr(exec_sbus_addr)
         else:
             mem_type = _get_region_mem_type(region)
             if mem_type == 'nand':
@@ -403,8 +403,8 @@ def build_partition_table_entries(
 
         exec_region = str(exec_def.get('region', '')).strip()
         exec_offset = ptab_module.parse_size(exec_def.get('offset', 0))
-        exec_sbus_addr, exec_cbus_addr = ptab_module.resolve_region_address(exec_region, exec_offset, chip_config, core=bootloader_partition.get('core'))
-        xip_addr = int(_select_exec_addr(exec_region, exec_sbus_addr, exec_cbus_addr))
+        exec_sbus_addr, _ = ptab_module.resolve_region_address(exec_region, exec_offset, chip_config, core=bootloader_partition.get('core'))
+        xip_addr = _select_ftab_exec_addr(exec_sbus_addr)
 
         entries[PartitionIndex.BOOTLOADER] = (base_addr, size, xip_addr, 0)
         entries[PartitionIndex.BOOTLOADER_IMAGE_PONG] = (base_addr, size, xip_addr, 0)

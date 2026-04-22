@@ -347,7 +347,7 @@ class PtabV3:
         return True
 
     def get_chip_config(self):
-        """获取芯片配置（MPI + RAM + Memory）
+        """获取芯片配置（MPI + RAM + SDMMC + Memory）
         
         合并以下来源：
         1. 基础 MPI/RAM 配置（从 SiliconSchema 加载）
@@ -359,7 +359,7 @@ class PtabV3:
             if series:
                 self._chip_config = load_chip_config(series)
             else:
-                self._chip_config = {'mpi': {}, 'ram': {}}
+                self._chip_config = {'mpi': {}, 'ram': {}, 'sdmmc': {}}
             
             # 合并芯片型号的 SiP memory 和 ptab.yaml 的 memory 配置
             self._chip_config = self._merge_memory_config(self._chip_config)
@@ -383,7 +383,7 @@ class PtabV3:
         import copy
         config = copy.deepcopy(config)
         
-        # 初始化 memory_info 存储每个 mpi 的存储器信息
+        # 初始化 memory_info 存储每个外部存储 region 的存储器信息
         if 'memory_info' not in config:
             config['memory_info'] = {}
         
@@ -400,15 +400,19 @@ class PtabV3:
         
         # 合并 ptab.yaml 中的 memory 字段（外部存储，覆盖 SiP）
         for mem in self._memory:
-            # Canonical key in docs/examples: `mpi`
-            # Backward-compat: allow `name: mpiN` as alias.
-            mpi = mem.get('mpi')
-            if not mpi:
+            # Canonical keys in docs/examples: `mpi` / `sdmmc`
+            # Backward-compat: allow `name: mpiN` or `name: sdmmcN`.
+            mem_region = mem.get('mpi')
+            if not mem_region:
+                mem_region = mem.get('sdmmc')
+            if not mem_region:
                 name = mem.get('name')
-                if isinstance(name, str) and name.strip().startswith('mpi'):
-                    mpi = name.strip()
-            if mpi:
-                config['memory_info'][mpi] = {
+                if isinstance(name, str):
+                    name = name.strip()
+                    if name.startswith('mpi') or name.startswith('sdmmc'):
+                        mem_region = name
+            if mem_region:
+                config['memory_info'][str(mem_region).strip()] = {
                     'type': mem.get('type', 'unknown'),
                     'size': parse_size(mem.get('size', 0)),
                     'sip': False,
@@ -1179,18 +1183,18 @@ def parse_size(value: Union[int, str]) -> int:
 # ============================================================================
 
 def load_chip_config(chip_series: str) -> Dict[str, Any]:
-    """加载芯片 MPI + RAM 配置
+    """加载芯片 MPI + RAM + SDMMC 配置
 
     Args:
         chip_series: 芯片系列名，如 'sf32lb52', 'sf32lb56', 'sf32lb58'
 
     Returns:
-        dict: {'mpi': {...}, 'ram': {...}}
+        dict: {'mpi': {...}, 'ram': {...}, 'sdmmc': {...}}
     """
     if chip_series in _CHIP_CONFIG_CACHE:
         return _CHIP_CONFIG_CACHE[chip_series]
 
-    config = {'series': chip_series, 'mpi': {}, 'ram': {}}
+    config = {'series': chip_series, 'mpi': {}, 'ram': {}, 'sdmmc': {}}
 
     # 加载 MPI 配置
     schema_root = _get_silicon_schema_root()
@@ -1207,6 +1211,13 @@ def load_chip_config(chip_series: str) -> Dict[str, Any]:
         raise FileNotFoundError(f"SiliconSchema RAM config not found: {ram_file}")
     with open(ram_file, encoding='utf-8-sig') as f:
         config['ram'] = yaml.safe_load(f)
+
+    # 加载 SDMMC 配置
+    sdmmc_file = schema_root / 'common' / 'sdmmc' / chip_series / 'sdmmc.yaml'
+    if sdmmc_file.exists():
+        with open(sdmmc_file, encoding='utf-8-sig') as f:
+            sdmmc_data = yaml.safe_load(f)
+            config['sdmmc'] = sdmmc_data.get('sdmmcs', {})
 
     _CHIP_CONFIG_CACHE[chip_series] = config
     return config
@@ -1230,6 +1241,7 @@ def resolve_region_address(
     """
     mpi_config = chip_config.get('mpi', {})
     ram_config = chip_config.get('ram', {})
+    sdmmc_config = chip_config.get('sdmmc', {})
     series = str(chip_config.get('series') or '').strip().lower()
     memory_info = chip_config.get('memory_info', {}) if isinstance(chip_config.get('memory_info', {}), dict) else {}
 
@@ -1258,6 +1270,13 @@ def resolve_region_address(
         sbus_addr = int(base_offset) + int(offset)
         cbus_addr = int(xip_offset) + int(offset) if xip_offset is not None else sbus_addr
         return sbus_addr, cbus_addr
+
+    # SDMMC region
+    if region in sdmmc_config:
+        sdmmc = sdmmc_config[region]
+        base_offset = sdmmc.get('base', 0)
+        sbus_addr = int(base_offset) + int(offset)
+        return sbus_addr, sbus_addr
 
     def _resolve_ram_region_base(ram_banks: Dict[str, Any], default_base: int) -> int:
         # First pass: if core is specified, scan all banks for that core.
@@ -1332,6 +1351,12 @@ def _get_region_memory_type(region: str, chip_config: Dict[str, Any]) -> str:
     if region == 'hpsys_ram' or region.startswith('hpsys') or region == 'lpsys_ram' or region.startswith('lpsys'):
         return 'ram'
 
+    if region.startswith('sdmmc'):
+        memory_info = chip_config.get('memory_info', {})
+        info = memory_info.get(region, {})
+        mtype = info.get('type')
+        return str(mtype) if mtype is not None else 'sd'
+
     # Normalize psram aliases to mpiN
     psram_match = re.match(r'^psram(\d+)?$', region)
     if psram_match:
@@ -1357,7 +1382,7 @@ def get_download_addr_v3(
 
     Address selection rule:
     - NOR: use CBUS (XIP) view
-    - NAND/PSRAM/RAM: use SBUS/base view
+    - NAND/PSRAM/RAM/SDMMC: use SBUS/base view
 
     Notes:
     - This helper is intended for ptab v3 integrations.
