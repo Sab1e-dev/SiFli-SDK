@@ -775,6 +775,7 @@ __weak uint32_t BSP_GetOtpBase(void)
 
 #endif //HAL_SYSTEM_CONFIG_ENABLED
 #else
+//TODO:
 int BSP_System_Config(void)
 {
     return 0;

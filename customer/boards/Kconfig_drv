@@ -1023,7 +1023,7 @@ menu "On-chip Peripheral RTOS Drivers"
             menuconfig BSP_ENABLE_MPI4
                 bool "MPI Controller 4 Enable"
                 default n
-                depends on SOC_SF32LB58X || SOC_SF32LB57X
+                depends on SOC_SF32LB58X
                 if BSP_ENABLE_MPI4
                     config BSP_ENABLE_QSPI4
                         bool 

@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2026 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #ifndef __BOOT_FLASH__
 #define __BOOT_FLASH__
 
@@ -60,7 +66,7 @@ extern "C" {
 //---------------------------- MPI3 ----------------------------
 #define FLASH3_IRQHandler              DMAC1_CH1_IRQHandler
 #define FLASH3_DMA_INSTANCE            DMA1_Channel1
-#define FLASH3_DMA_REQUEST             DMA_REQUEST_1
+#define FLASH3_DMA_REQUEST             DMA_REQUEST_2
 #define FLASH3_DMA_IRQ                 DMAC1_CH1_IRQn
 
 #define FLASH3_CONFIG                                  \
