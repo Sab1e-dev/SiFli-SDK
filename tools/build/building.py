@@ -540,24 +540,35 @@ def GetLegacyMultiImageArtifactPaths(output_dir: str, ext: str):
     return [path for _, path in matched]
 
 
-def _resolve_standard_ptab_v3_artifact(output_dir: str, base_name: str, ext: str, require_payload: bool) -> str:
-    candidates = GetPtabV3CodeArtifactCandidates(output_dir, base_name, ext)
-    for candidate in candidates:
-        if _ptab_v3_artifact_has_payload(candidate, ext):
-            return candidate
-    if require_payload:
+def _read_ptab_v3_stamp_artifact(path: str, ext: str) -> str:
+    """Return the artifact recorded in a ptab v3 stamp, if it is usable."""
+    if not os.path.isfile(path):
         return ''
-    for candidate in candidates:
-        if os.path.exists(candidate):
-            return candidate
+
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            recorded = next((line.strip() for line in f if line.strip()), '')
+    except (OSError, UnicodeError):
+        return ''
+
+    if not recorded or not recorded.lower().endswith(ext.lower()):
+        return ''
+    if _ptab_v3_artifact_has_payload(recorded, ext):
+        return os.path.normpath(recorded)
+
+    if not os.path.isabs(recorded):
+        local_recorded = os.path.join(os.path.dirname(path), os.path.basename(recorded))
+        if _ptab_v3_artifact_has_payload(local_recorded, ext):
+            return os.path.normpath(local_recorded)
     return ''
 
 
 def ResolvePtabV3CodeArtifact(output_dir: str, base_name: str, ext: str) -> str:
     """Resolve the primary code artifact from a ptab v3 or legacy multi-image output dir."""
-    standard = _resolve_standard_ptab_v3_artifact(output_dir, base_name, ext, True)
-    if standard:
-        return standard
+    candidates = GetPtabV3CodeArtifactCandidates(output_dir, base_name, ext)
+    for candidate in candidates:
+        if _ptab_v3_artifact_has_payload(candidate, ext):
+            return candidate
 
     legacy = GetLegacyMultiImageArtifactPaths(output_dir, ext)
     if legacy:
@@ -568,44 +579,53 @@ def ResolvePtabV3CodeArtifact(output_dir: str, base_name: str, ext: str) -> str:
                 return preferred
         return legacy[0]
 
-    standard = _resolve_standard_ptab_v3_artifact(output_dir, base_name, ext, False)
-    if standard:
-        return standard
-    return GetPtabV3CodeArtifactCandidates(output_dir, base_name, ext)[-1]
+    for candidate in candidates:
+        if os.path.exists(candidate):
+            return candidate
+    return candidates[-1]
 
 
 def ResolvePtabV3ArtifactContainer(output_dir: str, base_name: str, ext: str) -> str:
     """Resolve a file or directory that callers may need to iterate/load."""
-    standard = _resolve_standard_ptab_v3_artifact(output_dir, base_name, ext, True)
-    if standard:
-        return standard
+    candidates = GetPtabV3CodeArtifactCandidates(output_dir, base_name, ext)
+    for candidate in candidates:
+        if _ptab_v3_artifact_has_payload(candidate, ext):
+            return candidate
     if GetLegacyMultiImageArtifactPaths(output_dir, ext):
         return output_dir
 
-    standard = _resolve_standard_ptab_v3_artifact(output_dir, base_name, ext, False)
-    if standard:
-        return standard
-    return GetPtabV3CodeArtifactCandidates(output_dir, base_name, ext)[-1]
+    for candidate in candidates:
+        if os.path.exists(candidate):
+            return candidate
+    return candidates[-1]
 
 
-def ResolvePtabV3CodeArtifactFromRef(path: str, base_name: str, ext: str) -> str:
-    """Resolve a primary code artifact file from a stamp or output directory reference."""
+def _resolve_ptab_v3_artifact_ref(path: str, base_name: str, ext: str, as_container: bool = False) -> str:
     path = str(path)
     if IsPtabV3ArtifactStampPath(path):
-        return ResolvePtabV3CodeArtifact(os.path.dirname(path), base_name, ext)
+        output_dir = os.path.dirname(path)
+        if as_container and GetLegacyMultiImageArtifactPaths(output_dir, ext):
+            return output_dir
+        stamped = _read_ptab_v3_stamp_artifact(path, ext)
+        if stamped:
+            return stamped
+        path = output_dir
+
     if os.path.isdir(path):
+        if as_container:
+            return ResolvePtabV3ArtifactContainer(path, base_name, ext)
         return ResolvePtabV3CodeArtifact(path, base_name, ext)
     return path
 
 
+def ResolvePtabV3CodeArtifactFromRef(path: str, base_name: str, ext: str) -> str:
+    """Resolve a primary code artifact file from a stamp or output directory reference."""
+    return _resolve_ptab_v3_artifact_ref(path, base_name, ext, as_container=False)
+
+
 def ResolvePtabV3ArtifactContainerFromRef(path: str, base_name: str, ext: str) -> str:
     """Resolve a file or iterable output directory from a stamp/output reference."""
-    path = str(path)
-    if IsPtabV3ArtifactStampPath(path):
-        return ResolvePtabV3ArtifactContainer(os.path.dirname(path), base_name, ext)
-    if os.path.isdir(path):
-        return ResolvePtabV3ArtifactContainer(path, base_name, ext)
-    return path
+    return _resolve_ptab_v3_artifact_ref(path, base_name, ext, as_container=True)
 
 
 def _cleanup_ptab_v3_output_dir(out_dir: str, ext: str, stamp_name: str) -> None:
@@ -684,6 +704,41 @@ def ModifyProgramHexTargets(target, source, env):
     return target, source
 
 
+def _write_ptab_v3_artifact_stamp(stamp_path: str, artifact_path: str) -> None:
+    with open(stamp_path, 'w', encoding='utf-8', newline='\n') as f:
+        f.write(artifact_path + '\n')
+
+
+def _build_ptab_v3_embedded_lcpu_artifact(program_file: str, out_dir: str, base_name: str, ext: str, rtconfig) -> str:
+    objcopy_args = ['-Obinary'] if ext.lower() == '.bin' else ['-O', 'ihex']
+    ex_imgs = []
+    tempfile_path = os.path.join(os.path.dirname(program_file), 'rom_temp' + ext)
+    for i in range(2, 2 + MAX_EX_IMG_NUM):
+        subprocess.run([rtconfig.OBJCPY, '-Obinary', '-j.rom{}'.format(i), program_file, tempfile_path], check=True)
+        size = os.path.getsize(tempfile_path)
+        os.remove(tempfile_path)
+        if size > 0:
+            ex_imgs.append(i)
+
+    if not ex_imgs:
+        code_path = GetPtabV3ArtifactPath(out_dir, base_name, ext)
+        _remove_file_or_dir(code_path)
+        subprocess.run([rtconfig.OBJCPY] + objcopy_args + [program_file, code_path], check=True)
+        return code_path
+
+    exclude_ex_imgs = []
+    for i in ex_imgs:
+        ex_img_path = GetPtabV3ArtifactPath(out_dir, base_name, ext, 'ER_IROM{}'.format(i))
+        _remove_file_or_dir(ex_img_path)
+        subprocess.run([rtconfig.OBJCPY] + objcopy_args + ['-j.rom{}'.format(i), program_file, ex_img_path], check=True)
+        exclude_ex_imgs.append('-R.rom{}'.format(i))
+
+    code_path = GetPtabV3ArtifactPath(out_dir, base_name, ext, 'ER_IROM1')
+    _remove_file_or_dir(code_path)
+    subprocess.run([rtconfig.OBJCPY] + objcopy_args + exclude_ex_imgs + [program_file, code_path], check=True)
+    return code_path
+
+
 def ProgramBinaryBuild(target, source, env):
     import rtconfig
     import ptab as ptab_module
@@ -712,34 +767,8 @@ def ProgramBinaryBuild(target, source, env):
 
         shutil.copy(str(source[0]), str(source[0]) + '.strip.elf')
         subprocess.run([rtconfig.STRIP, str(source[0]) + '.strip.elf'], check=True)
-
-        ex_imgs = []
-        tempfile_path = os.path.join(target_path, 'rom_temp.bin')
-        for i in range(2, 2 + MAX_EX_IMG_NUM):
-            subprocess.run([rtconfig.OBJCPY, '-Obinary', '-j.rom{}'.format(i), str(source[0]), tempfile_path], check=True)
-            size = os.path.getsize(tempfile_path)
-            os.remove(tempfile_path)
-            if size > 0:
-                ex_imgs.append(i)
-
-        if len(ex_imgs) == 0:
-            code_bin_path = GetPtabV3ArtifactPath(out_dir, base_name, '.bin')
-            _remove_file_or_dir(code_bin_path)
-            subprocess.run([rtconfig.OBJCPY, '-Obinary', str(source[0]), code_bin_path], check=True)
-        else:
-            exclude_ex_imgs = []
-            for i in ex_imgs:
-                ex_img_path = GetPtabV3ArtifactPath(out_dir, base_name, '.bin', 'ER_IROM{}'.format(i))
-                _remove_file_or_dir(ex_img_path)
-                subprocess.run([rtconfig.OBJCPY, '-Obinary', '-j.rom{}'.format(i), str(source[0]), ex_img_path], check=True)
-                exclude_ex_imgs += ['-R.rom{}'.format(i)]
-
-            code_bin_path = GetPtabV3ArtifactPath(out_dir, base_name, '.bin', 'ER_IROM1')
-            _remove_file_or_dir(code_bin_path)
-            subprocess.run([rtconfig.OBJCPY, '-Obinary'] + exclude_ex_imgs + [str(source[0]), code_bin_path], check=True)
-
-        with open(stamp_path, 'w', encoding='utf-8', newline='\n') as f:
-            f.write(code_bin_path + '\n')
+        code_bin_path = _build_ptab_v3_embedded_lcpu_artifact(program_file, out_dir, base_name, '.bin', rtconfig)
+        _write_ptab_v3_artifact_stamp(stamp_path, code_bin_path)
         return
 
     # ptab v3 (gcc): split app/ex sections and emit final artifacts into `output/`
@@ -769,7 +798,7 @@ def ProgramBinaryBuild(target, source, env):
                 _remove_file_or_dir(out_file)
                 continue
             present_sections.append(sec)
-            if not os.path.exists(out_file) or os.path.getsize(out_file) <= 0:
+            if not _ptab_v3_artifact_has_payload(out_file, '.bin'):
                 _remove_file_or_dir(out_file)
                 continue
             used_sections.append(sec)
@@ -788,8 +817,7 @@ def ProgramBinaryBuild(target, source, env):
             subprocess.run([rtconfig.OBJCPY, '-Obinary'] + exclude_args + [program_file, code_bin_path], check=True)
         else:
             res.check_returncode()
-        with open(stamp_path, 'w', encoding='utf-8', newline='\n') as f:
-            f.write(code_bin_path + '\n')
+        _write_ptab_v3_artifact_stamp(stamp_path, code_bin_path)
         return
 
     if os.path.exists(whole_bin_path):
@@ -861,33 +889,8 @@ def ProgramHexBuild(target, source, env):
         _cleanup_ptab_v3_output_dir(out_dir, '.hex', PTAB_V3_PROGRAM_HEX_STAMP)
         _cleanup_ptab_v3_legacy_artifacts(program_file, '.hex')
 
-        ex_imgs = []
-        tempfile_path = os.path.join(target_path, 'rom_temp.hex')
-        for i in range(2, 2 + MAX_EX_IMG_NUM):
-            subprocess.run([rtconfig.OBJCPY, '-Obinary', '-j.rom{}'.format(i), str(source[0]), tempfile_path], check=True)
-            size = os.path.getsize(tempfile_path)
-            os.remove(tempfile_path)
-            if size > 0:
-                ex_imgs.append(i)
-
-        if len(ex_imgs) == 0:
-            code_hex_path = GetPtabV3ArtifactPath(out_dir, base_name, '.hex')
-            _remove_file_or_dir(code_hex_path)
-            subprocess.run([rtconfig.OBJCPY, '-O', 'ihex', str(source[0]), code_hex_path], check=True)
-        else:
-            exclude_ex_imgs = []
-            for i in ex_imgs:
-                ex_img_path = GetPtabV3ArtifactPath(out_dir, base_name, '.hex', 'ER_IROM{}'.format(i))
-                _remove_file_or_dir(ex_img_path)
-                subprocess.run([rtconfig.OBJCPY, '-O', 'ihex', '-j.rom{}'.format(i), str(source[0]), ex_img_path], check=True)
-                exclude_ex_imgs += ['-R.rom{}'.format(i)]
-
-            code_hex_path = GetPtabV3ArtifactPath(out_dir, base_name, '.hex', 'ER_IROM1')
-            _remove_file_or_dir(code_hex_path)
-            subprocess.run([rtconfig.OBJCPY, '-O', 'ihex'] + exclude_ex_imgs + [str(source[0]), code_hex_path], check=True)
-
-        with open(stamp_path, 'w', encoding='utf-8', newline='\n') as f:
-            f.write(code_hex_path + '\n')
+        code_hex_path = _build_ptab_v3_embedded_lcpu_artifact(program_file, out_dir, base_name, '.hex', rtconfig)
+        _write_ptab_v3_artifact_stamp(stamp_path, code_hex_path)
         return
 
     # ptab v3 (gcc): split app/ex sections and emit final artifacts into `output/`
@@ -917,7 +920,7 @@ def ProgramHexBuild(target, source, env):
                 _remove_file_or_dir(out_file)
                 continue
             present_sections.append(sec)
-            if not os.path.exists(out_file) or os.path.getsize(out_file) <= 0 or not _ihex_has_data(out_file):
+            if not _ptab_v3_artifact_has_payload(out_file, '.hex'):
                 _remove_file_or_dir(out_file)
                 continue
             used_sections.append(sec)
@@ -936,8 +939,7 @@ def ProgramHexBuild(target, source, env):
             subprocess.run([rtconfig.OBJCPY, '-O', 'ihex'] + exclude_args + [program_file, code_hex_path], check=True)
         else:
             res.check_returncode()
-        with open(stamp_path, 'w', encoding='utf-8', newline='\n') as f:
-            f.write(code_hex_path + '\n')
+        _write_ptab_v3_artifact_stamp(stamp_path, code_hex_path)
         return
 
     if os.path.exists(whole_hex_path):
