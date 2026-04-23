@@ -127,19 +127,14 @@
     #define GPIO2_EXTI_START_PIN  (0)
     #define GPIO2_EXTI_END_PIN    (36)
 #elif defined(SF32LB52X)
-    // TODO: Revist this
     #define GPIO1_EXTI_START_PIN  (0)
-    #define GPIO1_EXTI_END_PIN    (78)
+    #define GPIO1_EXTI_END_PIN    (44)
 
     #define GPIO2_EXTI_START_PIN  (0)
-    #define GPIO2_EXTI_END_PIN    (36)
+    #define GPIO2_EXTI_END_PIN    (3)
 #elif defined(SF32LB57X)
-    // TODO: Revist this
     #define GPIO1_EXTI_START_PIN  (0)
-    #define GPIO1_EXTI_END_PIN    (78)
-
-    #define GPIO2_EXTI_START_PIN  (0)
-    #define GPIO2_EXTI_END_PIN    (36)
+    #define GPIO1_EXTI_END_PIN    (57)
 #else
     #error "Fix me!"
 #endif /* SF32LB55X */
