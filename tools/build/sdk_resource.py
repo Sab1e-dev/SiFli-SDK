@@ -1587,6 +1587,15 @@ def ConstructImgDownloadInfoV1(img_download_info, mems):
 
 def ConstructImgDownloadInfoV3(img_download_info, ptab_obj):
     chip_config = ptab_obj.get_chip_config()
+    fs_subtypes = ('filesystem', 'littlefs', 'fat', 'fatfs', 'flashdb')
+
+    def add_download_alias(name, addr):
+        if not name:
+            return
+        if name in img_download_info:
+            assert img_download_info[name] == addr, "{} download address already configured".format(name)
+            return
+        img_download_info[name] = addr
 
     for partition in ptab_obj.partitions:
         name = partition.get('name', '')
@@ -1600,6 +1609,11 @@ def ConstructImgDownloadInfoV3(img_download_info, ptab_obj):
 
         if ptype == 'ftab':
             img_download_info['ftab'] = download_addr
+            continue
+
+        if ptype == 'data' and str(subtype or '').strip().lower() in fs_subtypes:
+            add_download_alias(name, download_addr)
+            add_download_alias('fs_root', download_addr)
             continue
 
         if ptype not in ('app', 'bootloader'):
