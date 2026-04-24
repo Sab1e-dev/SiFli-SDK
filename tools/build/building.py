@@ -1029,14 +1029,10 @@ def LdsBuild(target, source, env):
 
     if rtconfig.PLATFORM == 'armcc':
         with open(str(source[0]), 'r', encoding='utf-8', errors='ignore') as f:
-            script = f.readlines()
-
-        if script and ('$SDK_ROOT' in script[0] or '$BSP_ROOT' in script[0] or '$BOARD_ROOT' in script[0]):
-            script[0] = script[0].replace('$SDK_ROOT', os.getenv('SIFLI_SDK'))
-            script[0] = script[0].replace('$BSP_ROOT', str(env.get('BSP_ROOT', '')))
+            script = f.read()
 
         with open(target_path, 'w', encoding='utf-8', newline='\n') as f:
-            f.writelines(script)
+            f.write(_replace_link_script_env_vars(script, str(env.get('BSP_ROOT', ''))))
         return
 
     # v1/v2: legacy gcc -E preprocessing
@@ -1344,6 +1340,91 @@ def _get_link_template_path(link_source):
         return link_source + '.jinja2'
     base, _ = os.path.splitext(link_source)
     return base + '.jinja2'
+
+
+_LINK_SCRIPT_ENV_VARS = (
+    '$SIFLI_SDK_PATH',
+    '$SIFLI_SDK',
+    '$SDK_ROOT',
+    '$BSP_ROOT',
+    '$BOARD_ROOT',
+)
+
+
+def _normalize_link_script_path(path):
+    return str(path or '').replace('\\', '/')
+
+
+def _get_link_script_board_root():
+    try:
+        board = GetBoardName()
+        if board:
+            board_path1, _ = GetBoardPath(board)
+            return _normalize_link_script_path(board_path1)
+    except Exception:
+        pass
+    return ''
+
+
+def _replace_link_script_env_vars(script, bsp_root=''):
+    sdk_root = os.getenv('SIFLI_SDK') or os.getenv('SIFLI_SDK_PATH') or ''
+    replacements = [
+        ('$SIFLI_SDK_PATH', _normalize_link_script_path(sdk_root)),
+        ('$SIFLI_SDK', _normalize_link_script_path(sdk_root)),
+        ('$SDK_ROOT', _normalize_link_script_path(sdk_root)),
+        ('$BSP_ROOT', _normalize_link_script_path(bsp_root)),
+        ('$BOARD_ROOT', _get_link_script_board_root()),
+    ]
+    for name, value in replacements:
+        script = script.replace(name, value)
+    return script
+
+
+def _link_script_has_env_vars(script):
+    return any(name in script for name in _LINK_SCRIPT_ENV_VARS)
+
+
+def _current_project_uses_ptab_v3(bsp_root=''):
+    if not GetDepend('USING_PARTITION_TABLE'):
+        return False
+
+    try:
+        import rtconfig
+        import ptab as ptab_module
+    except Exception:
+        return False
+
+    project_root = bsp_root or Dir('#').abspath
+    ptab_path = getattr(rtconfig, 'PARTITION_TABLE', None)
+    ptab_obj = None
+    try:
+        board = GetBoardName(getattr(rtconfig, 'CORE', None))
+        if board:
+            board_path1, _ = GetBoardPath(board)
+            prepared = ptab_module.prepare_project_ptab(
+                project_root,
+                board,
+                getattr(rtconfig, 'CHIP', '').lower(),
+                board_path=board_path1,
+                emit_summary=False,
+                validate=False,
+            )
+            ptab_obj = prepared.get('ptab_obj')
+        else:
+            if not ptab_path:
+                link_dir = os.path.join(project_root, 'linker_scripts')
+                yaml_path = os.path.join(link_dir, 'ptab.yaml')
+                json_path = os.path.join(link_dir, 'ptab.json')
+                if os.path.exists(yaml_path):
+                    ptab_path = yaml_path
+                elif os.path.exists(json_path):
+                    ptab_path = json_path
+            if ptab_path:
+                ptab_obj = ptab_module.load_ptab(ptab_path, fatal=False)
+    except Exception:
+        return False
+
+    return bool(ptab_obj and ptab_obj.is_v3())
 
 
 def _get_chip_link_fallback(link_source, env):
@@ -3409,28 +3490,24 @@ def SifliKeilEnv(cpu, BSP_ROOT=''):
     else:
         no_dsp_fp = False
     
-    if not rtconfig.LINK_SCRIPT_TEMPLATE:
+    use_link_template = bool(
+        rtconfig.LINK_SCRIPT_TEMPLATE
+        and _current_project_uses_ptab_v3(BSP_ROOT)
+    )
+    if not use_link_template:
         link_script_path = rtconfig.LINK_SCRIPT_SRC + '.sct'
         with open(link_script_path, 'r', encoding='utf-8', errors='ignore') as f:
-            script = f.readlines()
-        if script and (
-            ('$SDK_ROOT' in script[0])
-            or ('$BSP_ROOT' in script[0])
-            or ('$BOARD_ROOT' in script[0])
-        ):
-            script[0] = script[0].replace('$SDK_ROOT', os.getenv('SIFLI_SDK'))
-            script[0] = script[0].replace('$BSP_ROOT', BSP_ROOT)
+            script = f.read()
+        if _link_script_has_env_vars(script):
             new_file_path = Path(rtconfig.OUTPUT_DIR, os.path.basename(rtconfig.LINK_SCRIPT_SRC) + '.sct')
             if not os.path.exists(rtconfig.OUTPUT_DIR):
                 logging.debug('sct dir:{}'.format(rtconfig.OUTPUT_DIR))
                 Execute(Mkdir(rtconfig.OUTPUT_DIR))
             with open(new_file_path, 'w', encoding='utf-8', newline='\n') as f:
-                f.writelines(script)
-            # Keep rooted scatter files in the build dir so relative includes
-            # still resolve against the generated rtconfig.h / ptab.h files.
+                f.write(_replace_link_script_env_vars(script, BSP_ROOT))
             rtconfig.LINK_SCRIPT = new_file_path.with_suffix('').as_posix()
         else:
-            rtconfig.LINK_SCRIPT = Path(rtconfig.OUTPUT_DIR, 'link_copy').as_posix()
+            rtconfig.LINK_SCRIPT = rtconfig.LINK_SCRIPT_SRC
     else:
         # Keil links against a generated scatter file in the build dir when the
         # selected source is rendered from a Jinja2 template.
