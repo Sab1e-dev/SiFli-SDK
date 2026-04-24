@@ -73,6 +73,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_WDT_Init(WDT_HandleTypeDef *hwdt)
 #else
         hwdt->Instance = hwp_iwdt;
 #endif /* hwp_wdt1 */
+#else
         hwdt->Instance = hwp_wdt2;
 #endif /* SOC_BF0_HCPU */
     }
