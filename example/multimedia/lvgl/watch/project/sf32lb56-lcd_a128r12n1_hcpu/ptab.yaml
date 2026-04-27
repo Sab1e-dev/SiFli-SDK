@@ -47,27 +47,6 @@ partitions:
   exec:
     region: psram1
     offset: '0x00000000'
-- name: hcpu_flash2_img
-  type: app
-  subtype: ex
-  region: mpi3
-  offset: '0x00320000'
-  size: '0x00100000'
-  core: HCPU
-  sections:
-  - section: .ROM1_IMG*
-  - section: .ROM3_IMG*
-- name: hcpu_flash2_font
-  type: app
-  subtype: ex
-  region: mpi3
-  offset: '0x00420000'
-  size: '0x00200000'
-  core: HCPU
-  sections:
-  - section: .SECTION_TTF*
-  - object: lvsf_font_*
-    section: .rodata*
 - name: fs_region
   type: data
   subtype: filesystem
