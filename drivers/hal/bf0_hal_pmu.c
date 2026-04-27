@@ -434,7 +434,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_EnableDLL(int enable)
 }
 
 
-__HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_DisableXTAL32(void)
+HAL_RAM_RET_CODE_SECT(HAL_PMU_DisableXTAL32, __HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_DisableXTAL32(void))
 {
     hwp_pmuc->LXT_CR &= ~(PMUC_LXT_CR_EN | PMUC_LXT_CR_RSN);
 
@@ -520,7 +520,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_RC32KReady()
     return ret;
 }
 
-__HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_LpCLockSelect(PMU_LpClockTypeDef lp_clock)
+HAL_RAM_RET_CODE_SECT(HAL_PMU_LpCLockSelect, __HAL_ROM_USED HAL_StatusTypeDef HAL_PMU_LpCLockSelect(PMU_LpClockTypeDef lp_clock))
 {
     HAL_StatusTypeDef ret = HAL_ERROR;
 
