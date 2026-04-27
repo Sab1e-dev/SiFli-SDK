@@ -819,6 +819,7 @@ def GenPartitionTableHeaderContentV3(env, ptab_obj):
     - FS_REGION_* for filesystem-like partitions
     - FLASH_BOOT_LOADER_* from bootloader.exec (execution address)
     - HCPU_FLASH_CODE_* from HCPU factory app.exec (execution address)
+    - ACPU_CODE_REGION<N>[_SBUS]_* from ACPU factory app.exec
     - CODE_START_ADDR/CODE_SIZE for the current env image (best-effort)
     """
 
@@ -910,6 +911,22 @@ def GenPartitionTableHeaderContentV3(env, ptab_obj):
             return v if v > 0 else None
         except Exception:
             return None
+
+    def _infer_acpu_code_region_num(partition):
+        candidates = []
+        name = partition.get('name')
+        if name:
+            candidates.append(name)
+        candidates.extend(partition.get('aliases', []) or [])
+
+        for candidate in candidates:
+            token = str(candidate).strip().upper()
+            match = re.match(r'^ACPU_CODE_LOAD_REGION(\d+)$', token)
+            if not match:
+                match = re.match(r'^ACPU_CODE_REGION(\d+)(?:_SBUS)?$', token)
+            if match:
+                return match.group(1)
+        return '1'
 
     # Quick lookup maps
     by_name = {}
@@ -1054,6 +1071,41 @@ def GenPartitionTableHeaderContentV3(env, ptab_obj):
         s += _define_u32('HCPU_FLASH_CODE_SIZE', hcpu_size)
         s += _define_u32('HCPU_FLASH_CODE_OFFSET', exec_offset)
         s += _define_mem_type('HCPU_FLASH_CODE', _get_region_mem_type(exec_region), clear=True)
+
+    # ACPU_CODE_REGION<N>[_SBUS]_* macros (execution address, from exec).
+    # v3 keeps the ACPU execution RAM in the app's exec descriptor instead of
+    # a separate legacy RAM partition.
+    emitted_acpu_code_regions = set()
+    for partition in partitions:
+        if partition.get('type') != 'app' or partition.get('subtype') != 'factory':
+            continue
+        if str(partition.get('core') or '').strip().upper() != 'ACPU':
+            continue
+        exec_def = partition.get('exec')
+        if not isinstance(exec_def, dict):
+            continue
+
+        region_num = _infer_acpu_code_region_num(partition)
+        if region_num in emitted_acpu_code_regions:
+            continue
+        emitted_acpu_code_regions.add(region_num)
+
+        exec_region = str(exec_def.get('region', '')).strip()
+        exec_offset = ptab.parse_size(exec_def.get('offset', 0))
+        exec_sbus, exec_cbus = ptab.resolve_region_address(exec_region, exec_offset, chip_config, core='ACPU')
+        acpu_exec_addr = _select_exec_addr(exec_region, exec_sbus, exec_cbus)
+        acpu_size = ptab.parse_size(partition.get('size', 0))
+
+        s += MakeLine('')
+        s += MakeLine('')
+        s += MakeLine('/* ACPU factory app exec addr */')
+        for base_name in (
+            'ACPU_CODE_REGION{}_SBUS'.format(region_num),
+            'ACPU_CODE_REGION{}'.format(region_num),
+        ):
+            s += _define_u32('{}_START_ADDR'.format(base_name), acpu_exec_addr)
+            s += _define_u32('{}_SIZE'.format(base_name), acpu_size)
+            s += _define_u32('{}_OFFSET'.format(base_name), exec_offset)
 
     # CODE_START_ADDR/CODE_SIZE for current image (best-effort)
     env_name = (env.get('name') or '').strip().lower()
