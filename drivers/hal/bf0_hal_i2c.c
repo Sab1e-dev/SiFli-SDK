@@ -383,7 +383,9 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_I2C_DMA_Init(I2C_HandleTypeDef *hi2c, struc
     hi2c->hdmarx->Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
     hi2c->hdmarx->Init.Mode                 = DMA_NORMAL;
     hi2c->hdmarx->Init.Priority             = DMA_PRIORITY_HIGH;
+#ifdef DMA_LINK_LIST_SUPPORT    
     hi2c->hdmarx->Init.EndTrigger           = dma_rx->end_trigger;
+#endif /* DMA_LINK_LIST_SUPPORT */
     {
         uint32_t tmpreg = 0x00U;
         //SET_BIT(RCC->AHB1ENR, spi_config[i].dma_rx->dma_rcc);
@@ -403,7 +405,9 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_I2C_DMA_Init(I2C_HandleTypeDef *hi2c, struc
     hi2c->hdmatx->Init.MemDataAlignment     = DMA_MDATAALIGN_BYTE;
     hi2c->hdmatx->Init.Mode                 = DMA_NORMAL;
     hi2c->hdmatx->Init.Priority             = DMA_PRIORITY_LOW;
+#ifdef DMA_LINK_LIST_SUPPORT        
     hi2c->hdmatx->Init.EndTrigger           = dma_tx->end_trigger;
+#endif /* DMA_LINK_LIST_SUPPORT */    
     {
         uint32_t tmpreg = 0x00U;
         //SET_BIT(RCC->AHB1ENR, spi_config[i].dma_tx->dma_rcc);

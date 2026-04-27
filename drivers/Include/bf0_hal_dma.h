@@ -28,13 +28,16 @@ extern "C" {
 #endif /* SOC_BF0_LCPU && (SF32LB55X || SF32LB58X || SF32LB52X) */
 #endif /* !KEIL */
 
-#ifdef GPDMA_LISR_LCIF1
-#define DMA_LINK_LIST_SUPPORT
-#endif /* GPDMA_LISR_LCIF1 */
-
 #if defined(GPDMA1_BASE) || defined(GPDMA2_BASE) || defined(GPDMA3_BASE)
 #define DMA_SUPPORT_GPDMA
 #endif /* GPDMA1_BASE || GPDMA2_BASE || GPDMA3_BASE */
+
+#ifdef DMA_SUPPORT_GPDMA
+#ifdef GPDMA_LISR_LCIF1
+#define DMA_LINK_LIST_SUPPORT
+#endif /* GPDMA_LISR_LCIF1 */
+#endif /* DMA_SUPPORT_GPDMA */
+
 
 /** @addtogroup BF0_HAL_Driver
   * @{
@@ -99,7 +102,9 @@ typedef struct
 #ifdef DMA_SUPPORT_DYN_CHANNEL_ALLOC
     uint32_t IrqPrio;                   /*!< Interrupt Priority*/
 #endif /* DMA_SUPPORT_DYN_CHANNEL_ALLOC */
+#ifdef DMA_LINK_LIST_SUPPORT
     uint8_t EndTrigger;                 /*!< Specify trigger source for end condition in linked-list mode */
+#endif /* DMA_LINK_LIST_SUPPORT */
 } DMA_InitTypeDef;
 
 /**
@@ -163,8 +168,10 @@ typedef struct __DMA_HandleTypeDef
     DMAC_TypeDef           *DmaBaseAddress;                                            /*!< DMA Channel Base Address             */
 
     uint32_t               ChannelIndex;                                               /*!< DMA Channel Index, the value is left-shifted by 2 bits */
+#ifdef DMA_SUPPORT_GPDMA    
     uint32_t               OrgChannelIndex: 31;                                        /*!< Channel index without any change, range is 0~7 */
     uint32_t               IsGPDMA: 1;                                                 /*!< Is GPDMA channel                     */
+#endif /* DMA_SUPPORT_GPDMA */
 
 #ifdef DMA_SUPPORT_DYN_CHANNEL_ALLOC
     uint32_t               LeftCounts;

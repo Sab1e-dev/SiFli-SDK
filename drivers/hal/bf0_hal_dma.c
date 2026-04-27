@@ -113,7 +113,12 @@ static void DMA_Init(DMA_HandleTypeDef *hdma)
     hdma->State = HAL_DMA_STATE_BUSY;
 
     /* Set burst size */
+
+#ifdef DMA_SUPPORT_GPDMA    
     if (!hdma->IsGPDMA)
+#else
+    if (1)
+#endif /* DMA_SUPPORT_GPDMA */    
     {
         hdma->Instance->CBSR = hdma->Init.BurstSize;
     }
@@ -577,6 +582,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_DMA_Init(DMA_HandleTypeDef *hdma)
 #ifdef DMA_SUPPORT_DYN_CHANNEL_ALLOC
     HAL_StatusTypeDef status;
 #endif /* DMA_SUPPORT_DYN_CHANNEL_ALLOC */
+    uint32_t org_channel_index;
 
     /* Check the DMA handle allocation */
     if (hdma == NULL)
@@ -601,51 +607,68 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_DMA_Init(DMA_HandleTypeDef *hdma)
             && ((uint32_t)(hdma->Instance) <= (uint32_t)(DMA1_Channel8)))
     {
         /* DMA1 */
-        hdma->OrgChannelIndex = (((uint32_t)hdma->Instance - (uint32_t)DMA1_Channel1) / ((uint32_t)DMA1_Channel2 - (uint32_t)DMA1_Channel1));
-        hdma->ChannelIndex = hdma->OrgChannelIndex << 2;
+        org_channel_index = (((uint32_t)hdma->Instance - (uint32_t)DMA1_Channel1) / ((uint32_t)DMA1_Channel2 - (uint32_t)DMA1_Channel1));
+        hdma->ChannelIndex = org_channel_index << 2;
         hdma->DmaBaseAddress = (DMAC_TypeDef *)DMA1;
+#ifdef DMA_SUPPORT_GPDMA
+        hdma->OrgChannelIndex = org_channel_index;
 #ifdef GPDMA1_BASE
         hdma->IsGPDMA = 1;
 #else
         hdma->IsGPDMA = 0;
 #endif /* GPDMA1_BASE */
+#endif /* DMA_SUPPORT_GPDMA */        
     }
 #ifdef DMA1_Channel9
     else if (((uint32_t)(hdma->Instance) >= (uint32_t)(DMA1_Channel9))
              && ((uint32_t)(hdma->Instance) <= (uint32_t)(DMA1_Channel10)))
     {
         /* DMA1 */
-        hdma->OrgChannelIndex = (((uint32_t)hdma->Instance - (uint32_t)DMA1_Channel9) / ((uint32_t)DMA1_Channel10 - (uint32_t)DMA1_Channel9));
-        hdma->ChannelIndex = hdma->OrgChannelIndex << 2;
+        org_channel_index = (((uint32_t)hdma->Instance - (uint32_t)DMA1_Channel9) / ((uint32_t)DMA1_Channel10 - (uint32_t)DMA1_Channel9));
+        hdma->ChannelIndex = org_channel_index << 2;
         hdma->DmaBaseAddress = (DMAC_TypeDef *)(&DMA1->ISR2);
+#ifdef DMA_SUPPORT_GPDMA
+        hdma->OrgChannelIndex = org_channel_index;
+#ifdef GPDMA1_BASE
+        hdma->IsGPDMA = 1;
+#else
+        hdma->IsGPDMA = 0;
+#endif /* GPDMA1_BASE */
+#endif /* DMA_SUPPORT_GPDMA */        
     }
 #endif /* DMA1_Channel9 */
     else if (((uint32_t)(hdma->Instance) >= (uint32_t)(DMA2_Channel1))
              && ((uint32_t)(hdma->Instance) <= (uint32_t)(DMA2_Channel8)))
     {
         /* DMA2 */
-        hdma->OrgChannelIndex = (((uint32_t)hdma->Instance - (uint32_t)DMA2_Channel1) / ((uint32_t)DMA2_Channel2 - (uint32_t)DMA2_Channel1));
-        hdma->ChannelIndex = hdma->OrgChannelIndex << 2;
+        org_channel_index = (((uint32_t)hdma->Instance - (uint32_t)DMA2_Channel1) / ((uint32_t)DMA2_Channel2 - (uint32_t)DMA2_Channel1));
+        hdma->ChannelIndex = org_channel_index << 2;
         hdma->DmaBaseAddress = DMA2;
+#ifdef DMA_SUPPORT_GPDMA
+        hdma->OrgChannelIndex = org_channel_index;
 #ifdef GPDMA2_BASE
         hdma->IsGPDMA = 1;
 #else
         hdma->IsGPDMA = 0;
 #endif /* GPDMA2_BASE */
+#endif /* DMA_SUPPORT_GPDMA */
     }
 #ifdef SF32LB58X
     else if (((uint32_t)(hdma->Instance) >= (uint32_t)(DMA3_Channel1))
              && ((uint32_t)(hdma->Instance) <= (uint32_t)(DMA3_Channel8)))
     {
         /* DMA3 */
-        hdma->OrgChannelIndex = (((uint32_t)hdma->Instance - (uint32_t)DMA3_Channel1) / ((uint32_t)DMA3_Channel2 - (uint32_t)DMA3_Channel1));
-        hdma->ChannelIndex = hdma->OrgChannelIndex << 2;
+        org_channel_index = (((uint32_t)hdma->Instance - (uint32_t)DMA3_Channel1) / ((uint32_t)DMA3_Channel2 - (uint32_t)DMA3_Channel1));
+        hdma->ChannelIndex = org_channel_index << 2;
         hdma->DmaBaseAddress = DMA3;
+#ifdef DMA_SUPPORT_GPDMA
+        hdma->OrgChannelIndex = org_channel_index;
 #ifdef GPDMA3_BASE
         hdma->IsGPDMA = 1;
 #else
         hdma->IsGPDMA = 0;
 #endif /* GPDMA3_BASE */
+#endif /* DMA_SUPPORT_GPDMA */
 
     }
 #endif /* SF32LB58X */
@@ -706,8 +729,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_DMA_DeInit(DMA_HandleTypeDef *hdma)
              && ((uint32_t)(hdma->Instance) <= (uint32_t)(DMA1_Channel10)))
     {
         /* DMA1 */
-        hdma->OrgChannelIndex = (((uint32_t)hdma->Instance - (uint32_t)DMA1_Channel9) / ((uint32_t)DMA1_Channel10 - (uint32_t)DMA1_Channel9));
-        hdma->ChannelIndex = hdma->OrgChannelIndex << 2;
+        hdma->ChannelIndex = (((uint32_t)hdma->Instance - (uint32_t)DMA1_Channel9) / ((uint32_t)DMA1_Channel10 - (uint32_t)DMA1_Channel9)) << 2;
         hdma->DmaBaseAddress = (DMAC_TypeDef *)(&DMA1->ISR2);
     }
 #endif /* DMA1_Channel9 */

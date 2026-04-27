@@ -1343,7 +1343,9 @@ __ROM_USED int rt_hw_spi_bus_init(struct sifli_spi *objs, struct sifli_spi_confi
             objs[i].dma.handle_rx.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
             objs[i].dma.handle_rx.Init.Mode                = DMA_NORMAL;
             objs[i].dma.handle_rx.Init.Priority            = DMA_PRIORITY_HIGH;
+#ifdef DMA_LINK_LIST_SUPPORT                
             objs[i].dma.handle_rx.Init.EndTrigger          = cfg[i].dma_rx->end_trigger;
+#endif /* DMA_LINK_LIST_SUPPORT */
             {
                 rt_uint32_t tmpreg = 0x00U;
                 //SET_BIT(RCC->AHB1ENR, cfg[i].dma_rx->dma_rcc);
@@ -1370,7 +1372,9 @@ __ROM_USED int rt_hw_spi_bus_init(struct sifli_spi *objs, struct sifli_spi_confi
             objs[i].dma.handle_tx.Init.MemDataAlignment    = DMA_MDATAALIGN_BYTE;
             objs[i].dma.handle_tx.Init.Mode                = DMA_NORMAL;
             objs[i].dma.handle_tx.Init.Priority            = DMA_PRIORITY_LOW;
+#ifdef DMA_LINK_LIST_SUPPORT                
             objs[i].dma.handle_tx.Init.EndTrigger          = cfg[i].dma_tx->end_trigger;
+#endif /* DMA_LINK_LIST_SUPPORT */            
             {
                 rt_uint32_t tmpreg = 0x00U;
                 //SET_BIT(RCC->AHB1ENR, cfg[i].dma_tx->dma_rcc);
