@@ -32,7 +32,6 @@ CustomImgList = []
 BOARD_SEARCH_PATH = os.path.abspath(os.environ.get('SIFLI_SDK_BOARD_SEARCH_PATH', '')) if 'SIFLI_SDK_BOARD_SEARCH_PATH' in os.environ else None
 _sdk_size_registered = False
 _main_build_dir = None
-_build_success = False
 _json_export_registered = False
 
 def is_verbose():
@@ -2625,7 +2624,7 @@ def EndBuilding(target, program = None):
                     
                     def run_sdk_size_analysis_at_exit():
                         # Only run if build was successful
-                        if not _build_success:
+                        if GetBuildFailures():
                             return
                         SIFLI_SDK = os.getenv('SIFLI_SDK')
                         sdk_size_script = os.path.join(SIFLI_SDK, 'tools', 'sdk_size', 'sdk_size.py')
@@ -2643,13 +2642,6 @@ def EndBuilding(target, program = None):
                                 logging.warning(f"Failed to run sdk_size.py: {e}")
                     
                     atexit.register(run_sdk_size_analysis_at_exit)
-                
-                # Mark build as successful after program generation
-                def mark_build_success(target, source, env):
-                    global _build_success
-                    _build_success = True
-                
-                Env.AddPostAction(program, mark_build_success)
 
 def SrcRemove(src, remove):
     if not src:
