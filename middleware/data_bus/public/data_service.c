@@ -1547,7 +1547,7 @@ int datas_start(data_service_init_param_t *init_param)
         if (init_param->mbox_thread_stack)
         {
             stack = init_param->mbox_thread_stack;
-            rt_kprintf("mbox_stack2:%p,%d\n", stack, init_param->mbox_thread_stack_size);
+            rt_kprintf("mbox_stack:%p,%d\n", stack, init_param->mbox_thread_stack_size);
         }
         else
         {
