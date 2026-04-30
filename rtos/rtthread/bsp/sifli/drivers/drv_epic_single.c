@@ -659,11 +659,15 @@ static void gpu_reset(void)
 }
 #endif /* __DEBUG__ */
 
-void drv_epic_single_open(EPIC_DrvTypeDef *p_drv_epic)
+void drv_epic_single_init(void)
 {
     rt_err_t err = rt_sem_init(&epic_sema, "epic", 1, RT_IPC_FLAG_FIFO);
     RT_ASSERT(RT_EOK == err);
+    drv_epic.split_rd.op = DRV_EPIC_INVALID;
+}
 
+void drv_epic_single_open(EPIC_DrvTypeDef *p_drv_epic)
+{
     HAL_NVIC_SetPriority(EPIC_IRQn, 3, 0);
     HAL_NVIC_EnableIRQ(EPIC_IRQn);
 

@@ -559,12 +559,12 @@ int drv_epic_init(void)
         memset(&drv_epic, 0, sizeof(EPIC_DrvTypeDef));
         gp_drv_epic = &drv_epic;
 
+        /*
+            Init semaphore and EZIP handle, because EZIP decompression may be used before gpu_open
+        */
 #ifdef HAL_EZIP_MODULE_ENABLED
         drv_epic.ezip_handle.Instance = EZIP;
 #endif
-
-
-
 
 #ifdef DRV_EPIC_NEW_API
         drv_epic_render_list_init();
@@ -579,7 +579,7 @@ int drv_epic_init(void)
         drv_epic.letter_buf_pool_max = letter_pool_max;
         drv_epic.rotated = DRV_EPIC_ROT_NONE;
 #else
-        drv_epic.split_rd.op = DRV_EPIC_INVALID;
+        drv_epic_single_init();
 #endif /* DRV_EPIC_NEW_API */
 
     }

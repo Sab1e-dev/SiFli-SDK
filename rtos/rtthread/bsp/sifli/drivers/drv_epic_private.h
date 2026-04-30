@@ -367,8 +367,8 @@ void print_gpu_error_info(void);
 bool drv_gpu_is_busy(void);
 
 #ifdef DRV_EPIC_NEW_API
-void drv_epic_ll_open(EPIC_DrvTypeDef *p_drv_epic);
 rt_err_t drv_epic_render_list_init(void);
+void drv_epic_ll_open(EPIC_DrvTypeDef *p_drv_epic);
 char *operation_name(drv_epic_op_type_t op);
 void print_operation(const char *name, const drv_epic_operation *op);
 uint32_t GetElapsedUs(uint32_t prev_tick, uint32_t cur_tick);
@@ -378,6 +378,7 @@ rt_err_t drv_epic_render_list_scale(void *p_drv_epic, void *list, void *p_scaled
 HAL_StatusTypeDef Call_Hal_Api(HAL_API_TypeDef api, void *p1, void *p2, void *p3);
 
 #else
+void drv_epic_single_init(void);
 void drv_epic_single_open(EPIC_DrvTypeDef *p_drv_epic);
 #endif
 
