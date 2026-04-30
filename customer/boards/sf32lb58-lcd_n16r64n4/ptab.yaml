@@ -87,7 +87,7 @@ partitions:
     subtype: filesystem
     region: mpi4
     offset: 0x00A00000
-    size: 0x00100000
+    size: 0x00300000
     aliases:
       - FLASH_PART2
 
@@ -95,7 +95,7 @@ partitions:
     type: data
     subtype: raw
     region: mpi4
-    offset: 0x00B00000
+    offset: 0x00D00000
     size: 0x00100000
     aliases:
       - FLASH_PART12
