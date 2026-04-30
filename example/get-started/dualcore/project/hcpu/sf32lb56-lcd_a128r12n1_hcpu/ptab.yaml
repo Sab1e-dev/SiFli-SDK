@@ -40,7 +40,7 @@ partitions:
   subtype: factory
   region: mpi3
   offset: '0x00000000'
-  size: '0x00300000'
+  size: '0x00400000'
   core: HCPU
   aliases:
   - HCPU_FLASH_CODE_LOAD_REGION
@@ -51,19 +51,19 @@ partitions:
   type: data
   subtype: filesystem
   region: mpi3
-  offset: '0x00300000'
+  offset: '0x00400000'
   size: '0x00400000'
 - name: dfu
   type: data
   subtype: flashdb_kv
   region: mpi3
-  offset: '0x00700000'
+  offset: '0x00800000'
   size: '0x00004000'
 - name: ble
   type: data
   subtype: flashdb_kv
   region: mpi3
-  offset: '0x00704000'
+  offset: '0x00804000'
   size: '0x00004000'
 - name: hcpu_ram_data
   type: data
