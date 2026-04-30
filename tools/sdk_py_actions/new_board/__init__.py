@@ -335,6 +335,19 @@ def prompt_for_config(variants: Dict[str, List[ChipVariant]]) -> Dict[str, Any]:
             ),
             'Board creation cancelled.',
         )
+    elif series in ('56', '58') and storage_type == 'sdmmc':
+        default_sdmmc = default_sdmmc_storage_port(series)
+        other_sdmmc = 'sdmmc1' if default_sdmmc == 'sdmmc2' else 'sdmmc2'
+        storage_port = ask(
+            questionary.select(
+                'Select SDMMC storage port',
+                choices=[
+                    questionary.Choice(default_sdmmc, value=default_sdmmc),
+                    questionary.Choice(other_sdmmc, value=other_sdmmc),
+                ],
+            ),
+            'Board creation cancelled.',
+        )
 
     storage_size_mb: Optional[int] = None
     if storage_type != 'none':
@@ -484,7 +497,18 @@ def normalize_spec(
         if storage_type in ('nor', 'nand') and storage_port not in ('mpi3', 'mpi4'):
             raise FatalError('Series 58 requires storage_port=mpi3|mpi4 for nor/nand external storage.')
         if storage_type == 'sdmmc':
+            if storage_port is None:
+                storage_port = default_sdmmc_storage_port(series)
+            elif storage_port not in ('sdmmc1', 'sdmmc2'):
+                raise FatalError('storage_port must be sdmmc1|sdmmc2 when storage.type is "sdmmc".')
+        elif storage_type not in ('nor', 'nand'):
             storage_port = None
+    elif storage_type == 'sdmmc':
+        if storage_port is None:
+            storage_port = default_sdmmc_storage_port(series)
+        elif storage_port not in allowed_sdmmc_storage_ports(series):
+            allowed = '|'.join(allowed_sdmmc_storage_ports(series))
+            raise FatalError(f'Series {series} requires storage_port={allowed} when storage.type is "sdmmc".')
     else:
         storage_port = None
 
@@ -833,12 +857,15 @@ def build_fixed_partitions(
 
 
 def build_hcpu_board_conf_context(spec: Spec, variant: ChipVariant) -> Dict[str, Any]:
+    storage_region = storage_region_for_spec(spec) if spec.storage_type == 'sdmmc' else None
     return {
         'enable_vddsip_ldo18': needs_52_vddsip_ldo18(variant),
         'memory': build_memory_config_context(spec, variant),
         'use_sdmmc': spec.storage_type == 'sdmmc',
-        'use_sdhci1': spec.series == '56' and spec.storage_type == 'sdmmc',
-        'use_sdhci2': spec.series == '58' and spec.storage_type == 'sdmmc',
+        'use_sdhci1': storage_region == 'sdmmc1',
+        'use_sdhci2': storage_region == 'sdmmc2',
+        'sd_max_freq': spec.series in ('56', '58') and storage_region == 'sdmmc1',
+        'sd2_max_freq': spec.series == '58' and storage_region == 'sdmmc2',
         'rt_using_mtd_nand': spec.storage_type == 'nand',
         'has_psram_cache_wb': variant.first_psram() is not None,
     }
@@ -990,12 +1017,27 @@ def storage_region_for_spec(spec: Spec, none_region: Optional[str] = None) -> st
             return none_region
         raise FatalError('none storage region requires an explicit internal storage region.')
     if spec.storage_type == 'sdmmc':
-        return 'sdmmc2' if spec.series == '58' else 'sdmmc1'
+        if spec.storage_port:
+            if spec.storage_port not in allowed_sdmmc_storage_ports(spec.series):
+                allowed = '|'.join(allowed_sdmmc_storage_ports(spec.series))
+                raise FatalError(f'Series {spec.series} requires storage_port={allowed} when storage.type is "sdmmc".')
+            return spec.storage_port
+        return default_sdmmc_storage_port(spec.series)
     if spec.series == '52':
         return 'mpi2'
     if spec.series == '56':
         return 'mpi3'
     return str(spec.storage_port)
+
+
+def default_sdmmc_storage_port(series: str) -> str:
+    return 'sdmmc2' if series == '58' else 'sdmmc1'
+
+
+def allowed_sdmmc_storage_ports(series: str) -> Tuple[str, ...]:
+    if series == '52':
+        return ('sdmmc1',)
+    return ('sdmmc1', 'sdmmc2')
 
 
 def rt_using_mtd_line(storage_type: str) -> str:

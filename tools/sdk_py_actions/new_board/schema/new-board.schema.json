@@ -37,7 +37,7 @@
     },
     "storage_port": {
       "type": "string",
-      "enum": ["mpi3", "mpi4"]
+      "enum": ["mpi3", "mpi4", "sdmmc1", "sdmmc2"]
     },
     "board_name": {
       "type": "string",
