@@ -17,7 +17,7 @@ import os
 import struct
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 # Add tools/build to path for ptab module
 _TOOLS_BUILD_PATH = Path(__file__).parent
@@ -419,7 +419,6 @@ def build_partition_table_entries(
     if dfu_partition:
         base_addr, size, xip_addr = _partition_entry_addr(dfu_partition)
         entries[PartitionIndex.LCPU_IMAGE_PING] = (base_addr, size, xip_addr, 0)
-        entries[PartitionIndex.LCPU_IMAGE_PONG] = (base_addr, size, xip_addr, 0)
 
     if len(extra_app_partitions) > len(EX_IMAGE_SLOT_PARTITION_INDICES):
         names = [p.get('name', '?') for p in extra_app_partitions]
@@ -539,12 +538,23 @@ def generate_ftab_binary(
     bootloader_size: int,
     main_size: int,
     image_sizes: Optional[Dict[str, int]] = None,
+    enabled_images: Optional[Set[str]] = None,
 ) -> bytes:
     """Generate complete ftab.bin content"""
 
     # Get partitions from v3 ptab
     partitions = ptab_obj.partitions
     image_sizes = dict(image_sizes or {})
+    enabled_image_names = {
+        str(name or '').strip().lower()
+        for name in image_sizes.keys()
+        if str(name or '').strip()
+    }
+    enabled_image_names.update(
+        str(name or '').strip().lower()
+        for name in (enabled_images or set())
+        if str(name or '').strip()
+    )
     roles = _collect_partition_roles(partitions)
 
     # Get flash base for ftab (download/storage view)
@@ -585,19 +595,23 @@ def generate_ftab_binary(
         main_len = int(main_size)
 
     # Match v2 default behaviour:
-    # - only enable LCPU/DFU image when DFU binary is actually produced
-    # - otherwise keep CORE_LCPU image pointer invalid and clear ftab[2]/[6]
+    # - only enable LCPU/DFU image when the DFU subproject/image is present
+    # - otherwise keep CORE_LCPU image pointer invalid and clear ftab[2]
+    # ftab[6] is the LCPU pong slot and is not used for DFU.
     dfu_enabled = False
     dfu_size = 0
     if isinstance(dfu_hcpu, dict):
-        dfu_name = str(dfu_hcpu.get('name') or '').strip()
-        if 'dfu' in image_sizes or (dfu_name and dfu_name in image_sizes):
+        dfu_name = str(dfu_hcpu.get('name') or '').strip().lower()
+        if 'dfu' in enabled_image_names or (dfu_name and dfu_name in enabled_image_names):
             dfu_enabled = True
             dfu_size = _partition_size(dfu_hcpu, 0)
+    elif 'dfu' in enabled_image_names:
+        raise ValueError("DFU image enabled but ptab v3 has no app partition with subtype 'dfu'")
+
+    entries[PartitionIndex.LCPU_IMAGE_PONG] = (0, 0, 0, 0)
     if not dfu_enabled:
         entries[PartitionIndex.LCPU_IMAGE_PING] = (0, 0, 0, 0)
-        entries[PartitionIndex.LCPU_IMAGE_PONG] = (0, 0, 0, 0)
-        partition_table = pack_partition_table(entries)
+    partition_table = pack_partition_table(entries)
 
     ext_image_sizes: Dict[int, int] = {}
     for part_name, flash_id in ext_flash_ids.items():

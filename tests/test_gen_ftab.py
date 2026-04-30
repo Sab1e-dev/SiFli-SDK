@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import copy
 import os
+import struct
 import sys
 import unittest
 
@@ -34,6 +35,43 @@ class GenFtabPartitionEntryTests(unittest.TestCase):
             if str(partition.get("name") or "").strip() == name:
                 return partition
         self.fail("Partition not found: {}".format(name))
+
+    def _generate_ftab(self, rel_path: str, image_sizes=None, enabled_images=None):
+        ptab_obj = ptab.load_ptab(os.path.join(ROOT, rel_path), fatal=True)
+        blob = gen_ftab.generate_ftab_binary(
+            ptab_obj,
+            ptab_obj.get_chip_config(),
+            0x10000,
+            0x200000,
+            image_sizes=image_sizes,
+            enabled_images=enabled_images,
+        )
+        return ptab_obj, blob
+
+    def _partition_entry_from_blob(self, blob: bytes, entry_index: int):
+        offset = 4 + entry_index * gen_ftab.PARTITION_INFO_STRUCT.size
+        return struct.unpack_from("<IIII", blob, offset)
+
+    def _image_desc_from_blob(self, blob: bytes, flash_id: int):
+        offset = (
+            4
+            + gen_ftab.PARTITION_ENTRY_COUNT * gen_ftab.PARTITION_INFO_STRUCT.size
+            + gen_ftab.PUBKEY_SIZE
+            + gen_ftab.RESERVED_SIZE
+            + (flash_id - 2) * gen_ftab.IMAGE_DESCRIPTION_SIZE
+        )
+        return struct.unpack_from("<IHH", blob, offset)
+
+    def _image_index_from_blob(self, blob: bytes, index: int) -> int:
+        offset = (
+            4
+            + gen_ftab.PARTITION_ENTRY_COUNT * gen_ftab.PARTITION_INFO_STRUCT.size
+            + gen_ftab.PUBKEY_SIZE
+            + gen_ftab.RESERVED_SIZE
+            + gen_ftab.IMAGE_DESCRIPTION_COUNT * gen_ftab.IMAGE_DESCRIPTION_SIZE
+            + index * 4
+        )
+        return struct.unpack_from("<I", blob, offset)[0]
 
     def _assert_exec_entry_uses_sbus(self, ptab_obj, entries, part_name: str, entry_index: int) -> None:
         partition = self._find_partition(ptab_obj, part_name)
@@ -67,6 +105,7 @@ class GenFtabPartitionEntryTests(unittest.TestCase):
             "dfu_flash_code",
             gen_ftab.PartitionIndex.LCPU_IMAGE_PING,
         )
+        self.assertEqual(entries[gen_ftab.PartitionIndex.LCPU_IMAGE_PONG], (0, 0, 0, 0))
 
     def test_nand_exec_targets_keep_using_sbus_in_ftab(self) -> None:
         ptab_obj, entries = self._load_board("customer/boards/sf32lb56-lcd_a128r12n1/ptab.yaml")
@@ -83,6 +122,48 @@ class GenFtabPartitionEntryTests(unittest.TestCase):
             "dfu_flash_code",
             gen_ftab.PartitionIndex.LCPU_IMAGE_PING,
         )
+        self.assertEqual(entries[gen_ftab.PartitionIndex.LCPU_IMAGE_PONG], (0, 0, 0, 0))
+
+    def test_dfu_project_enables_flash_id_2_only_ping_slot(self) -> None:
+        ptab_obj, blob = self._generate_ftab(
+            "customer/boards/sf32lb58-lcd_n16r64n4/ptab.yaml",
+            enabled_images={"dfu"},
+        )
+        entries, _ = gen_ftab.build_partition_table_entries(
+            ptab_obj.partitions,
+            ptab_obj.get_chip_config(),
+            ptab_obj.chip,
+        )
+        dfu_partition = self._find_partition(ptab_obj, "dfu_flash_code")
+        dfu_size = ptab.parse_size(dfu_partition.get("size", 0))
+
+        self.assertEqual(
+            self._partition_entry_from_blob(blob, gen_ftab.PartitionIndex.LCPU_IMAGE_PING),
+            entries[gen_ftab.PartitionIndex.LCPU_IMAGE_PING],
+        )
+        self.assertEqual(
+            self._partition_entry_from_blob(blob, gen_ftab.PartitionIndex.LCPU_IMAGE_PONG),
+            (0, 0, 0, 0),
+        )
+        self.assertEqual(
+            self._image_desc_from_blob(blob, 2),
+            (dfu_size, 512, gen_ftab.ImageFlag.DFU_FLAG_AUTO),
+        )
+        self.assertNotEqual(self._image_index_from_blob(blob, 0), 0xFFFFFFFF)
+
+    def test_dfu_flash_id_2_stays_disabled_without_dfu_project(self) -> None:
+        _, blob = self._generate_ftab("customer/boards/sf32lb58-lcd_n16r64n4/ptab.yaml")
+
+        self.assertEqual(
+            self._partition_entry_from_blob(blob, gen_ftab.PartitionIndex.LCPU_IMAGE_PING),
+            (0, 0, 0, 0),
+        )
+        self.assertEqual(
+            self._partition_entry_from_blob(blob, gen_ftab.PartitionIndex.LCPU_IMAGE_PONG),
+            (0, 0, 0, 0),
+        )
+        self.assertEqual(self._image_desc_from_blob(blob, 2), (0xFFFFFFFF, 0, 0))
+        self.assertEqual(self._image_index_from_blob(blob, 0), 0xFFFFFFFF)
 
     def test_xip_partition_without_exec_keeps_cbus(self) -> None:
         ptab_obj, entries = self._load_board("customer/boards/sf32lb56-lcd_n16r12n1/ptab.yaml")

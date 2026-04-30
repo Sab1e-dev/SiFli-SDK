@@ -26,7 +26,7 @@ if GetDepend('USING_PARTITION_TABLE'):
             src_file = os.path.join(env['PARTITION_TABLE'])
             output_dir = os.path.join(env['BSP_ROOT'], './linker_scripts')
         else:
-            # 优先 yaml
+            # Prefer yaml
             yaml_path = os.path.join(env['BSP_ROOT'], './linker_scripts/ptab.yaml')
             json_path = os.path.join(env['BSP_ROOT'], './linker_scripts/ptab.json')
             if os.path.exists(yaml_path):
@@ -71,27 +71,10 @@ if GetDepend('USING_PARTITION_TABLE'):
     ptab_header = env.PtabHeader(os.path.join(output_dir, 'ptab.h'), File(src_file))
     env['PTAB_HEADER'] = ptab_header
 
-    # 生成 ftab.bin（仅 ptab v3 + 主项目中，避免与子项目冲突）
+    # AddFTAB creates ftab.bin after all child projects are registered.
     if not IsChildProjEnv():
         if ptab_obj and ptab_obj.is_v3():
-            imgs_info = []
-            target_list = []
-            for e in GetEnvList():
-                # embedded project binaries are embedded into parent image
-                if IsChildProjEnv(e) and e.get('IMG_EMBEDDED'):
-                    continue
-                proj_name = e['name'] if IsChildProjEnv(e) else 'main'
-                if 'program_binary' in e:
-                    imgs_info.append({"name": proj_name, "binary": e['program_binary']})
-                if 'target' in e:
-                    target_list += e['target']
-                if 'program_binary' in e:
-                    target_list += e['program_binary']
-                if 'program_hex' in e:
-                    target_list += e['program_hex']
-            ftab_bin = env.FtabBin(os.path.join(output_dir, 'ftab.bin'), File(src_file), IMGS_INFO=imgs_info)
-            Depends(ftab_bin, target_list)
-            env['FTAB_BIN'] = ftab_bin
+            env['FTAB_BIN_PATH'] = os.path.join(output_dir, 'ftab.bin')
 
 group = []
     
