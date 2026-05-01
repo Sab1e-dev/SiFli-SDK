@@ -46,7 +46,7 @@ sudo pacman -S --needed gcc git make flex bison gperf python cmake ninja ccache 
 :::::{tab-item} macOS
 :sync: macOS
 
-当前的 SiFli-SDK 安装流程不再依赖系统 Python。`install.sh` 会通过 `uv` 准备锁定的 Python 运行时和依赖。
+当前的 SiFli-SDK 安装流程不再依赖系统 Python。`install.sh` 会通过 `uv` 准备 SDK 管理的 Python 运行时和依赖。
 
 - 安装 CMake 和 Ninja 编译工具：
   - Homebrew 用户：
@@ -154,11 +154,22 @@ cd ~/OpenSiFli/SiFli-SDK
 
 `install.sh` 会自动完成以下工作：
 
-- 通过 `uv` 准备锁定的 Python 运行时
-- 根据 `tools/locks/default/pyproject.toml` 和 `tools/locks/default/uv.lock` 同步锁定的 Python 依赖
-- 根据 `tools/locks/default/lock.json` 安装当前 profile 绑定的工具版本
-- 根据当前 lock 快照在 `SIFLI_SDK_TOOLS_PATH` 下实例化当前 profile 对应的环境
-- 在 `SIFLI_SDK_TOOLS_PATH` 下初始化该环境实例对应的 Conan 环境
+- 安装 SDK 运行需要的 Python 环境和依赖
+- 安装当前 SDK 版本匹配的编译器、调试器等工具
+- 准备构建依赖使用的 Conan 环境
+- 在 `SIFLI_SDK_TOOLS_PATH` 下保存 SDK 环境信息，后续导出环境变量时会继续使用
+
+这里的 SDK 环境指一套可供当前 SDK 使用的 Python、工具链、调试工具和构建依赖。首次安装请直接运行 `./install.sh`。
+
+SDK 更新后，普通 `./install.sh` 会为更新后的 SDK 准备或切换到匹配的环境；如果当前已经选中了旧环境，它不会直接修改旧环境。这样旧版本 SDK 仍可继续使用。
+
+如果你确认要在当前已选中的环境上原地更新，可以运行：
+
+```bash
+./install.sh update
+```
+
+如果这个环境也被其他 SDK 工作目录使用，脚本会改为新建一个环境，避免影响其他 SDK。
 
 Keil/ARMCLANG 路径记录和 `export -t keil` 仅支持 Windows；macOS 和 Linux 的脚本默认导出 GCC 工具链。
 
@@ -206,7 +217,7 @@ export SIFLI_SDK_TOOLS_PATH="$HOME/required_sdk_tools_path"
 . export.sh
 ```
 
-`export.sh` 现在会通过 `uv run` 调用 `tools/sdk_env.py export`。环境管理器会根据当前 `profile + lock` 快照解析目标 SDK 环境实例；如果该实例不存在或已损坏，`export.sh` 会按已保存的偏好自动修复，或者直接失败并提示重新执行 `./install.sh`。
+`export.sh` 会切换到当前 SDK 已安装的环境；如果这个环境不存在或已损坏，脚本会按已保存的偏好提示是否更新。选择更新等价于运行 `./install.sh update`；选择不更新时，可以手动运行普通 `./install.sh` 为当前 SDK 安装新环境，或运行 `./install.sh update` 尝试更新当前已选中的旧环境。
 
 ````{note}
 如果按照上述说明设置过自定义工具安装路径，那么在运行 `export.sh` 脚本之前**必须**设置`SIFLI_SDK_TOOLS_PATH` 变量
@@ -218,9 +229,9 @@ export SIFLI_SDK_TOOLS_PATH="$HOME/required_sdk_tools_path"
 ````
 
 ```{note}
-`export.sh` 现在会在导出环境前检查当前解析出来的环境实例是否仍与仓库锁文件一致。如果本地 Python 环境、工具版本或 Conan 配置不匹配，交互式终端可能会提示修复；非交互场景下会直接以确定性错误退出。
+`export.sh` 会在导出环境前检查当前 SDK 环境是否仍然完整。如果本地 Python 环境、工具版本或 Conan 配置不匹配，交互式终端可能会提示修复；非交互场景下会直接以确定性错误退出。
 
-`export.sh` 需要 PATH 中存在 `uv`，因为它会通过 `uv run` 启动 `tools/sdk_env.py`。
+`export.sh` 需要 PATH 中存在 `uv`，以便运行 SDK 环境管理流程。
 ```
 
 如果需要经常运行 SiFli-SDK，可以为执行 export.sh 创建一个别名，具体步骤如下：

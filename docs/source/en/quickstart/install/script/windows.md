@@ -6,7 +6,7 @@ We recommend using the [CodeKit](https://marketplace.visualstudio.com/items?item
 
 ### `uv` Environment
 
-Windows users do not need to pre-install system Python for the SDK scripts anymore. The supported workflow uses `uv` to provision the locked Python runtime on demand.
+Windows users do not need to pre-install system Python for the SDK scripts anymore. The supported workflow uses `uv` to provision the SDK-managed Python runtime on demand.
 
 After installing `uv`, run the following command in PowerShell to verify it is available:
 
@@ -118,10 +118,22 @@ cd C:\OpenSiFli\SiFli-SDK
 
 `install.ps1` will:
 
-- use `uv` to provision the locked Python runtime
-- sync the locked Python dependency graph from `tools/locks/default/pyproject.toml` and `tools/locks/default/uv.lock`
-- install the SDK toolchain versions bound by `tools/locks/default/lock.json`
-- initialize the profile-specific Conan home under `SIFLI_SDK_TOOLS_PATH`
+- install the Python runtime and dependencies required by the SDK
+- install the compiler, debugger, and other tools that match the current SDK version
+- prepare the Conan environment used for build dependencies
+- save SDK environment information under `SIFLI_SDK_TOOLS_PATH` for later environment export
+
+An SDK environment is the Python runtime, toolchain, debug tools, and build dependencies prepared for the current SDK. For the first install, run `.\install.ps1`.
+
+After updating the SDK, plain `.\install.ps1` prepares or switches to the matching environment for the updated SDK. If an older environment is currently selected, it is not modified in place, so older SDK checkouts can keep using it.
+
+If you explicitly want to update the currently selected environment in place, run:
+
+```powershell
+.\install.ps1 update
+```
+
+If that environment is also used by another SDK checkout, the script creates a new environment instead so the other checkout is not affected.
 
 If you need to build with Keil/ARMCLANG, record the Keil root during installation. The directory must already exist and contain `ARM\ARMCLANG\bin`:
 
@@ -129,7 +141,11 @@ If you need to build with Keil/ARMCLANG, record the Keil root during installatio
 .\install.ps1 --keil C:\Keil_v5
 ```
 
-If the SDK environment is already installed, run the same command again. `install.ps1` is idempotent: it reuses the existing Python, tool, and Conan state, and records the Keil path in `${SIFLI_SDK_TOOLS_PATH}\sifli-sdk-env.json`.
+The command above records Keil for the current SDK environment. To update the currently selected old environment and record Keil at the same time, run:
+
+```powershell
+.\install.ps1 update --keil C:\Keil_v5
+```
 
 ````{note}
 Domestic users in China can use the following commands to enable the bundled China mirror preset and avoid slow downloads from default sources. Note that if you choose to execute the following commands, you do not need to execute the commands in the above code block.
@@ -195,7 +211,7 @@ If you have recorded a Keil root with `install.ps1 --keil`, switch to Keil/ARMCL
 .\export.ps1 -t keil
 ```
 
-`export.ps1` now invokes `tools/sdk_env.py export` through `uv run`. The environment manager resolves the current `profile + lock` snapshot to the matching SDK environment instance and uses the Python virtual environment recorded there. If that instance is missing or invalid, `export.ps1` will either reconcile it according to the saved preference or fail and ask you to run `.\install.ps1` again.
+`export.ps1` switches to the SDK environment installed for the current checkout and uses the Python virtual environment recorded there. If that environment is missing or invalid, the script prompts according to the saved preference. Choosing to update is equivalent to running `.\install.ps1 update`. If you decline, you can run plain `.\install.ps1` to install a new environment for the current SDK, or run `.\install.ps1 update` to try updating the currently selected old environment.
 
 ````{note}
 If you have set a custom tool installation path according to the above instructions, then you **must** set the `SIFLI_SDK_TOOLS_PATH` variable before running the `export.ps1` script
@@ -211,9 +227,9 @@ Each time you open a new terminal window, you need to run the `export.ps1` scrip
 ```
 
 ```{note}
-`export.ps1` now validates the resolved environment instance before exporting. If the local Python environment, tools, or Conan config do not match the current repo lock, `export.ps1` may prompt to reconcile the environment or fail deterministically in non-interactive shells.
+`export.ps1` validates the current SDK environment before exporting. If the local Python environment, tools, or Conan config do not match the current SDK, `export.ps1` may prompt to repair the environment or fail deterministically in non-interactive shells.
 
-`export.ps1` requires `uv` in PATH because it launches `tools/sdk_env.py` through `uv run`.
+`export.ps1` requires `uv` in PATH to run the SDK environment management flow.
 ```
 
 ### Windows Terminal Quick Configuration
