@@ -40,6 +40,7 @@
 void rt_hw_systick_init(void);
 void rt_flash_wait_idle(uint32_t addr);
 
+#if defined(BSP_USING_BOARD_SF32LB52_CORE_N16R16) || defined(BSP_USING_BOARD_SF32LB52_CORE_N4)
 static void flash_deep_pwrdown_by_addr(uint32_t mpi_mem_base)
 {
     FLASH_HandleTypeDef *flash_handle;
@@ -51,6 +52,7 @@ static void flash_deep_pwrdown_by_addr(uint32_t mpi_mem_base)
     /*Keep the pins of the MPI in place to prevent flash abnormalities.*/
     hwp_pmuc->CR |= PMUC_CR_PIN_RET;
 }
+#endif /* BSP_USING_BOARD_SF32LB52_CORE_N16R16 || BSP_USING_BOARD_SF32LB52_CORE_N4 */
 
 static void disable_module1(void)
 {
@@ -359,7 +361,7 @@ int shutdown(int argc, char *argv[])
         flash_deep_pwrdown_by_addr(MPI2_MEM_BASE);
 #elif defined(BSP_USING_BOARD_SF32LB52_CORE_N4)
         flash_deep_pwrdown_by_addr(MPI1_MEM_BASE);
-#endif
+#endif /* BSP_USING_BOARD_SF32LB52_CORE_N16R16 */
         HAL_PMU_EnterHibernate();
 
         /* while loop until system is down */
@@ -403,7 +405,7 @@ int shutdown(int argc, char *argv[])
         flash_deep_pwrdown_by_addr(MPI2_MEM_BASE);
 #elif defined(BSP_USING_BOARD_SF32LB52_CORE_N4)
         flash_deep_pwrdown_by_addr(MPI1_MEM_BASE);
-#endif /* defined(BSP_USING_BOARD_SF32LB52_CORE_N16R16) */
+#endif /* BSP_USING_BOARD_SF32LB52_CORE_N16R16 */
         /* Enter shutdown mode, system can be woken up by KEY1 */
         HAL_PMU_EnterShutdown();
         /* while loop until system is down */
