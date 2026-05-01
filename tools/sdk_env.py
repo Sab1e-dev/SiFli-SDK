@@ -1475,6 +1475,20 @@ def collect_installed_state(
     }
 
 
+def ensure_required_tools_recorded(plans: Sequence[ToolPlan], installed_state: Dict[str, Any]) -> None:
+    tool_state = installed_state.get("tools") if isinstance(installed_state.get("tools"), dict) else {}
+    missing = [
+        f"{plan.name}@{plan.version}"
+        for plan in plans
+        if plan.required and tool_state.get(plan.name) != plan.version
+    ]
+    if missing:
+        raise SDKEnvError(
+            "install state is incomplete; required tools were not recorded: "
+            + ", ".join(missing)
+        )
+
+
 def parse_install_targets(lock: ProfileLock, cli_targets: Optional[str], compat_args: Sequence[str]) -> List[str]:
     compat_targets: List[str] = []
     unknown_args: List[str] = []
@@ -1804,6 +1818,7 @@ def perform_install(
         env_path,
         conan_home,
     )
+    ensure_required_tools_recorded(plans, installed_state)
     preference = auto_reconcile or auto_reconcile_preference(config, lock.profile)
     write_profile_state(
         config.state_path,

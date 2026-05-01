@@ -631,6 +631,41 @@ class TargetParsingTests(unittest.TestCase):
         self.assertEqual(args.toolchain, "keil")
 
 
+class InstallStateTests(unittest.TestCase):
+    def test_perform_install_rejects_incomplete_required_tool_state(self) -> None:
+        config = SimpleNamespace()
+        lock = SimpleNamespace(profile="default", default_targets=["all"])
+        plan = sdk_env.ToolPlan("sftool", "0.1.16", True, FakeTool())
+        resolved_env = sdk_env.ResolvedEnvInstance(
+            key="default|compat",
+            compat_sha="compat",
+            env_state=None,
+            python_env_path="/tmp/env",
+            conan_home="/tmp/conan",
+        )
+
+        with (
+            mock.patch("sdk_env.repo_root", return_value="/repo"),
+            mock.patch("sdk_env.load_tool_plans", return_value=[plan]),
+            mock.patch("sdk_env.resolve_env_instance", return_value=resolved_env),
+            mock.patch("sdk_env.install_paths_for_env", return_value=("/tmp/env", "/tmp/conan")),
+            mock.patch("sdk_env.ensure_python_env", return_value="/tmp/env"),
+            mock.patch("sdk_env.install_tool_plan"),
+            mock.patch("sdk_env.initialize_conan"),
+            mock.patch("sdk_env.collect_installed_state", return_value={"tools": {}}),
+            mock.patch("sdk_env.write_profile_state") as write_state,
+        ):
+            with self.assertRaisesRegex(sdk_env.SDKEnvError, "sftool@0.1.16"):
+                sdk_env.perform_install(
+                    argparse.Namespace(from_bundle=None),
+                    config,
+                    lock,
+                    lock.default_targets,
+                )
+
+        write_state.assert_not_called()
+
+
 class SDKVersionTests(unittest.TestCase):
     def test_sdk_release_line_parses_version_txt(self) -> None:
         self.assertEqual(sdk_env.sdk_release_line("v2.4.0"), "2.4")
