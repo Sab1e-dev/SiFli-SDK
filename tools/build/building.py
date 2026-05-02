@@ -3868,7 +3868,8 @@ def SifliKeilEnv(cpu, BSP_ROOT=''):
         no_dsp_fp = False
     
     use_link_template = bool(
-        rtconfig.LINK_SCRIPT_TEMPLATE
+        hasattr(rtconfig, 'LINK_SCRIPT_TEMPLATE')
+        and rtconfig.LINK_SCRIPT_TEMPLATE
         and _current_project_uses_ptab_v3(BSP_ROOT)
     )
     if not use_link_template:
