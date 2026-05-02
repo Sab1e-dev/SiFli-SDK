@@ -96,8 +96,8 @@ extern const struct fal_flash_dev fal_sdmmc2;
 
 #ifdef BSP_USING_PC_SIMULATOR
 #if defined(FLASH5_BASE_ADDR) || defined(BSP_USING_NOR_FLASH5) || defined(BSP_ENABLE_QSPI5)
-#define FAL_FLASH5_DEV_TABLE_ITEM                                      \
-    &nor_flash5,                                                     \
+#define FAL_FLASH5_DEV_TABLE_ITEM                                    \
+    &nor_flash5,                                                     
 #else
 #define FAL_FLASH5_DEV_TABLE_ITEM
 #endif
