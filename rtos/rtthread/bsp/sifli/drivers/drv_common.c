@@ -1452,7 +1452,8 @@ void *malloc_dma_friendly_sram(rt_size_t n)
 {
 #define list_max 1024
 
-#if defined(SF32LB52X)
+#if defined(SF32LB52X) || defined(SF32LB57X)
+//TODO:
 #define IS_DMA_FRIENDLY_SRAM(addr)    ((((addr) >= HPSYS_RAM0_BASE) && ((addr) < HPSYS_RAM1_BASE)) ? false : HCPU_IS_SRAM_ADDR(addr))
 #else
 #define IS_DMA_FRIENDLY_SRAM(addr)    ((((addr) >= HPSYS_RETM_BASE) && ((addr) < HPSYS_RETM_END)) ? false : HCPU_IS_SRAM_ADDR(addr))
