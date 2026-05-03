@@ -19,11 +19,7 @@ extern "C" {
   * @brief This is the list of modules to be used in the HAL driver
   */
 #define HAL_AON_MODULE_ENABLED
-#ifdef SF32LB57X
-#define HAL_RISCV_MODULE_ENABLED
-#else
 #define HAL_CORTEX_MODULE_ENABLED
-#endif
 #define HAL_DMA_MODULE_ENABLED
 #define HAL_GPIO_MODULE_ENABLED
 #define HAL_GPT_MODULE_ENABLED
@@ -221,10 +217,6 @@ in voltage and temperature.  */
 #ifdef HAL_CORTEX_MODULE_ENABLED
 #include "bf0_hal_cortex.h"
 #endif /* HAL_CORTEX_MODULE_ENABLED */
-
-#ifdef HAL_RISCV_MODULE_ENABLED
-#include "bf0_hal_riscv.h"
-#endif /* HAL_RISCV_MODULE_ENABLED */
 
 #ifdef HAL_ADC_MODULE_ENABLED
 #include "bf0_hal_adc.h"

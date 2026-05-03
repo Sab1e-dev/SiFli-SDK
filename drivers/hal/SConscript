@@ -24,10 +24,6 @@ else:
 if rtconfig.ARCH != 'arm':
     SrcRemove(src, 'bf0_hal_cortex.c')
 
-if rtconfig.ARCH != 'risc-v':
-    SrcRemove(src, 'bf0_hal_riscv.c')
-
-
 if GetDepend('SOC_SF32LB52X') or GetDepend('SOC_SF32LB57X'):
     SrcRemove(src, 'bf0_hal_audcodec.c')
 else:

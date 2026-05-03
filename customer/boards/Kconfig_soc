@@ -43,11 +43,10 @@ if BF0_LCPU
 
     config CPU
     string
-    default "nuclei" if SOC_SF32LB57X
     default "Cortex-M33" 
     config CPU_HAS_NO_DSP_FP
         bool 
-        default y if SOC_SF32LB52X
+        default y if SOC_SF32LB52X || SOC_SF32LB57X
     
 endif
 
