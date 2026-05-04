@@ -609,7 +609,6 @@ def render_board_files(
     for core_name, core_select, extra_select in core_definitions(spec.series):
         core_dir = board_dir / core_name.lower()
         core_template_prefix = template_prefix + f'{core_name.lower()}/'
-        rendered[core_dir / 'Kconfig'] = render_template(env, core_template_prefix + 'Kconfig.jinja2', {})
         rendered[core_dir / 'Kconfig.board'] = render_template(env, core_template_prefix + 'Kconfig.board.jinja2', {
             'board_symbol': board_symbol,
             'soc_symbol': SOC_SYMBOL[spec.series],
