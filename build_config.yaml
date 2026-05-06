@@ -194,12 +194,10 @@ common_projects:
     boards: *default_boards
 
   - path: example/bt/3sco/project
-    boards: 
-      - bt_boards
+    boards: *bt_boards
 
   - path: example/bt/HCI_over_uart/project
-    boards: 
-      - bt_boards
+    boards: *bt_boards
 
   - path: example/bt/hfp/project
     boards: *bt_boards
