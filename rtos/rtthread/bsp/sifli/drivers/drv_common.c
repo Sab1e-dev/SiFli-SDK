@@ -876,10 +876,10 @@ void HAL_RCC_MspInit(void)
     HAL_RCC_DisableModule(RCC_MOD_I2C3);
 #endif /* !BSP_USING_I2C3 */
 
-#if !defined(BSP_USING_GPTIM1) && !defined(BSP_USING_PWM2)
+#if !defined(BSP_USING_GPTIM1) && !defined(BSP_USING_PWMT1)
     HAL_RCC_DisableModule(RCC_MOD_GPTIM1);
 #endif /* !BSP_USING_GPTIM1 */
-#if !defined(BSP_USING_GPTIM2) && !defined(BSP_USING_PWM3)
+#if !defined(BSP_USING_GPTIM2) && !defined(BSP_USING_PWMT2)
     HAL_RCC_DisableModule(RCC_MOD_GPTIM2);
 #endif /* !BSP_USING_GPTIM2 */
 
@@ -969,13 +969,13 @@ void HAL_RCC_MspInit(void)
     HAL_RCC_DisableModule(RCC_MOD_I2C6);
 #endif /* !BSP_USING_I2C6 */
 
-#if !defined(BSP_USING_GPTIM3) && !defined(BSP_USING_PWM4)
+#if !defined(BSP_USING_GPTIM3) && !defined(BSP_USING_PWMT3)
     HAL_RCC_DisableModule(RCC_MOD_GPTIM3);
 #endif /* !BSP_USING_GPTIM3 */
-#if !defined(BSP_USING_GPTIM4) && !defined(BSP_USING_PWM5)
+#if !defined(BSP_USING_GPTIM4) && !defined(BSP_USING_PWMT4)
     HAL_RCC_DisableModule(RCC_MOD_GPTIM4);
 #endif /* !BSP_USING_GPTIM4 */
-#if !defined(BSP_USING_GPTIM5) && !defined(BSP_USING_PWM6)
+#if !defined(BSP_USING_GPTIM5) && !defined(BSP_USING_PWMT5)
     HAL_RCC_DisableModule(RCC_MOD_GPTIM5);
 #endif /* !BSP_USING_GPTIM5 */
 
@@ -1033,10 +1033,10 @@ void HAL_RCC_MspInit(void)
     HAL_RCC_DisableModule(RCC_MOD_I2C4);
 #endif /* !BSP_USING_I2C4 */
 
-#if !defined(BSP_USING_GPTIM1) && !defined(BSP_USING_PWM2)
+#if !defined(BSP_USING_GPTIM1) && !defined(BSP_USING_PWMT1)
     HAL_RCC_DisableModule(RCC_MOD_GPTIM1);
 #endif /* !BSP_USING_GPTIM1 */
-#if !defined(BSP_USING_GPTIM2) && !defined(BSP_USING_PWM3)
+#if !defined(BSP_USING_GPTIM2) && !defined(BSP_USING_PWMT2)
     HAL_RCC_DisableModule(RCC_MOD_GPTIM2);
 #endif /* !BSP_USING_GPTIM2 */
 
@@ -1144,13 +1144,13 @@ void HAL_RCC_MspInit(void)
     HAL_RCC_DisableModule(RCC_MOD_I2C7);
 #endif /* !BSP_USING_I2C6 */
 
-#if !defined(BSP_USING_GPTIM3) && !defined(BSP_USING_PWM4)
+#if !defined(BSP_USING_GPTIM3) && !defined(BSP_USING_PWMT3)
     HAL_RCC_DisableModule(RCC_MOD_GPTIM3);
 #endif /* !BSP_USING_GPTIM3 */
-#if !defined(BSP_USING_GPTIM4) && !defined(BSP_USING_PWM5)
+#if !defined(BSP_USING_GPTIM4) && !defined(BSP_USING_PWMT4)
     HAL_RCC_DisableModule(RCC_MOD_GPTIM4);
 #endif /* !BSP_USING_GPTIM4 */
-#if !defined(BSP_USING_GPTIM5) && !defined(BSP_USING_PWM6)
+#if !defined(BSP_USING_GPTIM5) && !defined(BSP_USING_PWMT5)
     HAL_RCC_DisableModule(RCC_MOD_GPTIM5);
 #endif /* !BSP_USING_GPTIM5 */
 
@@ -1221,10 +1221,10 @@ void HAL_RCC_MspInit(void)
     HAL_RCC_DisableModule(RCC_MOD_I2C4);
 #endif /* !BSP_USING_I2C4 */
 
-#if !defined(BSP_USING_GPTIM1) && !defined(BSP_USING_PWM2)
+#if !defined(BSP_USING_GPTIM1) && !defined(BSP_USING_PWMT1)
     HAL_RCC_DisableModule(RCC_MOD_GPTIM1);
 #endif /* !BSP_USING_GPTIM1 */
-#if !defined(BSP_USING_GPTIM2) && !defined(BSP_USING_PWM3)
+#if !defined(BSP_USING_GPTIM2) && !defined(BSP_USING_PWMT2)
     HAL_RCC_DisableModule(RCC_MOD_GPTIM2);
 #endif /* !BSP_USING_GPTIM2 */
 
@@ -1318,13 +1318,13 @@ void HAL_RCC_MspInit(void)
     HAL_RCC_DisableModule(RCC_MOD_I2C7);
 #endif /* !BSP_USING_I2C6 */
 
-#if !defined(BSP_USING_GPTIM3) && !defined(BSP_USING_PWM4)
+#if !defined(BSP_USING_GPTIM3) && !defined(BSP_USING_PWMT3)
     //HAL_RCC_DisableModule(RCC_MOD_GPTIM3);
 #endif /* !BSP_USING_GPTIM3 */
-#if !defined(BSP_USING_GPTIM4) && !defined(BSP_USING_PWM5)
+#if !defined(BSP_USING_GPTIM4) && !defined(BSP_USING_PWMT4)
     HAL_RCC_DisableModule(RCC_MOD_GPTIM4);
 #endif /* !BSP_USING_GPTIM4 */
-#if !defined(BSP_USING_GPTIM5) && !defined(BSP_USING_PWM6)
+#if !defined(BSP_USING_GPTIM5) && !defined(BSP_USING_PWMT5)
     HAL_RCC_DisableModule(RCC_MOD_GPTIM5);
 #endif /* !BSP_USING_GPTIM5 */
 
@@ -1384,10 +1384,10 @@ void HAL_RCC_MspInit(void)
     HAL_RCC_DisableModule(RCC_MOD_I2C4);
 #endif /* !BSP_USING_I2C4 */
 
-#if !defined(BSP_USING_GPTIM1) && !defined(BSP_USING_PWM2)
+#if !defined(BSP_USING_GPTIM1) && !defined(BSP_USING_PWMT1)
     HAL_RCC_DisableModule(RCC_MOD_GPTIM1);
 #endif /* !BSP_USING_GPTIM1 */
-#if !defined(BSP_USING_GPTIM2) && !defined(BSP_USING_PWM3)
+#if !defined(BSP_USING_GPTIM2) && !defined(BSP_USING_PWMT2)
     HAL_RCC_DisableModule(RCC_MOD_GPTIM2);
 #endif /* !BSP_USING_GPTIM2 */
 
