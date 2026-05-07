@@ -199,18 +199,162 @@ class StateAndPathTests(unittest.TestCase):
         temp_dir = tempfile.mkdtemp(prefix="sdk-env-state-")
         self.addCleanup(lambda: shutil.rmtree(temp_dir, ignore_errors=True))
         state_path = os.path.join(temp_dir, "sifli-sdk-env.json")
-        installed = {"python": {"version": "3.13.11", "env_path": "/tmp/env"}}
+        env_key = "default|compat"
+        installed = {
+            "sdk": {
+                "env_compat_algorithm": "v1",
+                "env_compat_sha256": "compat",
+                "git_head": "legacy-head",
+                "version_txt": "v2.4.0",
+                "dirty": True,
+                "host_platform": "Darwin-arm64",
+            },
+            "python": {"version": "3.13.11", "env_path": "/tmp/env"},
+        }
         sdk_env.write_profile_state(
             state_path,
             "/repo",
             "default",
-            installed=installed,
+            env_key_value=env_key,
+            env_state=installed,
             auto_reconcile="always",
+            last_seen_git_head="repo-head",
         )
         loaded = sdk_env.read_profile_state(state_path, "/repo", "default")
+        state_doc = sdk_env.load_state(state_path)
         self.assertIsNotNone(loaded)
-        self.assertEqual(loaded["installed"], installed)
+        self.assertEqual(loaded["selected_env_key"], env_key)
         self.assertEqual(loaded["preferences"]["auto_reconcile"], "always")
+        self.assertEqual(loaded["last_seen_git_head"], "repo-head")
+        self.assertEqual(state_doc["envs"][env_key]["python"], installed["python"])
+        self.assertEqual(
+            state_doc["envs"][env_key]["sdk"],
+            {"env_compat_algorithm": "v1", "env_compat_sha256": "compat"},
+        )
+        self.assertIn("last_used_at", state_doc["envs"][env_key])
+
+    def test_load_state_migrates_schema_v1_to_v2(self) -> None:
+        temp_dir = tempfile.mkdtemp(prefix="sdk-env-state-")
+        self.addCleanup(lambda: shutil.rmtree(temp_dir, ignore_errors=True))
+        state_path = os.path.join(temp_dir, "sifli-sdk-env.json")
+        with open(state_path, "w", encoding="utf-8") as f:
+            f.write(
+                textwrap.dedent(
+                    """
+                    {
+                      "schema_version": 1,
+                      "repos": {
+                        "/repo": {
+                          "profiles": {
+                            "default": {
+                              "installed": {
+                                "sdk": {
+                                  "env_compat_algorithm": "v1",
+                                  "env_compat_sha256": "abc123",
+                                  "git_head": "legacy-head",
+                                  "version_txt": "v2.4.0",
+                                  "dirty": true
+                                },
+                                "python": {
+                                  "env_path": "/tmp/legacy-python"
+                                }
+                               },
+                               "toolchains": {
+                                 "keil": {
+                                   "root": "/Keil_v5",
+                                   "armclang_bin": "/Keil_v5/ARM/ARMCLANG/bin"
+                                 }
+                               },
+                               "preferences": {
+                                 "auto_reconcile": "always"
+                               }
+                             }
+                          }
+                        }
+                      }
+                    }
+                    """
+                ).strip()
+            )
+
+        loaded = sdk_env.load_state(state_path)
+        self.assertEqual(loaded["schema_version"], 2)
+        self.assertEqual(loaded["repos"]["/repo"]["profiles"]["default"]["selected_env_key"], "default|abc123")
+        self.assertEqual(loaded["repos"]["/repo"]["profiles"]["default"]["preferences"]["auto_reconcile"], "always")
+        self.assertEqual(loaded["repos"]["/repo"]["profiles"]["default"]["last_seen_git_head"], "legacy-head")
+        self.assertEqual(
+            loaded["repos"]["/repo"]["profiles"]["default"]["toolchains"]["keil"]["armclang_bin"],
+            "/Keil_v5/ARM/ARMCLANG/bin",
+        )
+        self.assertEqual(loaded["envs"]["default|abc123"]["python"]["env_path"], "/tmp/legacy-python")
+        self.assertEqual(
+            loaded["envs"]["default|abc123"]["sdk"],
+            {"env_compat_algorithm": "v1", "env_compat_sha256": "abc123"},
+        )
+        self.assertIn("last_used_at", loaded["envs"]["default|abc123"])
+
+    def test_load_state_normalizes_legacy_v2_env_sdk_fields(self) -> None:
+        temp_dir = tempfile.mkdtemp(prefix="sdk-env-state-")
+        self.addCleanup(lambda: shutil.rmtree(temp_dir, ignore_errors=True))
+        state_path = os.path.join(temp_dir, "sifli-sdk-env.json")
+        with open(state_path, "w", encoding="utf-8") as f:
+            f.write(
+                textwrap.dedent(
+                    """
+                    {
+                      "schema_version": 2,
+                      "repos": {
+                        "/repo": {
+                          "profiles": {
+                            "default": {
+                              "selected_env_key": "default|abc123",
+                              "preferences": {
+                                "auto_reconcile": "ask"
+                              },
+                              "last_seen_git_head": "repo-head"
+                            }
+                          }
+                        }
+                      },
+                      "envs": {
+                        "default|abc123": {
+                          "sdk": {
+                            "env_compat_algorithm": "v1",
+                            "env_compat_sha256": "abc123",
+                            "git_head": "legacy-head",
+                            "version_txt": "v2.4.0",
+                            "dirty": true,
+                            "host_platform": "Darwin-arm64"
+                          },
+                          "python": {
+                            "env_path": "/tmp/python"
+                          }
+                        }
+                      }
+                    }
+                    """
+                ).strip()
+            )
+
+        loaded = sdk_env.load_state(state_path)
+        self.assertEqual(loaded["repos"]["/repo"]["profiles"]["default"]["last_seen_git_head"], "repo-head")
+        self.assertEqual(
+            loaded["envs"]["default|abc123"]["sdk"],
+            {"env_compat_algorithm": "v1", "env_compat_sha256": "abc123"},
+        )
+
+    def test_warn_non_blocking_drift_uses_repo_last_seen_git_head(self) -> None:
+        warnings: list[str] = []
+        with mock.patch("sdk_env.current_git_head", return_value="new-head"):
+            with mock.patch("sdk_env.current_git_dirty", return_value=True):
+                with mock.patch("sdk_env.log_warn", side_effect=warnings.append):
+                    sdk_env.warn_non_blocking_drift({"last_seen_git_head": "old-head"})
+
+        self.assertIn("git HEAD changed from old-head to new-head, but environment is still compatible.", warnings)
+        self.assertIn(
+            "worktree is dirty; environment export will continue because the compatibility hash is unchanged.",
+            warnings,
+        )
 
     def test_write_profile_state_preserves_keil_toolchain_when_install_updates_state(self) -> None:
         temp_dir = tempfile.mkdtemp(prefix="sdk-env-state-")
@@ -222,19 +366,29 @@ class StateAndPathTests(unittest.TestCase):
             state_path,
             "/repo",
             "default",
-            installed={"python": {"env_path": "/tmp/old-env"}},
+            env_key_value="default|old",
+            env_state={
+                "sdk": {"env_compat_algorithm": "v1", "env_compat_sha256": "old"},
+                "python": {"env_path": "/tmp/old-env"},
+            },
             toolchains={"keil": keil},
         )
         sdk_env.write_profile_state(
             state_path,
             "/repo",
             "default",
-            installed={"python": {"env_path": "/tmp/new-env"}},
+            env_key_value="default|new",
+            env_state={
+                "sdk": {"env_compat_algorithm": "v1", "env_compat_sha256": "new"},
+                "python": {"env_path": "/tmp/new-env"},
+            },
         )
 
         loaded = sdk_env.read_profile_state(state_path, "/repo", "default")
+        state_doc = sdk_env.load_state(state_path)
         self.assertIsNotNone(loaded)
-        self.assertEqual(loaded["installed"]["python"]["env_path"], "/tmp/new-env")
+        self.assertEqual(loaded["selected_env_key"], "default|new")
+        self.assertEqual(state_doc["envs"]["default|new"]["python"]["env_path"], "/tmp/new-env")
         self.assertEqual(loaded["toolchains"]["keil"], keil)
 
     def test_validate_keil_toolchain_requires_windows(self) -> None:
@@ -399,7 +553,7 @@ class StateAndPathTests(unittest.TestCase):
             )
 
         loaded = sdk_env.load_state(state_path)
-        self.assertEqual(loaded, {"schema_version": sdk_env.STATE_SCHEMA_VERSION, "repos": {}})
+        self.assertEqual(loaded, {"schema_version": sdk_env.STATE_SCHEMA_VERSION, "repos": {}, "envs": {}})
 
     def test_export_reexec_argv_uses_target_env_python(self) -> None:
         temp_install_root = tempfile.mkdtemp(prefix="sdk-env-install-root-")
@@ -436,9 +590,10 @@ class StateAndPathTests(unittest.TestCase):
             mirror="https://mirror.example",
             toolchain="keil",
         )
-        argv = sdk_env.export_reexec_argv(args, config, lock)
+        env_path = sdk_env.python_env_path(config, lock, "compat")
+        argv = sdk_env.export_reexec_argv(args, lock, env_path)
 
-        self.assertEqual(argv[0], sdk_env.python_executable(sdk_env.python_env_path(config, lock)))
+        self.assertEqual(argv[0], sdk_env.python_executable(env_path))
         self.assertEqual(argv[1:5], [os.path.join(ROOT, "tools", "sdk_env.py"), "export", "--profile", "default"])
         self.assertIn("--toolchain", argv)
         self.assertEqual(argv[argv.index("--toolchain") + 1], "keil")
@@ -474,6 +629,290 @@ class TargetParsingTests(unittest.TestCase):
     def test_export_parser_accepts_short_toolchain_option(self) -> None:
         args = sdk_env.build_parser().parse_args(["export", "--shell", "powershell", "-t", "keil"])
         self.assertEqual(args.toolchain, "keil")
+
+
+class InstallStateTests(unittest.TestCase):
+    def make_state_dir(self) -> tuple[str, str]:
+        temp_dir = tempfile.mkdtemp(prefix="sdk-env-install-state-")
+        self.addCleanup(lambda: shutil.rmtree(temp_dir, ignore_errors=True))
+        return temp_dir, os.path.join(temp_dir, "sifli-sdk-env.json")
+
+    def make_env_paths(self, temp_dir: str, name: str) -> tuple[str, str]:
+        env_path = os.path.join(temp_dir, name, "python")
+        conan_home = os.path.join(temp_dir, name, "conan")
+        os.makedirs(os.path.dirname(sdk_env.python_executable(env_path)), exist_ok=True)
+        os.makedirs(conan_home, exist_ok=True)
+        with open(sdk_env.python_executable(env_path), "w", encoding="utf-8") as f:
+            f.write("")
+        return env_path, conan_home
+
+    def make_env_state(self, compat: str, env_path: str, conan_home: str) -> dict[str, object]:
+        return {
+            "sdk": {
+                "env_compat_algorithm": sdk_env.ENV_COMPAT_ALGORITHM,
+                "env_compat_sha256": compat,
+            },
+            "python": {
+                "version": "3.13.11",
+                "env_path": env_path,
+            },
+            "conan": {
+                "config_id": "sdk.conan-config.v2.4",
+                "home": conan_home,
+            },
+            "targets": ["all"],
+            "tools": {},
+        }
+
+    def test_perform_install_rejects_incomplete_required_tool_state(self) -> None:
+        _, state_path = self.make_state_dir()
+        config = SimpleNamespace(state_path=state_path)
+        lock = SimpleNamespace(profile="default", default_targets=["all"])
+        plan = sdk_env.ToolPlan("sftool", "0.1.16", True, FakeTool())
+        resolved_env = sdk_env.ResolvedEnvInstance(
+            key="default|compat",
+            compat_sha="compat",
+            env_state=None,
+            python_env_path="/tmp/env",
+            conan_home="/tmp/conan",
+        )
+
+        with (
+            mock.patch("sdk_env.repo_root", return_value="/repo"),
+            mock.patch("sdk_env.load_tool_plans", return_value=[plan]),
+            mock.patch("sdk_env.resolve_env_instance", return_value=resolved_env),
+            mock.patch("sdk_env.install_paths_for_env", return_value=("/tmp/env", "/tmp/conan")),
+            mock.patch("sdk_env.ensure_python_env", return_value="/tmp/env"),
+            mock.patch("sdk_env.install_tool_plan"),
+            mock.patch("sdk_env.initialize_conan"),
+            mock.patch("sdk_env.collect_installed_state", return_value={"tools": {}}),
+            mock.patch("sdk_env.write_profile_state") as write_state,
+        ):
+            with self.assertRaisesRegex(sdk_env.SDKEnvError, "sftool@0.1.16"):
+                sdk_env.perform_install(
+                    argparse.Namespace(from_bundle=None),
+                    config,
+                    lock,
+                    lock.default_targets,
+                )
+
+        write_state.assert_not_called()
+
+    def test_perform_install_reuses_single_referenced_previous_env_path(self) -> None:
+        temp_dir, state_path = self.make_state_dir()
+        old_env, old_conan = self.make_env_paths(temp_dir, "old")
+        new_env, new_conan = self.make_env_paths(temp_dir, "new")
+        sdk_env.atomic_write_json(
+            state_path,
+            {
+                "schema_version": sdk_env.STATE_SCHEMA_VERSION,
+                "repos": {
+                    "/repo": {
+                        "profiles": {
+                            "default": {
+                                "selected_env_key": "default|old",
+                                "preferences": {"auto_reconcile": "ask"},
+                            }
+                        }
+                    }
+                },
+                "envs": {
+                    "default|old": self.make_env_state("old", old_env, old_conan),
+                },
+            },
+        )
+        config = SimpleNamespace(state_path=state_path)
+        lock = SimpleNamespace(
+            profile="default",
+            default_targets=["all"],
+            python_version="3.13.11",
+            conan_config_id="sdk.conan-config.v2.4",
+        )
+        resolved_env = sdk_env.ResolvedEnvInstance(
+            key="default|new",
+            compat_sha="new",
+            env_state=None,
+            python_env_path=new_env,
+            conan_home=new_conan,
+        )
+        installed_state = self.make_env_state("new", old_env, old_conan)
+
+        with (
+            mock.patch("sdk_env.repo_root", return_value="/repo"),
+            mock.patch("sdk_env.current_git_head", return_value="new-head"),
+            mock.patch("sdk_env.load_tool_plans", return_value=[]),
+            mock.patch("sdk_env.resolve_env_instance", return_value=resolved_env),
+            mock.patch("sdk_env.install_paths_for_env") as install_paths,
+            mock.patch("sdk_env.ensure_python_env", return_value=old_env) as ensure_python,
+            mock.patch("sdk_env.install_tool_plan"),
+            mock.patch("sdk_env.initialize_conan") as initialize_conan,
+            mock.patch("sdk_env.collect_installed_state", return_value=installed_state),
+        ):
+            sdk_env.perform_install(
+                argparse.Namespace(from_bundle=None),
+                config,
+                lock,
+                lock.default_targets,
+            )
+
+        install_paths.assert_not_called()
+        ensure_python.assert_called_once_with(config, lock, old_env)
+        initialize_conan.assert_called_once_with(config, lock, old_env, old_conan, None)
+        loaded = sdk_env.load_state(state_path)
+        self.assertEqual(
+            loaded["repos"]["/repo"]["profiles"]["default"]["selected_env_key"],
+            "default|new",
+        )
+        self.assertNotIn("default|old", loaded["envs"])
+        self.assertEqual(loaded["envs"]["default|new"]["python"]["env_path"], old_env)
+
+    def test_perform_install_creates_new_env_when_previous_env_is_shared(self) -> None:
+        temp_dir, state_path = self.make_state_dir()
+        old_env, old_conan = self.make_env_paths(temp_dir, "old")
+        new_env, new_conan = self.make_env_paths(temp_dir, "new")
+        sdk_env.atomic_write_json(
+            state_path,
+            {
+                "schema_version": sdk_env.STATE_SCHEMA_VERSION,
+                "repos": {
+                    "/repo": {
+                        "profiles": {
+                            "default": {
+                                "selected_env_key": "default|old",
+                                "preferences": {"auto_reconcile": "ask"},
+                            }
+                        }
+                    },
+                    "/other-repo": {
+                        "profiles": {
+                            "default": {
+                                "selected_env_key": "default|old",
+                                "preferences": {"auto_reconcile": "ask"},
+                            }
+                        }
+                    },
+                },
+                "envs": {
+                    "default|old": self.make_env_state("old", old_env, old_conan),
+                },
+            },
+        )
+        config = SimpleNamespace(state_path=state_path)
+        lock = SimpleNamespace(
+            profile="default",
+            default_targets=["all"],
+            python_version="3.13.11",
+            conan_config_id="sdk.conan-config.v2.4",
+        )
+        resolved_env = sdk_env.ResolvedEnvInstance(
+            key="default|new",
+            compat_sha="new",
+            env_state=None,
+            python_env_path=new_env,
+            conan_home=new_conan,
+        )
+        installed_state = self.make_env_state("new", new_env, new_conan)
+
+        with (
+            mock.patch("sdk_env.repo_root", return_value="/repo"),
+            mock.patch("sdk_env.current_git_head", return_value="new-head"),
+            mock.patch("sdk_env.load_tool_plans", return_value=[]),
+            mock.patch("sdk_env.resolve_env_instance", return_value=resolved_env),
+            mock.patch("sdk_env.install_paths_for_env", return_value=(new_env, new_conan)),
+            mock.patch("sdk_env.ensure_python_env", return_value=new_env) as ensure_python,
+            mock.patch("sdk_env.install_tool_plan"),
+            mock.patch("sdk_env.initialize_conan") as initialize_conan,
+            mock.patch("sdk_env.collect_installed_state", return_value=installed_state),
+        ):
+            sdk_env.perform_install(
+                argparse.Namespace(from_bundle=None),
+                config,
+                lock,
+                lock.default_targets,
+            )
+
+        ensure_python.assert_called_once_with(config, lock, new_env)
+        initialize_conan.assert_called_once_with(config, lock, new_env, new_conan, None)
+        loaded = sdk_env.load_state(state_path)
+        self.assertEqual(
+            loaded["repos"]["/repo"]["profiles"]["default"]["selected_env_key"],
+            "default|new",
+        )
+        self.assertEqual(
+            loaded["repos"]["/other-repo"]["profiles"]["default"]["selected_env_key"],
+            "default|old",
+        )
+        self.assertIn("default|old", loaded["envs"])
+        self.assertEqual(loaded["envs"]["default|new"]["python"]["env_path"], new_env)
+
+    def test_perform_install_skips_uv_when_target_env_is_already_valid(self) -> None:
+        temp_dir, state_path = self.make_state_dir()
+        old_env, old_conan = self.make_env_paths(temp_dir, "old")
+        target_env, target_conan = self.make_env_paths(temp_dir, "target")
+        target_state = self.make_env_state("new", target_env, target_conan)
+        sdk_env.atomic_write_json(
+            state_path,
+            {
+                "schema_version": sdk_env.STATE_SCHEMA_VERSION,
+                "repos": {
+                    "/repo": {
+                        "profiles": {
+                            "default": {
+                                "selected_env_key": "default|old",
+                                "preferences": {"auto_reconcile": "ask"},
+                            }
+                        }
+                    }
+                },
+                "envs": {
+                    "default|old": self.make_env_state("old", old_env, old_conan),
+                    "default|new": target_state,
+                },
+            },
+        )
+        config = SimpleNamespace(state_path=state_path)
+        lock = SimpleNamespace(
+            profile="default",
+            default_targets=["all"],
+            python_version="3.13.11",
+            conan_config_id="sdk.conan-config.v2.4",
+        )
+        resolved_env = sdk_env.ResolvedEnvInstance(
+            key="default|new",
+            compat_sha="new",
+            env_state=target_state,
+            python_env_path=target_env,
+            conan_home=target_conan,
+        )
+
+        with (
+            mock.patch("sdk_env.repo_root", return_value="/repo"),
+            mock.patch("sdk_env.current_git_head", return_value="new-head"),
+            mock.patch("sdk_env.load_tool_plans", return_value=[]),
+            mock.patch("sdk_env.resolve_env_instance", return_value=resolved_env),
+            mock.patch("sdk_env.ensure_python_env") as ensure_python,
+            mock.patch("sdk_env.install_tool_plan") as install_tool,
+            mock.patch("sdk_env.initialize_conan") as initialize_conan,
+            mock.patch("sdk_env.collect_installed_state") as collect_state,
+        ):
+            result = sdk_env.perform_install(
+                argparse.Namespace(from_bundle=None),
+                config,
+                lock,
+                lock.default_targets,
+            )
+
+        ensure_python.assert_not_called()
+        install_tool.assert_not_called()
+        initialize_conan.assert_not_called()
+        collect_state.assert_not_called()
+        self.assertEqual(result["python"]["env_path"], target_env)
+        loaded = sdk_env.load_state(state_path)
+        self.assertEqual(
+            loaded["repos"]["/repo"]["profiles"]["default"]["selected_env_key"],
+            "default|new",
+        )
+        self.assertNotIn("default|old", loaded["envs"])
 
 
 class SDKVersionTests(unittest.TestCase):
@@ -523,6 +962,7 @@ class SDKVersionTests(unittest.TestCase):
                                     lock=lock,
                                     plans=[],
                                     env_path="/tmp/.sifli/python_env/default/py3.13.11",
+                                    conan_home="/tmp/.sifli/envs/default/compat/conan",
                                     shell="bash",
                                 )
 
@@ -581,6 +1021,7 @@ class ToolchainExportTests(unittest.TestCase):
                                 lock=lock,
                                 plans=[gcc_plan],
                                 env_path=env_path,
+                                conan_home=os.path.join(config.install_root, "envs", "default", "compat", "conan"),
                                 shell="powershell",
                                 toolchain=toolchain,
                             )
@@ -676,13 +1117,25 @@ class ExportErrorMessageTests(unittest.TestCase):
             with mock.patch("sdk_env.ProfileLock.load", return_value=lock):
                 with mock.patch("sdk_env.read_version_txt", return_value="v2.4.0"):
                     with mock.patch("sdk_env.load_tool_plans", return_value=[]):
-                        with mock.patch("sdk_env.detect_drift", return_value=(["python env interpreter is missing"], "compat")):
+                        with mock.patch(
+                            "sdk_env.validate_env_instance",
+                            return_value=(
+                                ["python env interpreter is missing"],
+                                sdk_env.ResolvedEnvInstance(
+                                    key="default|compat",
+                                    compat_sha="compat",
+                                    env_state=None,
+                                    python_env_path="/tmp/env/python",
+                                    conan_home="/tmp/env/conan",
+                                ),
+                            ),
+                        ):
                             with mock.patch("sdk_env.auto_reconcile_preference", return_value="never"):
                                 with self.assertRaises(sdk_env.SDKEnvError) as cm:
                                     sdk_env.handle_export(args)
 
         message = str(cm.exception)
-        self.assertIn("environment drift detected for profile 'default'", message)
+        self.assertIn("environment instance for profile 'default' is missing or invalid", message)
         self.assertIn("`./install.sh --profile default`", message)
         self.assertIn("export again", message)
 
@@ -831,7 +1284,7 @@ class DownloadTests(unittest.TestCase):
             conan_remote_url="https://example.com",
             conan_home_subdir="default",
         )
-        env_path = sdk_env.python_env_path(config, lock)
+        env_path = sdk_env.python_env_path(config, lock, "compat")
         python_path = sdk_env.python_executable(env_path)
         os.makedirs(os.path.dirname(python_path), exist_ok=True)
         with open(python_path, "w", encoding="utf-8") as f:
@@ -843,7 +1296,7 @@ class DownloadTests(unittest.TestCase):
                     "sdk_env.temporary_uv_project",
                     return_value=contextlib.nullcontext("/tmp/project"),
                 ):
-                    result = sdk_env.ensure_python_env(config, lock)
+                    result = sdk_env.ensure_python_env(config, lock, env_path)
 
         self.assertEqual(result, env_path)
         self.assertEqual(run_command.call_count, 2)
