@@ -54,35 +54,35 @@ static struct bf0_pwm bf0_pwm_obj[] =
 };
 static void pwm_get_dma_info(void)
 {
-    /*PWM2 CC1 DMA*/
+    /*PWM1 CC1 DMA*/
 #ifdef BSP_PWM1_CC1_USING_DMA
     {
         static struct bf0_pwm_dma pwm1_cc1_dma = PWM1_CC1_DMA_CONFIG;
-        bf0_pwm_obj[PWM2_INDEX].pwm_cc_dma[0] = &pwm2_cc1_dma;
+        bf0_pwm_obj[PWM1_INDEX].pwm_cc_dma[0] = &pwm1_cc1_dma;
     }
 #endif
 
-    /*PWM2 CC2 DMA*/
+    /*PWM1 CC2 DMA*/
 #ifdef BSP_PWM1_CC2_USING_DMA
     {
-        static struct bf0_pwm_dma pwm2_cc2_dma = PWM2_CC2_DMA_CONFIG;
-        bf0_pwm_obj[PWM2_INDEX].pwm_cc_dma[1] = &pwm2_cc2_dma;
+        static struct bf0_pwm_dma pwm1_cc2_dma = PWM1_CC2_DMA_CONFIG;
+        bf0_pwm_obj[PWM1_INDEX].pwm_cc_dma[1] = &pwm1_cc2_dma;
     }
 #endif
 
-    /*PWM2 CC3 DMA*/
+    /*PWM1 CC3 DMA*/
 #ifdef BSP_PWM1_CC3_USING_DMA
     {
-        static struct bf0_pwm_dma pwm2_cc3_dma = PWM2_CC3_DMA_CONFIG;
-        bf0_pwm_obj[PWM2_INDEX].pwm_cc_dma[2] = &pwm2_cc3_dma;
+        static struct bf0_pwm_dma pwm1_cc3_dma = PWM1_CC3_DMA_CONFIG;
+        bf0_pwm_obj[PWM1_INDEX].pwm_cc_dma[2] = &pwm1_cc3_dma;
     }
 #endif
 
-    /*PWM2 CC4 DMA*/
+    /*PWM1 CC4 DMA*/
 #ifdef BSP_PWM1_CC4_USING_DMA
     {
-        static struct bf0_pwm_dma pwm2_cc4_dma = PWM2_CC4_DMA_CONFIG;
-        bf0_pwm_obj[PWM2_INDEX].pwm_cc_dma[3] = &pwm2_cc4_dma;
+        static struct bf0_pwm_dma pwm1_cc4_dma = PWM1_CC4_DMA_CONFIG;
+        bf0_pwm_obj[PWM1_INDEX].pwm_cc_dma[3] = &pwm1_cc4_dma;
     }
 #endif
 
