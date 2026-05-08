@@ -231,6 +231,14 @@ void       *app_anim_buf_alloc_ex(size_t nbytes, uint8_t index);
 void       *app_anim_buf_free(void *ptr);
 
 
+#if LV_USE_TINY_TTF
+/**
+@brief allocate/free tiny ttf draw buffer memory from the tiny heap
+*/
+void *app_tiny_ttf_mem_alloc(size_t size);
+void app_tiny_ttf_mem_free(void *buf);
+#endif
+
 #if PKG_USING_FFMPEG
 /**
 @brief initialize ffmpeg memory heap
@@ -410,6 +418,10 @@ void *audio_mem_calloc(uint32_t count, uint32_t size);
 
 #ifndef FT_CACHE_SIZE
 #define FT_CACHE_SIZE 0
+#endif
+
+#ifndef TINY_TTF_CACHE_SIZE
+#define TINY_TTF_CACHE_SIZE 0
 #endif
 
 #ifndef FREETYPE_ACT_CACHE_SIZE
