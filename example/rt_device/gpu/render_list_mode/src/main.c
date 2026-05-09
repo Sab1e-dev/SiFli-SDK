@@ -1261,7 +1261,11 @@ int main(void)
 
         case 5:
             draw_fill(&virtual_render_buf);
+        #ifdef EPIC_SUPPORT_JPEGD
             draw_jpg_img(&virtual_render_buf);
+        #else
+            draw_ezip_img(&virtual_render_buf);
+        #endif /* EPIC_SUPPORT_JPEGD */
             draw_img_buttons(&virtual_render_buf);
             break;
 
