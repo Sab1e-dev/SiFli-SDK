@@ -58,7 +58,7 @@
 #define CONFIG_USBDEV_ADVANCE_DESC
 
 /* move ep0 setup handler from isr to thread */
-// #define CONFIG_USBDEV_EP0_THREAD
+#define CONFIG_USBDEV_EP0_THREAD
 
 #ifndef CONFIG_USBDEV_EP0_PRIO
 #define CONFIG_USBDEV_EP0_PRIO 4
