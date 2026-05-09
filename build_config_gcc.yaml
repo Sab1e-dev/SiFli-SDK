@@ -185,6 +185,9 @@ common_projects:
   - path: example/ble/peripheral_with_ota/project
     boards: *after_55x_boards
 
+  - path: example/ble/talkback/project
+    boards: *default_boards
+
   - path: example/ble/throughput/project
     boards: *default_boards
 
