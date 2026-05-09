@@ -1,3 +1,10 @@
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
 #include <rtthread.h>
 #include <rtdevice.h>
 #include "bf0_hal.h"
@@ -121,7 +128,14 @@ void epic_blend_layers(void)
 
 int epic_demo_init(void)
 {
+    rt_memset(buffer0, 0, BUFFER_SIZE);
+    rt_memset(buffer1, 0, BUFFER_SIZE);
     rt_memset(buffer2, 0, BUFFER_SIZE);
+
+    /* 将 memset 的脏 cache 清除 */
+    mpu_dcache_clean(buffer0, BUFFER_SIZE);
+    mpu_dcache_clean(buffer1, BUFFER_SIZE);
+    mpu_dcache_clean(buffer2, BUFFER_SIZE);
 
     // 初始化，包括中断等资源
 
