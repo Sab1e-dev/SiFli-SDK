@@ -304,6 +304,8 @@ __WEAK void acpu_main(uint8_t task_name, void *param)
     {
         //here will come sometimes
         //ACPU_ASSERT(0);
+        acpu_printf("acpu: unknown task id %d\n", task_name);
+        acpu_send_result(0, (uint32_t)"unknown task");
     }
     }
 }
