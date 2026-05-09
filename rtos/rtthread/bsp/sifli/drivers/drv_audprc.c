@@ -31,7 +31,7 @@ __WEAK uint8_t get_factory_mode_status(void)
 #define EQ_SYSTEM_FILE_PATH     "/eq.bin"
 
 
-static int g_pdm_volume = 8 + 48; // 5 * 0.5db = 2.5db,  0.5db unit
+static int g_pdm_volume = 8 + 48; // 0.5db unit
 
 
 /*code produced by eq tools start*/
@@ -43,7 +43,7 @@ static int g_pdm_volume = 8 + 48; // 5 * 0.5db = 2.5db,  0.5db unit
 */
 static const int8_t g_eq_version[20] = "default_bypass";
 static const char g_eq_code_ver[] = "1.0.9";
-int8_t g_adc_volume = 0;
+int8_t g_adc_volume = 12;
 int8_t g_tel_max_vol = -2;
 int8_t g_tel_max_vol_level = 0;
 int8_t g_tel_vol_level[16] = {-36, -34, -32, -30, -28, -26, -24, -22, -20, -17, -14, -11, -10, -8, -6, -4};
@@ -317,24 +317,16 @@ static void set_pll_state(uint8_t state)
 //#define DBG_LEVEL                DBG_LOG
 #include "drv_log.h"
 
-extern HAL_StatusTypeDef HAL_AUDPRC_Config_ADCPath_Volume(AUDPRC_HandleTypeDef *haprc, int channel, int volume);
-extern AUDPRC_HandleTypeDef *get_audprc_handle();
-#if BSP_ENABLE_AUD_CODEC
-extern AUDCODEC_HandleTypeDef *get_audcodec_handle();
-extern HAL_StatusTypeDef HAL_AUDCODEC_Config_ADCPath_Volume(AUDCODEC_HandleTypeDef *hacodec, int channel, int volume);
-#else
-AUDCODEC_HandleTypeDef *get_audcodec_handle()
+__weak AUDCODEC_HandleTypeDef *get_audcodec_handle()
 {
     RT_ASSERT(0);
     return NULL;
 }
-HAL_StatusTypeDef HAL_AUDCODEC_Config_ADCPath_Volume(AUDCODEC_HandleTypeDef *hacodec, int channel, int volume)
+__weak HAL_StatusTypeDef HAL_AUDCODEC_Config_ADCPath_Volume(AUDCODEC_HandleTypeDef *hacodec, int channel, int volume)
 {
     return HAL_ERROR;
 }
-#endif
 
-extern HAL_StatusTypeDef HAL_AUDCODEC_Config_ADCPath_Volume(AUDCODEC_HandleTypeDef *hacodec, int channel, int volume);
 
 #define AUDPRC_DMA_RBF_NUM  16
 struct bf0_audio_prc
@@ -2559,8 +2551,11 @@ void mic_gain_decrease(int8_t db)
 {
     int8_t new_gain = g_adc_volume - db;
     rt_kprintf("xiaozhi mic gain to %ddb\r\n", new_gain);
-    HAL_AUDPRC_Config_ADCPath_Volume(get_audprc_handle(), 0, new_gain);
-    HAL_AUDPRC_Config_ADCPath_Volume(get_audprc_handle(), 1, new_gain);
+    HAL_AUDPRC_Config_ADCPath_Volume(get_audprc_handle(), 0, AUDPRC_ADC_VOLUME);
+    HAL_AUDPRC_Config_ADCPath_Volume(get_audprc_handle(), 1, AUDPRC_ADC_VOLUME);
+    HAL_AUDCODEC_Config_ADCPath_Volume(get_audcodec_handle(), 0, new_gain);
+    HAL_AUDCODEC_Config_ADCPath_Volume(get_audcodec_handle(), 1, new_gain);
+
     rt_kprintf("ADC_PATH_CFG0=0x%x\r\n", get_audprc_handle()->Instance->ADC_PATH_CFG0);
 }
 

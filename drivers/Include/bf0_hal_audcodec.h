@@ -482,6 +482,15 @@ HAL_StatusTypeDef HAL_AUDCODEC_Config_DACPath(AUDCODEC_HandleTypeDef *hacodec, u
   */
 HAL_StatusTypeDef HAL_AUDCODEC_Mute_DACPath(AUDCODEC_HandleTypeDef *hacodec, int mute);
 
+/**
+  * @brief  Configure ADC path volume.
+  * @param  hacodec: pointer to a AUDCODEC_HandleTypeDef structure that contains
+  *         the configuration information for AUDCODEC module
+  * @param channel: channel 0 or 1
+  * @param volume: configure volume -36dB~54dB
+  * @retval HAL status
+  */
+HAL_StatusTypeDef HAL_AUDCODEC_Config_ADCPath_Volume(AUDCODEC_HandleTypeDef *hacodec, int channel, int volume);
 
 /**
   * @brief  Configure ADC path.
@@ -564,4 +573,4 @@ void HAL_TURN_ON_PLL();
 #endif
 
 
-#endif /* __BF0_HAL_I2S_H */
+#endif /* __BF0_HAL_AUDCODEC_H */

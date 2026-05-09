@@ -28,6 +28,11 @@
     #define  free(p)        app_sram_free(p)
 #endif
 
+__weak int8_t get_mic_volume()
+{
+    return 12;
+}
+
 void pll_freq_fine_tuning(int delta)
 {
     uint32_t  pll_value = 0;
@@ -979,6 +984,7 @@ static rt_err_t bf0_audio_start(struct rt_audio_device *audio, int stream)
         if (0 != ((stream & 0xff00) & ((1 << HAL_AUDCODEC_ADC_CH0) << 8)))
         {
             HAL_AUDCODEC_Config_RChanel(haudcodec, 0, &haudcodec->Init.adc_cfg);
+            HAL_AUDCODEC_Config_ADCPath_Volume(haudcodec, 0, get_mic_volume());
 
 #ifdef AUDCODEC_ADC0_DMA_INSTANCE
             res = HAL_AUDCODEC_Receive_DMA(haudcodec, haudcodec->buf[HAL_AUDCODEC_ADC_CH0], haudcodec->bufSize, HAL_AUDCODEC_ADC_CH0);
@@ -993,7 +999,7 @@ static rt_err_t bf0_audio_start(struct rt_audio_device *audio, int stream)
         if (0 != ((stream & 0xff00) & ((1 << HAL_AUDCODEC_ADC_CH1) << 8)))
         {
             HAL_AUDCODEC_Config_RChanel(haudcodec, 1, &haudcodec->Init.adc_cfg);
-
+            HAL_AUDCODEC_Config_ADCPath_Volume(haudcodec, 1, get_mic_volume());
 #ifdef AUDCODEC_ADC1_DMA_INSTANCE
             res = HAL_AUDCODEC_Receive_DMA(haudcodec, haudcodec->buf[HAL_AUDCODEC_ADC_CH1], haudcodec->bufSize, HAL_AUDCODEC_ADC_CH1);
 #ifndef DMA_SUPPORT_DYN_CHANNEL_ALLOC
