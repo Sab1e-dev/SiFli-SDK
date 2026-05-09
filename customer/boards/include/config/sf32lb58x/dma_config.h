@@ -460,15 +460,14 @@ extern "C" {
 #endif  //SOC_BF0_HCPU
 #define I2S_TX_DMA_IRQ_PRIO                0
 #define I2S_TX_DMA_INSTANCE                DMA2_Channel3
-#else
+#endif /* BSP_ENABLE_I2S_CODEC && !I2S_TX_DMA_INSTANCE */
+
 // AUDPRC RX CH1
 #if defined(BSP_AUDPRC_RX1_DMA) && !defined(AUDPRC_RX1_DMA_INSTANCE)
 #define AUDPRC_RX1_DMA_IRQHandler              DMAC2_CH3_IRQHandler
 #define AUDPRC_RX1_DMA_IRQ_PRIO                0
 #define AUDPRC_RX1_DMA_INSTANCE                DMA2_Channel3
 #define AUDPRC_RX1_DMA_IRQ                     DMAC2_CH3_IRQn
-#endif
-
 #endif
 
 /* DMA2 channel4  */
@@ -483,7 +482,9 @@ extern "C" {
 #endif //SOC_BF0_HCPU
 #define I2S_RX_DMA_IRQ_PRIO                0
 #define I2S_RX_DMA_INSTANCE                DMA2_Channel4
-#else
+#endif /* BSP_ENABLE_I2S_CODEC && !I2S_RX_DMA_INSTANCE */
+
+
 // AUDPRC TX OUT CH1
 #if defined(BSP_AUDPRC_TX_OUT1_DMA) && !defined(AUDPRC_TX_OUT1_DMA_INSTANCE)
 #define AUDPRC_TX_OUT1_DMA_IRQHandler              DMAC2_CH4_IRQHandler
@@ -492,7 +493,7 @@ extern "C" {
 #define AUDPRC_TX_OUT1_DMA_IRQ                     DMAC2_CH4_IRQn
 #endif
 
-#endif
+
 
 /* DMA2 channel5  */
 //PDM1 L
