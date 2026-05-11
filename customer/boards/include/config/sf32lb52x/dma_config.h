@@ -116,7 +116,7 @@ extern "C" {
 #define SDMMC1_DMA_INSTANCE            DMA1_Channel3
 #define SDMMC1_DMA_IRQ                 DMAC1_CH3_IRQn
 
-#define I2C2_DMA_IRQHandler            DMAC1_CH3_IRQHandler
+#define I2C2_DMA_IRQHandler            DMAC1_CH5_IRQHandler
 #define I2C2_DMA_IRQ_PRIO              1
 #define I2C2_DMA_INSTANCE              DMA1_Channel5
 #define I2C2_DMA_IRQ                   DMAC1_CH5_IRQn
