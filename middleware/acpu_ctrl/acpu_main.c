@@ -189,9 +189,9 @@ __WEAK void acpu_main(uint8_t task_name, void *param)
         //ACPU_ASSERT(arg);
         OpusEncoder *encoder = (OpusEncoder *)arg->st;
 #if 1
-        opus_encoder_ctl(encoder, OPUS_SET_EXPERT_FRAME_DURATION(OPUS_FRAMESIZE_20_MS));
+        opus_encoder_ctl(encoder, OPUS_SET_EXPERT_FRAME_DURATION(OPUS_FRAMESIZE_10_MS));
 #else
-        opus_encoder_ctl(encoder, OPUS_SET_EXPERT_FRAME_DURATION(OPUS_FRAMESIZE_20_MS));
+        opus_encoder_ctl(encoder, OPUS_SET_EXPERT_FRAME_DURATION(OPUS_FRAMESIZE_10_MS));
 #endif
         opus_encoder_ctl(encoder, OPUS_SET_VBR(1));
         opus_encoder_ctl(encoder, OPUS_SET_VBR_CONSTRAINT(1));
