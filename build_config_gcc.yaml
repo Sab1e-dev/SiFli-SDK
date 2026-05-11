@@ -236,10 +236,6 @@ common_projects:
   - path: example/cherryusb/device/hid_mouse/project
     boards: *devkit-boards
 
-  - path: example/cherryusb/device/msc/emmc_disk/project
-    boards: 
-      - sf32lb56-lcd_n16r12n1
-
   - path: example/cherryusb/device/msc/nor_flash_disk/project
     boards: 
       - sf32lb56-lcd_n16r12n1
@@ -253,6 +249,13 @@ common_projects:
   - path: example/cherryusb/device/msc/sdcard_disk/project
     boards:
       - sf32lb52-lcd_n16r8
+      - sf32lb52-lcd_a128r16
+      - sf32lb52-core_e8r16
+      - sf32lb56-lcd_a128r12n1
+      - sf32lb56-lcd_n16r12n1
+      - sf32lb58-lcd_n16r32n1_dsi
+      - sf32lb58-lcd_a128r32n1_qspi
+      - sf32lb58-lcd_n16r32n1_qspi
 
   - path: example/cherryusb/host/cdc_acm_host/project
     boards: *devkit-boards
