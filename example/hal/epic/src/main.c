@@ -184,7 +184,7 @@ int epic_demo_init(void)
     HAL_NVIC_EnableIRQ(EPIC_IRQn);
 
     epic_handle.hezip = &ezip_handle;
-    epic_handle.hezip->Instance = hwp_ezip1;
+    epic_handle.hezip->Instance = hwp_ezip;
     HAL_EZIP_Init(epic_handle.hezip);
     epic_handle.Instance = hwp_epic;
     HAL_EPIC_Init(&epic_handle);
