@@ -22,6 +22,9 @@
 #define DBG_LVL           LOG_LVL_INFO
 #include "log.h"
 
+#if defined (__CC_ARM) || defined (__ARMCC_VERSION)
+    #error "only support for gcc compiler"
+#endif
 
 #define SAVE_ANYKA_OUTPUT_BY_DUMP   1
 
