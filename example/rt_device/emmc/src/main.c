@@ -47,10 +47,16 @@ int mnt_init(void)
             break;
         }
     }
-
+#if defined (BSP_USING_SDMMC1)
     rt_mmcsd_blk_device_create("sd0", FS_CODE, FS_CODE_OFFSET >> 9, FS_CODE_LEN >> 9);
     rt_mmcsd_blk_device_create("sd0", FS_ROOT, FS_ROOT_OFFSET >> 9, FS_ROOT_LEN >> 9);
     rt_mmcsd_blk_device_create("sd0", FS_MSIC, FS_MSIC_OFFSET >> 9, FS_MSIC_LEN >> 9);
+#elif defined (BSP_USING_SDMMC2)
+    rt_mmcsd_blk_device_create("sd1", FS_CODE, FS_CODE_OFFSET >> 9, FS_CODE_LEN >> 9);
+    rt_mmcsd_blk_device_create("sd1", FS_ROOT, FS_ROOT_OFFSET >> 9, FS_ROOT_LEN >> 9);
+    rt_mmcsd_blk_device_create("sd1", FS_MSIC, FS_MSIC_OFFSET >> 9, FS_MSIC_LEN >> 9);
+#endif
+
     if (dfs_mount(FS_ROOT, "/", "elm", 0, 0) == 0) // fs exist
     {
         rt_kprintf("mount fs on flash to root success\n");
