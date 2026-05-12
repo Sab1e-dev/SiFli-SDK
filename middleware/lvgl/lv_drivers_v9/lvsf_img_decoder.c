@@ -267,7 +267,17 @@ static lv_result_t decoder_open(lv_image_decoder_t *decoder, lv_image_decoder_ds
         }
 #endif
 
-        dsc->decoded = p_decoded;
+        if (ret == LV_RESULT_OK)
+        {
+            p_decoded->unaligned_data = p_decoded->data;
+            p_decoded->handlers = lv_draw_buf_get_handlers();
+            dsc->decoded = p_decoded;
+        }
+        else
+        {
+            lv_free(p_decoded);
+        }
+
         lv_fs_close(f);
         lv_free(f);
     }
