@@ -182,7 +182,6 @@ __ROM_USED int rt_in_system_heap(void *ptr)
  */
 void SysTick_Handler(void)
 {
-    uint32_t status;
     uint32_t pin_wsr;
 #ifdef BSP_USING_PM
     rt_tick_t old_tick;
@@ -199,16 +198,16 @@ void SysTick_Handler(void)
     /* Trigger GPIO callback manually as GPIO edge detection interrupt may get lost
        and WSR.PIN status is not cleared */
 #ifdef SOC_BF0_HCPU
-    status = HAL_HPAON_GET_WSR_PIN();
-    if (status)
+    pin_wsr = HAL_HPAON_GET_WSR_PIN();
+    if (pin_wsr)
     {
 #ifdef RT_USING_PIN
         drv_pin_irq_from_wsr(pin_wsr);
 #endif /* RT_USING_PIN */
     }
 #elif defined(HAL_LPAON_GET_WSR_PIN)
-    status = HAL_LPAON_GET_WSR_PIN();
-    if (status)
+    pin_wsr = HAL_LPAON_GET_WSR_PIN();
+    if (pin_wsr)
     {
 #ifdef RT_USING_PIN
         drv_pin_irq_from_wsr(pin_wsr);

@@ -2784,8 +2784,7 @@ __ROM_USED void AON_LCPU_IRQHandler(void)
     rt_kprintf("[pm]WSR:0x%x\n", g_wakeup_src);
 #endif /* BSP_PM_DEBUG */
 
-    pin_wsr = status & LPSYS_AON_WSR_PIN_ALL;
-    pin_wsr >>= LPSYS_AON_WSR_PIN0_Pos;
+    pin_wsr = HAL_LPAON_GET_WSR_PIN();
 #ifdef RT_USING_PIN
     drv_pin_irq_from_wsr(pin_wsr);
 #endif /* RT_USING_PIN */
