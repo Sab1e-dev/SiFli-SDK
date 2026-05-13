@@ -23,9 +23,11 @@
 static QSPI_FLASH_CTX_T spi_flash_handle[FLASH_MAX_INSTANCE];
 static DMA_HandleTypeDef spi_flash_dma_handle[FLASH_MAX_INSTANCE];
 
+#ifdef BSP_QSPI2_DUAL_MODE
 QSPI_FLASH_CTX_T flash_ext_handle = {0};
-static int gis_ext_flash = 0;
+HAL_RETM_BSS_SECT(gis_ext_flash, static int gis_ext_flash);
 static int g_ext_flash_id = -1;
+#endif /* BSP_QSPI2_DUAL_MODE */
 
 int8_t Addr2Id(uint32_t addr)
 {
@@ -57,8 +59,10 @@ int8_t Addr2Id(uint32_t addr)
 
 __weak int IsExtFlashAddr(uint32_t addr)
 {
+#ifdef BSP_QSPI2_DUAL_MODE
     if ((addr >= flash_ext_handle.base_addr) && (addr < (flash_ext_handle.base_addr + flash_ext_handle.total_size)))
         return 1;
+#endif /* BSP_QSPI2_DUAL_MODE */
 
     return 0;
 }
@@ -183,9 +187,11 @@ static void flash_lock2(uint32_t addr, uint32_t lock)
 void BSP_Flash_var_init(void)
 {
     flash_memset(spi_flash_handle, 0, sizeof(spi_flash_handle));
+#ifdef BSP_QSPI2_DUAL_MODE    
     flash_memset(&flash_ext_handle, 0, sizeof(flash_ext_handle));
     g_ext_flash_id = -1;
     gis_ext_flash = 0;
+#endif /* BSP_QSPI2_DUAL_MODE */    
     HAL_Delay_us(0);
 }
 
@@ -207,10 +213,12 @@ void *BSP_Flash_get_handle(uint32_t addr)
 {
     int8_t id = 0;
 
+#ifdef BSP_QSPI2_DUAL_MODE
     if (IsExtFlashAddr(addr))
     {
         return (void *)&flash_ext_handle.handle;
     }
+#endif /* BSP_QSPI2_DUAL_MODE */        
 
     id = Addr2Id(addr);
 
@@ -228,8 +236,10 @@ void *BSP_Flash_get_handle_by_id(uint8_t id)
 
 int BSP_Flash_read_id(uint32_t addr)
 {
+#ifdef BSP_QSPI2_DUAL_MODE    
     if (IsExtFlashAddr(addr))
         return flash_ext_handle.dev_id;
+#endif /* BSP_QSPI2_DUAL_MODE */
 
     int8_t id = Addr2Id(addr);
     if (id < 0)
@@ -559,11 +569,13 @@ __HAL_ROM_USED int BSP_Flash_Init_WithID(uint8_t fid, qspi_configure_t *pflash_c
 
     pflash_ctx->handle.cs_ctrl = NULL;
 
+#ifdef BSP_QSPI2_DUAL_MODE    
     if (gis_ext_flash)
     {
         pflash_ctx = &flash_ext_handle;
         pflash_ctx->handle.cs_ctrl = BSP_FLASH_CS_Ctrl;
     }
+#endif /* BSP_QSPI2_DUAL_MODE */
 
     // check flash size, nor flash max support 32MB
     if (pflash_cfg->msize > 32)
@@ -617,11 +629,13 @@ __HAL_ROM_USED int BSP_Flash_Init_WithID(uint8_t fid, qspi_configure_t *pflash_c
         pflash_ctx->handle.ecc_en = (1 << 7) | (0xf); // high 1 bits for rx clock inv, low 7 bits for rx clock delay
     }
 
+#ifdef BSP_QSPI2_DUAL_MODE    
     if (gis_ext_flash)
     {
         div = BSP_GetFlashExtDiv();
         pflash_ctx->handle.freq = flash_get_freq(RCC_CLK_MOD_FLASH2, div, 1);
     }
+#endif /* BSP_QSPI2_DUAL_MODE */
 
     // init hardware, set ctx, dma, clock
     res = HAL_FLASH_Init(pflash_ctx, pflash_cfg, &spi_flash_dma_handle[fid], pdma_cfg, div);
@@ -629,12 +643,14 @@ __HAL_ROM_USED int BSP_Flash_Init_WithID(uint8_t fid, qspi_configure_t *pflash_c
     {
         // TODO: save local div for dual flash if needed like : pflash_ctx->handle.reserv1 = (uint8_t)div;
         pflash_ctx->handle.reserv1 = (uint8_t)div;
+#ifdef BSP_QSPI2_DUAL_MODE           
         if (gis_ext_flash)
         {
             pflash_ctx->base_addr += spi_flash_handle[fid].total_size;
             pflash_ctx->handle.base = pflash_ctx->base_addr;
             //g_ext_flash_id = fid; // moved set before initial, and reset to -1 if initial fail
         }
+#endif /* BSP_QSPI2_DUAL_MODE */
 
         return 1;
     }
@@ -642,6 +658,7 @@ __HAL_ROM_USED int BSP_Flash_Init_WithID(uint8_t fid, qspi_configure_t *pflash_c
     return 0;
 }
 
+#ifdef BSP_QSPI2_DUAL_MODE  
 __HAL_ROM_USED int BSP_Flash_EXT_Init_WithID(uint8_t fid, qspi_configure_t *pflash_cfg, struct dma_config *pdma_cfg, uint8_t dtr)
 {
     int ret = 0;
@@ -655,6 +672,8 @@ __HAL_ROM_USED int BSP_Flash_EXT_Init_WithID(uint8_t fid, qspi_configure_t *pfla
 
     return ret;
 }
+#endif /* BSP_QSPI2_DUAL_MODE */
+
 
 __weak int BSP_Flash_hw1_init()
 {
@@ -845,8 +864,10 @@ __HAL_ROM_USED int BSP_Flash_Init(void)
 {
     int fen = 0;
 
+#ifdef BSP_QSPI2_DUAL_MODE        
     gis_ext_flash = 0;
     g_ext_flash_id = -1;
+#endif /* BSP_QSPI2_DUAL_MODE */
 
     if (BSP_Flash_hw1_init())
         fen |= (1 << 0);
