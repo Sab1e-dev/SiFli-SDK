@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 import importlib
+import hashlib
 import json
 import os
 import re
@@ -1086,8 +1087,26 @@ def ModifyProgramHexTargets(target, source, env):
 
 
 def _write_ptab_v3_artifact_stamp(stamp_path: str, artifact_path: str) -> None:
+    lines = [artifact_path]
+    if artifact_path and os.path.isfile(artifact_path):
+        h = hashlib.sha256()
+        with open(artifact_path, 'rb') as f:
+            for chunk in iter(lambda: f.read(1024 * 1024), b''):
+                h.update(chunk)
+        lines.append('size={}'.format(os.path.getsize(artifact_path)))
+        lines.append('sha256={}'.format(h.hexdigest()))
+    content = '\n'.join(lines) + '\n'
+
+    if os.path.exists(stamp_path):
+        with open(stamp_path, 'r', encoding='utf-8') as f:
+            if f.read() == content:
+                return
+
+    stamp_dir = os.path.dirname(stamp_path)
+    if stamp_dir:
+        os.makedirs(stamp_dir, exist_ok=True)
     with open(stamp_path, 'w', encoding='utf-8', newline='\n') as f:
-        f.write(artifact_path + '\n')
+        f.write(content)
 
 
 def _build_ptab_v3_embedded_lcpu_artifact(program_file: str, out_dir: str, base_name: str, ext: str, rtconfig) -> str:
