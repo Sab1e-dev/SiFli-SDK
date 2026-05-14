@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "rtthread.h"
 #include "bf0_hal.h"
 #include "bf0_hal_nn_acc.h"
 
