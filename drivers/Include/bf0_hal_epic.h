@@ -161,8 +161,11 @@ extern "C" {
 /*
  EPIC input/output maximum coordinates
 */
+#ifdef SF32LB52X
+#define EPIC_COORDINATES_MAX 505
+#else /* SF32LB52X */
 #define EPIC_COORDINATES_MAX 1010
-
+#endif /* !SF32LB52X */
 /**
   * @brief EPIC Init structure definition
   */
