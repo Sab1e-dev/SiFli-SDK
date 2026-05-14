@@ -12,18 +12,7 @@
 #include "drv_config.h"
 #include "string.h"
 #include "drv_i2s_audio.h"
-
-#if defined (SYS_HEAP_IN_PSRAM)
-    #undef calloc
-    #undef free
-    #undef malloc
-    extern void *app_sram_alloc(rt_size_t size);
-    extern void *app_sram_calloc(rt_size_t count, rt_size_t size);
-    extern void *app_sram_free(void *ptr);
-    #define  malloc(s)      app_sram_alloc(s)
-    #define  calloc(c, s)   app_sram_calloc(c, s)
-    #define  free(p)        app_sram_free(p)
-#endif
+#include "drv_dma.h"
 
 
 #ifdef FPGA
@@ -1062,8 +1051,8 @@ int rt_bf0_i2s_audio_init(void)
     for (i = 0; i < sizeof(bf0_i2s_audio_obj) / sizeof(bf0_i2s_audio_obj[0]); i++)
     {
         h_i2s_audio[i].audio_device.ops = (struct rt_audio_ops *)&_g_audio_ops;
-        h_i2s_audio[i].rx_buf = malloc(AUDIO_DATA_SIZE);
-        h_i2s_audio[i].tx_buf = malloc(AUDIO_DATA_SIZE);
+        h_i2s_audio[i].rx_buf = dma_malloc_in_1m(AUDIO_DATA_SIZE);
+        h_i2s_audio[i].tx_buf = dma_malloc_in_1m(AUDIO_DATA_SIZE);
         h_i2s_audio[i].tx_pos = h_i2s_audio[i].tx_buf;
 
         if (bf0_i2s_audio_obj[i].i2s_handle != NULL)

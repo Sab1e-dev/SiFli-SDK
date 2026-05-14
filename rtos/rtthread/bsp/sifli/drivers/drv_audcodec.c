@@ -12,20 +12,11 @@
 #include <math.h>
 #include "board.h"
 #include "drv_config.h"
+#include "drv_dma.h"
+
 #ifdef SF32LB58X
     #undef BSP_ENABLE_DAC2
     #define BSP_ENABLE_DAC2     1
-#endif
-#if defined (SYS_HEAP_IN_PSRAM)
-    #undef calloc
-    #undef free
-    #undef malloc
-    extern void *app_sram_alloc(rt_size_t size);
-    extern void *app_sram_calloc(rt_size_t count, rt_size_t size);
-    extern void *app_sram_free(void *ptr);
-    #define  malloc(s)      app_sram_alloc(s)
-    #define  calloc(c, s)   app_sram_calloc(c, s)
-    #define  free(p)        app_sram_free(p)
 #endif
 
 __weak int8_t get_mic_volume()
@@ -672,7 +663,7 @@ static rt_err_t bf0_audio_configure(struct rt_audio_device *audio, struct rt_aud
 #ifdef BSP_AUDCODEC_ADC0_DMA
             if (haudcodec->buf[HAL_AUDCODEC_ADC_CH0] == NULL)
             {
-                haudcodec->buf[HAL_AUDCODEC_ADC_CH0] = calloc(1, haudcodec->bufSize);
+                haudcodec->buf[HAL_AUDCODEC_ADC_CH0] = dma_malloc_in_1m(haudcodec->bufSize);
                 RT_ASSERT(haudcodec->buf[HAL_AUDCODEC_ADC_CH0]);
                 if (haudcodec->buf[HAL_AUDCODEC_ADC_CH0] == NULL)
                     return RT_ERROR_MEMFAULT;
@@ -686,7 +677,7 @@ static rt_err_t bf0_audio_configure(struct rt_audio_device *audio, struct rt_aud
 #ifdef BSP_AUDCODEC_ADC1_DMA
             if (haudcodec->buf[HAL_AUDCODEC_ADC_CH1] == NULL)
             {
-                haudcodec->buf[HAL_AUDCODEC_ADC_CH1] = calloc(1, haudcodec->bufSize);
+                haudcodec->buf[HAL_AUDCODEC_ADC_CH1] = dma_malloc_in_1m(haudcodec->bufSize);
                 RT_ASSERT(haudcodec->buf[HAL_AUDCODEC_ADC_CH1]);
                 if (haudcodec->buf[HAL_AUDCODEC_ADC_CH1] == NULL)
                     return RT_ERROR_MEMFAULT;
@@ -720,7 +711,7 @@ static rt_err_t bf0_audio_configure(struct rt_audio_device *audio, struct rt_aud
 #ifdef BSP_AUDCODEC_DAC0_DMA
             if (haudcodec->buf[HAL_AUDCODEC_DAC_CH0] == NULL)
             {
-                haudcodec->buf[HAL_AUDCODEC_DAC_CH0] = calloc(1, haudcodec->bufSize);
+                haudcodec->buf[HAL_AUDCODEC_DAC_CH0] = dma_malloc_in_1m(haudcodec->bufSize);
                 RT_ASSERT(haudcodec->buf[HAL_AUDCODEC_DAC_CH0]);
                 if (haudcodec->buf[HAL_AUDCODEC_DAC_CH0] == NULL)
                     return RT_ERROR_MEMFAULT;
@@ -738,7 +729,7 @@ static rt_err_t bf0_audio_configure(struct rt_audio_device *audio, struct rt_aud
 #ifdef BSP_AUDCODEC_DAC1_DMA
             if (haudcodec->buf[HAL_AUDCODEC_DAC_CH1] == NULL)
             {
-                haudcodec->buf[HAL_AUDCODEC_DAC_CH1] = calloc(1, haudcodec->bufSize);
+                haudcodec->buf[HAL_AUDCODEC_DAC_CH1] = dma_malloc_in_1m(haudcodec->bufSize);
                 RT_ASSERT(haudcodec->buf[HAL_AUDCODEC_DAC_CH1]);
                 if (haudcodec->buf[HAL_AUDCODEC_DAC_CH1] == NULL)
                     return RT_ERROR_MEMFAULT;
@@ -862,7 +853,7 @@ static rt_err_t bf0_audio_shutdown(struct rt_audio_device *audio)
 #ifdef BSP_AUDCODEC_DAC0_DMA
     if (haudcodec->buf[HAL_AUDCODEC_DAC_CH0] != NULL)
     {
-        free(haudcodec->buf[HAL_AUDCODEC_DAC_CH0]);
+        dma_free_in_1m(haudcodec->buf[HAL_AUDCODEC_DAC_CH0]);
         haudcodec->buf[HAL_AUDCODEC_DAC_CH0] = NULL;
     }
 #endif
@@ -870,7 +861,7 @@ static rt_err_t bf0_audio_shutdown(struct rt_audio_device *audio)
 #ifdef BSP_AUDCODEC_DAC1_DMA
     if (haudcodec->buf[HAL_AUDCODEC_DAC_CH1] != NULL)
     {
-        free(haudcodec->buf[HAL_AUDCODEC_DAC_CH1]);
+        dma_free_in_1m(haudcodec->buf[HAL_AUDCODEC_DAC_CH1]);
         haudcodec->buf[HAL_AUDCODEC_DAC_CH1] = NULL;
     }
 #endif
@@ -878,7 +869,7 @@ static rt_err_t bf0_audio_shutdown(struct rt_audio_device *audio)
 #ifdef BSP_AUDCODEC_ADC0_DMA
     if (haudcodec->buf[HAL_AUDCODEC_ADC_CH0] != NULL)
     {
-        free(haudcodec->buf[HAL_AUDCODEC_ADC_CH0]);
+        dma_free_in_1m(haudcodec->buf[HAL_AUDCODEC_ADC_CH0]);
         haudcodec->buf[HAL_AUDCODEC_ADC_CH0] = NULL;
     }
 #endif
@@ -886,7 +877,7 @@ static rt_err_t bf0_audio_shutdown(struct rt_audio_device *audio)
 #ifdef BSP_AUDCODEC_ADC1_DMA
     if (haudcodec->buf[HAL_AUDCODEC_ADC_CH1] != NULL)
     {
-        free(haudcodec->buf[HAL_AUDCODEC_ADC_CH1]);
+        dma_free_in_1m(haudcodec->buf[HAL_AUDCODEC_ADC_CH1]);
         haudcodec->buf[HAL_AUDCODEC_ADC_CH1] = NULL;
     }
 #endif

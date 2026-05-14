@@ -141,13 +141,13 @@ static const char factory_near_2mic[] =
     " --vol_dB=3dB"
     " --dencLoad=1"
     " --arrayGeometry=\"2, 0 0 0, 0.036 0 0\""
-    " --targetSpherical=\"3 0 1\""
+    " --targetSpherical=\"0 1 1\""
     " --interfSphericals=\"3, 1 0 2, 2 0 2, 0 0 2\""
 };
 
 static const char factory_near_4mic[] =
 {
-    "--eqLoad=1"
+    "--eqLoad=0"
     " --eqmode=user"
     " --preGain=0dB"
     " --bands=\"4, hpf 800 0dB 0.85 enable, pf1 2500 -9dB 3 enable, pf1 3000 -9dB 3 enable, hpf 800 0dB 0.85 enable\""
@@ -169,7 +169,7 @@ static const char factory_near_4mic[] =
     " --vol_dB=3dB"
     " --dencLoad=1"
     " --arrayGeometry=\"4, 0.035 0.018 0, 0.035 -0.018 0, -0.035 0.018 0, -0.035 -0.018 0\""
-    " --targetSpherical=\"3 0 1\""
+    " --targetSpherical=\"0 1 1\""
     " --interfSphericals=\"3, 1 0 2, 2 0 2, 0 0 2\""
 };
 
