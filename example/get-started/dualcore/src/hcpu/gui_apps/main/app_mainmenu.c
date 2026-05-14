@@ -1145,7 +1145,7 @@ static inline int16_t reorder_clock_icon(int16_t idx, int16_t clock_idx, const b
 static void app_mainmenu_read_app_icons(lv_obj_t *page)
 {
     uint16_t col, row;
-    uint16_t idx = 0, clock_idx;
+    uint16_t idx = 1, clock_idx;/* As idx 0 is reserved for clock app, other apps idx start from 1*/
     const builtin_app_desc_t *p_builtin_app;
     int mainmenu_icon_style;
 
