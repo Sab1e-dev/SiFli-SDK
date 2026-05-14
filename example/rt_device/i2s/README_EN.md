@@ -89,6 +89,7 @@ I2S1_BCK|--|I2S1_BCK
 I2S1_SDI|--|I2S1_SDO
 I2S1_SDO|--|I2S1_SDI
 I2S1_MCLK|--|I2S1_MCLK
+GND |--|GND
 
 Since `sf32lb58-lcd` is rather special, when connecting the wires here, 58 should be used as A (master), and `sf32lb52-lcd` should be used as B (slave) for the connection.
 If you are unsure about pin positioning, you can refer to the following figures:

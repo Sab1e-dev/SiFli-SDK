@@ -187,6 +187,8 @@ static void audprc_rx_entry(void *param)
         {
             /* RX read (from mic)*/
             len = rt_device_read(g_audprc_dev, 0, g_pipe_data, AUDIO_BUF_SIZE / 2); //AUDIO_BUF_SIZE/2
+            if (len == 0)
+                break;
             if (len != (AUDIO_BUF_SIZE / 2))
             {
                 rt_kprintf("[EX_I2S]Got abnormal audio size = %d\n", len);
@@ -553,6 +555,8 @@ static void i2s_rx_entry(void *param)
         {
             /* RX read (from mic)*/
             len = rt_device_read(g_i2s_dev, 0, g_pipe_data, AUDIO_BUF_SIZE / 2);
+            if (len == 0)
+                break;
             // rt_kprintf("[EX_I2S]from is2 len = %d", len);
             if (len != (AUDIO_BUF_SIZE / 2))
             {
