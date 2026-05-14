@@ -1438,8 +1438,17 @@ void HAL_RCC_MspInit(void)
 
 #endif /* BSP_NOT_DISABLE_UNUSED_MODULE */
 
-
-
+#undef dma_malloc
+#undef dma_free
+#if defined (SYS_HEAP_IN_PSRAM)
+    extern void *app_sram_alloc(rt_size_t size);
+    extern void *app_sram_free(void *ptr);
+    #define dma_malloc app_sram_alloc
+    #define dma_free   app_sram_free
+#else
+    #define dma_malloc rt_malloc
+    #define dma_free   rt_free
+#endif
 /**
  * @brief  Malloc a SRAM memory which is accessible by DMA controller
  *
@@ -1450,6 +1459,7 @@ void HAL_RCC_MspInit(void)
 void *malloc_dma_friendly_sram(rt_size_t n)
 {
 #define list_max 1024
+#define WITHIN_DMA_BOUNDARY(addr, size) ((((uint32_t)(addr) & 0xFFFFF) + (size)) <= 0x100000)
 
 #if defined(SF32LB52X) || defined(SF32LB57X)
 //TODO:
@@ -1457,17 +1467,20 @@ void *malloc_dma_friendly_sram(rt_size_t n)
 #else
 #define IS_DMA_FRIENDLY_SRAM(addr)    ((((addr) >= HPSYS_RETM_BASE) && ((addr) < HPSYS_RETM_END)) ? false : HCPU_IS_SRAM_ADDR(addr))
 #endif
-#define IS_DMA_FRIENDLY_SRAM_RANGE(p, len)        (IS_DMA_FRIENDLY_SRAM((uint32_t)p) && IS_DMA_FRIENDLY_SRAM(((uint32_t)p) + (len)))
+#define IS_DMA_FRIENDLY_SRAM_RANGE(p, len)        (IS_DMA_FRIENDLY_SRAM((uint32_t)p) && IS_DMA_FRIENDLY_SRAM(((uint32_t)p) + (len)) && WITHIN_DMA_BOUNDARY(p, len))
 
-    uint8_t *ret_p = rt_malloc(n);
+    //Invalid parameters
+    if (WITHIN_DMA_BOUNDARY(0, n) || (0 == n)) return NULL;
+
+    uint8_t *ret_p = dma_malloc(n);
     if (!ret_p) return NULL;
 
     if (!IS_DMA_FRIENDLY_SRAM_RANGE(ret_p, n))
     {
-        uint8_t **malloc_list = (uint8_t **)rt_malloc(sizeof(uint8_t *) * list_max);
+        uint8_t **malloc_list = (uint8_t **)dma_malloc(sizeof(uint8_t *) * list_max);
         if (!malloc_list)
         {
-            rt_free(ret_p);
+            dma_free(ret_p);
             return NULL;
         }
         malloc_list[0] = ret_p;
@@ -1476,7 +1489,7 @@ void *malloc_dma_friendly_sram(rt_size_t n)
         uint32_t malloc_cnt = 1;
         while (malloc_cnt < list_max)
         {
-            ret_p = (uint8_t *)rt_malloc(n);
+            ret_p = (uint8_t *)dma_malloc(n);
             if (!ret_p) break;
             malloc_list[malloc_cnt++] = ret_p;
 
@@ -1490,20 +1503,25 @@ void *malloc_dma_friendly_sram(rt_size_t n)
         while (malloc_cnt > 0)
         {
             if (malloc_list[malloc_cnt - 1] != ret_p)
-                rt_free(malloc_list[malloc_cnt - 1]);
+                dma_free(malloc_list[malloc_cnt - 1]);
             malloc_cnt--;
         }
-        rt_free(malloc_list);
+        dma_free(malloc_list);
 
     }
 
     return (void *)ret_p;
 }
 
-
+void *calloc_dma_friendly_sram(rt_size_t count, rt_size_t size)
+{
+    void *p = malloc_dma_friendly_sram(count * size);
+    if (p) rt_memset(p, 0, count * size);
+    return p;
+}
 void free_dma_friendly_sram(void *p)
 {
-    rt_free(p);
+    dma_free(p);
 }
 /// @} drv_common
 /// @} bsp_driver

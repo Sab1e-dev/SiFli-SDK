@@ -138,6 +138,7 @@ void dbg_busmon_psram(uint32_t address, uint32_t count, uint8_t access);
  * @return Pointer to allocated memory
  */
 void *malloc_dma_friendly_sram(rt_size_t n);
+void *calloc_dma_friendly_sram(rt_size_t count, rt_size_t size);
 void free_dma_friendly_sram(void *ptr);
 
 /**

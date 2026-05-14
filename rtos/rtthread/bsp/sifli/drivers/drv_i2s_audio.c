@@ -1051,8 +1051,8 @@ int rt_bf0_i2s_audio_init(void)
     for (i = 0; i < sizeof(bf0_i2s_audio_obj) / sizeof(bf0_i2s_audio_obj[0]); i++)
     {
         h_i2s_audio[i].audio_device.ops = (struct rt_audio_ops *)&_g_audio_ops;
-        h_i2s_audio[i].rx_buf = dma_malloc_in_1m(AUDIO_DATA_SIZE);
-        h_i2s_audio[i].tx_buf = dma_malloc_in_1m(AUDIO_DATA_SIZE);
+        h_i2s_audio[i].rx_buf = malloc_dma_friendly_sram(AUDIO_DATA_SIZE);
+        h_i2s_audio[i].tx_buf = malloc_dma_friendly_sram(AUDIO_DATA_SIZE);
         h_i2s_audio[i].tx_pos = h_i2s_audio[i].tx_buf;
 
         if (bf0_i2s_audio_obj[i].i2s_handle != NULL)
