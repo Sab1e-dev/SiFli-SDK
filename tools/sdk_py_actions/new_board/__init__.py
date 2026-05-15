@@ -18,79 +18,80 @@ KB = 1024
 MB = 1024 * KB
 
 KV_PART_SIZE = 0x00004000
+MIN_FACTORY_APP_PART_SIZE = 500 * KB
 
 FIXED_PARTITION_LAYOUTS = {
     ('52', 'none'): {
-        'hcpu_flash_code': ('0x00020000', '0x00030000'),
-        'fs_region': ('0x00050000', '0x000A8000'),
-        'dfu': ('0x000F8000', '0x00004000'),
-        'ble': ('0x000FC000', '0x00004000'),
+        'hcpu_flash_code': (0x00020000, 0x00030000),
+        'fs_region': (0x00050000, 0x000A8000),
+        'dfu': (0x000F8000, 0x00004000),
+        'ble': (0x000FC000, 0x00004000),
     },
     ('52', 'nor'): {
-        'hcpu_flash_code': ('0x00020000', '0x00700000'),
-        'fs_region': ('0x008A0000', '0x00400000'),
-        'dfu': ('0x00CA0000', '0x00004000'),
-        'ble': ('0x00CA4000', '0x00004000'),
+        'hcpu_flash_code': (0x00020000, 0x00700000),
+        'fs_region': (0x008A0000, 0x00400000),
+        'dfu': (0x00CA0000, 0x00004000),
+        'ble': (0x00CA4000, 0x00004000),
     },
     ('52', 'nand'): {
-        'hcpu_flash_code': ('0x00090000', '0x00400000'),
-        'fs_region': ('0x008A0000', '0x00400000'),
-        'dfu': ('0x00CA0000', '0x00004000'),
-        'ble': ('0x00CA4000', '0x00004000'),
+        'hcpu_flash_code': (0x00090000, 0x00400000),
+        'fs_region': (0x008A0000, 0x00400000),
+        'dfu': (0x00CA0000, 0x00004000),
+        'ble': (0x00CA4000, 0x00004000),
     },
     ('52', 'sdmmc'): {
-        'hcpu_flash_code': ('0x00021000', '0x00700000'),
-        'fs_region': ('0x008A1000', '0x00400000'),
-        'dfu': ('0x00CA1000', '0x00004000'),
-        'ble': ('0x00CA5000', '0x00004000'),
+        'hcpu_flash_code': (0x00021000, 0x00700000),
+        'fs_region': (0x008A1000, 0x00400000),
+        'dfu': (0x00CA1000, 0x00004000),
+        'ble': (0x00CA5000, 0x00004000),
     },
     ('56', 'none'): {
-        'hcpu_flash_code': ('0x00040000', '0x00010000'),
-        'fs_region': ('0x00050000', '0x00028000'),
-        'dfu': ('0x00078000', '0x00004000'),
-        'ble': ('0x0007C000', '0x00004000'),
+        'hcpu_flash_code': (0x00040000, 0x00010000),
+        'fs_region': (0x00050000, 0x00028000),
+        'dfu': (0x00078000, 0x00004000),
+        'ble': (0x0007C000, 0x00004000),
     },
     ('56', 'nor'): {
-        'hcpu_flash_code': ('0x00000000', '0x00200000'),
-        'fs_region': ('0x003A0000', '0x00260000'),
-        'dfu': ('0x00600000', '0x00004000'),
-        'ble': ('0x00604000', '0x00004000'),
+        'hcpu_flash_code': (0x00000000, 0x00200000),
+        'fs_region': (0x003A0000, 0x00260000),
+        'dfu': (0x00600000, 0x00004000),
+        'ble': (0x00604000, 0x00004000),
     },
     ('56', 'nand'): {
-        'hcpu_flash_code': ('0x00000000', '0x00200000'),
-        'fs_region': ('0x003A0000', '0x00260000'),
-        'dfu': ('0x00600000', '0x00004000'),
-        'ble': ('0x00604000', '0x00004000'),
+        'hcpu_flash_code': (0x00000000, 0x00200000),
+        'fs_region': (0x003A0000, 0x00260000),
+        'dfu': (0x00600000, 0x00004000),
+        'ble': (0x00604000, 0x00004000),
     },
     ('56', 'sdmmc'): {
-        'hcpu_flash_code': ('0x00000000', '0x00200000'),
-        'fs_region': ('0x003A0000', '0x00260000'),
-        'dfu': ('0x00600000', '0x00004000'),
-        'ble': ('0x00604000', '0x00004000'),
+        'hcpu_flash_code': (0x00000000, 0x00200000),
+        'fs_region': (0x003A0000, 0x00260000),
+        'dfu': (0x00600000, 0x00004000),
+        'ble': (0x00604000, 0x00004000),
     },
     ('58', 'none'): {
-        'hcpu_flash_code': ('0x00040000', '0x00020000'),
-        'fs_region': ('0x00060000', '0x00098000'),
-        'dfu': ('0x000F8000', '0x00004000'),
-        'ble': ('0x000FC000', '0x00004000'),
+        'hcpu_flash_code': (0x00040000, 0x00020000),
+        'fs_region': (0x00060000, 0x00098000),
+        'dfu': (0x000F8000, 0x00004000),
+        'ble': (0x000FC000, 0x00004000),
     },
     ('58', 'nor'): {
-        'hcpu_flash_code': ('0x00000000', '0x00200000'),
-        'fs_region': ('0x00A00000', '0x00100000'),
-        'dfu': ('0x00400000', '0x00004000'),
-        'ble': ('0x00404000', '0x00004000'),
+        'hcpu_flash_code': (0x00000000, 0x00200000),
+        'fs_region': (0x00A00000, 0x00100000),
+        'dfu': (0x00400000, 0x00004000),
+        'ble': (0x00404000, 0x00004000),
     },
     ('58', 'nand'): {
-        'hcpu_flash_code': ('0x00000000', '0x00200000'),
-        'fs_region': ('0x00A00000', '0x00100000'),
-        'dfu': ('0x00400000', '0x00004000'),
-        'ble': ('0x00404000', '0x00004000'),
+        'hcpu_flash_code': (0x00000000, 0x00200000),
+        'fs_region': (0x00A00000, 0x00100000),
+        'dfu': (0x00400000, 0x00004000),
+        'ble': (0x00404000, 0x00004000),
     },
     ('58', 'sdmmc'): {
-        'hcpu_flash_code': ('0x00000000', '0x00200000'),
-        'fs_region': ('0x00A00000', '0x00100000'),
-        'dfu': ('0x00400000', '0x00004000'),
-        'ble': ('0x00404000', '0x00004000'),
+        'hcpu_flash_code': (0x00000000, 0x00200000),
+        'fs_region': (0x00A00000, 0x00100000),
+        'dfu': (0x00400000, 0x00004000),
+        'ble': (0x00404000, 0x00004000),
     },
 }
 
@@ -180,19 +181,30 @@ class Partition:
     name: str
     part_type: str
     region: str
-    offset: str
-    size: str
+    offset: int
+    size: int
     subtype: Optional[str] = None
     core: Optional[str] = None
     aliases: Tuple[str, ...] = ()
     exec_region: Optional[str] = None
-    exec_offset: Optional[str] = None
+    exec_offset: Optional[int] = None
     attrs: Optional[Dict[str, Any]] = None
+
+
+class HexInt(int):
+    pass
 
 
 class PtabYamlDumper(yaml.SafeDumper):
     def increase_indent(self, flow: bool = False, indentless: bool = False) -> None:
         return super().increase_indent(flow, False)
+
+
+def _represent_hex_int(dumper: yaml.Dumper, data: HexInt) -> yaml.Node:
+    return dumper.represent_scalar('tag:yaml.org,2002:int', f'0x{int(data):08X}')
+
+
+PtabYamlDumper.add_representer(HexInt, _represent_hex_int)
 
 
 def run_new_board(config_path: Optional[str], output_root: str) -> None:
@@ -737,8 +749,8 @@ def render_ptab_yaml(
         if part.subtype:
             item['subtype'] = part.subtype
         item['region'] = part.region
-        item['offset'] = part.offset
-        item['size'] = part.size
+        item['offset'] = HexInt(part.offset)
+        item['size'] = HexInt(part.size)
         if part.core:
             item['core'] = part.core
         if part.aliases:
@@ -746,7 +758,7 @@ def render_ptab_yaml(
         if part.exec_region:
             item['exec'] = {
                 'region': part.exec_region,
-                'offset': part.exec_offset,
+                'offset': HexInt(part.exec_offset or 0),
             }
         if part.attrs:
             item['attrs'] = part.attrs
@@ -806,7 +818,7 @@ def build_none_partitions(spec: Spec, variant: ChipVariant) -> List[Partition]:
 
     psram = variant.first_psram()
     app_exec_region = psram_alias(psram) if psram is not None and spec.series in ('56', '58') else None
-    return build_fixed_partitions(
+    return build_none_storage_partitions(
         spec=spec,
         region=internal_storage.mpi,
         total_size=internal_storage.size_bytes,
@@ -826,7 +838,7 @@ def build_fixed_partitions(
     if layout is None:
         raise FatalError(f'No fixed partition layout for series={spec.series} storage={spec.storage_type}')
 
-    max_end = max(parse_int(offset) + parse_int(size) for offset, size in layout.values())
+    max_end = max(offset + size for offset, size in layout.values())
     if total_size < max_end:
         raise FatalError(
             f'Target storage is too small for the fixed PTAB layout: need at least {max_end} bytes, got {total_size} bytes.'
@@ -846,14 +858,58 @@ def build_fixed_partitions(
             subtype='factory',
             core='HCPU',
             exec_region=exec_region,
-            exec_offset='0x00000000' if exec_region else None,
+            exec_offset=0 if exec_region else None,
             attrs=attrs,
         ),
         Partition('fs_region', 'data', region, fs_offset, fs_size, subtype='filesystem'),
-        Partition('dfu', 'data', region, dfu_offset, '0x00004000', subtype='flashdb_kv'),
-        Partition('ble', 'data', region, ble_offset, '0x00004000', subtype='flashdb_kv'),
+        Partition('dfu', 'data', region, dfu_offset, KV_PART_SIZE, subtype='flashdb_kv'),
+        Partition('ble', 'data', region, ble_offset, KV_PART_SIZE, subtype='flashdb_kv'),
     ]
     return partitions
+
+
+def build_none_storage_partitions(
+    spec: Spec,
+    region: str,
+    total_size: int,
+    exec_region: Optional[str],
+    attrs: Optional[Dict[str, Any]],
+) -> List[Partition]:
+    layout = FIXED_PARTITION_LAYOUTS.get((spec.series, 'none'))
+    if layout is None:
+        raise FatalError(f'No fixed partition layout for series={spec.series} storage=none')
+
+    app_offset, default_app_size = layout['hcpu_flash_code']
+    app_size = max(default_app_size, MIN_FACTORY_APP_PART_SIZE)
+    ble_offset = total_size - KV_PART_SIZE
+    dfu_offset = ble_offset - KV_PART_SIZE
+    fs_offset = app_offset + app_size
+    fs_size = dfu_offset - fs_offset
+
+    if fs_size < 0:
+        min_size = app_offset + app_size + (2 * KV_PART_SIZE)
+        raise FatalError(
+            f'Target internal NOR is too small for the default PTAB layout: '
+            f'need at least {min_size} bytes to reserve {MIN_FACTORY_APP_PART_SIZE} bytes for app/factory, got {total_size} bytes.'
+        )
+
+    return [
+        Partition(
+            'hcpu_flash_code',
+            'app',
+            region,
+            app_offset,
+            app_size,
+            subtype='factory',
+            core='HCPU',
+            exec_region=exec_region,
+            exec_offset=0 if exec_region else None,
+            attrs=attrs,
+        ),
+        Partition('fs_region', 'data', region, fs_offset, fs_size, subtype='filesystem'),
+        Partition('dfu', 'data', region, dfu_offset, KV_PART_SIZE, subtype='flashdb_kv'),
+        Partition('ble', 'data', region, ble_offset, KV_PART_SIZE, subtype='flashdb_kv'),
+    ]
 
 
 def build_hcpu_board_conf_context(spec: Spec, variant: ChipVariant) -> Dict[str, Any]:
