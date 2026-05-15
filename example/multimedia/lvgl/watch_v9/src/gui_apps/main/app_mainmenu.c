@@ -91,6 +91,15 @@ LV_IMG_DECLARE(img_world_clock);
 #define C0R0_COORD_X (PAGE_SCRL_WIDTH >> 1)
 #define C0R0_COORD_Y (0)
 
+#if defined(SF32LB55X)
+/*
+ * 551 EPIC render path converts LVGL zoom by:
+ *   epic_scale = LV_SCALE_NONE * EPIC_INPUT_SCALE_NONE / zoom
+ * which overflows the hardware scale register when zoom < 129.
+ */
+    #define MAINMENU_CELL_EPIC_SAFE_MIN_ZOOM 129U
+#endif
+
 //#define DEBUG_APP_MAINMENU_DISPLAY_ICON_PARAM
 
 #ifndef DEBUG_APP_MAINMENU_DISPLAY_ICON_PARAM
@@ -672,7 +681,14 @@ static int32_t mainmenu_cell_draw_icons(lv_obj_t *obj, float pi_x, float pi_y, f
         obj->flags &= (~LV_OBJ_FLAG_HIDDEN);
 
         //Updata zoom
-        zoom = (uint16_t)(w * 256 / (float)img_w);
+        zoom = (uint16_t)(w * LV_SCALE_NONE / (float)img_w);
+#if defined(SF32LB55X)
+        if (zoom < MAINMENU_CELL_EPIC_SAFE_MIN_ZOOM)
+        {
+            obj->flags |= LV_OBJ_FLAG_HIDDEN;
+            return 0;
+        }
+#endif
         mainmenu_cell_img_set_zoom(obj, zoom);
 
         //Move icon
@@ -1546,6 +1562,5 @@ static int app_mainmenu(intent_t i)
 
 BUILTIN_APP_EXPORT(LV_EXT_STR_ID(mainmenu), NULL, APP_ID, app_mainmenu, 1);
 BUILTIN_APP_EXPORT(LV_EXT_STR_ID(mainmenu), NULL, APP_ID, app_mainmenu, 2);
-
 
 
