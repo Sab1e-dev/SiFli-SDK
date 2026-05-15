@@ -70,7 +70,8 @@ typedef enum
 {
     FADE_NONE   = 0,
     FADE_START  = 1,
-    FADE_END    = 2,
+    FADE_ZERO   = 2,
+    FADE_END    = 3,
 } fade_state_e;
 
 typedef enum

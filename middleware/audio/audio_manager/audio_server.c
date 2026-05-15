@@ -166,7 +166,8 @@ bool audio_server_is_ble_src_enable(void)
 static const uint8_t g_fade_out_table[] =
 {
     0, /* start flag, don't change */
-    1, 3, 5, 7, 11, 15, 16, 16, /* shift table */
+    1, 3, 5, 7, 11, 14, 16, 16, /* shift table */
+    254, 254, 254, /* zero frames*/
     255 /* last flat, don't change */
 };
 
@@ -3096,11 +3097,35 @@ static void fade_out(audio_client_t c, uint8_t *data, uint32_t data_len, uint32_
         return;
     }
 
+    if (c->fade_out_state == FADE_ZERO)
+    {
+        int debug = c->fade_out_index < sizeof(g_fade_out_table) / sizeof(g_fade_out_table[0]);
+        RT_ASSERT(debug);
+
+        uint8_t tag;
+        tag = g_fade_out_table[c->fade_out_index++];
+
+        if (tag == 255)
+        {
+            c->fade_out_state = FADE_END;
+            LOG_I("fade out end");
+        }
+        memset(data, 0, data_len);
+        return;
+    }
+
     if (c->fade_out_state == FADE_START)
     {
         uint8_t shift = g_fade_out_table[c->fade_out_index];
         uint32_t samples = data_len >> 1;
         int16_t *p = (int16_t *)data;
+
+        if (shift == 254)
+        {
+            memset(data, 0, data_len);
+            c->fade_out_state = FADE_ZERO;
+            return;
+        }
 
         int index = get_zero_crosss_index(p, samples);
 
@@ -3115,25 +3140,11 @@ static void fade_out(audio_client_t c, uint8_t *data, uint32_t data_len, uint32_
         {
             c->fade_out_index++;
             shift = g_fade_out_table[c->fade_out_index];
-            if (shift == 255)
-            {
-                c->fade_out_state = FADE_END;
-                shift = 16;
-                LOG_I("fade out end");
-            }
         }
 
         for (int i = index; i < samples; i++)
         {
             p[i] >>= shift;
-        }
-
-        if (c->fade_out_state == FADE_END)
-        {
-            for (int i = index; i < samples; i++)
-            {
-                p[i] = 0;
-            }
         }
     }
 }
