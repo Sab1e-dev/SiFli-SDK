@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 /*********************************************************************
 *            (c) 1995 - 2018 SEGGER Microcontroller GmbH             *
 *                        The Embedded Experts                        *
@@ -22,13 +28,9 @@ Purpose : Flash device description Template
     #define FLASH_BASE  0x12000000
     #define FLASH_SIZE  0x02000000
 #elif defined(JLINK_FLASH_3)
-    #define FLASH_NAME  "SF32LB57X Internal Flash3"
+    #define FLASH_NAME  "SF32LB57X External Flash3"
     #define FLASH_BASE  0x14000000
     #define FLASH_SIZE  0x02000000
-#elif defined(JLINK_FLASH_4)
-    #define FLASH_NAME  "SF32LB57X External Flash4"
-    #define FLASH_BASE  0x18000000
-    #define FLASH_SIZE  0x08000000
 #endif
 
 struct FlashDevice const FlashDevice __attribute__((section("DevDscr"), used)) =

@@ -494,6 +494,11 @@
               <FileType>1</FileType>
               <FilePath>..\..\..\..\drivers\hal\bf0_hal_pmu_sf32lb57x.c</FilePath>
             </File>
+            <File>
+              <FileName>bf0_hal_hlp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\drivers\hal\bf0_hal_hlp.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
@@ -985,6 +990,11 @@
               <FileName>bf0_hal_pmu_sf32lb57x.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\..\..\drivers\hal\bf0_hal_pmu_sf32lb57x.c</FilePath>
+            </File>
+            <File>
+              <FileName>bf0_hal_hlp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\..\..\drivers\hal\bf0_hal_hlp.c</FilePath>
             </File>
           </Files>
         </Group>
