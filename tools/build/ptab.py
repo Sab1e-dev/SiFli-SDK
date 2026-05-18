@@ -37,6 +37,7 @@ _PTAB_OVERLAY_PARTITION_KEYS = {
 
 NAND_BLOCK_SIZE_DEFAULT = 128 * 1024
 NAND_BLOCK_SIZE_CHOICES = (128 * 1024, 256 * 1024)
+SF32LB52_NAND_AUTO_FLASH_MAC_ADDRESS = 0x62000000
 
 # SiliconSchema paths
 #
@@ -1004,11 +1005,13 @@ def _infer_default_partitions_v3(
     if series == 'sf32lb52':
         boot_region, boot_mem_type = _infer_default_boot_region_v3(partitions, chip_config)
         if boot_region and boot_mem_type in ('nor', 'nand', 'sd'):
+            flash_table_attrs = {}
             if boot_mem_type == 'nand':
                 block_size = _get_region_nand_block_size(boot_region, chip_config)
                 flash_table_offset = 0
                 flash_table_size = block_size
                 bootloader_offset = 4 * block_size
+                flash_table_attrs['AUTO_FLASH_MAC_ADDRESS'] = SF32LB52_NAND_AUTO_FLASH_MAC_ADDRESS
             elif boot_mem_type == 'sd':
                 flash_table_offset = cfg['flash_table_sd_offset']
                 flash_table_size = cfg['flash_table_sd_size']
@@ -1018,13 +1021,16 @@ def _infer_default_partitions_v3(
                 flash_table_size = cfg['flash_table_nor_size']
                 bootloader_offset = cfg['bootloader_nor_offset']
 
-            defaults['flash_table'] = {
+            flash_table = {
                 'name': 'flash_table',
                 'type': 'ftab',
                 'region': boot_region,
                 'offset': flash_table_offset,
                 'size': flash_table_size,
             }
+            if flash_table_attrs:
+                flash_table['attrs'] = flash_table_attrs
+            defaults['flash_table'] = flash_table
             defaults['bootloader'] = {
                 'name': 'bootloader',
                 'type': 'bootloader',
