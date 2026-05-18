@@ -41,7 +41,7 @@ void rt_hw_systick_init(void);
 void rt_flash_wait_idle(uint32_t addr);
 
 #if defined(BSP_USING_BOARD_SF32LB52_CORE_N16R16) || defined(BSP_USING_BOARD_SF32LB52_CORE_N4)
-static void flash_deep_pwrdown_by_addr(uint32_t mpi_mem_base)
+L1_RET_CODE_SECT(flash_deep_pwrdown_by_addr, static void flash_deep_pwrdown_by_addr(uint32_t mpi_mem_base))
 {
     FLASH_HandleTypeDef *flash_handle;
 
@@ -407,6 +407,7 @@ int shutdown(int argc, char *argv[])
         flash_deep_pwrdown_by_addr(MPI1_MEM_BASE);
 #endif /* BSP_USING_BOARD_SF32LB52_CORE_N16R16 */
         /* Enter shutdown mode, system can be woken up by KEY1 */
+        //HAL_sw_breakpoint();
         HAL_PMU_EnterShutdown();
         /* while loop until system is down */
         while (1) {};
