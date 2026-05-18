@@ -19,6 +19,10 @@ MB = 1024 * KB
 
 KV_PART_SIZE = 0x00004000
 MIN_FACTORY_APP_PART_SIZE = 500 * KB
+STORAGE_OFFSET_ALIGNMENT = {
+    'nand': 128 * KB,
+    'sdmmc': 512,
+}
 
 FIXED_PARTITION_LAYOUTS = {
     ('52', 'none'): {
@@ -1001,16 +1005,22 @@ def build_fixed_partitions(
     if layout is None:
         raise FatalError(f'No fixed partition layout for series={spec.series} storage={spec.storage_type}')
 
-    max_end = max(offset + size for offset, size in layout.values())
+    alignment = storage_offset_alignment(spec.storage_type)
+    aligned_layout = {
+        name: (align_up(offset, alignment), size)
+        for name, (offset, size) in layout.items()
+    }
+
+    max_end = max(offset + size for offset, size in aligned_layout.values())
     if total_size < max_end:
         raise FatalError(
             f'Target storage is too small for the fixed PTAB layout: need at least {max_end} bytes, got {total_size} bytes.'
         )
 
-    app_offset, app_size = layout['hcpu_flash_code']
-    fs_offset, fs_size = layout['fs_region']
-    dfu_offset, _ = layout['dfu']
-    ble_offset, _ = layout['ble']
+    app_offset, app_size = aligned_layout['hcpu_flash_code']
+    fs_offset, fs_size = aligned_layout['fs_region']
+    dfu_offset, _ = aligned_layout['dfu']
+    ble_offset, _ = aligned_layout['ble']
     partitions = [
         Partition(
             'hcpu_flash_code',
@@ -1265,6 +1275,10 @@ def allowed_sdmmc_storage_ports(series: str) -> Tuple[str, ...]:
     if series == '52':
         return ('sdmmc1',)
     return ('sdmmc1', 'sdmmc2')
+
+
+def storage_offset_alignment(storage_type: str) -> int:
+    return STORAGE_OFFSET_ALIGNMENT.get(storage_type, 1)
 
 
 def rt_using_mtd_line(storage_type: str) -> str:

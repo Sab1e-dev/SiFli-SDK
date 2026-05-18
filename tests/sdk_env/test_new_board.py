@@ -7,11 +7,13 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 import os
 import sys
 import tempfile
 import unittest
+
+import yaml
 
 
 ROOT = os.path.realpath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -131,6 +133,19 @@ class NewBoardRenderTests(unittest.TestCase):
             assets_root=ASSETS_ROOT,
         )
         return rendered[self.output_root / spec.board_name / "ptab.yaml"]
+
+    def render_ptab_offsets(self, spec: Spec, variant: ChipVariant) -> dict[str, int]:
+        data = yaml.safe_load(self.render_top_ptab(spec, variant=variant))
+        return {
+            str(part["name"]): self.parse_int(part["offset"])
+            for part in data["partitions"]
+        }
+
+    @staticmethod
+    def parse_int(value: Any) -> int:
+        if isinstance(value, int):
+            return value
+        return int(str(value), 0)
 
     def test_generated_base_uses_relative_rsource(self) -> None:
         self.make_sample_base()
@@ -279,6 +294,139 @@ class NewBoardRenderTests(unittest.TestCase):
         self.assertIn("CONFIG_SD_MAX_FREQ=48000000\n", board_conf)
         self.assertNotIn("CONFIG_BSP_USING_SDMMC2=y\n", board_conf)
         self.assertIn("JLINK_DEVICE = 'SF32LB58X_SD_TYPE1'\n", rtconfig)
+
+    def test_nand_ptab_offsets_are_128k_aligned(self) -> None:
+        self.make_existing_base(self.output_root / "shared_base")
+
+        cases = [
+            (
+                "52",
+                ChipVariant(
+                    series="52",
+                    chip_dir="SF32LB52x",
+                    model_id="SF32LB52X",
+                    part_number="SF32LB52X",
+                    memory=(MemoryEntry("mpi1", "psram", 16 * MB),),
+                ),
+                self.make_spec(
+                    "shared_base",
+                    series="52",
+                    chip_model="SF32LB52X",
+                    storage_type="nand",
+                    storage_size_mb=16,
+                ),
+                0x00CC0000,
+            ),
+            (
+                "56",
+                ChipVariant(
+                    series="56",
+                    chip_dir="SF32LB56x",
+                    model_id="SF32LB56X",
+                    part_number="SF32LB56X",
+                    memory=(MemoryEntry("mpi1", "psram", 8 * MB),),
+                ),
+                self.make_spec(
+                    "shared_base",
+                    series="56",
+                    chip_model="SF32LB56X",
+                    storage_type="nand",
+                    storage_size_mb=16,
+                ),
+                0x00620000,
+            ),
+            (
+                "58",
+                ChipVariant(
+                    series="58",
+                    chip_dir="SF32LB58x",
+                    model_id="SF32LB58X",
+                    part_number="SF32LB58X",
+                    memory=(MemoryEntry("mpi1", "psram", 32 * MB),),
+                ),
+                self.make_spec(
+                    "shared_base",
+                    series="58",
+                    chip_model="SF32LB58X",
+                    storage_type="nand",
+                    storage_size_mb=16,
+                    storage_port="mpi3",
+                ),
+                0x00420000,
+            ),
+        ]
+
+        for series, variant, spec, expected_ble_offset in cases:
+            with self.subTest(series=series):
+                offsets = self.render_ptab_offsets(spec, variant)
+
+                for name, offset in offsets.items():
+                    self.assertEqual(offset % 0x20000, 0, f"{name} offset is not 128KB aligned")
+                self.assertEqual(offsets["ble"], expected_ble_offset)
+
+    def test_sdmmc_ptab_offsets_are_512_byte_aligned(self) -> None:
+        self.make_existing_base(self.output_root / "shared_base")
+
+        cases = [
+            (
+                "52",
+                ChipVariant(
+                    series="52",
+                    chip_dir="SF32LB52x",
+                    model_id="SF32LB52X",
+                    part_number="SF32LB52X",
+                    memory=(MemoryEntry("mpi1", "psram", 16 * MB),),
+                ),
+                self.make_spec(
+                    "shared_base",
+                    series="52",
+                    chip_model="SF32LB52X",
+                    storage_type="sdmmc",
+                    storage_size_mb=16,
+                ),
+            ),
+            (
+                "56",
+                ChipVariant(
+                    series="56",
+                    chip_dir="SF32LB56x",
+                    model_id="SF32LB56X",
+                    part_number="SF32LB56X",
+                    memory=(MemoryEntry("mpi1", "psram", 8 * MB),),
+                ),
+                self.make_spec(
+                    "shared_base",
+                    series="56",
+                    chip_model="SF32LB56X",
+                    storage_type="sdmmc",
+                    storage_size_mb=16,
+                ),
+            ),
+            (
+                "58",
+                ChipVariant(
+                    series="58",
+                    chip_dir="SF32LB58x",
+                    model_id="SF32LB58X",
+                    part_number="SF32LB58X",
+                    memory=(MemoryEntry("mpi1", "psram", 32 * MB),),
+                ),
+                self.make_spec(
+                    "shared_base",
+                    series="58",
+                    chip_model="SF32LB58X",
+                    storage_type="sdmmc",
+                    storage_size_mb=16,
+                ),
+            ),
+        ]
+
+        for series, variant, spec in cases:
+            with self.subTest(series=series):
+                offsets = self.render_ptab_offsets(spec, variant)
+
+                for name, offset in offsets.items():
+                    self.assertEqual(offset % 512, 0, f"{name} offset is not 512-byte aligned")
 
     def test_generated_58_type1_base_specializes_storage_pinmux(self) -> None:
         self.make_sample_base(series="58", real_pinmux=True)
