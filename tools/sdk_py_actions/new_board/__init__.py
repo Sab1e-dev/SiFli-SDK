@@ -19,8 +19,11 @@ MB = 1024 * KB
 
 KV_PART_SIZE = 0x00004000
 MIN_FACTORY_APP_PART_SIZE = 500 * KB
+NAND_BLOCK_SIZE_KB_DEFAULT = 128
+NAND_BLOCK_SIZE_KB_CHOICES = (128, 256)
+SF32LB52_NAND_BOOTLOADER_BLOCK_INDEX = 4
+SF32LB52_NAND_BOOTLOADER_SIZE = 0x00010000
 STORAGE_OFFSET_ALIGNMENT = {
-    'nand': 128 * KB,
     'sdmmc': 512,
 }
 
@@ -230,6 +233,7 @@ class Spec:
     base_name: str
     generate_base: bool
     storage_pinmux_type: Optional[str] = None
+    nand_block_size_kb: Optional[int] = None
 
 
 @dataclass(frozen=True)
@@ -441,6 +445,20 @@ def prompt_for_config(variants: Dict[str, List[ChipVariant]]) -> Dict[str, Any]:
             'Board creation cancelled.',
         )
 
+    nand_block_size_kb: Optional[int] = None
+    if storage_type == 'nand':
+        nand_block_size_kb = ask(
+            questionary.select(
+                'Select NAND block size',
+                choices=[
+                    questionary.Choice('128KB (default)', value=128),
+                    questionary.Choice('256KB', value=256),
+                ],
+                default=NAND_BLOCK_SIZE_KB_DEFAULT,
+            ),
+            'Board creation cancelled.',
+        )
+
     storage_size_mb: Optional[int] = None
     if storage_type != 'none':
         raw_size = ask(
@@ -486,6 +504,7 @@ def prompt_for_config(variants: Dict[str, List[ChipVariant]]) -> Dict[str, Any]:
         base_name=base_name,
         generate_base=generate_base,
         storage_pinmux_type=storage_pinmux_type,
+        nand_block_size_kb=nand_block_size_kb,
     )
 
     confirmed = ask(
@@ -509,6 +528,8 @@ def prompt_for_config(variants: Dict[str, List[ChipVariant]]) -> Dict[str, Any]:
         config['storage']['size_mb'] = storage_size_mb
     if storage_pinmux_type is not None:
         config['storage']['pinmux_type'] = storage_pinmux_type
+    if nand_block_size_kb is not None:
+        config['storage']['block_size_kb'] = nand_block_size_kb
     if storage_port is not None:
         config['storage_port'] = storage_port
     return config
@@ -524,6 +545,7 @@ def build_confirmation_summary(
     base_name: str,
     generate_base: bool,
     storage_pinmux_type: Optional[str] = None,
+    nand_block_size_kb: Optional[int] = None,
 ) -> List[str]:
     lines = [
         '[Chip]',
@@ -538,6 +560,8 @@ def build_confirmation_summary(
     if storage_pinmux_type:
         lines.append(f'  pinmux_type: {storage_pinmux_type}')
         lines.extend(storage_pinmux_detail_lines(storage_port, selected_type=storage_pinmux_type, indent='  '))
+    if nand_block_size_kb is not None:
+        lines.append(f'  block_size_kb: {nand_block_size_kb}')
     if storage_size_mb is not None:
         lines.append(f'  capacity_mb: {storage_size_mb}')
 
@@ -616,6 +640,7 @@ def normalize_spec(
     storage_pinmux_type = storage.get('pinmux_type')
     if storage_pinmux_type:
         storage_pinmux_type = str(storage_pinmux_type).strip().lower()
+    raw_nand_block_size_kb = storage.get('block_size_kb')
     storage_port = raw_config.get('storage_port')
     if storage_port:
         storage_port = str(storage_port).strip().lower()
@@ -641,6 +666,19 @@ def normalize_spec(
         if storage_size_mb is None or int(storage_size_mb) <= 0:
             raise FatalError('storage.size_mb must be a positive integer when storage.type is not "none".')
         storage_size_mb = int(storage_size_mb)
+
+    nand_block_size_kb: Optional[int] = None
+    if storage_type == 'nand':
+        nand_block_size_kb = (
+            NAND_BLOCK_SIZE_KB_DEFAULT
+            if raw_nand_block_size_kb is None
+            else int(raw_nand_block_size_kb)
+        )
+        if nand_block_size_kb not in NAND_BLOCK_SIZE_KB_CHOICES:
+            allowed = '|'.join(str(value) for value in NAND_BLOCK_SIZE_KB_CHOICES)
+            raise FatalError(f'storage.block_size_kb must be {allowed} when storage.type is "nand".')
+    elif raw_nand_block_size_kb is not None:
+        raise FatalError('storage.block_size_kb is only supported when storage.type is "nand".')
 
     if storage_type == 'none':
         if storage_port is not None:
@@ -695,6 +733,7 @@ def normalize_spec(
         base_name=base_name,
         generate_base=generate_base,
         storage_pinmux_type=storage_pinmux_type,
+        nand_block_size_kb=nand_block_size_kb,
     )
     return spec, variant
 
@@ -945,6 +984,8 @@ def build_external_memory_entries(spec: Spec) -> List[Dict[str, Any]]:
         'type': memory_type,
         'size': spec.storage_size_mb * MB,
     }
+    if spec.storage_type == 'nand':
+        memory_entry['block_size'] = HexInt(nand_block_size_bytes(spec))
     if spec.storage_type == 'sdmmc':
         memory_entry = {'sdmmc': storage_region, **memory_entry}
     else:
@@ -1005,11 +1046,11 @@ def build_fixed_partitions(
     if layout is None:
         raise FatalError(f'No fixed partition layout for series={spec.series} storage={spec.storage_type}')
 
-    alignment = storage_offset_alignment(spec.storage_type)
-    aligned_layout = {
-        name: (align_up(offset, alignment), size)
-        for name, (offset, size) in layout.items()
-    }
+    alignment = storage_offset_alignment(spec)
+    partitions = build_reserved_storage_partitions(spec, region)
+    min_offset = max((part.offset + part.size for part in partitions), default=0)
+    min_offset = max(min_offset, minimum_fixed_partition_offset(spec))
+    aligned_layout = align_fixed_partition_layout(layout, alignment, min_offset=min_offset)
 
     max_end = max(offset + size for offset, size in aligned_layout.values())
     if total_size < max_end:
@@ -1022,7 +1063,6 @@ def build_fixed_partitions(
     dfu_offset, _ = aligned_layout['dfu']
     ble_offset, _ = aligned_layout['ble']
 
-    partitions = build_reserved_storage_partitions(spec, region)
     partitions.extend([
         Partition(
             'hcpu_flash_code',
@@ -1048,13 +1088,14 @@ def build_reserved_storage_partitions(spec: Spec, region: str) -> List[Partition
         return []
 
     if spec.storage_type == 'nand':
+        block_size = nand_block_size_bytes(spec)
         return [
             Partition(
                 'factory_data',
                 'data',
                 region,
-                0x00040000,
-                0x00020000,
+                2 * block_size,
+                block_size,
                 subtype='raw',
                 aliases=('FACTORY_DATA',),
             ),
@@ -1321,8 +1362,42 @@ def allowed_sdmmc_storage_ports(series: str) -> Tuple[str, ...]:
     return ('sdmmc1', 'sdmmc2')
 
 
-def storage_offset_alignment(storage_type: str) -> int:
-    return STORAGE_OFFSET_ALIGNMENT.get(storage_type, 1)
+def nand_block_size_bytes(spec: Spec) -> int:
+    block_size_kb = spec.nand_block_size_kb or NAND_BLOCK_SIZE_KB_DEFAULT
+    return int(block_size_kb) * KB
+
+
+def storage_offset_alignment(spec: Spec) -> int:
+    if spec.storage_type == 'nand':
+        return nand_block_size_bytes(spec)
+    return STORAGE_OFFSET_ALIGNMENT.get(spec.storage_type, 1)
+
+
+def minimum_fixed_partition_offset(spec: Spec) -> int:
+    if spec.series == '52' and spec.storage_type == 'nand':
+        bootloader_end = (
+            SF32LB52_NAND_BOOTLOADER_BLOCK_INDEX * nand_block_size_bytes(spec)
+            + SF32LB52_NAND_BOOTLOADER_SIZE
+        )
+        return align_up(bootloader_end, storage_offset_alignment(spec))
+    return 0
+
+
+def align_fixed_partition_layout(
+    layout: Dict[str, Tuple[int, int]],
+    alignment: int,
+    min_offset: int = 0,
+) -> Dict[str, Tuple[int, int]]:
+    if alignment <= 1:
+        return dict(layout)
+
+    aligned: Dict[str, Tuple[int, int]] = {}
+    next_offset = min_offset
+    for name, (offset, size) in sorted(layout.items(), key=lambda item: item[1][0]):
+        aligned_offset = align_up(max(offset, next_offset), alignment)
+        aligned[name] = (aligned_offset, size)
+        next_offset = aligned_offset + size
+    return aligned
 
 
 def rt_using_mtd_line(storage_type: str) -> str:

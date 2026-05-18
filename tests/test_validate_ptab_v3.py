@@ -116,7 +116,160 @@ class ValidatePtabV3ReservedPartitionTests(unittest.TestCase):
             "version": 3,
             "chip": "SF32LB52X",
             "memory": [
-                {"mpi": "mpi2", "type": "nand", "size": 16 * 1024 * 1024},
+                {"mpi": "mpi2", "type": "nand", "size": 16 * 1024 * 1024, "block_size": 0x00040000},
+            ],
+            "partitions": [
+                {
+                    "name": "flash_table",
+                    "type": "ftab",
+                    "region": "mpi2",
+                    "offset": 0x00000000,
+                    "size": 0x00040000,
+                },
+                {
+                    "name": "factory_data",
+                    "type": "data",
+                    "subtype": "raw",
+                    "region": "mpi2",
+                    "offset": 0x00080000,
+                    "size": 0x00040000,
+                    "aliases": ["FACTORY_DATA"],
+                },
+                {
+                    "name": "bootloader",
+                    "type": "bootloader",
+                    "region": "mpi2",
+                    "offset": 0x00100000,
+                    "size": 0x00010000,
+                    "core": "HCPU",
+                    "exec": {
+                        "region": "hpsys_ram",
+                        "offset": 0x00020000,
+                    },
+                },
+                {
+                    "name": "hcpu_flash_code",
+                    "type": "app",
+                    "subtype": "factory",
+                    "region": "mpi2",
+                    "offset": 0x00140000,
+                    "size": 0x00100000,
+                    "core": "HCPU",
+                },
+            ],
+        }
+
+        self.assertNoReservationMessages(data)
+
+    def test_52_nand_rejects_256k_factory_data_without_block_size(self) -> None:
+        data = self.base_52_nand_partitions({
+            "name": "factory_data",
+            "type": "data",
+            "subtype": "raw",
+            "region": "mpi2",
+            "offset": 0x00080000,
+            "size": 0x00040000,
+            "aliases": ["FACTORY_DATA"],
+        })
+
+        messages = self.validation_messages(data)
+
+        self.assertTrue(any("FACTORY_DATA" in message and "0x40000" in message for message in messages), messages)
+
+    def test_52_nand_256k_default_partitions_are_block_size_aware(self) -> None:
+        data = {
+            "version": 3,
+            "chip": "SF32LB52X",
+            "memory": [
+                {"mpi": "mpi2", "type": "nand", "size": 16 * 1024 * 1024, "block_size": 0x00040000},
+            ],
+            "partitions": [
+                {
+                    "name": "factory_data",
+                    "type": "data",
+                    "subtype": "raw",
+                    "region": "mpi2",
+                    "offset": 0x00080000,
+                    "size": 0x00040000,
+                    "aliases": ["FACTORY_DATA"],
+                },
+                {
+                    "name": "hcpu_flash_code",
+                    "type": "app",
+                    "subtype": "factory",
+                    "region": "mpi2",
+                    "offset": 0x00140000,
+                    "size": 0x00100000,
+                    "core": "HCPU",
+                },
+            ],
+        }
+
+        ptab_obj = self.load_ptab(data)
+        partitions = ptab_obj.partitions
+        flash_table = next(part for part in partitions if part.get("name") == "flash_table")
+        bootloader = next(part for part in partitions if part.get("name") == "bootloader")
+        messages = [str(issue) for issue in validate_ptab_v3(ptab_obj)]
+
+        self.assertEqual(ptab.parse_size(flash_table["size"]), 0x00040000)
+        self.assertEqual(ptab.parse_size(bootloader["offset"]), 0x00100000)
+        self.assertFalse(any("overlap" in message for message in messages), messages)
+
+    def test_nand_rejects_invalid_memory_block_size(self) -> None:
+        data = self.base_52_nand_partitions({
+            "name": "factory_data",
+            "type": "data",
+            "subtype": "raw",
+            "region": "mpi2",
+            "offset": 0x00040000,
+            "size": 0x00020000,
+            "aliases": ["FACTORY_DATA"],
+        })
+        data["memory"][0]["block_size"] = 0x00030000
+
+        messages = self.validation_messages(data)
+
+        self.assertTrue(any("block_size" in message and "0x20000" in message and "0x40000" in message for message in messages), messages)
+
+    def test_nand_rejects_zero_memory_block_size_without_crashing(self) -> None:
+        data = self.base_52_nand_partitions({
+            "name": "factory_data",
+            "type": "data",
+            "subtype": "raw",
+            "region": "mpi2",
+            "offset": 0x00040000,
+            "size": 0x00020000,
+            "aliases": ["FACTORY_DATA"],
+        })
+        data["memory"][0]["block_size"] = 0
+
+        messages = self.validation_messages(data)
+
+        self.assertTrue(any("block_size" in message and "0x20000" in message and "0x40000" in message for message in messages), messages)
+
+    def test_nand_rejects_unaligned_partition_when_block_size_is_explicit(self) -> None:
+        data = self.base_52_nand_partitions({
+            "name": "factory_data",
+            "type": "data",
+            "subtype": "raw",
+            "region": "mpi2",
+            "offset": 0x00040000,
+            "size": 0x00020000,
+            "aliases": ["FACTORY_DATA"],
+        })
+        data["memory"][0]["block_size"] = 0x00040000
+        data["partitions"][1]["offset"] = 0x000A0000
+
+        messages = self.validation_messages(data)
+
+        self.assertTrue(any("hcpu_flash_code" in message and "not aligned" in message for message in messages), messages)
+
+    def test_52_nand_256k_rejects_wrong_explicit_boot_layout(self) -> None:
+        data = {
+            "version": 3,
+            "chip": "SF32LB52X",
+            "memory": [
+                {"mpi": "mpi2", "type": "nand", "size": 16 * 1024 * 1024, "block_size": 0x00040000},
             ],
             "partitions": [
                 {
@@ -152,14 +305,44 @@ class ValidatePtabV3ReservedPartitionTests(unittest.TestCase):
                     "type": "app",
                     "subtype": "factory",
                     "region": "mpi2",
-                    "offset": 0x000D0000,
+                    "offset": 0x00140000,
                     "size": 0x00100000,
                     "core": "HCPU",
                 },
             ],
         }
 
-        self.assertNoReservationMessages(data)
+        messages = self.validation_messages(data)
+
+        self.assertTrue(any("flash_table" in message and "size=0x40000" in message for message in messages), messages)
+        self.assertTrue(any("bootloader" in message and "offset=0x100000" in message for message in messages), messages)
+
+    def test_non_nand_rejects_memory_block_size(self) -> None:
+        data = self.base_52_sdmmc_partitions(
+            mbr={
+                "name": "mbr",
+                "type": "data",
+                "subtype": "raw",
+                "region": "sdmmc1",
+                "offset": 0x00000000,
+                "size": 0x00001000,
+                "aliases": ["MBR"],
+            },
+            factory_data={
+                "name": "factory_data",
+                "type": "data",
+                "subtype": "raw",
+                "region": "sdmmc1",
+                "offset": 0x00041000,
+                "size": 0x00020000,
+                "aliases": ["FACTORY_DATA"],
+            },
+        )
+        data["memory"][0]["block_size"] = 0x00020000
+
+        messages = self.validation_messages(data)
+
+        self.assertTrue(any("block_size" in message and "NAND" in message for message in messages), messages)
 
     def test_52_sdmmc_requires_mbr_partition(self) -> None:
         data = self.base_52_sdmmc_partitions(factory_data={

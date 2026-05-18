@@ -60,6 +60,30 @@ def _region_memory_type(region: str, chip_config: dict) -> str:
         return ''
 
 
+def _memory_region(memory: Dict[str, Any]) -> str:
+    region = memory.get('mpi') or memory.get('sdmmc')
+    if not region:
+        name = memory.get('name')
+        if isinstance(name, str):
+            name = name.strip()
+            if name.startswith('mpi') or name.startswith('sdmmc'):
+                region = name
+    return str(region or '').strip()
+
+
+def _nand_block_info(region: str, chip_config: dict) -> Tuple[int, bool]:
+    memory_info = chip_config.get('memory_info', {})
+    info = memory_info.get(region, {}) if isinstance(memory_info, dict) else {}
+    if isinstance(info, dict):
+        try:
+            block_size = ptab_module.parse_size(info.get('block_size', ptab_module.NAND_BLOCK_SIZE_DEFAULT))
+        except (ValueError, TypeError):
+            block_size = ptab_module.NAND_BLOCK_SIZE_DEFAULT
+        explicit = bool(info.get('block_size_explicit'))
+        return block_size, explicit
+    return ptab_module.NAND_BLOCK_SIZE_DEFAULT, False
+
+
 def _partition_tags(partition: Dict[str, Any]) -> set[str]:
     tags = set()
     name = str(partition.get('name') or '').strip()
@@ -129,6 +153,81 @@ def _validate_reserved_partition(
         f"expected {_format_layouts(layouts)}; found {', '.join(actual)}"
     ))
     return errors
+
+
+def validate_nand_memory_block_sizes(ptab_obj) -> List[ValidationError]:
+    errors: List[ValidationError] = []
+    for idx, memory in enumerate(getattr(ptab_obj, 'memory', []) or []):
+        if not isinstance(memory, dict) or 'block_size' not in memory:
+            continue
+
+        region = _memory_region(memory) or f'memory[{idx}]'
+        mem_type = str(memory.get('type') or '').strip().lower()
+        if mem_type != 'nand':
+            errors.append(ValidationError(
+                f"Memory '{region}': block_size is only supported for NAND memory"
+            ))
+            continue
+
+        try:
+            block_size = ptab_module.parse_size(memory.get('block_size', 0))
+        except (ValueError, TypeError) as e:
+            errors.append(ValidationError(
+                f"Memory '{region}': invalid block_size value '{memory.get('block_size')}': {e}"
+            ))
+            continue
+
+        if block_size not in ptab_module.NAND_BLOCK_SIZE_CHOICES:
+            errors.append(ValidationError(
+                f"Memory '{region}': NAND block_size must be 0x20000 or 0x40000"
+            ))
+
+    return errors
+
+
+def validate_nand_partition_alignment(partitions: List[dict], chip_config: dict) -> List[ValidationError]:
+    errors: List[ValidationError] = []
+    for partition in partitions:
+        region = str(partition.get('region') or '').strip()
+        if not region or _region_memory_type(region, chip_config) != 'nand':
+            continue
+
+        block_size, explicit = _nand_block_info(region, chip_config)
+        if not explicit:
+            continue
+        if block_size not in ptab_module.NAND_BLOCK_SIZE_CHOICES:
+            continue
+
+        try:
+            offset = ptab_module.parse_size(partition.get('offset', 0))
+        except (ValueError, TypeError):
+            continue
+
+        if offset % block_size != 0:
+            errors.append(ValidationError(
+                f"Partition '{partition.get('name', '?')}' in NAND region '{region}' has offset 0x{offset:X}, "
+                f"which is not aligned to block_size 0x{block_size:X}"
+            ))
+
+    return errors
+
+
+def _find_partition_in_region(
+    partitions: List[dict],
+    region: str,
+    *,
+    name: Optional[str] = None,
+    ptype: Optional[str] = None,
+) -> Optional[dict]:
+    for partition in partitions:
+        if str(partition.get('region') or '').strip() != region:
+            continue
+        if name is not None and str(partition.get('name') or '').strip() != name:
+            continue
+        if ptype is not None and str(partition.get('type') or '').strip() != ptype:
+            continue
+        return partition
+    return None
 
 
 def validate_name(name: str, partition_idx: int) -> List[ValidationError]:
@@ -497,11 +596,14 @@ def validate_sf32lb52_storage_reservations(ptab_obj, partitions: List[dict], chi
 
     for region, mem_type in sorted(storage_regions.items()):
         if mem_type == 'nand':
+            block_size, _explicit = _nand_block_info(region, chip_config)
+            if block_size not in ptab_module.NAND_BLOCK_SIZE_CHOICES:
+                continue
             errors.extend(_validate_reserved_partition(
                 partitions,
                 region,
                 'FACTORY_DATA',
-                [(0x00040000, 0x00020000), (0x00080000, 0x00040000)],
+                [(2 * block_size, block_size)],
             ))
         elif mem_type == 'sd':
             errors.extend(_validate_reserved_partition(
@@ -516,6 +618,53 @@ def validate_sf32lb52_storage_reservations(ptab_obj, partitions: List[dict], chi
                 'FACTORY_DATA',
                 [(0x00041000, 0x00020000)],
             ))
+
+    return errors
+
+
+def validate_sf32lb52_nand_boot_layout(ptab_obj, partitions: List[dict], chip_config: dict) -> List[ValidationError]:
+    errors: List[ValidationError] = []
+    if str(getattr(ptab_obj, 'chip_series', '') or '').strip().lower() != 'sf32lb52':
+        return errors
+
+    nand_regions = sorted({
+        str(partition.get('region') or '').strip()
+        for partition in partitions
+        if str(partition.get('region') or '').strip()
+        and _region_memory_type(str(partition.get('region') or '').strip(), chip_config) == 'nand'
+    })
+
+    for region in nand_regions:
+        block_size, _explicit = _nand_block_info(region, chip_config)
+        if block_size not in ptab_module.NAND_BLOCK_SIZE_CHOICES:
+            continue
+
+        flash_table = _find_partition_in_region(partitions, region, name='flash_table', ptype='ftab')
+        if flash_table is not None:
+            try:
+                offset = ptab_module.parse_size(flash_table.get('offset', 0))
+                size = ptab_module.parse_size(flash_table.get('size', 0))
+            except (ValueError, TypeError):
+                offset = None
+                size = None
+            if offset != 0 or size != block_size:
+                errors.append(ValidationError(
+                    f"SF32LB52 NAND region '{region}' flash_table must use offset=0x0, "
+                    f"size=0x{block_size:X} for block_size 0x{block_size:X}"
+                ))
+
+        bootloader = _find_partition_in_region(partitions, region, ptype='bootloader')
+        if bootloader is not None:
+            try:
+                offset = ptab_module.parse_size(bootloader.get('offset', 0))
+            except (ValueError, TypeError):
+                offset = None
+            expected_offset = 4 * block_size
+            if offset != expected_offset:
+                errors.append(ValidationError(
+                    f"SF32LB52 NAND region '{region}' bootloader must use offset=0x{expected_offset:X} "
+                    f"for block_size 0x{block_size:X}"
+                ))
 
     return errors
 
@@ -581,7 +730,10 @@ def validate_ptab_v3(ptab_obj) -> List[ValidationError]:
     errors.extend(validate_bootloader_unique(partitions))
     errors.extend(validate_ftab_unique(partitions))
     errors.extend(validate_factory_unique_by_core(partitions))
+    errors.extend(validate_nand_memory_block_sizes(ptab_obj))
+    errors.extend(validate_nand_partition_alignment(partitions, chip_config))
     errors.extend(validate_sf32lb52_storage_reservations(ptab_obj, partitions, chip_config))
+    errors.extend(validate_sf32lb52_nand_boot_layout(ptab_obj, partitions, chip_config))
 
     # Bootloader must have exec (execution address)
     bootloaders = [p for p in partitions if p.get('type') == 'bootloader']

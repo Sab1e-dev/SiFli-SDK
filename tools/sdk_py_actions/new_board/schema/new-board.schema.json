@@ -36,6 +36,10 @@
         "pinmux_type": {
           "type": "string",
           "enum": ["type0", "type1"]
+        },
+        "block_size_kb": {
+          "type": "integer",
+          "enum": [128, 256]
         }
       }
     },
@@ -111,6 +115,32 @@
       },
       "then": {
         "required": ["base_name"]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "storage": {
+            "properties": {
+              "type": {
+                "not": {
+                  "const": "nand"
+                }
+              }
+            },
+            "required": ["type"]
+          }
+        },
+        "required": ["storage"]
+      },
+      "then": {
+        "properties": {
+          "storage": {
+            "not": {
+              "required": ["block_size_kb"]
+            }
+          }
+        }
       }
     }
   ]

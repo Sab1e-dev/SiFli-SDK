@@ -71,6 +71,7 @@ class NewBoardRenderTests(unittest.TestCase):
         storage_size_mb: Optional[int] = None,
         storage_port: Optional[str] = None,
         storage_pinmux_type: Optional[str] = None,
+        nand_block_size_kb: Optional[int] = None,
     ) -> Spec:
         return Spec(
             series=series,
@@ -82,6 +83,7 @@ class NewBoardRenderTests(unittest.TestCase):
             base_name=base_name,
             generate_base=generate_base,
             storage_pinmux_type=storage_pinmux_type,
+            nand_block_size_kb=nand_block_size_kb,
         )
 
     def make_sample_base(self, series: str = "52", real_pinmux: bool = False) -> None:
@@ -324,7 +326,9 @@ class NewBoardRenderTests(unittest.TestCase):
 
         factory_data = self.find_ptab_partition(spec, variant, "factory_data")
         hcpu_flash_code = self.find_ptab_partition(spec, variant, "hcpu_flash_code")
+        ptab = self.render_top_ptab_data(spec, variant=variant)
 
+        self.assertEqual(self.parse_int(ptab["memory"][0]["block_size"]), 0x00020000)
         self.assertEqual(factory_data["type"], "data")
         self.assertEqual(factory_data["subtype"], "raw")
         self.assertEqual(factory_data["region"], "mpi2")
@@ -332,6 +336,34 @@ class NewBoardRenderTests(unittest.TestCase):
         self.assertEqual(self.parse_int(factory_data["size"]), 0x00020000)
         self.assertEqual(factory_data["aliases"], ["FACTORY_DATA"])
         self.assertEqual(self.parse_int(hcpu_flash_code["offset"]), 0x000A0000)
+
+    def test_52_nand_256k_ptab_reserves_256k_factory_data(self) -> None:
+        self.make_existing_base(self.output_root / "shared_base")
+        variant = ChipVariant(
+            series="52",
+            chip_dir="SF32LB52x",
+            model_id="SF32LB52X",
+            part_number="SF32LB52X",
+            memory=(MemoryEntry("mpi1", "psram", 16 * MB),),
+        )
+        spec = self.make_spec(
+            "shared_base",
+            series="52",
+            chip_model="SF32LB52X",
+            storage_type="nand",
+            storage_size_mb=16,
+            nand_block_size_kb=256,
+        )
+
+        ptab = self.render_top_ptab_data(spec, variant=variant)
+        factory_data = self.find_ptab_partition(spec, variant, "factory_data")
+        hcpu_flash_code = self.find_ptab_partition(spec, variant, "hcpu_flash_code")
+
+        self.assertEqual(self.parse_int(ptab["memory"][0]["block_size"]), 0x00040000)
+        self.assertEqual(self.parse_int(factory_data["offset"]), 0x00080000)
+        self.assertEqual(self.parse_int(factory_data["size"]), 0x00040000)
+        self.assertEqual(factory_data["aliases"], ["FACTORY_DATA"])
+        self.assertEqual(self.parse_int(hcpu_flash_code["offset"]), 0x00140000)
 
     def test_52_sdmmc_ptab_reserves_mbr_and_factory_data(self) -> None:
         self.make_existing_base(self.output_root / "shared_base")
@@ -435,6 +467,83 @@ class NewBoardRenderTests(unittest.TestCase):
 
                 for name, offset in offsets.items():
                     self.assertEqual(offset % 0x20000, 0, f"{name} offset is not 128KB aligned")
+                self.assertEqual(offsets["ble"], expected_ble_offset)
+
+    def test_nand_ptab_offsets_follow_256k_block_size(self) -> None:
+        self.make_existing_base(self.output_root / "shared_base")
+
+        cases = [
+            (
+                "52",
+                ChipVariant(
+                    series="52",
+                    chip_dir="SF32LB52x",
+                    model_id="SF32LB52X",
+                    part_number="SF32LB52X",
+                    memory=(MemoryEntry("mpi1", "psram", 16 * MB),),
+                ),
+                self.make_spec(
+                    "shared_base",
+                    series="52",
+                    chip_model="SF32LB52X",
+                    storage_type="nand",
+                    storage_size_mb=16,
+                    nand_block_size_kb=256,
+                ),
+                0x00D00000,
+            ),
+            (
+                "56",
+                ChipVariant(
+                    series="56",
+                    chip_dir="SF32LB56x",
+                    model_id="SF32LB56X",
+                    part_number="SF32LB56X",
+                    memory=(MemoryEntry("mpi1", "psram", 8 * MB),),
+                ),
+                self.make_spec(
+                    "shared_base",
+                    series="56",
+                    chip_model="SF32LB56X",
+                    storage_type="nand",
+                    storage_size_mb=16,
+                    nand_block_size_kb=256,
+                ),
+                0x00680000,
+            ),
+            (
+                "58",
+                ChipVariant(
+                    series="58",
+                    chip_dir="SF32LB58x",
+                    model_id="SF32LB58X",
+                    part_number="SF32LB58X",
+                    memory=(MemoryEntry("mpi1", "psram", 32 * MB),),
+                ),
+                self.make_spec(
+                    "shared_base",
+                    series="58",
+                    chip_model="SF32LB58X",
+                    storage_type="nand",
+                    storage_size_mb=16,
+                    storage_port="mpi3",
+                    nand_block_size_kb=256,
+                ),
+                0x00440000,
+            ),
+        ]
+
+        for series, variant, spec, expected_ble_offset in cases:
+            with self.subTest(series=series):
+                data = self.render_top_ptab_data(spec, variant=variant)
+                offsets = {
+                    str(part["name"]): self.parse_int(part["offset"])
+                    for part in data["partitions"]
+                }
+
+                self.assertEqual(self.parse_int(data["memory"][0]["block_size"]), 0x00040000)
+                for name, offset in offsets.items():
+                    self.assertEqual(offset % 0x40000, 0, f"{name} offset is not 256KB aligned")
                 self.assertEqual(offsets["ble"], expected_ble_offset)
 
     def test_sdmmc_ptab_offsets_are_512_byte_aligned(self) -> None:
@@ -635,6 +744,57 @@ class NewBoardRenderTests(unittest.TestCase):
 
         self.assertEqual(spec.storage_port, "mpi4")
         self.assertEqual(spec.storage_pinmux_type, "type0")
+
+    def test_normalize_nand_block_size_rules(self) -> None:
+        variant = ChipVariant(
+            series="52",
+            chip_dir="SF32LB52x",
+            model_id="SF32LB52X",
+            part_number="SF32LB52X",
+            memory=(MemoryEntry("mpi1", "psram", 16 * MB),),
+        )
+
+        default_spec, _variant = normalize_spec(
+            {
+                "chip_series": "52",
+                "chip_model": "SF32LB52X",
+                "storage": {"type": "nand", "size_mb": 16},
+                "board_name": "demo_board",
+                "generate_base": False,
+                "base_name": "shared_base",
+            },
+            SCHEMA_PATH,
+            {"52": [variant]},
+        )
+        self.assertEqual(default_spec.nand_block_size_kb, 128)
+
+        spec, _variant = normalize_spec(
+            {
+                "chip_series": "52",
+                "chip_model": "SF32LB52X",
+                "storage": {"type": "nand", "size_mb": 16, "block_size_kb": 256},
+                "board_name": "demo_board",
+                "generate_base": False,
+                "base_name": "shared_base",
+            },
+            SCHEMA_PATH,
+            {"52": [variant]},
+        )
+        self.assertEqual(spec.nand_block_size_kb, 256)
+
+        with self.assertRaisesRegex(Exception, "block_size_kb"):
+            normalize_spec(
+                {
+                    "chip_series": "52",
+                    "chip_model": "SF32LB52X",
+                    "storage": {"type": "sdmmc", "size_mb": 16, "block_size_kb": 256},
+                    "board_name": "demo_board",
+                    "generate_base": False,
+                    "base_name": "shared_base",
+                },
+                SCHEMA_PATH,
+                {"52": [variant]},
+            )
 
     def test_confirmation_summary_explains_generated_base(self) -> None:
         summary = build_confirmation_summary(

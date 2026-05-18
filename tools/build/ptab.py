@@ -35,6 +35,9 @@ _PTAB_OVERLAY_PARTITION_KEYS = {
     'sections',
 }
 
+NAND_BLOCK_SIZE_DEFAULT = 128 * 1024
+NAND_BLOCK_SIZE_CHOICES = (128 * 1024, 256 * 1024)
+
 # SiliconSchema paths
 #
 # Preferred layout is a git submodule at `tools/SiliconSchema`, but some
@@ -412,11 +415,18 @@ class PtabV3:
                     if name.startswith('mpi') or name.startswith('sdmmc'):
                         mem_region = name
             if mem_region:
-                config['memory_info'][str(mem_region).strip()] = {
+                memory_entry = {
                     'type': mem.get('type', 'unknown'),
                     'size': parse_size(mem.get('size', 0)),
                     'sip': False,
                 }
+                if 'block_size' in mem:
+                    try:
+                        memory_entry['block_size'] = parse_size(mem.get('block_size', 0))
+                    except (ValueError, TypeError):
+                        memory_entry['block_size'] = mem.get('block_size')
+                    memory_entry['block_size_explicit'] = True
+                config['memory_info'][str(mem_region).strip()] = memory_entry
 
         # Fallback: infer chip-internal (SiP) memories from Kconfig when the
         # SiliconSchema `chips/*/chip.yaml` database is unavailable.
@@ -967,6 +977,19 @@ def _infer_default_boot_region_v3(
     return None, None
 
 
+def _get_region_nand_block_size(region: str, chip_config: Dict[str, Any]) -> int:
+    memory_info = chip_config.get('memory_info', {})
+    info = memory_info.get(region, {}) if isinstance(memory_info, dict) else {}
+    if isinstance(info, dict):
+        try:
+            block_size = parse_size(info.get('block_size', NAND_BLOCK_SIZE_DEFAULT))
+        except (ValueError, TypeError):
+            block_size = NAND_BLOCK_SIZE_DEFAULT
+        if block_size in NAND_BLOCK_SIZE_CHOICES:
+            return block_size
+    return NAND_BLOCK_SIZE_DEFAULT
+
+
 def _infer_default_partitions_v3(
     partitions: List[Dict[str, Any]],
     chip_config: Dict[str, Any],
@@ -982,9 +1005,10 @@ def _infer_default_partitions_v3(
         boot_region, boot_mem_type = _infer_default_boot_region_v3(partitions, chip_config)
         if boot_region and boot_mem_type in ('nor', 'nand', 'sd'):
             if boot_mem_type == 'nand':
+                block_size = _get_region_nand_block_size(boot_region, chip_config)
                 flash_table_offset = 0
-                flash_table_size = cfg['flash_table_nand_size']
-                bootloader_offset = cfg['bootloader_nand_offset']
+                flash_table_size = block_size
+                bootloader_offset = 4 * block_size
             elif boot_mem_type == 'sd':
                 flash_table_offset = cfg['flash_table_sd_offset']
                 flash_table_size = cfg['flash_table_sd_size']
