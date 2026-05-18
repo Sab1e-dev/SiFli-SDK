@@ -65,5 +65,5 @@ partitions:
   type: data
   subtype: ram
   region: psram1
-  offset: '0x00400000'
+  offset: '0x00600000'
   size: '0x00400000'
