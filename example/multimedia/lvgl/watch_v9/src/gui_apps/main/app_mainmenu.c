@@ -739,7 +739,16 @@ static void mainmenu_cell_icons_coord_init(void)
 
                 lv_obj_set_pos(icon, x - (img_w >> 1), y - (img_h >> 1));
                 lv_img_set_pivot(icon, (img_w >> 1), (img_h >> 1));
-                lv_img_set_zoom(icon, zoom);
+#if defined(SF32LB55X)
+                if (zoom < MAINMENU_CELL_EPIC_SAFE_MIN_ZOOM)
+                {
+                    icon->flags |= LV_OBJ_FLAG_HIDDEN;
+                }
+                else
+#endif
+                {
+                    lv_img_set_zoom(icon, zoom);
+                }
             }
         }
 }
