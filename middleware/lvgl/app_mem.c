@@ -168,7 +168,7 @@ MSH_CMD_EXPORT_ALIAS(app_mem_log, app_mem, app_mem: open or close app_mem log);
 
 #if PKG_USING_FFMPEG && (MEDIA_CACHE_SIZE > 0)
     APP_L2_RET_BSS_SECT_BEGIN(app_ffmpeg_ret_cache)
-        APP_L2_RET_BSS_SECT(app_ffmpeg_ret_cache, ALIGN(4) static uint8_t app_ffmpeg_cache[MEDIA_CACHE_SIZE]);
+    APP_L2_RET_BSS_SECT(app_ffmpeg_ret_cache, ALIGN(4) static uint8_t app_ffmpeg_cache[MEDIA_CACHE_SIZE]);
     APP_L2_RET_BSS_SECT_END
 #endif
 
@@ -855,6 +855,12 @@ void *audio_mem_calloc(uint32_t count, uint32_t size)
     memset(ptr, 0, count * size);
     return ptr;
 }
+
+void *audio_mem_recalloc(void *p, size_t new_size)
+{
+    return ffmpeg_realloc(p, new_size);
+}
+
 #endif
 
 #ifdef LV_USING_FREETYPE_ENGINE
