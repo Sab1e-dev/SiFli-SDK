@@ -1470,7 +1470,7 @@ void *malloc_dma_friendly_sram(rt_size_t n)
 #define IS_DMA_FRIENDLY_SRAM_RANGE(p, len)        (IS_DMA_FRIENDLY_SRAM((uint32_t)p) && IS_DMA_FRIENDLY_SRAM(((uint32_t)p) + (len)) && WITHIN_DMA_BOUNDARY(p, len))
 
     //Invalid parameters
-    if (WITHIN_DMA_BOUNDARY(0, n) || (0 == n)) return NULL;
+    if (!WITHIN_DMA_BOUNDARY(0, n) || (0 == n)) return NULL;
 
     uint8_t *ret_p = dma_malloc(n);
     if (!ret_p) return NULL;
