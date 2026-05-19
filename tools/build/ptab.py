@@ -877,6 +877,10 @@ _PTAB_V3_SERIES_DEFAULTS: Dict[str, Dict[str, int]] = {
         'flash_table_nand_size': 0x00020000,
         'flash_table_sd_offset': 0x00001000,
         'flash_table_sd_size': 0x00008000,
+        'mbr_sd_offset': 0x00000000,
+        'mbr_sd_size': 0x00001000,
+        'factory_data_sd_offset': 0x00041000,
+        'factory_data_sd_size': 0x00020000,
         'bootloader_nor_offset': 0x00010000,
         'bootloader_nand_offset': 0x00080000,
         'bootloader_sd_offset': 0x00011000,
@@ -1013,6 +1017,15 @@ def _infer_default_partitions_v3(
                 bootloader_offset = 4 * block_size
                 flash_table_attrs['AUTO_FLASH_MAC_ADDRESS'] = SF32LB52_NAND_AUTO_FLASH_MAC_ADDRESS
             elif boot_mem_type == 'sd':
+                defaults['mbr'] = {
+                    'name': 'mbr',
+                    'type': 'data',
+                    'subtype': 'raw',
+                    'region': boot_region,
+                    'offset': cfg['mbr_sd_offset'],
+                    'size': cfg['mbr_sd_size'],
+                    'aliases': ['MBR'],
+                }
                 flash_table_offset = cfg['flash_table_sd_offset']
                 flash_table_size = cfg['flash_table_sd_size']
                 bootloader_offset = cfg['bootloader_sd_offset']
@@ -1031,6 +1044,16 @@ def _infer_default_partitions_v3(
             if flash_table_attrs:
                 flash_table['attrs'] = flash_table_attrs
             defaults['flash_table'] = flash_table
+            if boot_mem_type == 'nand':
+                defaults['factory_data'] = {
+                    'name': 'factory_data',
+                    'type': 'data',
+                    'subtype': 'raw',
+                    'region': boot_region,
+                    'offset': 2 * block_size,
+                    'size': block_size,
+                    'aliases': ['FACTORY_DATA'],
+                }
             defaults['bootloader'] = {
                 'name': 'bootloader',
                 'type': 'bootloader',
@@ -1043,6 +1066,16 @@ def _infer_default_partitions_v3(
                     'offset': cfg['bootloader_exec_offset'],
                 },
             }
+            if boot_mem_type == 'sd':
+                defaults['factory_data'] = {
+                    'name': 'factory_data',
+                    'type': 'data',
+                    'subtype': 'raw',
+                    'region': boot_region,
+                    'offset': cfg['factory_data_sd_offset'],
+                    'size': cfg['factory_data_sd_size'],
+                    'aliases': ['FACTORY_DATA'],
+                }
 
         defaults['hcpu_ram_data'] = {
             'name': 'hcpu_ram_data',

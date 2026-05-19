@@ -34,6 +34,10 @@ class ValidatePtabV3ReservedPartitionTests(unittest.TestCase):
         ptab_obj = self.load_ptab(data)
         return [str(issue) for issue in validate_ptab_v3(ptab_obj)]
 
+    def find_partition(self, data: dict[str, Any], name: str) -> dict[str, Any]:
+        ptab_obj = self.load_ptab(data)
+        return next(part for part in ptab_obj.partitions if part.get("name") == name)
+
     @staticmethod
     def base_52_nand_partitions(factory_data: dict[str, Any] | None = None) -> dict[str, Any]:
         partitions = []
@@ -93,10 +97,17 @@ class ValidatePtabV3ReservedPartitionTests(unittest.TestCase):
         ]
         self.assertEqual(reservation_messages, [])
 
-    def test_52_nand_requires_factory_data_partition(self) -> None:
-        messages = self.validation_messages(self.base_52_nand_partitions())
+    def test_52_nand_injects_default_factory_data_partition(self) -> None:
+        data = self.base_52_nand_partitions()
+        factory_data = self.find_partition(data, "factory_data")
 
-        self.assertTrue(any("FACTORY_DATA" in message for message in messages), messages)
+        self.assertEqual(factory_data["type"], "data")
+        self.assertEqual(factory_data["subtype"], "raw")
+        self.assertEqual(factory_data["region"], "mpi2")
+        self.assertEqual(ptab.parse_size(factory_data["offset"]), 0x00040000)
+        self.assertEqual(ptab.parse_size(factory_data["size"]), 0x00020000)
+        self.assertEqual(factory_data["aliases"], ["FACTORY_DATA"])
+        self.assertNoReservationMessages(data)
 
     def test_52_nand_accepts_128k_factory_data_partition(self) -> None:
         data = self.base_52_nand_partitions({
@@ -185,15 +196,6 @@ class ValidatePtabV3ReservedPartitionTests(unittest.TestCase):
             ],
             "partitions": [
                 {
-                    "name": "factory_data",
-                    "type": "data",
-                    "subtype": "raw",
-                    "region": "mpi2",
-                    "offset": 0x00080000,
-                    "size": 0x00040000,
-                    "aliases": ["FACTORY_DATA"],
-                },
-                {
                     "name": "hcpu_flash_code",
                     "type": "app",
                     "subtype": "factory",
@@ -208,10 +210,13 @@ class ValidatePtabV3ReservedPartitionTests(unittest.TestCase):
         ptab_obj = self.load_ptab(data)
         partitions = ptab_obj.partitions
         flash_table = next(part for part in partitions if part.get("name") == "flash_table")
+        factory_data = next(part for part in partitions if part.get("name") == "factory_data")
         bootloader = next(part for part in partitions if part.get("name") == "bootloader")
         messages = [str(issue) for issue in validate_ptab_v3(ptab_obj)]
 
         self.assertEqual(ptab.parse_size(flash_table["size"]), 0x00040000)
+        self.assertEqual(ptab.parse_size(factory_data["offset"]), 0x00080000)
+        self.assertEqual(ptab.parse_size(factory_data["size"]), 0x00040000)
         self.assertEqual(ptab.parse_size(bootloader["offset"]), 0x00100000)
         self.assertFalse(any("overlap" in message for message in messages), messages)
 
@@ -344,7 +349,7 @@ class ValidatePtabV3ReservedPartitionTests(unittest.TestCase):
 
         self.assertTrue(any("block_size" in message and "NAND" in message for message in messages), messages)
 
-    def test_52_sdmmc_requires_mbr_partition(self) -> None:
+    def test_52_sdmmc_injects_default_mbr_partition(self) -> None:
         data = self.base_52_sdmmc_partitions(factory_data={
             "name": "factory_data",
             "type": "data",
@@ -354,12 +359,17 @@ class ValidatePtabV3ReservedPartitionTests(unittest.TestCase):
             "size": 0x00020000,
             "aliases": ["FACTORY_DATA"],
         })
+        mbr = self.find_partition(data, "mbr")
 
-        messages = self.validation_messages(data)
+        self.assertEqual(mbr["type"], "data")
+        self.assertEqual(mbr["subtype"], "raw")
+        self.assertEqual(mbr["region"], "sdmmc1")
+        self.assertEqual(ptab.parse_size(mbr["offset"]), 0x00000000)
+        self.assertEqual(ptab.parse_size(mbr["size"]), 0x00001000)
+        self.assertEqual(mbr["aliases"], ["MBR"])
+        self.assertNoReservationMessages(data)
 
-        self.assertTrue(any("MBR" in message for message in messages), messages)
-
-    def test_52_sdmmc_requires_factory_data_partition(self) -> None:
+    def test_52_sdmmc_injects_default_factory_data_partition(self) -> None:
         data = self.base_52_sdmmc_partitions(mbr={
             "name": "mbr",
             "type": "data",
@@ -369,10 +379,15 @@ class ValidatePtabV3ReservedPartitionTests(unittest.TestCase):
             "size": 0x00001000,
             "aliases": ["MBR"],
         })
+        factory_data = self.find_partition(data, "factory_data")
 
-        messages = self.validation_messages(data)
-
-        self.assertTrue(any("FACTORY_DATA" in message for message in messages), messages)
+        self.assertEqual(factory_data["type"], "data")
+        self.assertEqual(factory_data["subtype"], "raw")
+        self.assertEqual(factory_data["region"], "sdmmc1")
+        self.assertEqual(ptab.parse_size(factory_data["offset"]), 0x00041000)
+        self.assertEqual(ptab.parse_size(factory_data["size"]), 0x00020000)
+        self.assertEqual(factory_data["aliases"], ["FACTORY_DATA"])
+        self.assertNoReservationMessages(data)
 
     def test_52_sdmmc_rejects_reserved_partition_without_data_raw_type(self) -> None:
         data = self.base_52_sdmmc_partitions(
