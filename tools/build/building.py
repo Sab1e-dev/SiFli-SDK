@@ -3594,34 +3594,34 @@ def EndBuilding(target, program = None):
             if "ROM_SYM" in Env and Env['ROM_SYM']:
                 Depends(program, Env['ROM_SYM'])
             
-            # Register sdk_size.py to run once at program exit after all builds complete
-            # Only register for main project (not child projects) to get consolidated report
-            if not IsChildProjEnv():
-                global _sdk_size_registered, _main_build_dir
-                if not _sdk_size_registered:
-                    _main_build_dir = Env['build_dir']
-                    _sdk_size_registered = True
-                    
-                    def run_sdk_size_analysis_at_exit():
-                        # Only run if build was successful
-                        if GetBuildFailures():
-                            return
-                        SIFLI_SDK = os.getenv('SIFLI_SDK')
-                        sdk_size_script = os.path.join(SIFLI_SDK, 'tools', 'sdk_size', 'sdk_size.py')
-                        if os.path.exists(sdk_size_script) and _main_build_dir:
-                            print("\n" + "="*80)
-                            print("Memory Usage Analysis")
-                            print("="*80)
-                            try:
-                                cmd = [sys.executable, sdk_size_script, _main_build_dir]
-                                result = subprocess.run(cmd)
-                                print("="*80 + "\n")
-                                if result.returncode != 0:
-                                    logging.warning("sdk_size.py returned non-zero exit code: " + str(result.returncode))
-                            except Exception as e:
-                                logging.warning(f"Failed to run sdk_size.py: {e}")
-                    
-                    atexit.register(run_sdk_size_analysis_at_exit)
+        # Register sdk_size.py to run once at program exit after all builds complete
+        # Only register for main project (not child projects) to get consolidated report
+        if not IsChildProjEnv() and rtconfig.CROSS_TOOL == 'gcc':
+            global _sdk_size_registered, _main_build_dir
+            if not _sdk_size_registered:
+                _main_build_dir = Env['build_dir']
+                _sdk_size_registered = True
+                
+                def run_sdk_size_analysis_at_exit():
+                    # Only run if build was successful
+                    if GetBuildFailures():
+                        return
+                    SIFLI_SDK = os.getenv('SIFLI_SDK')
+                    sdk_size_script = os.path.join(SIFLI_SDK, 'tools', 'sdk_size', 'sdk_size.py')
+                    if os.path.exists(sdk_size_script) and _main_build_dir:
+                        print("\n" + "="*80)
+                        print("Memory Usage Analysis")
+                        print("="*80)
+                        try:
+                            cmd = [sys.executable, sdk_size_script, _main_build_dir]
+                            result = subprocess.run(cmd)
+                            print("="*80 + "\n")
+                            if result.returncode != 0:
+                                logging.warning("sdk_size.py returned non-zero exit code: " + str(result.returncode))
+                        except Exception as e:
+                            logging.warning(f"Failed to run sdk_size.py: {e}")
+                
+                atexit.register(run_sdk_size_analysis_at_exit)
 
 def SrcRemove(src, remove):
     if not src:
