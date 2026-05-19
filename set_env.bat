@@ -21,7 +21,7 @@ if defined SIFLI_SDK_VER_MAJOR if defined SIFLI_SDK_VER_MINOR (
 set "SIFLI_SDK_VER_MAJOR="
 set "SIFLI_SDK_VER_MINOR="
 
-set "ver_check=1.1.4"
+set "ver_check=1.2.0"
 if not defined ENV_VER (
     echo Please upgrate env to v%ver_check% or greater
     echo set_env FAIL
