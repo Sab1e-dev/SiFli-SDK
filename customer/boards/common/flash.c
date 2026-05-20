@@ -184,14 +184,38 @@ static void flash_lock2(uint32_t addr, uint32_t lock)
         nor_unlock(addr);
 }
 
+#if defined(CFG_BOOTLOADER) && defined(USE_ATE_MODE) && defined(SF32LB55X)
+static void bsp_flash_check_dual(QSPI_FLASH_CTX_T *pflash_ctx, qspi_configure_t *pflash_cfg)
+{
+    int dual = 0;
+
+    dual = HAL_FLASH_DETECT_SINGLE(pflash_ctx, pflash_cfg);
+    if (dual == 0)  // single flash not valid
+        return;
+
+    // check dual flash, set dual pinmux
+    HAL_PIN_Set_Dual_flash1();
+    dual = HAL_FLASH_DETECT_DUAL(pflash_ctx, pflash_cfg);
+    if (dual)
+    {
+        pflash_ctx->dual_mode = 2;  // dual mode
+    }
+    else
+    {
+        pflash_ctx->dual_mode = 1;  // single mode
+        HAL_PIN_Set_Dual_flash1_default();
+    }
+}
+#endif /* CFG_BOOTLOADER && ATE_MODE && SF32LB55X */
+
 void BSP_Flash_var_init(void)
 {
     flash_memset(spi_flash_handle, 0, sizeof(spi_flash_handle));
-#ifdef BSP_QSPI2_DUAL_MODE    
+#ifdef BSP_QSPI2_DUAL_MODE
     flash_memset(&flash_ext_handle, 0, sizeof(flash_ext_handle));
     g_ext_flash_id = -1;
     gis_ext_flash = 0;
-#endif /* BSP_QSPI2_DUAL_MODE */    
+#endif /* BSP_QSPI2_DUAL_MODE */
     HAL_Delay_us(0);
 }
 
@@ -218,7 +242,7 @@ void *BSP_Flash_get_handle(uint32_t addr)
     {
         return (void *)&flash_ext_handle.handle;
     }
-#endif /* BSP_QSPI2_DUAL_MODE */        
+#endif /* BSP_QSPI2_DUAL_MODE */
 
     id = Addr2Id(addr);
 
@@ -236,7 +260,7 @@ void *BSP_Flash_get_handle_by_id(uint8_t id)
 
 int BSP_Flash_read_id(uint32_t addr)
 {
-#ifdef BSP_QSPI2_DUAL_MODE    
+#ifdef BSP_QSPI2_DUAL_MODE
     if (IsExtFlashAddr(addr))
         return flash_ext_handle.dev_id;
 #endif /* BSP_QSPI2_DUAL_MODE */
@@ -569,7 +593,7 @@ __HAL_ROM_USED int BSP_Flash_Init_WithID(uint8_t fid, qspi_configure_t *pflash_c
 
     pflash_ctx->handle.cs_ctrl = NULL;
 
-#ifdef BSP_QSPI2_DUAL_MODE    
+#ifdef BSP_QSPI2_DUAL_MODE
     if (gis_ext_flash)
     {
         pflash_ctx = &flash_ext_handle;
@@ -620,6 +644,16 @@ __HAL_ROM_USED int BSP_Flash_Init_WithID(uint8_t fid, qspi_configure_t *pflash_c
 #ifdef CFG_BOOTLOADER
 #ifndef USE_ATE_MODE
     pflash_cfg->line = 0;    // for bootloader, force to 1 line process
+#else
+    // ATE for 55x
+#ifdef SF32LB55X
+    if (0 == fid)
+    {
+        /* check flash1 dual flash for SS6600 A8 */
+        bsp_flash_check_dual(pflash_ctx, pflash_cfg);
+    }
+#endif /* SF32LB55X */
+
 #endif
 #endif
     pflash_ctx->handle.buf_mode = dtr;
@@ -629,7 +663,7 @@ __HAL_ROM_USED int BSP_Flash_Init_WithID(uint8_t fid, qspi_configure_t *pflash_c
         pflash_ctx->handle.ecc_en = (1 << 7) | (0xf); // high 1 bits for rx clock inv, low 7 bits for rx clock delay
     }
 
-#ifdef BSP_QSPI2_DUAL_MODE    
+#ifdef BSP_QSPI2_DUAL_MODE
     if (gis_ext_flash)
     {
         div = BSP_GetFlashExtDiv();
@@ -643,7 +677,7 @@ __HAL_ROM_USED int BSP_Flash_Init_WithID(uint8_t fid, qspi_configure_t *pflash_c
     {
         // TODO: save local div for dual flash if needed like : pflash_ctx->handle.reserv1 = (uint8_t)div;
         pflash_ctx->handle.reserv1 = (uint8_t)div;
-#ifdef BSP_QSPI2_DUAL_MODE           
+#ifdef BSP_QSPI2_DUAL_MODE
         if (gis_ext_flash)
         {
             pflash_ctx->base_addr += spi_flash_handle[fid].total_size;
@@ -658,7 +692,7 @@ __HAL_ROM_USED int BSP_Flash_Init_WithID(uint8_t fid, qspi_configure_t *pflash_c
     return 0;
 }
 
-#ifdef BSP_QSPI2_DUAL_MODE  
+#ifdef BSP_QSPI2_DUAL_MODE
 __HAL_ROM_USED int BSP_Flash_EXT_Init_WithID(uint8_t fid, qspi_configure_t *pflash_cfg, struct dma_config *pdma_cfg, uint8_t dtr)
 {
     int ret = 0;
@@ -864,7 +898,7 @@ __HAL_ROM_USED int BSP_Flash_Init(void)
 {
     int fen = 0;
 
-#ifdef BSP_QSPI2_DUAL_MODE        
+#ifdef BSP_QSPI2_DUAL_MODE
     gis_ext_flash = 0;
     g_ext_flash_id = -1;
 #endif /* BSP_QSPI2_DUAL_MODE */
