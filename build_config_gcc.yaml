@@ -319,6 +319,11 @@ common_projects:
   - path: example/hal/epic/project
     boards: *devkit_lcd_boards
 
+  - path: example/hal/epic/project
+    boards: 
+      - eh-lb551
+      - eh-lb555
+
   - path: example/hal/ezip/project
     boards: *devkit_lcd_boards
 
@@ -357,7 +362,11 @@ common_projects:
 
   - path: example/hal/nnacc/project
     boards:
+      - eh-lb551
+      - eh-lb555
+      - sf32lb56-lcd_a128r12n1
       - sf32lb56-lcd_n16r12n1
+      - sf32lb58-lcd_a128r32n1_qspi
       - sf32lb58-lcd_n16r32n1_qspi
 
   - path: example/hal/pwm/project
@@ -397,8 +406,18 @@ common_projects:
   - path: example/misc/button/project
     boards: *devkit_lcd_boards
 
+  - path: example/misc/button/project
+    boards:
+      - eh-lb551
+      - eh-lb555
+
   - path: example/misc/elm_rw/project
     boards: *devkit_lcd_boards
+
+  - path: example/misc/elm_rw/project
+    boards:
+      - eh-lb551
+      - eh-lb555
 
   - path: example/misc/generate_lib/project
     boards:
@@ -639,6 +658,8 @@ common_projects:
 
   - path: example/rt_device/nnacc/project
     boards:
+      - eh-lb551
+      - eh-lb555
       - sf32lb56-lcd_a128r12n1
       - sf32lb56-lcd_n16r12n1
       - sf32lb58-lcd_a128r32n1_qspi
@@ -716,6 +737,8 @@ common_projects:
   - path: example/storage/flashdb/project/nor
     boards:
       - eh-lb523
+      - eh-lb551
+      - eh-lb555
       - sf32lb52-lcd_n16r8 
       - sf32lb52-nano_n16r16
       - sf32lb56-lcd_n16r12n1
@@ -723,6 +746,8 @@ common_projects:
 
   - path: example/storage/littlefs/nor/project
     boards:
+      - eh-lb551
+      - eh-lb555
       - sf32lb52-lcd_n16r8 
       - sf32lb52-nano_n16r16
       - sf32lb56-lcd_n16r12n1
@@ -739,8 +764,18 @@ common_projects:
   - path: example/system/finsh/project
     boards: *devkit_lcd_boards
 
+  - path: example/system/finsh/project
+    boards: 
+      - eh-lb551
+      - eh-lb555
+
   - path: example/system/ulog/project
     boards: *devkit_lcd_boards
+
+  - path: example/system/ulog/project
+    boards:
+      - eh-lb551
+      - eh-lb555
 
   - path: example/uart/project
     boards: *default_boards
