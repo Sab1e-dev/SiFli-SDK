@@ -1418,8 +1418,19 @@ def needs_52_vddsip_ldo18(variant: ChipVariant) -> bool:
 def _memory_summary_suffix(variant: ChipVariant) -> str:
     if not variant.memory:
         return ''
-    parts = [f'{entry.mpi}:{entry.mem_type}:{entry.size_mb}MB' for entry in sorted(variant.memory, key=_memory_sort_key)]
+    parts = [
+        f'{entry.mpi}:{entry.mem_type}:{_format_memory_size(entry.size_bytes)}'
+        for entry in sorted(variant.memory, key=_memory_sort_key)
+    ]
     return f' [{", ".join(parts)}]'
+
+
+def _format_memory_size(size_bytes: int) -> str:
+    if size_bytes >= MB and size_bytes % MB == 0:
+        return f'{size_bytes // MB}MB'
+    if size_bytes >= KB and size_bytes % KB == 0:
+        return f'{size_bytes // KB}KB'
+    return f'{size_bytes}B'
 
 
 def _memory_sort_key(entry: MemoryEntry) -> Tuple[int, str]:

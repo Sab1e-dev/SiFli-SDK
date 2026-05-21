@@ -27,6 +27,7 @@ from sdk_py_actions.new_board import Spec  # noqa: E402
 from sdk_py_actions.new_board import build_confirmation_summary  # noqa: E402
 from sdk_py_actions.new_board import normalize_spec  # noqa: E402
 from sdk_py_actions.new_board import render_board_files  # noqa: E402
+from sdk_py_actions.new_board import _memory_summary_suffix  # noqa: E402
 
 
 ASSETS_ROOT = Path(ROOT) / "tools" / "sdk_py_actions" / "new_board"
@@ -138,6 +139,20 @@ class NewBoardRenderTests(unittest.TestCase):
 
     def render_top_ptab_data(self, spec: Spec, variant: Optional[ChipVariant] = None) -> dict[str, Any]:
         return yaml.safe_load(self.render_top_ptab(spec, variant=variant))
+
+    def test_memory_summary_uses_actual_kb_for_sub_mb_storage(self) -> None:
+        variant = ChipVariant(
+            series="56",
+            chip_dir="SF32LB56x",
+            model_id="SF32LB56X",
+            part_number="SF32LB561UBN26",
+            memory=(
+                MemoryEntry("mpi5", "nor", 512 * 1024),
+                MemoryEntry("mpi1", "psram", 4 * MB),
+            ),
+        )
+
+        self.assertEqual(_memory_summary_suffix(variant), " [mpi1:psram:4MB, mpi5:nor:512KB]")
 
     def render_ptab_offsets(self, spec: Spec, variant: ChipVariant) -> dict[str, int]:
         data = self.render_top_ptab_data(spec, variant=variant)
