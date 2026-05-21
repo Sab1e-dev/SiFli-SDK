@@ -22,6 +22,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from datetime import timezone
+from enum import StrEnum
 from typing import Any
 from typing import Dict
 from typing import List
@@ -76,6 +77,11 @@ POWERSHELL_SHELLS = {"powershell", "pwsh"}
 
 class SDKEnvError(RuntimeError):
     pass
+
+
+class InstallIntent(StrEnum):
+    CREATE = "create"
+    UPDATE = "update"
 
 
 RICH_THEME = Theme(
@@ -1587,6 +1593,19 @@ def parse_install_targets(lock: ProfileLock, cli_targets: Optional[str], compat_
     return list(lock.default_targets)
 
 
+def parse_install_intent_and_targets(
+    lock: ProfileLock,
+    cli_targets: Optional[str],
+    compat_args: Sequence[str],
+) -> tuple[InstallIntent, List[str]]:
+    install_intent = InstallIntent.CREATE
+    remaining_args = list(compat_args)
+    if remaining_args and remaining_args[0].strip().lower() == InstallIntent.UPDATE.value:
+        install_intent = InstallIntent.UPDATE
+        remaining_args = remaining_args[1:]
+    return install_intent, parse_install_targets(lock, cli_targets, remaining_args)
+
+
 def merge_managed_paths(current_path: str, old_managed_paths: Sequence[str], new_managed_paths: Sequence[str]) -> str:
     current_items = [item for item in current_path.split(os.pathsep) if item]
     old_set = {normalize_path(item) for item in old_managed_paths if item}
@@ -1603,10 +1622,15 @@ def merge_managed_paths(current_path: str, old_managed_paths: Sequence[str], new
     return os.pathsep.join(merged)
 
 
-def install_command_hint(profile: str, shell: str) -> str:
+def install_command_hint(
+    profile: str,
+    shell: str,
+    install_intent: InstallIntent = InstallIntent.CREATE,
+) -> str:
+    intent_arg = " update" if install_intent == InstallIntent.UPDATE else ""
     if shell_kind(shell) == "powershell":
-        return f".\\install.ps1 --profile {profile}"
-    return f"./install.sh --profile {profile}"
+        return f".\\install.ps1{intent_arg} --profile {profile}"
+    return f"./install.sh{intent_arg} --profile {profile}"
 
 
 def keil_install_command_hint(profile: str) -> str:
@@ -1882,6 +1906,7 @@ def decide_environment_install(
     targets: Sequence[str],
     state_doc: Dict[str, Any],
     root: str,
+    install_intent: InstallIntent = InstallIntent.CREATE,
 ) -> EnvironmentInstallDecision:
     resolved_env = resolve_env_instance(config, lock, state_doc)
     target_reasons = validate_resolved_env_instance(config, lock, plans, resolved_env, targets)
@@ -1902,7 +1927,11 @@ def decide_environment_install(
             reason="target environment is already valid",
         )
 
-    if previous_env_key and previous_env_key != resolved_env.key:
+    if (
+        install_intent == InstallIntent.UPDATE
+        and previous_env_key
+        and previous_env_key != resolved_env.key
+    ):
         old_env_state = state_envs(state_doc).get(previous_env_key)
         old_paths = reusable_env_paths(old_env_state if isinstance(old_env_state, dict) else None)
         if old_paths and env_reference_count(state_doc, previous_env_key) == 1:
@@ -1917,6 +1946,8 @@ def decide_environment_install(
                 reason="previous environment is referenced only by this SDK",
             )
 
+    if previous_env_key and previous_env_key != resolved_env.key:
+        prune_env_keys = (previous_env_key,)
     env_path, conan_home = install_paths_for_env(config, lock, resolved_env)
     log_kv("env action", "prepare target env")
     return EnvironmentInstallDecision(
@@ -1925,7 +1956,7 @@ def decide_environment_install(
         conan_home=conan_home,
         skip_install=False,
         previous_env_key=previous_env_key,
-        prune_env_keys=(),
+        prune_env_keys=prune_env_keys,
         reason="target environment needs installation",
     )
 
@@ -1937,13 +1968,23 @@ def perform_install(
     targets: Sequence[str],
     auto_reconcile: Optional[str] = None,
     keil_toolchain: Optional[Dict[str, str]] = None,
+    install_intent: InstallIntent = InstallIntent.CREATE,
 ) -> Dict[str, Any]:
     log_step(f"Starting install for profile '{lock.profile}'")
     log_kv("mode", "install")
+    log_kv("intent", install_intent.value)
     plans = load_tool_plans(repo_root(), config, lock, targets)
     root = repo_root()
     state_doc = load_state(config.state_path)
-    env_decision = decide_environment_install(config, lock, plans, targets, state_doc, root)
+    env_decision = decide_environment_install(
+        config,
+        lock,
+        plans,
+        targets,
+        state_doc,
+        root,
+        install_intent,
+    )
     resolved_env = env_decision.resolved_env
     env_path = env_decision.python_env_path
     conan_home = env_decision.conan_home
@@ -2012,16 +2053,24 @@ def handle_install(args: argparse.Namespace) -> int:
     keil_toolchain = validate_keil_toolchain(keil_arg) if keil_arg else None
     config = RuntimeConfig.load(args)
     lock = ProfileLock.load(repo_root(), args.profile)
-    targets = parse_install_targets(lock, args.targets, args.compat_args)
+    install_intent, targets = parse_install_intent_and_targets(lock, args.targets, args.compat_args)
     log_banner(
         f"Installing SiFli-SDK {read_version_txt(repo_root())}",
         f"profile={lock.profile}",
     )
+    log_kv("install intent", install_intent.value)
     log_kv("selected targets", ",".join(targets))
     if keil_toolchain is not None:
         log_kv("keil root", keil_toolchain["root"])
         log_kv("keil armclang bin", keil_toolchain["armclang_bin"])
-    perform_install(args, config, lock, targets, keil_toolchain=keil_toolchain)
+    perform_install(
+        args,
+        config,
+        lock,
+        targets,
+        install_intent=install_intent,
+        keil_toolchain=keil_toolchain,
+    )
     log_ok(f"SiFli-SDK profile '{lock.profile}' installed.")
     return 0
 
@@ -2077,9 +2126,13 @@ def handle_export(args: argparse.Namespace) -> int:
         if effective_choice == "never":
             if preference == "ask" and sys.stdin.isatty() and sys.stdout.isatty():
                 write_profile_state(config.state_path, repo_root(), lock.profile, auto_reconcile="never")
+            create_hint = install_command_hint(lock.profile, args.shell)
+            update_hint = install_command_hint(lock.profile, args.shell, InstallIntent.UPDATE)
             raise SDKEnvError(
                 f"environment instance for profile '{lock.profile}' is missing or invalid for the current checkout. "
-                f"Re-run `{install_command_hint(lock.profile, args.shell)}` to prepare the SDK environment, then export again."
+                f"Run `{create_hint}` to prepare a new environment for the current lock, or `{update_hint}` "
+                "to try updating the currently selected environment in place. Shared environments are kept isolated "
+                "and will use a new environment instance. Export again after install completes."
             )
 
         persist_preference = "ask" if effective_choice == "once" else effective_choice
@@ -2095,6 +2148,7 @@ def handle_export(args: argparse.Namespace) -> int:
             config,
             lock,
             lock.default_targets,
+            install_intent=InstallIntent.UPDATE,
             auto_reconcile=persist_preference,
         )
         resolved_env = resolve_env_instance(config, lock)
