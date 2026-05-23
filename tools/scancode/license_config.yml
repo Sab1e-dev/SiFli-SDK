@@ -4,6 +4,7 @@ license:
     - MIT
     - BSD-2-Clause
     - BSD-3-Clause
+    - ISC
   report_invalid: true
   report_unknown: true
   report_missing: true
