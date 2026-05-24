@@ -1,5 +1,5 @@
 menuconfig USING_SF_CRYPTO
-    bool "Use SiFli Cryptography Module"
+    bool "Cryptography Module by SiFli"
     default n
 
     if USING_SF_CRYPTO
