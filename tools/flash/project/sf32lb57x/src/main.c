@@ -1,4 +1,10 @@
 
+/*
+ * SPDX-FileCopyrightText: 2026 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 /* Includes ------------------------------------------------------------------*/
 #include "bf0_hal.h"
 #include "drv_io.h"

@@ -22,6 +22,9 @@ exclude:
     - md
   special_file:
     - SConscript
+    - SConscript.jinja2
+    - SConscript.base
+    - SConscript.base.jinja2
     - SConstruct
     - ChangeLog
     - Kconfig

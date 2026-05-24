@@ -1,4 +1,10 @@
 
+/*
+ * SPDX-FileCopyrightText: 2026 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 #include "sd_nand_drv.h"
 
 void sd1_init()

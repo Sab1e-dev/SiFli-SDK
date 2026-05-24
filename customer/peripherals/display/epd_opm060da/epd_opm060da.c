@@ -1,11 +1,8 @@
-/**
-  ******************************************************************************
-  * @file   epd_opm060da.c
-  * @author software development team
-  * @brief   This file includes the LCD driver for epd_opm060da LCD.
-  * @attention
-  ******************************************************************************
-*/
+/*
+ * SPDX-FileCopyrightText: 2026 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include <rtthread.h>
 #include "string.h"

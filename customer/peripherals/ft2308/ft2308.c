@@ -1,11 +1,8 @@
-/**
-  ******************************************************************************
-  * @file   ft2308.c
-  * @author software development team
-  * @brief   This file includes the LCD driver for ft2308 LCD.
-  * @attention
-  ******************************************************************************
-*/
+/*
+ * SPDX-FileCopyrightText: 2019-2026 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include <rtthread.h>
 #include "string.h"
@@ -120,19 +117,19 @@
 
 
 #ifdef LCD_USING_FPGA_ED_LB5XSPI19701
-#define QAD_SPI_ITF LCDC_INTF_SPI_DCX_4DATA
-#define QAD_SPI_ITF_FREQ   24000000 //On FPGA
-#elif defined(LCD_USING_FPGA_ED_LB5XSPI19701_DDR)
-#define QAD_SPI_ITF LCDC_INTF_SPI_DCX_DDR_4DATA
-#define QAD_SPI_ITF_FREQ   12000000 //On FPGA
-#else
-#ifdef BSP_LCDC_USING_DDR_QADSPI
-    #define QAD_SPI_ITF LCDC_INTF_SPI_DCX_DDR_4DATA
-    #define QAD_SPI_ITF_FREQ   40000000
-#else
     #define QAD_SPI_ITF LCDC_INTF_SPI_DCX_4DATA
-    #define QAD_SPI_ITF_FREQ   50000000
-#endif
+    #define QAD_SPI_ITF_FREQ   24000000 //On FPGA
+#elif defined(LCD_USING_FPGA_ED_LB5XSPI19701_DDR)
+    #define QAD_SPI_ITF LCDC_INTF_SPI_DCX_DDR_4DATA
+    #define QAD_SPI_ITF_FREQ   12000000 //On FPGA
+#else
+    #ifdef BSP_LCDC_USING_DDR_QADSPI
+        #define QAD_SPI_ITF LCDC_INTF_SPI_DCX_DDR_4DATA
+        #define QAD_SPI_ITF_FREQ   40000000
+    #else
+        #define QAD_SPI_ITF LCDC_INTF_SPI_DCX_4DATA
+        #define QAD_SPI_ITF_FREQ   50000000
+    #endif
 #endif
 
 static const LCDC_InitTypeDef lcdc_int_cfg_spi =

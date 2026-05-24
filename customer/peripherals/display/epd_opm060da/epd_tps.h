@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2026 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #ifndef __EPD_TPS_H__
 #define __EPD_TPS_H__
