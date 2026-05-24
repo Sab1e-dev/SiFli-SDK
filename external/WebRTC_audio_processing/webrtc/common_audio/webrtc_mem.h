@@ -10,10 +10,7 @@
 #include <rtthread.h>
 
 #ifdef AUDIO
-#include "audio_mem.h"
-#endif
-
-#if 1
+    #include "audio_mem.h"
     #undef malloc
     #undef free
     #undef calloc
@@ -24,5 +21,5 @@
     #define realloc(m, n)   audio_mem_realloc(m, n)
 #endif
 
-#endif // __AUDIO_MEM_H
+#endif // __WEBRTC_MEM_H
 

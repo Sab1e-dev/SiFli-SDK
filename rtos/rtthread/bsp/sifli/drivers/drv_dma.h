@@ -11,14 +11,11 @@
 #include <rthw.h>
 #include <rtdevice.h>
 #include "board.h"
+#include <drv_common.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-void *dma_malloc_in_1m(uint32_t size);
-void dma_free_in_1m(void *p);
-
 #ifdef __cplusplus
 }
 #endif

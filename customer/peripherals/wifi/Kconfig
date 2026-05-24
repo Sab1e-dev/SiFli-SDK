@@ -1,5 +1,7 @@
+menu "WiFi"
+
 menuconfig BSP_WIFI_SWT6621
-    bool "Enable swt 6621 wifi mode"
+    bool "SWT6621"
     default n
     if BSP_WIFI_SWT6621
         config WIFI_WAKEUP_OUT_PIN
@@ -37,3 +39,5 @@ menuconfig BSP_WIFI_SWT6621
             int "SWT6621 SDIO port number, 0-SDHCI1; 1-SDHCI2; 2-SDIO"
             default 0
     endif
+
+endmenu    

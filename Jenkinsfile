@@ -44,6 +44,13 @@ pipeline {
                         '''
                     }
                 } 
+                stage('57x bootrom') {
+                    steps {
+                        bat'''
+                        tools\\autotest\\build.bat example\\boot_loader\\project\\sf32lb57x\\rom
+                        '''
+                    }
+                } 
             }
         }
         stage('Copyright Check') {
@@ -55,8 +62,8 @@ pipeline {
         }
         stage('Archive files') {
              steps {
-                 //archiveArtifacts artifacts: 'example\boot_loader\project\butterflmicro\rom\build\bootloader.*', fingerprint: true
-                 //archiveArtifacts artifacts: 'example\\boot_loader\\project\\butterflmicro\\rom\\build\\bootloader.*,example\\rom_bin\\lcpu_boot_loader\\lcpu_rom_micro.*,example\\rom_bin\\lcpu_boot_loader\\rom_micro.sym,example\\rom_bin\\lcpu_boot_loader\\rom_micro_internal.sym', fingerprint: true, onlyIfSuccessful: true
+                 archiveArtifacts artifacts: 'example\\boot_loader\\project\\sf32lb57x\\rom\\build\\bootloader.*', fingerprint: true, onlyIfSuccessful: true
+                 //  archiveArtifacts artifacts: 'example\\boot_loader\\project\\sf32lb57x\\rom\\build\\bootloader.*,example\\rom_bin\\lcpu_boot_loader\\lcpu_rom_micro.*,example\\rom_bin\\lcpu_boot_loader\\rom_micro.sym,example\\rom_bin\\lcpu_boot_loader\\rom_micro_internal.sym', fingerprint: true, onlyIfSuccessful: true
                  echo "Archive files success"
             }
         }

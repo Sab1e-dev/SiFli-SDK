@@ -14,6 +14,7 @@ A USB CDC ACM to UART bridge driver based on CherryUSB that transparently forwar
 ### Supported Development Boards
 
 - **SF32LB52_LCD_N16R8**: UART2 uses PA03(RX), PA04(TX)
+- **SF32LB56_LCD_A128R12N1 / SF32LB56_LCD_N16R12N1**: UART2 uses PA20(RX), PA27(TX)
 - **SF32LB58_LCD_N16R64N4**: UART2 uses PA29(RX), PA28(TX)
 
 ## Compilation and Usage
@@ -23,13 +24,13 @@ A USB CDC ACM to UART bridge driver based on CherryUSB that transparently forwar
 Switch to the example project directory and run the scons command to compile:
 
 ```bash
-scons --board=sf32lb52-lcd_n16r8 -j8
+scons --board=sf32lb56-lcd_a128r12n1 -j8
 ```
 
-Run `build_sf32lb52-lcd_n16r8_hcpu\uart_download.bat` and select the port as prompted for downloading:
+Run `build_sf32lb56-lcd_a128r12n1_hcpu\uart_download.bat` and select the port as prompted for downloading:
 
 ```bash
-build_sf32lb52-lcd_n16r8_hcpu\uart_download.bat
+build_sf32lb56-lcd_a128r12n1_hcpu\uart_download.bat
 Uart Download
 please input the serial port num:5
 ```

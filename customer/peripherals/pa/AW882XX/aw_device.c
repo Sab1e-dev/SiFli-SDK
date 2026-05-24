@@ -835,7 +835,7 @@ int aw_dev_reg_dump(struct aw_device *aw_dev)
 {
     int reg_num = aw_dev->ops.aw_get_reg_num();
     uint8_t i = 0;
-    uint32_t reg_val = 0;
+    unsigned int reg_val = 0;
 
     for (i = 0; i < reg_num; i++)
     {

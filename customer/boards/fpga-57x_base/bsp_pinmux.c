@@ -1,0 +1,292 @@
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include "bsp_board.h"
+
+#ifdef BSP_USING_PSRAM1
+/* APS 128p*/
+static void board_pinmux_psram_func0()
+{
+    HAL_PIN_Set(PAD_SA01, MPI1_PSRAM_DIO0, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA02, MPI1_PSRAM_DIO1, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA03, MPI1_PSRAM_DIO2, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA04, MPI1_PSRAM_DIO3, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA05, MPI1_PSRAM_DIO4, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA06, MPI1_PSRAM_DIO5, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA07, MPI1_PSRAM_DIO6, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA08, MPI1_PSRAM_DIO7, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA09, MPI1_PSRAM_DQSDM, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA10, MPI1_PSRAM_CLK,  PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_SA11, MPI1_PSRAM_CS,   PIN_NOPULL, 1);
+
+    HAL_PIN_Set_Analog(PAD_SA00, 1);
+    HAL_PIN_Set_Analog(PAD_SA12, 1);
+}
+
+/* APS 1:64p 2:32P, 4:Winbond 32/64/128p*/
+static void board_pinmux_psram_func1_2_4(int func)
+{
+    HAL_PIN_Set(PAD_SA01, MPI1_PSRAM_DIO0, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA02, MPI1_PSRAM_DIO1, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA03, MPI1_PSRAM_DIO2, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA04, MPI1_PSRAM_DIO3, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA08, MPI1_PSRAM_DIO4, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA09, MPI1_PSRAM_DIO5, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA10, MPI1_PSRAM_DIO6, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA11, MPI1_PSRAM_DIO7, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA07, MPI1_PSRAM_CLK,  PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_SA05, MPI1_PSRAM_CS,   PIN_NOPULL, 1);
+
+#ifdef FPGA
+    HAL_PIN_Set(PAD_SA00, MPI1_PSRAM_DM, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA06, MPI1_PSRAM_CLKB, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_SA12, MPI1_PSRAM_DQSDM, PIN_PULLDOWN, 1);
+#else
+    switch (func)
+    {
+    case 1:             // APS 64P XCELLA
+        HAL_PIN_Set(PAD_SA12, MPI1_PSRAM_DQSDM, PIN_PULLDOWN, 1);
+        HAL_PIN_Set_Analog(PAD_SA00, 1);
+        HAL_PIN_Set_Analog(PAD_SA06, 1);
+        break;
+    case 2:             // APS 32P LEGACY
+        HAL_PIN_Set(PAD_SA00, MPI1_PSRAM_DM, PIN_PULLDOWN, 1);
+        HAL_PIN_Set(PAD_SA12, MPI1_PSRAM_DQS, PIN_PULLDOWN, 1);
+        HAL_PIN_Set(PAD_SA06, MPI1_PSRAM_CLKB, PIN_NOPULL, 1);
+        break;
+    case 4:             // Winbond 32/64/128p
+        //HAL_PIN_Set(PAD_SA06, MPI1_CLKB, PIN_NOPULL, 1);
+        HAL_PIN_Set(PAD_SA12, MPI1_PSRAM_DQSDM, PIN_NOPULL, 1);
+        HAL_PIN_Set_Analog(PAD_SA00, 1);
+        HAL_PIN_Set_Analog(PAD_SA06, 1);
+        break;
+    }
+#endif
+}
+
+/* APS 16p*/
+static void board_pinmux_psram_func3()
+{
+//TODO:
+#if 0
+    HAL_PIN_Set(PAD_SA09, MPI1_CLK, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_SA08, MPI1_CS,  PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_SA05, MPI1_DIO0, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA07, MPI1_DIO1, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_SA06, MPI1_DIO2, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_SA10, MPI1_DIO3, PIN_PULLUP, 1);
+#endif
+
+    HAL_PIN_Set_Analog(PAD_SA00, 1);
+    HAL_PIN_Set_Analog(PAD_SA01, 1);
+    HAL_PIN_Set_Analog(PAD_SA02, 1);
+    HAL_PIN_Set_Analog(PAD_SA03, 1);
+    HAL_PIN_Set_Analog(PAD_SA04, 1);
+    HAL_PIN_Set_Analog(PAD_SA11, 1);
+    HAL_PIN_Set_Analog(PAD_SA12, 1);
+}
+
+static void board_pinmux_mpi1_none(void)
+{
+    uint32_t i;
+
+    for (i = 0; i <= 12; i++)
+    {
+        HAL_PIN_Set_Analog(PAD_SA00 + i, 1);
+    }
+}
+#endif
+
+/* i2s pinmux set */
+void i2s_pinmux_set(int idx)
+{
+    HAL_PIN_Set(PAD_PA41, I2S1_LRCK, PIN_NOPULL, 1); /* A1 */
+    HAL_PIN_Set(PAD_PA42, I2S1_BCK, PIN_NOPULL, 1);  /* A2 */
+    HAL_PIN_Set(PAD_PA38, I2S1_SDI, PIN_PULLDOWN, 1); /* A4 */
+    HAL_PIN_Set(PAD_PA37, I2S1_SDO, PIN_NOPULL, 1);  /* A5 */
+}
+
+void BSP_PIN_Init(void)
+{
+#ifdef SOC_BF0_HCPU
+    // HCPU pins
+
+    //touch
+    HAL_PIN_Set(PAD_PA46, I2C1_SCL, PIN_PULLUP, 1); //scl
+    HAL_PIN_Set(PAD_PA45, I2C1_SDA, PIN_PULLUP, 1); //sda
+    //HAL_PIN_Set(PAD_PA01, GPIO_A1, PIN_NOPULL, 1); //reset
+
+    uint32_t psram_type;
+
+    psram_type = PKGID_PSRAM_APS_64;
+#ifdef BSP_USING_PSRAM1
+    switch (psram_type)
+    {
+    case PKGID_PSRAM_APS_16: //BOOT_PSRAM_APS_16P:
+        board_pinmux_psram_func3();         // 16Mb APM QSPI PSRAM
+        break;
+    case PKGID_PSRAM_APS_32: //BOOT_PSRAM_APS_32P:
+        board_pinmux_psram_func1_2_4(2);    // 32Mb APM LEGACY PSRAM
+        break;
+    case PKGID_PSRAM_WINBOND: //BOOT_PSRAM_WINBOND:                // Winbond HYPERBUS PSRAM
+        board_pinmux_psram_func1_2_4(4);
+        break;
+    case PKGID_PSRAM_APS_64: // BOOT_PSRAM_APS_64P:
+        board_pinmux_psram_func1_2_4(1);    // 64Mb APM XCELLA PSRAM
+        break;
+    case PKGID_PSRAM_APS_128: //BOOT_PSRAM_APS_128P:
+        board_pinmux_psram_func0();         // 128Mb APM XCELLA PSRAM
+        break;
+    default:
+        board_pinmux_mpi1_none();
+        break;
+    }
+#endif /* BSP_USING_PSRAM1 */
+
+#ifndef USE_V2_MEM
+    // MPI3
+    HAL_PIN_Set(PAD_PA16, MPI3_CLK, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA12, MPI3_CS,  PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA15, MPI3_DIO0, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_PA13, MPI3_DIO1, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_PA14, MPI3_DIO2, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA17, MPI3_DIO3, PIN_PULLUP, 1);
+
+    // SDIO
+#ifdef BSP_USING_SDIO
+    //TODO
+    HAL_PIN_Set(PAD_PA14, SD1_CLK, PIN_NOPULL, 1); // SDIO1
+    HAL_PIN_Set(PAD_PA15, SD1_CMD, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA16, SD1_DIO0, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA17, SD1_DIO1, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA12, SD1_DIO2, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA13, SD1_DIO3, PIN_PULLUP, 1);
+#endif
+#else
+    // MPI2
+    HAL_PIN_Set(PAD_PA22, MPI2_CLK,  PIN_NOPULL,   1);
+    HAL_PIN_Set(PAD_PA12, MPI2_CS,   PIN_NOPULL,   1);
+    HAL_PIN_Set(PAD_PA27, MPI2_DIO0, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_PA20, MPI2_DIO1, PIN_PULLDOWN, 1);
+    HAL_PIN_Set(PAD_PA26, MPI2_DIO2, PIN_PULLUP,   1);
+    HAL_PIN_Set(PAD_PA15, MPI2_DIO3, PIN_PULLUP, 1);
+
+    //SDIO
+#ifdef BSP_USING_SDIO
+    HAL_PIN_Set(PAD_PA08, SD2_CLK, PIN_NOPULL, 1);  // SD2
+    HAL_PIN_Set(PAD_PA09, SD2_CMD, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA10, SD2_DIO0, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA11, SD2_DIO1, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA06, SD2_DIO2,  PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA07, SD2_DIO3, PIN_PULLUP, 1);
+#endif
+#endif
+    // UART1
+    HAL_PIN_Set(PAD_PA19, USART1_TXD, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA18, USART1_RXD, PIN_PULLUP, 1);
+
+#if 0
+    // I2S2
+    HAL_PIN_Set(PAD_PA82, I2S2_SDO, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA91, I2S2_BCK, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA84, I2S2_LRCK, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA86, I2S2_SDI, PIN_PULLDOWN, 1);
+#endif
+
+
+    // PDM1
+    HAL_PIN_Set(PAD_PA11, GPIO_A11, PIN_PULLUP, 1); //???
+    HAL_PIN_Set(PAD_PA22, PDM1_CLK, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA23, PDM1_DATA, PIN_PULLDOWN, 1);
+    //I2S1
+    HAL_PIN_Set(PAD_PA41, I2S1_LRCK, PIN_NOPULL, 1); /* A1 */
+    HAL_PIN_Set(PAD_PA42, I2S1_BCK, PIN_NOPULL, 1);  /* A2 */
+    HAL_PIN_Set(PAD_PA38, I2S1_SDI, PIN_PULLDOWN, 1); /* A4 */
+    HAL_PIN_Set(PAD_PA37, I2S1_SDO, PIN_NOPULL, 1);  /* A5 */
+
+    // UART2
+    HAL_PIN_Set(PAD_PA27, USART2_TXD, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA26, USART2_RXD, PIN_PULLUP, 1);
+
+#ifdef BSP_LCDC_USING_EPD_8BIT
+    HAL_PIN_Set(PAD_PA01, LCDC_IF0, PIN_NOPULL, 1); //GDSP  - stv
+    HAL_PIN_Set(PAD_PA33, LCDC_IF1, PIN_NOPULL, 1); //GDCLK - cpv
+    HAL_PIN_Set(PAD_PA00, LCDC_IF2, PIN_NOPULL, 1); //SDCLK - clk
+    HAL_PIN_Set(PAD_PA07, LCDC_IF3, PIN_NOPULL, 1); //SDSTL - sph
+    HAL_PIN_Set(PAD_PA02, LCDC_IF4, PIN_NOPULL, 1); //SDLE  - le
+    HAL_PIN_Set(PAD_PA04, LCDC_IF5, PIN_NOPULL, 1); //SDOE  - oe
+    HAL_PIN_Set(PAD_PA50, LCDC_IF6, PIN_NOPULL, 1); //SDAT0
+    HAL_PIN_Set(PAD_PA51, LCDC_IF7, PIN_NOPULL, 1); //SDAT1
+    HAL_PIN_Set(PAD_PA52, LCDC_IF8, PIN_NOPULL, 1); //SDAT2
+    HAL_PIN_Set(PAD_PA53, LCDC_IF9, PIN_NOPULL, 1); //SDAT3
+    HAL_PIN_Set(PAD_PA54, LCDC_IF10, PIN_NOPULL, 1); //SDAT4
+    HAL_PIN_Set(PAD_PA55, LCDC_IF11, PIN_NOPULL, 1); //SDAT5
+    HAL_PIN_Set(PAD_PA56, LCDC_IF12, PIN_NOPULL, 1); //SDAT6
+    HAL_PIN_Set(PAD_PA57, LCDC_IF13, PIN_NOPULL, 1); //SDAT7
+
+    HAL_PIN_Set(PAD_PA05, GPIO_A5, PIN_PULLUP, 1);  //GMODE
+
+    HAL_PIN_Set(PAD_PA03, GPIO_A3, PIN_NOPULL, 1); //TPS_PWRUP
+    HAL_PIN_Set(PAD_PA06, GPIO_A6, PIN_PULLUP, 1); //TPS_GOOD
+    HAL_PIN_Set(PAD_PA35, GPIO_A35, PIN_NOPULL, 1); //TPS_WAKEUP
+    HAL_PIN_Set(PAD_PA36, GPIO_A36, PIN_NOPULL, 1); //TPS_PWRCOM
+
+#else
+#if 0 //Simplied mode
+    HAL_PIN_Set(PAD_PA04, LCDC1_SPI_CLK, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA03, LCDC1_SPI_CS, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA05, LCDC1_SPI_DIO0, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA06, LCDC1_SPI_DIO1, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA07, LCDC1_SPI_DIO2, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA08, LCDC1_SPI_DIO3, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA02, LCDC1_SPI_TE, PIN_PULLUP, 1);
+#else //Matrix mode
+    HAL_PIN_Set(PAD_PA04, LCDC_IF3, PIN_NOPULL, 1); //SPI CLK
+    HAL_PIN_Set(PAD_PA03, LCDC_IF2, PIN_NOPULL, 1); //SPI CS
+    HAL_PIN_Set(PAD_PA05, LCDC_IF6, PIN_NOPULL, 1); //SPI DIO0
+    HAL_PIN_Set(PAD_PA06, LCDC_IF7, PIN_NOPULL, 1); //SPI DIO1
+    HAL_PIN_Set(PAD_PA07, LCDC_IF8, PIN_NOPULL, 1); //SPI DIO2
+    HAL_PIN_Set(PAD_PA08, LCDC_IF9, PIN_NOPULL, 1); //SPI DIO3
+    HAL_PIN_Set(PAD_PA02, LCDC_IF0, PIN_PULLUP, 1); //SPI TE
+#endif
+    //HAL_PIN_Set(PAD_PA00, LCDC1_SPI_RSTB, PIN_PULLUP, 1);
+#endif
+
+    // Key1
+    HAL_PIN_Set(PAD_PA35, GPIO_A35, PIN_NOPULL, 0);
+
+    // I2C2
+    HAL_PIN_Set(PAD_PA47, I2C2_SDA, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA48, I2C2_SCL, PIN_PULLUP, 1);
+
+    // I2C1
+    HAL_PIN_Set(PAD_PA45, I2C1_SDA, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA46, I2C1_SCL, PIN_PULLUP, 1);
+
+#if defined(BSP_USING_DCMI) && (!defined(BSP_LCDC_USING_EPD_8BIT))
+    // Digital Camera Interface
+    HAL_PIN_Set(PAD_PA30, GPTIM2_CH1, PIN_PULLUP, 1); // mclk output
+
+    HAL_PIN_Set(PAD_PA49, DCMI_CLK, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA31, DCMI_VSYNC, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA32, DCMI_HSYNC, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA50, DCMI_DI0, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA51, DCMI_DI1, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA52, DCMI_DI2, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA53, DCMI_DI3, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA54, DCMI_DI4, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA55, DCMI_DI5, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA56, DCMI_DI6, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA57, DCMI_DI7, PIN_NOPULL, 1);
+#endif
+
+#endif
+
+    // LCPU pins
+
+
+}
+

@@ -104,6 +104,8 @@
     #define LVSF_USE_BARCODE 1
 #endif
 
+#define LVSF_IMG_CF_JPEG    (LV_IMG_CF_USER_ENCODED_0)
+
 #ifndef LVSF_USING_ENCODER
     #define LVSF_USING_ENCODER 1
 #endif
@@ -125,11 +127,16 @@
 #endif
 
 #ifndef LVSF_USING_SWITCHANIM
-    #define LVSF_USING_SWITCHANIM 1
+    #ifdef CONFIG_LVSF_USING_SWITCHANIM
+        #define LVSF_USING_SWITCHANIM 1
+    #else
+        #define LVSF_USING_SWITCHANIM 0
+    #endif
 #endif
 
 #ifndef LVSF_USE_TXTIMG
     #define LVSF_USE_TXTIMG 1
 #endif
+
 
 #endif /*LVSF_CONF_INTERNAL_H*/

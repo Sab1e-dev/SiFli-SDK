@@ -431,8 +431,7 @@ int bf0_pll_calibration()
     uint32_t target_cnt;
 
     HAL_PMU_EnableAudio(1);
-    HAL_RCC_EnableModule(RCC_MOD_AUDCODEC_HP);
-    HAL_RCC_EnableModule(RCC_MOD_AUDCODEC_LP);
+    HAL_RCC_EnableModule(RCC_MOD_AUDCODEC);
 
     HAL_TURN_ON_PLL();
 
@@ -637,14 +636,8 @@ INIT_COMPONENT_EXPORT(bf0_pll_calibration);
 
 void bf0_audcodec_reset()
 {
-    HAL_RCC_ResetModule(RCC_MOD_AUDCODEC_HP);
-    HAL_RCC_ResetModule(RCC_MOD_AUDCODEC_LP);
+    HAL_RCC_ResetModule(RCC_MOD_AUDCODEC);
 
-    //HAL_RCC_DisableModule(RCC_MOD_AUDCODEC_HP);
-    //HAL_RCC_DisableModule(RCC_MOD_AUDCODEC_LP);
-
-    //HAL_RCC_EnableModule(RCC_MOD_AUDCODEC_HP);
-    //HAL_RCC_EnableModule(RCC_MOD_AUDCODEC_LP);
     rt_kprintf("bf0_audcodec_reset\n");
 }
 
@@ -894,7 +887,7 @@ static rt_err_t bf0_audio_configure(struct rt_audio_device *audio, struct rt_aud
 #ifdef BSP_AUDCODEC_ADC0_DMA
             if (haudcodec->buf[HAL_AUDCODEC_ADC_CH0] == NULL)
             {
-                haudcodec->buf[HAL_AUDCODEC_ADC_CH0] = dma_malloc_in_1m(haudcodec->bufSize);
+                haudcodec->buf[HAL_AUDCODEC_ADC_CH0] = calloc_dma_friendly_sram(1, haudcodec->bufSize);
                 if (haudcodec->buf[HAL_AUDCODEC_ADC_CH0] == NULL)
                     return RT_ERROR_MEMFAULT;
             }
@@ -907,7 +900,7 @@ static rt_err_t bf0_audio_configure(struct rt_audio_device *audio, struct rt_aud
 #ifdef BSP_AUDCODEC_ADC1_DMA
             if (haudcodec->buf[HAL_AUDCODEC_ADC_CH1] == NULL)
             {
-                haudcodec->buf[HAL_AUDCODEC_ADC_CH1] = dma_malloc_in_1m(1, haudcodec->bufSize);
+                haudcodec->buf[HAL_AUDCODEC_ADC_CH1] = calloc_dma_friendly_sram(1, haudcodec->bufSize);
                 if (haudcodec->buf[HAL_AUDCODEC_ADC_CH1] == NULL)
                     return RT_ERROR_MEMFAULT;
             }
@@ -940,7 +933,7 @@ static rt_err_t bf0_audio_configure(struct rt_audio_device *audio, struct rt_aud
 #ifdef BSP_AUDCODEC_DAC0_DMA
             if (haudcodec->buf[HAL_AUDCODEC_DAC_CH0] == NULL)
             {
-                haudcodec->buf[HAL_AUDCODEC_DAC_CH0] = dma_malloc_in_1m(haudcodec->bufSize);
+                haudcodec->buf[HAL_AUDCODEC_DAC_CH0] = calloc_dma_friendly_sram(1, haudcodec->bufSize);
                 if (haudcodec->buf[HAL_AUDCODEC_DAC_CH0] == NULL)
                     return RT_ERROR_MEMFAULT;
 
@@ -957,7 +950,7 @@ static rt_err_t bf0_audio_configure(struct rt_audio_device *audio, struct rt_aud
 #ifdef BSP_AUDCODEC_DAC1_DMA
             if (haudcodec->buf[HAL_AUDCODEC_DAC_CH1] == NULL)
             {
-                haudcodec->buf[HAL_AUDCODEC_DAC_CH1] = dma_malloc_in_1m(haudcodec->bufSize);
+                haudcodec->buf[HAL_AUDCODEC_DAC_CH1] = calloc_dma_friendly_sram(1, haudcodec->bufSize);
                 if (haudcodec->buf[HAL_AUDCODEC_DAC_CH1] == NULL)
                     return RT_ERROR_MEMFAULT;
             }
@@ -1059,8 +1052,7 @@ static rt_err_t bf0_audio_init(struct rt_audio_device *audio)
 
     //bf0_enable_pll(44100, 1); //RCC ENABLE
     HAL_PMU_EnableAudio(1);
-    HAL_RCC_EnableModule(RCC_MOD_AUDCODEC_HP);
-    HAL_RCC_EnableModule(RCC_MOD_AUDCODEC_LP);
+    HAL_RCC_EnableModule(RCC_MOD_AUDCODEC);
     //hwp_audcodec->ADC_ANA_CFG &= ~AUDCODEC_ADC_ANA_CFG_MICBIAS_CHOP_EN;
 //__asm__("B .");
     int res = HAL_AUDCODEC_Init(haudcodec);
@@ -1080,7 +1072,7 @@ static rt_err_t bf0_audio_shutdown(struct rt_audio_device *audio)
 #ifdef BSP_AUDCODEC_DAC0_DMA
     if (haudcodec->buf[HAL_AUDCODEC_DAC_CH0] != NULL)
     {
-        dma_free_in_1m(haudcodec->buf[HAL_AUDCODEC_DAC_CH0]);
+        free_dma_friendly_sram(haudcodec->buf[HAL_AUDCODEC_DAC_CH0]);
         haudcodec->buf[HAL_AUDCODEC_DAC_CH0] = NULL;
     }
 #endif
@@ -1088,7 +1080,7 @@ static rt_err_t bf0_audio_shutdown(struct rt_audio_device *audio)
 #ifdef BSP_AUDCODEC_DAC1_DMA
     if (haudcodec->buf[HAL_AUDCODEC_DAC_CH1] != NULL)
     {
-        dma_free_in_1m(haudcodec->buf[HAL_AUDCODEC_DAC_CH1]);
+        free_dma_friendly_sram(haudcodec->buf[HAL_AUDCODEC_DAC_CH1]);
         haudcodec->buf[HAL_AUDCODEC_DAC_CH1] = NULL;
     }
 #endif
@@ -1096,7 +1088,7 @@ static rt_err_t bf0_audio_shutdown(struct rt_audio_device *audio)
 #ifdef BSP_AUDCODEC_ADC0_DMA
     if (haudcodec->buf[HAL_AUDCODEC_ADC_CH0] != NULL)
     {
-        dma_free_in_1m(haudcodec->buf[HAL_AUDCODEC_ADC_CH0]);
+        free_dma_friendly_sram(haudcodec->buf[HAL_AUDCODEC_ADC_CH0]);
         haudcodec->buf[HAL_AUDCODEC_ADC_CH0] = NULL;
     }
 #endif
@@ -1104,7 +1096,7 @@ static rt_err_t bf0_audio_shutdown(struct rt_audio_device *audio)
 #ifdef BSP_AUDCODEC_ADC1_DMA
     if (haudcodec->buf[HAL_AUDCODEC_ADC_CH1] != NULL)
     {
-        dma_free_in_1m(haudcodec->buf[HAL_AUDCODEC_ADC_CH1]);
+        free_dma_friendly_sram(haudcodec->buf[HAL_AUDCODEC_ADC_CH1]);
         haudcodec->buf[HAL_AUDCODEC_ADC_CH1] = NULL;
     }
 #endif
@@ -1537,8 +1529,7 @@ static rt_err_t bf0_audio_control(struct rt_audio_device *audio, int cmd, void *
         //hwp_hpsys_rcc->ENR2 |= HPSYS_RCC_ENR2_AUDCODEC;
         //hwp_lpsys_rcc->ENR1 |= LPSYS_RCC_ENR1_AUDCODEC;
         HAL_PMU_EnableAudio(1);
-        HAL_RCC_EnableModule(RCC_MOD_AUDCODEC_HP);
-        HAL_RCC_EnableModule(RCC_MOD_AUDCODEC_LP);
+        HAL_RCC_EnableModule(RCC_MOD_AUDCODEC);
         audcodec->pll_state = AUDIO_PLL_CLOSED;
         break;
     }

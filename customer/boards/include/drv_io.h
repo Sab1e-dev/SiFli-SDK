@@ -90,6 +90,7 @@ void BSP_PowerUpCustom(bool is_deep_sleep);
 void BSP_LCD_Reset(uint8_t high1_low0);
 void BSP_LCD_PowerUp(void);
 void BSP_LCD_PowerDown(void);
+void BSP_LCD_GMODE_Set(uint8_t high1_low0);//For EPD only
 
 /**
  * @brief Touch power up/down/reset

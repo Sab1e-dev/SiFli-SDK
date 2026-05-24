@@ -60,6 +60,7 @@ extensions:
       - "example/multimedia/lvgl/lvgl_v9_demos"
       - "external/cherryusb"
       - "tools/mkfatimg/mkfatimg"
+      - "rtos/rtthread/components/dfs/filesystems/elmfat"
     ignore_license: true
     ignore_copyright: true
   - path:

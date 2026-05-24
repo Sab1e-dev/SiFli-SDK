@@ -169,27 +169,24 @@ static LCD_DrvTypeDef drv_lcd;
         #error "Not supported on ramless LCD"
     #endif
     static uint32_t *ramless_code = NULL;
+#endif /* BSP_USING_RAMLESS_LCD */
 
-    #ifdef BSP_LCDC_USING_DPI
+#if defined(LCDC_SUPPORT_EXTERNAL_LINEBUF) || (defined(BSP_USING_RAMLESS_LCD) && defined(BSP_LCDC_USING_DPI))
+    #if defined(LCDC_SUPPORT_EXTERNAL_LINEBUF)
+        //Fixed ARGB8888 format
+        #define SRAM_BUF_1LINE (LCD_HOR_RES_MAX * 4)
+    #else
         //We don't know upper color format, just define the maximum RGB888 format
         #define SRAM_BUF_1LINE (LCD_HOR_RES_MAX * 3)
-
-        #define SRAM_BUF_1LINE_WORDS (HAL_ALIGN(SRAM_BUF_1LINE, 4) / 4)
-        #define SRAM_BUF_MAGIC_NUM (0xabcdefaa)
-        #define SRAM_BUF_TOTAL_WORDS  SRAM_BUF_1LINE_WORDS + 1 /*overwrite examination*/
-
-        static uint32_t *sram_data0 = NULL;
-        static uint32_t *sram_data1 = NULL;
-    #endif /* BSP_LCDC_USING_DPI */
-
-    #if defined(SF32LB52X)
-        #define IS_DMA_FRIENDLY_SRAM(addr)    ((((addr) >= HPSYS_RAM0_BASE) && ((addr) < HPSYS_RAM1_BASE)) ? false : HCPU_IS_SRAM_ADDR(addr))
-    #else
-        #define IS_DMA_FRIENDLY_SRAM(addr)    ((((addr) >= HPSYS_RETM_BASE) && ((addr) < HPSYS_RETM_END)) ? false : HCPU_IS_SRAM_ADDR(addr))
     #endif
-    #define IS_DMA_FRIENDLY_SRAM_RANGE(p, len)        (IS_DMA_FRIENDLY_SRAM((uint32_t)p) && IS_DMA_FRIENDLY_SRAM(((uint32_t)p) + (len)))
 
-#endif /* BSP_USING_RAMLESS_LCD */
+    #define SRAM_BUF_1LINE_WORDS (HAL_ALIGN(SRAM_BUF_1LINE, 4) / 4)
+    #define SRAM_BUF_MAGIC_NUM (0xabcdefaa)
+    #define SRAM_BUF_TOTAL_WORDS  (SRAM_BUF_1LINE_WORDS + 1) /*overwrite examination*/
+
+    static uint32_t *sram_data0 = NULL;
+    static uint32_t *sram_data1 = NULL;
+#endif
 
 RETM_BSS_SECT_BEGIN(lcd_idle_status)
 static uint8_t lcd_idle_status;
@@ -623,81 +620,43 @@ static void copy2buf(uint8_t *dst_buf, const uint8_t *src_buf, uint16_t format, 
 }
 #endif /* BSP_USE_LCDC2_ON_HPSYS */
 
-#ifdef BSP_USING_RAMLESS_LCD
-static void *malloc_dma_friendly_sram(rt_size_t n)
+#ifdef SRAM_BUF_1LINE
+static void init_line_buffer(void)
 {
-    uint8_t *ret_p = rt_malloc(n);
-    RT_ASSERT(ret_p != NULL);
-
-    if (!IS_DMA_FRIENDLY_SRAM_RANGE(ret_p, n))
-    {
-#define list_max 1024
-        uint8_t **malloc_list = (uint8_t **)rt_malloc(sizeof(uint8_t *) * list_max);
-        RT_ASSERT(malloc_list != NULL);
-        malloc_list[0] = ret_p;
-
-        uint32_t malloc_cnt = 1;
-        while (malloc_cnt < list_max)
-        {
-            ret_p = (uint8_t *)rt_malloc(n);
-            RT_ASSERT(ret_p != NULL);
-            malloc_list[malloc_cnt++] = ret_p;
-
-            if (IS_DMA_FRIENDLY_SRAM_RANGE(ret_p, n)) break;
-        }
-
-        if (malloc_cnt >= list_max)
-        {
-            LOG_E("%s failed, size=%d", __FUNCTION__, n);
-            RT_ASSERT(0);
-        }
-
-        //Free all malloced memory except 'ret_p'
-        while (malloc_cnt > 0)
-        {
-            if (malloc_list[malloc_cnt - 1] != ret_p)
-                rt_free(malloc_list[malloc_cnt - 1]);
-            malloc_cnt--;
-        }
-        rt_free(malloc_list);
-
-    }
-
-    return (void *)ret_p;
-}
-static void allocate_ptc_code_buf(void)
-{
-    if (!ramless_code) ramless_code = (uint32_t *) malloc_dma_friendly_sram(sizeof(uint32_t) * RAMLESS_AUTO_REFR_CODE_SIZE_IN_WORD);
-    RT_ASSERT(ramless_code != NULL);
-#ifdef BSP_LCDC_USING_DPI
     if (!sram_data0) sram_data0 = (uint32_t *) malloc_dma_friendly_sram(sizeof(uint32_t) * SRAM_BUF_TOTAL_WORDS);
     RT_ASSERT(sram_data0 != NULL);
     if (!sram_data1) sram_data1 = (uint32_t *) malloc_dma_friendly_sram(sizeof(uint32_t) * SRAM_BUF_TOTAL_WORDS);
     RT_ASSERT(sram_data1 != NULL);
-#endif /* BSP_LCDC_USING_DPI */
+
+    /*
+        'sram_data0' & 'sram_data1' are not retention memory,
+            should setup it every time after HW power on.
+    */
+    sram_data0[SRAM_BUF_1LINE_WORDS] = SRAM_BUF_MAGIC_NUM;
+    sram_data1[SRAM_BUF_1LINE_WORDS] = SRAM_BUF_MAGIC_NUM;
 }
-static void free_ptc_code_buf(void)
+static bool check_line_bufer_overwrite(void)
 {
-    if (ramless_code)
-    {
-        rt_free(ramless_code);
-        ramless_code = NULL;
-    }
-#ifdef BSP_LCDC_USING_DPI
+    if ((sram_data0[SRAM_BUF_1LINE_WORDS] != SRAM_BUF_MAGIC_NUM)
+            || (sram_data1[SRAM_BUF_1LINE_WORDS] != SRAM_BUF_MAGIC_NUM))
+        return true; //overwritten
+    else
+        return false;
+}
+static void deinit_line_buffer(void)
+{
     if (sram_data0)
     {
-        rt_free(sram_data0);
+        free_dma_friendly_sram(sram_data0);
         sram_data0 = NULL;
     }
     if (sram_data1)
     {
-        rt_free(sram_data1);
+        free_dma_friendly_sram(sram_data1);
         sram_data1 = NULL;
     }
-#endif /* BSP_LCDC_USING_DPI */
 }
-
-#endif /* BSP_USING_RAMLESS_LCD */
+#endif /*SRAM_BUF_1LINE*/
 
 extern void list_mem(void);
 
@@ -768,26 +727,28 @@ static rt_err_t lcd_hw_open(void)
     rt_pm_hw_device_stop();
 #endif  /* RT_USING_PM */
 
+#ifdef SRAM_BUF_1LINE
+    init_line_buffer();
+#endif /* SRAM_BUF_1LINE */
+#ifdef LCDC_SUPPORT_EXTERNAL_LINEBUF
+    drv_lcd.hlcdc.sram_line_buf0 = sram_data0;
+    drv_lcd.hlcdc.sram_line_buf1 = sram_data1;
+#else /*LCDC_SUPPORT_EXTERNAL_LINEBUF*/
+
 #ifdef BSP_USING_RAMLESS_LCD
     if ((drv_lcd.p_drv_ops) && (HAL_LCDC_IS_PTC_AUX_IF(drv_lcd.hlcdc.Init.lcd_itf)))
     {
-        allocate_ptc_code_buf();
+        if (!ramless_code) ramless_code = (uint32_t *) malloc_dma_friendly_sram(sizeof(uint32_t) * RAMLESS_AUTO_REFR_CODE_SIZE_IN_WORD);
+        RT_ASSERT(ramless_code != NULL);
 #ifdef BSP_LCDC_USING_DPI
         HAL_LCDC_RAMLESS_Init_Ext(&drv_lcd.hlcdc, ramless_code,
                                   (uint8_t *)&sram_data0[0], (uint8_t *)&sram_data1[0], SRAM_BUF_1LINE_WORDS * 4);
-
-        /*
-            'sram_data0' & 'sram_data1' are not retention memory,
-             should setup it every time after HW power on.
-        */
-        sram_data0[SRAM_BUF_1LINE_WORDS] = SRAM_BUF_MAGIC_NUM;
-        sram_data1[SRAM_BUF_1LINE_WORDS] = SRAM_BUF_MAGIC_NUM;
-
 #else
         HAL_LCDC_RAMLESS_Init(&drv_lcd.hlcdc, ramless_code);
 #endif /* BSP_LCDC_USING_DPI */
     }
 #endif /* BSP_USING_RAMLESS_LCD */
+#endif /*LCDC_SUPPORT_EXTERNAL_LINEBUF*/
 
     LOG_I("HW open done.");
 
@@ -806,10 +767,22 @@ static rt_err_t lcd_hw_close(void)
     HAL_LCDC_DeInit(&drv_lcd.hlcdc);
 
     BSP_LCD_PowerDown();
+#ifdef LCDC_SUPPORT_EXTERNAL_LINEBUF
+    drv_lcd.hlcdc.sram_line_buf0 = NULL;
+    drv_lcd.hlcdc.sram_line_buf1 = NULL;
+#else
 #ifdef BSP_USING_RAMLESS_LCD
-    free_ptc_code_buf();
+    if (ramless_code)
+    {
+        free_dma_friendly_sram(ramless_code);
+        ramless_code = NULL;
+    }
 #endif /* BSP_USING_RAMLESS_LCD */
+#endif /*LCDC_SUPPORT_EXTERNAL_LINEBUF*/
 
+#ifdef SRAM_BUF_1LINE
+    deinit_line_buffer();
+#endif /* SRAM_BUF_1LINE */
     LOG_I("HW close done.");
 
     return RT_EOK;
@@ -888,14 +861,18 @@ static void lcd_driver_print_error_info(void)
               drv_lcd.hlcdc.Instance->IRQ
              );
 
-        LOG_E("LCDC LAYER0 CFG=%x,TL=%x,BR=%x,SRC=%x,DEC=%x",
+        LOG_E("LCDC LAYER0 CFG=%x,TL=%x,BR=%x,SRC=%x",
               drv_lcd.hlcdc.Instance->LAYER0_CONFIG,
               drv_lcd.hlcdc.Instance->LAYER0_TL_POS,
               drv_lcd.hlcdc.Instance->LAYER0_BR_POS,
-              drv_lcd.hlcdc.Instance->LAYER0_SRC,
-              drv_lcd.hlcdc.Instance->LAYER0_DECOMP
+              drv_lcd.hlcdc.Instance->LAYER0_SRC
              );
 
+#ifdef LCD_IF_LAYER0_DECOMP_ENABLE
+        LOG_E("LAYER0_DECOMP=%x", drv_lcd.hlcdc.Instance->LAYER0_DECOMP);
+#else
+        LOG_E("COENG_CFG=%x", drv_lcd.hlcdc.Instance->COENG_CFG);
+#endif
         LOG_E("LCDC LAYER1 CFG=%x,TL=%x,BR=%x,SRC=%x",
               drv_lcd.hlcdc.Instance->LAYER1_CONFIG,
               drv_lcd.hlcdc.Instance->LAYER1_TL_POS,
@@ -1597,17 +1574,24 @@ static rt_err_t draw_core(LCD_DrvTypeDef *p_drvlcd, const uint8_t *pixels, int x
             }
         }
 
+#ifdef LCDC_SUPPORT_EXTERNAL_LINEBUF
+        if (check_line_bufer_overwrite())
+        {
+            LOG_E("Line buffer overwritten!!");
+            RT_ASSERT(0);
+        }
+#else
 #ifdef BSP_USING_RAMLESS_LCD
 #ifdef BSP_LCDC_USING_DPI
         if (HAL_LCDC_IS_PTC_AUX_IF(p_drvlcd->hlcdc.Init.lcd_itf))
         {
-            if ((sram_data0[SRAM_BUF_1LINE_WORDS] != SRAM_BUF_MAGIC_NUM)
-                    || (sram_data1[SRAM_BUF_1LINE_WORDS] != SRAM_BUF_MAGIC_NUM))
+            if (check_line_bufer_overwrite())
             {
                 LOG_E("RAMLESS DPI overwritten!!");
                 RT_ASSERT(0);
             }
         }
+#endif
 #endif
 #endif
 

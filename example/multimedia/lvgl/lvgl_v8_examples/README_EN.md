@@ -5,6 +5,30 @@ This example is used to test LVGL V8 APIs using officially provided examples.
 You can replace the lv_example_scroll_1() function in src/main.c (simulator in simulator/applications/application.c) to test other APIs.
 Other API functions can be referenced in the src/examples/lv_examples.h header file.
 
+## Switching Different Demos
+
+By default, the demo runs `lv_example_scroll_1()`. To switch to other demos, modify the `src/main.c` file.
+
+Open `src/main.c` and find the demo call in the main function:
+
+```c
+/* add example code here.
+   example code locates in folder external/lvgl/examples */
+lv_example_scroll_1();
+//lv_example_grid_1();
+```
+
+Uncomment the demo you want to run and comment out the others. For example, to switch to `lv_example_grid_1()`:
+
+```c
+/* add example code here.
+   example code locates in folder external/lvgl/examples */
+//lv_example_scroll_1();
+lv_example_grid_1();
+```
+
+Recompile after making changes to see the different demo effect.
+
 ## Project Compilation and Download:
 Board projects in the project directory can be compiled for specific boards by specifying the board parameter:
 - To compile a project that can run on HDK 563, execute scons --board=eh-lb563 to generate the project

@@ -1,11 +1,8 @@
-/**
-  ******************************************************************************
-  * @file   jd9851.c
-  * @author Sifli software development team
-  * @brief   This file includes the LCD driver for JD9851 LCD.
-  * @attention
-  ******************************************************************************
-*/
+/*
+ * SPDX-FileCopyrightText: 2019-2022 SiFli Technologies(Nanjing) Co., Ltd
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
 
 #include <rtthread.h>
 #include "string.h"
@@ -746,7 +743,7 @@ static void LCD_SetColorMode(LCDC_HandleTypeDef *hlcdc, uint16_t color_mode)
 #define JD9851_BRIGHTNESS_MAX 0xFF
 
 #ifdef LCD_BACKLIGHT_USING_PWM
-    #define LCD_BACKLIGHT_PWM_DEV_NAME "pwm2"
+    #define LCD_BACKLIGHT_PWM_DEV_NAME "pwmt1"
     #define LCD_BACKLIGHT_PWM_PERIOD (1 * 1000 * 1000)
     #define LCD_BACKLIGHT_PWM_CHANNEL 4
 #endif

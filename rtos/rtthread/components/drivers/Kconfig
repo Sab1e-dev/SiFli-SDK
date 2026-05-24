@@ -471,6 +471,9 @@ menu "Using USB"
                 int "usb thread stack size"
                 default 4096
         endif
+        config INSERT_DETE_USB_PIN
+            int "USB Insertion Detection PIN"
+            default -1		
         if RT_USING_USB_DEVICE
             config USB_VENDOR_ID
                 hex "USB Vendor ID"

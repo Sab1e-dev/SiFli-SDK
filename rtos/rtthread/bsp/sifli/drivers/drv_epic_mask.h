@@ -202,9 +202,9 @@ typedef struct
  * GLOBAL PROTOTYPES
  **********************/
 
-void drv_epic_mask_init(void);
+int drv_epic_mask_init(void);
 
-void drv_epic_mask_deinit(void);
+int drv_epic_mask_deinit(void);
 
 //! @cond Doxygen_Suppress
 
