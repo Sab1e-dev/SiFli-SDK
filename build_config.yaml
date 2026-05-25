@@ -586,6 +586,7 @@ common_projects:
       - ec-lb585_hcpu
       - ec-lb583_hcpu
       - sf32lb52-lcd_n16r8 
+      - sf32lb52-lcd_a128r16
       - sf32lb52-nano_a128r16
       - sf32lb52-nano_n16r16
       - sf32lb56-lcd_a128r12n1
@@ -609,6 +610,7 @@ common_projects:
       - ec-lb585_hcpu
       - ec-lb583_hcpu
       - sf32lb52-lcd_n16r8 
+      - sf32lb52-lcd_a128r16
       - sf32lb52-nano_a128r16
       - sf32lb52-nano_n16r16
       - sf32lb56-lcd_a128r12n1
