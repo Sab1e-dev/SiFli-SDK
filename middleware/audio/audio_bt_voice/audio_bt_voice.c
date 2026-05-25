@@ -21,6 +21,10 @@
 #include "audio_cvsd.h"
 #include "audio_filter.h"
 
+#ifdef BT_VOICE_RELAY
+    #include "audio_bt_voice_rely.h"
+#endif
+
 #define DBG_TAG           "audio"
 #define DBG_LVL           AUDIO_DBG_LVL
 #include "log.h"
@@ -71,7 +75,7 @@ struct hci_sync_con_cmp_evt
     ///Connection handle
     uint16_t    conhdl;
     ///BD address
-    uint8_t  addr[6];;
+    uint8_t  addr[6];
     ///Link type
     uint8_t lk_type;
     ///Transmit interval
@@ -84,7 +88,6 @@ struct hci_sync_con_cmp_evt
     uint16_t tx_pkt_len;
     ///Air mode
     uint8_t air_mode;
-
 };
 /*audio parameter,from LCPU temporary, general from HFP*/
 static volatile struct hci_sync_con_cmp_evt *p_sco_para;
@@ -769,8 +772,15 @@ int32_t _hl_bt_audio_queue_rx_ind(ipc_queue_handle_t handle, size_t size)
 {
     LOG_D("_hl_bt_audio_queue_rx_ind");
 
-    bt_rx_event_to_audio_server();
+#ifdef BT_VOICE_RELAY
+    if (bt_voice_rely_is_ready())
+    {
+        bt_voice_rely_downlink_process(1);
+        return 0;
+    }
+#endif
 
+    bt_rx_event_to_audio_server();
     return 0;
 }
 
@@ -818,7 +828,6 @@ uint8_t msbc_decode_process(uint8_t *fifo, uint8_t *output, uint8_t size)
         {
             LOG_I("msbc closed");
         }
-
         return 0;
     }
 
