@@ -1,5 +1,5 @@
 # ptab v3 - Partition Table
-# Board: sf32lb56-wlan_core_a128r12n1
+# Board: sf32lb56-wlan-core_n16r12n1
 # Chip: SF32LB56X
 
 version: 3
@@ -10,8 +10,8 @@ chip: SF32LB566VCB36
 # - Internal SiP PSRAM/Flash is derived from SiliconSchema.
 memory:
   - mpi: mpi3
-    type: nand
-    size: 134217728 # 128MB
+    type: nor
+    size: 16777216 # 16MB
 
 partitions:
   - name: hcpu_flash_code
@@ -20,58 +20,41 @@ partitions:
     region: mpi3
     offset: 0x000000
     size: 0x00200000
-    exec:
-      region: mpi1
-      offset: 0
     core: HCPU
-    attrs:
-      PSRAM_BL_MODE: 3
-      PSRAM_BL_SIZE: 8
-      PSRAM_BL_MPI: 1
 
   - name: dfu_flash_code
     type: app
     subtype: dfu
     region: mpi3
-    offset: 0x00200000
-    size: 0x00080000
-    exec:
-      region: mpi1
-      offset: 0
+    offset: 0x00220000
+    size: 0x00060000
     core: HCPU
-
-  - name: dfu_info_region
-    type: data
-    subtype: raw
-    region: mpi3
-    offset: 0x00280000
-    size: 0x00020000
 
   - name: dfu_download_region
     type: data
     subtype: raw
     region: mpi3
-    offset: 0x002A0000
-    size: 0x00360000
+    offset: 0x00280000
+    size: 0x00120000
 
   - name: fs_region
     type: data
     subtype: filesystem
     region: mpi3
-    offset: 0x00600000
-    size: 0x00400000
+    offset: 0x003A0000
+    size: 0x00260000
 
   - name: dfu
     type: data
     subtype: flashdb_kv
     region: mpi3
-    offset: 0x00A00000
+    offset: 0x00600000
     size: 16KB
 
   - name: ble
     type: data
     subtype: flashdb_kv
     region: mpi3
-    offset: 0x00A04000
+    offset: 0x00604000
     size: 16KB
 

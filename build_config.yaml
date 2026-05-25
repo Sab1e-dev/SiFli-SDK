@@ -39,8 +39,8 @@ default_boards: &default_boards
   - sf32lb52-lchspi-ulp
   - sf32lb56-lcd_a128r12n1
   - sf32lb56-lcd_n16r12n1
-  - sf32lb56-wlan_core_n16r12n1
-  - sf32lb56-wlan_core_a128r12n1
+  - sf32lb56-wlan-core_n16r12n1
+  - sf32lb56-wlan-core_a128r12n1
   - sf32lb58-lcd_a128r32n1_qspi
   - sf32lb58-lcd_a128r32n1_a1_dsi
   - sf32lb58-lcd_n16r32n1_qspi
@@ -55,7 +55,7 @@ default_nand_boards: &default_nand_boards
   - sf32lb52-lcd_a128r16
   - sf32lb52-nano_a128r16
   - sf32lb56-lcd_a128r12n1
-  - sf32lb56-wlan_core_a128r12n1
+  - sf32lb56-wlan-core_a128r12n1
   - sf32lb58-lcd_a128r32n1_qspi
 
 bt_boards: &bt_boards
@@ -132,8 +132,8 @@ devkit-boards: &devkit-boards
   - sf32lb52-core_n4
   - sf32lb56-lcd_a128r12n1
   - sf32lb56-lcd_n16r12n1
-  - sf32lb56-wlan_core_a128r12n1
-  - sf32lb56-wlan_core_n16r12n1
+  - sf32lb56-wlan-core_a128r12n1
+  - sf32lb56-wlan-core_n16r12n1
   - sf32lb58-lcd_n16r32n1_dsi
   - sf32lb58-lcd_a128r32n1_dsi
   - sf32lb58-core_n16r32n1
@@ -463,6 +463,11 @@ common_projects:
   - path: example/multimedia/audio/local_music/project
     boards: *after_55x_boards
 
+  - path: example/multimedia/audio/local_music/project
+    boards:
+      - sf32lb56-wlan-core_n16r12n1
+      - sf32lb56-wlan-core_a128r12n1
+
   - path: example/multimedia/audio/mixer/project
     boards: *after_55x_boards
 
@@ -475,6 +480,11 @@ common_projects:
 
   - path: example/multimedia/audio/record/project
     boards: *after_55x_boards
+
+  - path: example/multimedia/audio/record/project
+    boards:
+      - sf32lb56-wlan-core_n16r12n1
+      - sf32lb56-wlan-core_a128r12n1
 
   - path: example/multimedia/lvgl/ezip/project
     boards: *devkit_lcd_boards
@@ -655,6 +665,11 @@ common_projects:
   - path: example/pm/bt/project/hcpu
     boards: *bt_boards
 
+  - path: example/pm/bt/project/hcpu
+    boards:
+      - sf32lb56-wlan-core_a128r12n1
+      - sf32lb56-wlan-core_n16r12n1
+
   - path: example/pm/classical/project/hcpu
     boards:
       - sf32lb56-lcd_n16r12n1
@@ -785,6 +800,11 @@ common_projects:
 
   - path: example/rt_device/wdt/project
     boards: *devkit_lcd_boards    
+
+  - path: example/rt_device/wifi/project
+    boards:
+      - sf32lb56-wlan-core_n16r12n1
+      - sf32lb56-wlan-core_a128r12n1  
 
   - path: example/rt_driver/project
     boards: *default_boards
