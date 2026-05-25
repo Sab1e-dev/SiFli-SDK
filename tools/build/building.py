@@ -2011,7 +2011,8 @@ def AddChildProj(proj_name, proj_path, img_embedded=False, shared_option=None, c
             setattr(rtconfig, var, getattr(proj_rtconfig, var))
 
     child_builder = None
-    if os.path.isfile(os.path.join(proj_path, 'SConstruct.py')):
+    has_custom_sconstruct_py = os.path.isfile(os.path.join(proj_path, 'SConstruct.py'))
+    if has_custom_sconstruct_py:
         child_builder = (lambda spec: (spec.loader.exec_module(mod := importlib.util.module_from_spec(spec)) or mod))(importlib.util.spec_from_file_location(proj_name, os.path.join(proj_path, 'SConstruct.py')))
         child_builder.create_env(proj_path)
         
@@ -2037,16 +2038,15 @@ def AddChildProj(proj_name, proj_path, img_embedded=False, shared_option=None, c
     if shared_option  and 'PARTITION_TABLE' in shared_option:
         proj_env['PARTITION_TABLE'] = os.path.abspath(shared_option['PARTITION_TABLE'])
 
-    # prepare building environment
-    objs = PrepareBuilding(proj_env)
-    
-    if 'CPPPATH' in proj_env and os.path.abspath(str(Dir('#'))) in proj_env['CPPPATH']:
-        logging.debug('Root path of parent project: {}'.format(os.path.abspath(str(Dir('#')))))
-        logging.debug('Search paths of child project: {}'.format(proj_env['CPPPATH']))
-        raise ValueError('Root path of parent project cannot be in search paths of child project')
+    if has_custom_sconstruct_py:
+        child_builder.build(proj_env)
+    else:
+        # prepare building environment
+        objs = PrepareBuilding(proj_env)
 
-    # make a building
-    DoBuilding(os.path.join(proj_env['build_dir'], rtconfig.TARGET_NAME + '.' + rtconfig.TARGET_EXT), objs)
+        # make a building
+        DoBuilding(os.path.join(proj_env['build_dir'], rtconfig.TARGET_NAME + '.' + rtconfig.TARGET_EXT), objs)
+
 
     if img_embedded:
         ChildProjList.append({'name': proj_name, 'binary': proj_env['program_binary'], 'build_dir': proj_env['build_dir'], 'parent': parent_name})
@@ -2839,6 +2839,18 @@ def PrepareBuilding(env, has_libcpu=False, remove_components=[], buildlib=None):
     # Add external components
     if os.path.isfile(os.path.join(Env['BSP_ROOT'], 'sf-pkgs/SConscript_conandeps')):
         objs.extend(AddExternalComponents(os.path.join(Env['BSP_ROOT'], 'sf-pkgs/SConscript_conandeps')))
+
+
+    if IsChildProjEnv(env) and 'CPPPATH' in env:
+        child_cpppath = env['CPPPATH']
+        if not isinstance(child_cpppath, (list, tuple)):
+            child_cpppath = [child_cpppath]
+        parent_root = os.path.abspath(str(Dir('#')))
+        child_cpppath_abs = [os.path.abspath(str(path)) for path in child_cpppath]
+        if parent_root in child_cpppath_abs:
+            logging.debug('Root path of parent project: {}'.format(parent_root))
+            logging.debug('Search paths of child project: {}'.format(env['CPPPATH']))
+            raise ValueError('Root path of parent project cannot be in search paths of child project')
 
     return objs
 
