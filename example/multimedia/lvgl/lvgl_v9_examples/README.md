@@ -100,7 +100,7 @@ please input the serial port num:5
 * 首先可以通过TF读卡器，往tf中写入图片文件，再将tf卡插入板子中
 * 通过`menuconfig`中进行如下配置，具体操作如下
 ``` c
-menuconfig --board=sf32lb52-lchspi-ulp
+sdk.py menuconfig --board=sf32lb52-lchspi-ulp
 ```
 * 开启spi总线
 

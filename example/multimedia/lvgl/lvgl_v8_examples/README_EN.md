@@ -101,7 +101,7 @@ please input the serial port num:5
 * First, use a TF card reader to write image files to the TF card, then insert the TF card into the board
 * Configure through `menuconfig` as follows:
 ``` c
-menuconfig --board=sf32lb52-lchspi-ulp
+sdk.py menuconfig --board=sf32lb52-lchspi-ulp
 ```
 * Enable SPI bus
 

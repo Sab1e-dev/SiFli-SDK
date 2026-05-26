@@ -55,7 +55,7 @@ please input the serial port num:5
 * 在menuconfig中打开adc device
 
 ```
-menuconfig --board=sf32lb52-lcd_n16r8
+sdk.py menuconfig --board=sf32lb52-lcd_n16r8
 ```
 
 ![alt text](assets/2.png)

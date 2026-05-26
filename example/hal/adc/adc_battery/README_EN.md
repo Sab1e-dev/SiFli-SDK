@@ -55,7 +55,7 @@ Measurement point for 56:
 * Enable the ADC device in menuconfig
 
 ```
-menuconfig --board=sf32lb52-lcd_n16r8
+sdk.py menuconfig --board=sf32lb52-lcd_n16r8
 ```
 
 ![alt text](assets/2.png)

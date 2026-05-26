@@ -28,7 +28,7 @@
 
 运行如下命令
 ```c
-menuconfig --board=sf32lb52-lcd_n16r8
+sdk.py menuconfig --board=sf32lb52-lcd_n16r8
 ```
 使能要使用的PWM，52x配置使用的PWMT2 CHANNLE1, 56x使用的是PWMT3 CHANNEL4, 58x使用的是PWMT3 CHANNEL4<br>
 ![Enable rgbled:](./assets/menuconfig_pwm_52x.png)<br>

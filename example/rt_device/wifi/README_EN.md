@@ -48,7 +48,7 @@ Taking sf32lb52-wlan-core as an example:
 
 ```bash
 // Run the following command under this example project
-menuconfig --board=sf32lb52-wlan-core_n16r16
+sdk.py menuconfig --board=sf32lb52-wlan-core_n16r16
 ```
 
 1. **Enable SDIO/SDHCI Interface**
