@@ -81,9 +81,6 @@
 
 // Mailbox
 #define LPSYS_MBOX_BUF_SIZE (2*512)
-#define LCPU2HCPU_MB_CH1_BUF_START_ADDR  (LPSYS_RAM_END - LPSYS_MBOX_BUF_SIZE + 1)  /* 0x20405C00 */
-#define LCPU2HCPU_MB_CH1_BUF_SIZE        (512)
-#define LCPU2HCPU_MB_CH1_BUF_END_ADDR    (END_ADDR(LCPU2HCPU_MB_CH1_BUF_START_ADDR, LCPU2HCPU_MB_CH1_BUF_SIZE))
 
 #define LCPU2HCPU_MB_CH2_BUF_START_ADDR  (LCPU2HCPU_MB_CH1_BUF_END_ADDR + 1)        /* 0x20405E00 */
 #define LCPU2HCPU_MB_CH2_BUF_SIZE        (512)
@@ -269,7 +266,7 @@
 // Size
 #define LCPU_ROM_CODE_SIZE               (LPSYS_ROM_SIZE)
 
-#define LCPU_ROM_RAM_SIZE                (6 * 1024 + 0x180) //TODO
+
 #define LCPU_RAM_CODE_SIZE               (6 * 1024)
 #define LCPU_PATCH_TOTAL_SIZE            (8 * 1024)
 #define LCPU_PATCH_RECORD_SIZE           (256)
@@ -289,9 +286,54 @@ start_addr  0x0x20400000           0x20406000          0x20408000      0x2040E00
 #define LCPU_ROM_CODE_START_ADDR     (LPSYS_ROM_BASE)
 #define LCPU_RAM_CODE_START_ADDR     (LPSYS_RAM_CBUS_BASE)
 
-// LPSYS_ROM_RAM
-#define LCPU_ROM_RAM_START_ADDR      (LPSYS_EM_END + 1 + LCPU_HCPU_AUDIO_MEM_SIZE)
+
+#define LCPU_ROM_RAM_START_ADDR                            ((LPSYS_SRAM_BASE) + (LCPU_ROM_RAM_OFFSET))            /* 0x20400000 */
+#define LCPU_ROM_RAM_SIZE                                  (0x00001C00)
+#define LCPU_ROM_RAM_OFFSET                                (0x00000000)
 #define LCPU_ROM_RAM_END_ADDR        (END_ADDR(LCPU_ROM_RAM_START_ADDR,LCPU_ROM_RAM_SIZE))
+
+#define LCPU_ROM_CONFIG_START_ADDR                         (((LPSYS_SRAM_BASE) + (LCPU_ROM_CONFIG_OFFSET)))      /* 0x204013800 */
+#define LCPU_ROM_CONFIG_SIZE                               (0x00000100)
+#define LCPU_ROM_CONFIG_OFFSET                             (0x00013800)
+
+#define LCPU2HCPU_MB_CH1_BUF_START_ADDR                    ((LPSYS_SRAM_BASE) + (LCPU2HCPU_MB_CH1_BUF_OFFSET))   /* 0x20413A00 */
+#define LCPU2HCPU_MB_CH1_BUF_SIZE                          (0x00000200)
+#define LCPU2HCPU_MB_CH1_BUF_OFFSET                        (0x00013A00)
+#define LCPU2HCPU_MB_CH1_BUF_END_ADDR                      (END_ADDR(LCPU2HCPU_MB_CH1_BUF_START_ADDR, LCPU2HCPU_MB_CH1_BUF_SIZE))
+
+#define NVDS_BUF_START_ADDR                                ((LPSYS_SRAM_BASE) + (NVDS_BUF_OFFSET))               /* 0x20413600 */
+#define NVDS_BUF_SIZE                                      (0x00000200)
+#define NVDS_BUF_OFFSET                                    (0x00013600)
+
+#define KE_LOG_BUF_START_ADDR                              ((LPSYS_SRAM_BASE) + (KE_LOG_BUF_OFFSET))             /* 0x20402800 */
+#define KE_LOG_BUF_SIZE                                    (0x00000000)
+#define KE_LOG_BUF_OFFSET                                  (0x00002800)
+
+#define KE_ENV_BUF_START_ADDR                              ((LPSYS_SRAM_BASE) + (KE_ENV_BUF_OFFSET))             /* 0x20402800 */
+#define KE_ENV_BUF_SIZE                                    (0x00002400)
+#define KE_ENV_BUF_OFFSET                                  (0x00002800)
+
+#define KE_MSG_BUF_START_ADDR                              ((LPSYS_SRAM_BASE) + (KE_MSG_BUF_OFFSET))             /* 0x20404C00 */
+#define KE_MSG_BUF_SIZE                                    (0x00003400)
+#define KE_MSG_BUF_OFFSET                                  (0x00004C00)
+
+#define LCPU_PATCH_BUF_START_ADDR                          ((LPSYS_SRAM_BASE) + (LCPU_PATCH_BUF_OFFSET))         /* 0x20410000 */
+#define LCPU_PATCH_BUF_SIZE                                (0x00003600)
+#define LCPU_PATCH_BUF_OFFSET                              (0x00010000)
+
+#define EM_BUF_START_ADDR                                  ((LPSYS_SRAM_BASE) + (EM_BUF_OFFSET))                 /* 0x20408000 */
+#define EM_BUF_SIZE                                        (0x00008000)
+#define EM_BUF_OFFSET                                      (0x00008000)
+
+#define LCPU_AUDIO_MEM_START_ADDR                          ((LPSYS_SRAM_BASE) + (LCPU_AUDIO_MEM_OFFSET))         /* 0x20413C00 */
+#define LCPU_AUDIO_MEM_SIZE                                (0x00000400)
+#define LCPU_AUDIO_MEM_OFFSET                              (0x00013C00)
+#define LCPU_AUDIO_MEM_END_ADDR                            (END_ADDR(LCPU_AUDIO_MEM_START_ADDR, LCPU_AUDIO_MEM_SIZE))
+
+#define LCPU_RF_CONFIG_START_ADDR                          ((LPSYS_SRAM_BASE) + (LCPU_RF_CONFIG_OFFSET))         /* 0x20413900 */
+#define LCPU_RF_CONFIG_SIZE                                (0x00000100)
+#define LCPU_RF_CONFIG_OFFSET                              (0x00013900)
+
 
 #define LCPU_RAM_CODE_START_ADDR_S   (LPSYS_RAM_BASE)
 #define LCPU_RAM_DATA_START_ADDR     (LCPU_RAM_CODE_START_ADDR_S + LCPU_RAM_CODE_SIZE)
@@ -304,11 +346,6 @@ start_addr  0x0x20400000           0x20406000          0x20408000      0x2040E00
 #define LCPU_PATCH_END_ADDR          (END_ADDR(LCPU_PATCH_START_ADDR, LCPU_PATCH_TOTAL_SIZE))
 #define LCPU_PATCH_RECORD_ADDR       (LCPU_PATCH_START_ADDR_S+LCPU_PATCH_TOTAL_SIZE-LCPU_PATCH_RECORD_SIZE)
 
-
-// LCPU_HCPU_AUDIO_RAM
-#define LCPU_AUDIO_MEM_START_ADDR    (LPSYS_EM_END + 1)
-#define LCPU_AUDIO_MEM_START_ADDR_H  (LCPU_AUDIO_MEM_START_ADDR)
-#define LCPU_AUDIO_MEM_END_ADDR      (END_ADDR(LCPU_AUDIO_MEM_START_ADDR + LCPU_HCPU_AUDIO_MEM_SIZE))
 
 /*******************************************************************************************
  * @defgroup EFUSE_BITMAP_Definition EFUSE Bitmap Definition
