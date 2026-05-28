@@ -131,7 +131,9 @@ devkit-boards: &devkit-boards
   - sf32lb56-wlan-core_a128r12n1
   - sf32lb56-wlan-core_n16r12n1
   - sf32lb58-lcd_n16r32n1_dsi
+  - sf32lb58-lcd_n16r32n1_qspi
   - sf32lb58-lcd_a128r32n1_dsi
+  - sf32lb58-lcd_a128r32n1_qspi
   - sf32lb58-core_n16r32n1
 
 
