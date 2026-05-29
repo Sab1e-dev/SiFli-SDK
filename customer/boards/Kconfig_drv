@@ -334,8 +334,8 @@ menu "On-chip Peripherals"
         bool "LPCOMP"
         default n
 
-    config BSP_USING_DCMI
-        bool "Enable DCMI"
+    menuconfig BSP_USING_DCMI
+        bool "DCMI"
         default n
         depends on SOC_SF32LB57X
 
@@ -642,6 +642,8 @@ menu "On-chip Peripherals"
         if BSP_USING_MPI
             menuconfig BSP_ENABLE_MPI1
                 bool "MPI Controller 1 Enable"
+                default y if SOC_SF32LB573UB7N6 || SOC_SF32LB573UB776 || SOC_SF32LB575YBBN6
+                default y if SOC_SF32LB577VD776 || SOC_SF32LB579V6EN6
                 default n
                 if BSP_ENABLE_MPI1
                     config BSP_ENABLE_QSPI1
@@ -649,6 +651,9 @@ menu "On-chip Peripherals"
                         default y
                     choice
                         prompt "MPI Mode"
+                        default BSP_MPI1_MODE_5 if SOC_SF32LB573UB7N6 || SOC_SF32LB573UB776 || SOC_SF32LB575YBBN6
+                        default BSP_MPI1_MODE_3 if SOC_SF32LB577VD776
+                        default BSP_MPI1_MODE_0 if SOC_SF32LB579V6EN6
                         default BSP_MPI1_MODE_0
 
                         config BSP_MPI1_MODE_0
@@ -728,11 +733,17 @@ menu "On-chip Peripherals"
                     endif
                     config BSP_QSPI1_MEM_SIZE
                         int "MPI1 Mem Size (MB)"
+                        default 4  if SOC_SF32LB573UB7N6 || SOC_SF32LB573UB776 || SOC_SF32LB575YBBN6
+                        default 16 if SOC_SF32LB577VD776
+                        default 8  if SOC_SF32LB579V6EN6
                         default 8
                 endif        
                     
             menuconfig BSP_ENABLE_MPI2
                 bool "MPI Controller 2 Enable"
+                default y if SOC_SF32LB573UB7N6 || SOC_SF32LB573UB776 || SOC_SF32LB575YBBN6
+                default y if SOC_SF32LB577VD776 || SOC_SF32LB579V6EN6
+                default y if SOC_SF32LB57BUN3N6
                 default n
                 if BSP_ENABLE_MPI2
                     config BSP_ENABLE_QSPI2
@@ -740,6 +751,10 @@ menu "On-chip Peripherals"
                         default y
                     choice
                         prompt "MPI Mode"
+                        default BSP_MPI2_MODE_0 if SOC_SF32LB573UB7N6 || SOC_SF32LB573UB776
+                        default BSP_MPI2_MODE_5 if SOC_SF32LB575YBBN6
+                        default BSP_MPI2_MODE_0 if SOC_SF32LB577VD776 
+                        default BSP_MPI2_MODE_4 if SOC_SF32LB579V6EN6
                         default BSP_MPI2_MODE_0
 
                         config BSP_MPI2_MODE_0
@@ -834,11 +849,16 @@ menu "On-chip Peripherals"
                     endif
                     config BSP_QSPI2_MEM_SIZE
                         int "MPI2 Mem Size (MB)"
+                        default 16 if SOC_SF32LB573UB7N6 || SOC_SF32LB573UB776
+                        default 4  if SOC_SF32LB575YBBN6
+                        default 16 if SOC_SF32LB577VD776
+                        default 32 if SOC_SF32LB579V6EN6
                         default 32
                 endif
 
             menuconfig BSP_ENABLE_MPI3
                 bool "MPI Controller 3 Enable"
+                default y if SOC_SF32LB573UB776 || SOC_SF32LB577VD776
                 default n
                 if BSP_ENABLE_MPI3
                     config BSP_ENABLE_QSPI3
@@ -846,6 +866,7 @@ menu "On-chip Peripherals"
                         default y
                     choice
                         prompt "MPI Mode"
+                        default BSP_MPI3_MODE_0 if SOC_SF32LB573UB776 || SOC_SF32LB577VD776
                         default BSP_MPI3_MODE_0
 
                         config BSP_MPI3_MODE_0
@@ -925,6 +946,7 @@ menu "On-chip Peripherals"
                     endif
                     config BSP_QSPI3_MEM_SIZE
                         int "MPI3 Mem Size (MB)"
+                        default 16 if SOC_SF32LB573UB776 || SOC_SF32LB577VD776
                         default 32
                 endif
             
