@@ -39,7 +39,7 @@
 
 
 #define MP3_ONE_STEREO_FRAME_SIZE (MAX_NCHAN * MAX_NGRAN * MAX_NSAMP * 2)
-#define MP3_FRAME_CACHE_COUNT (4) // if not a2dp source, 2 is enough
+#define MP3_FRAME_CACHE_COUNT (8) // if not support a2dp source, 2 is enough
 #define MP3_FRAME_CACHE_SIZE  (MP3_ONE_STEREO_FRAME_SIZE * MP3_FRAME_CACHE_COUNT + 10)
 
 //event flag
@@ -1736,6 +1736,8 @@ static int get_frame_info(mp3ctrl_handle ctrl, MP3FrameInfo *mp3FrameInfo)
         ctrl->cache_bytesLeft--;
     }
     MP3FreeDecoder(hMP3Decoder);
+#else
+    LOG_I("PKG_USING_LIBHELIX not enabled, can't play mp3 file");
 #endif
     return ret;
 }
@@ -2347,7 +2349,7 @@ static uint32_t wav_read_header(mp3ctrl_handle ctrl)
     return -1;
 }
 
-#define MP3_TEST_CMD 0
+#define MP3_TEST_CMD 1
 
 #if defined(RT_USING_UTEST)
     #undef  MP3_TEST_CMD

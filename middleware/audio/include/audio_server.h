@@ -178,7 +178,7 @@ struct audio_device
     */
     int (*open)(void *user_data, audio_device_input_callback callback);
     int (*close)(void *user_data);
-    uint32_t (*output)(void *user_data, struct rt_ringbuffer *rb);
+    uint32_t (*output)(void *user_data, struct rt_ringbuffer32 *rb);
     void *user_data;
     int (*ioctl)(void *user_data, int cmd, void *val);
 };
