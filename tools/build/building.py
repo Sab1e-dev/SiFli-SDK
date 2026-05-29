@@ -1710,6 +1710,9 @@ def GenDownloadScript(main_env):
 
     PrintEnvList()
 
+    if GetDepend("BOARD_RAMRUN_ENABLED"):
+        return
+
     dependent_files = []
     for env in EnvList:
         # embedded project may contain multiple bin, but only IROM1.bin is embedded, others should be downloaded manually
@@ -4340,6 +4343,9 @@ def AddBootLoader(SIFLI_SDK, chip):
     if not chip and _IsPcSimulatorBuild():
         return
 
+    if GetDepend("BOARD_RAMRUN_ENABLED"):
+        return
+    
     # Add bootloader project
     proj_path = None
     proj_name = 'bootloader'
@@ -4368,6 +4374,9 @@ def AddFTAB(SIFLI_SDK, chip, env=None):
     - v1/v2 format: Add ftab subproject for compilation
     """
     if not chip and _IsPcSimulatorBuild():
+        return
+
+    if GetDepend("BOARD_RAMRUN_ENABLED"):
         return
 
     import ptab as ptab_module

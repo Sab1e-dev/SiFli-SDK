@@ -42,7 +42,7 @@ LR_IROM1 CODE_START_ADDR CODE_SIZE  {    ; load region size_region
   ScatterAssert((ImageLength(RW_PSRAM1)+ ImageLength(RW_PSRAM_RET) + ImageLength(RW_PSRAM_NON_RET))<PSRAM_DATA_SIZE)
 #endif
 
-  RW_IRAM_RET HPSYS_RAM0_BASE HPSYS_RAM0_SIZE {  
+  RW_IRAM_RET HCPU_RAM_DATA_START_ADDR HPSYS_RAM0_SIZE {  
 ;    .ANY2 (+RW +ZI)    
    *.o (.l1_ret_text_*)
    *.o (.l1_ret_rodata_*)

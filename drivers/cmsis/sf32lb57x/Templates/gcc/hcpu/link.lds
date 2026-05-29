@@ -43,7 +43,7 @@ __ROM_SIZE = CODE_SIZE;
     <o1> RAM Size (in Bytes) <0x0-0xFFFFFFFF:8>
   </h>
  -----------------------------------------------------------------------------*/
-__RAM_BASE = HPSYS_RAM0_BASE;
+__RAM_BASE = HCPU_RAM_DATA_START_ADDR;
 __RAM_SIZE = HCPU_RAM_DATA_SIZE;
 
 /*--------------------- Stack / Heap Configuration ----------------------------
