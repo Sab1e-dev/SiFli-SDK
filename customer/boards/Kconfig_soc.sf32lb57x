@@ -17,3 +17,5 @@ config SOC_SF32LB57BUN3N6
     bool
     select SOC_PACKAGE_QFN68
 
+rsource "Kconfig_soc.sf32lb57x.common"
+

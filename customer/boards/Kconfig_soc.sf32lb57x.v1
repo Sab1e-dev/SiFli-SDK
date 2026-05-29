@@ -22,3 +22,5 @@ choice SOC_SF32LB57X_PART
         select SOC_PACKAGE_QFN68
 endchoice
 
+rsource "Kconfig_soc.sf32lb57x.common"
+

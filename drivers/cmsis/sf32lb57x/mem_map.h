@@ -407,6 +407,15 @@ start_addr  0x0x20400000           0x20406000          0x20408000      0x2040E00
 #define PKGID_LDO33_EN_Pos           (3U)
 /**  LDO33 Enable Mask */
 #define PKGID_LDO33_EN_Msk           (0x1UL << PKGID_LDO33_EN_Pos)
+/**  MPI1 PSRAM Type Position */
+#define PKGID_MPI1_PSRAM_TYPE_Pos    (4U)
+/**  MPI1 PSRAM Type Mask */
+#define PKGID_MPI1_PSRAM_TYPE_Msk    (0x3UL << PKGID_MPI1_PSRAM_TYPE_Pos)
+/**  MPI2 PSRAM Type Position */
+#define PKGID_MPI2_PSRAM_TYPE_Pos    (6U)
+/**  MPI2 PSRAM Type Mask */
+#define PKGID_MPI2_PSRAM_TYPE_Msk    (0x3UL << PKGID_MPI2_PSRAM_TYPE_Pos)
+
 
 /**
  * @}

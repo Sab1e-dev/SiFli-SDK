@@ -640,6 +640,7 @@ menu "On-chip Peripherals"
             default y
 
         if BSP_USING_MPI
+            # Remember to update default value definition in Kconfig_soc.sf32lb57x also
             menuconfig BSP_ENABLE_MPI1
                 bool "MPI Controller 1 Enable"
                 default y if SOC_SF32LB573UB7N6 || SOC_SF32LB573UB776 || SOC_SF32LB575YBBN6
@@ -754,7 +755,7 @@ menu "On-chip Peripherals"
                         default BSP_MPI2_MODE_0 if SOC_SF32LB573UB7N6 || SOC_SF32LB573UB776
                         default BSP_MPI2_MODE_5 if SOC_SF32LB575YBBN6
                         default BSP_MPI2_MODE_0 if SOC_SF32LB577VD776 
-                        default BSP_MPI2_MODE_4 if SOC_SF32LB579V6EN6
+                        default BSP_MPI2_MODE_3 if SOC_SF32LB579V6EN6
                         default BSP_MPI2_MODE_0
 
                         config BSP_MPI2_MODE_0

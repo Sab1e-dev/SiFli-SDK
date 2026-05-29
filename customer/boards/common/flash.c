@@ -934,6 +934,9 @@ typedef struct
     uint8_t is_qspi;
     uint16_t msize;  /* size in Mbyte */
     uint32_t base_addr;
+#ifdef SF32LB57X
+    int32_t (*init_pinmux)(void);
+#endif /* SF32LB57x */
 } bf0_psram_config_t;
 
 typedef union
@@ -984,6 +987,9 @@ const static bf0_psram_config_t bf0_psram_cfg[] =
         .is_qspi = BSP_QSPI1_MODE,
         .msize = BSP_QSPI1_MEM_SIZE,
         .base_addr = QSPI1_MEM_BASE,
+#ifdef SF32LB57X
+        .init_pinmux = bsp_psram1_pinmux_init,
+#endif /* SF32LB57X */
     },
 #endif /* BSP_USING_PSRAM1 */
 #ifdef BSP_USING_PSRAM2
@@ -993,6 +999,9 @@ const static bf0_psram_config_t bf0_psram_cfg[] =
         .is_qspi = BSP_QSPI2_MODE,
         .msize = BSP_QSPI2_MEM_SIZE,
         .base_addr = QSPI2_MEM_BASE,
+#ifdef SF32LB57X
+        .init_pinmux = bsp_psram2_pinmux_init,
+#endif /* SF32LB57X */
     },
 #endif /* BSP_USING_PSRAM2 */
 };
@@ -1288,6 +1297,7 @@ void bsp_psram_wait_idle(char *name)
 }
 
 #else   // ! SF32LB55X
+
 static uint8_t psram_get_default_type(uint32_t mpi_id)
 {
     uint8_t psram_type = SPI_MODE_NOR;
@@ -1369,6 +1379,8 @@ static uint8_t psram_get_default_type(uint32_t mpi_id)
 #endif
         }
     }
+#elif defined(SF32LB57X)
+    psram_type = bsp_psram_get_mpi_mode(mpi_id);
 #endif
 
     return psram_type;
@@ -1446,6 +1458,12 @@ int bsp_psramc_init(void)
             else
                 handle->wakeup = 0;
 
+#ifdef SF32LB57X
+            if (0 != bf0_psram_cfg[i].init_pinmux())
+            {
+                HAL_ASSERT(0);
+            }
+#endif /* SF32LB57X  */
             HAL_MPI_PSRAM_Init(handle, &qspi_cfg, psram_clk_div[i]);
         }
     }
