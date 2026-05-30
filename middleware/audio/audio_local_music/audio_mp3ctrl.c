@@ -38,9 +38,15 @@
 #define CACHE_BUF_SIZE          (3*MAINBUF_SIZE + 100)
 
 
-#define MP3_ONE_STEREO_FRAME_SIZE (MAX_NCHAN * MAX_NGRAN * MAX_NSAMP * 2)
-#define MP3_FRAME_CACHE_COUNT (8) // if not support a2dp source, 2 is enough
-#define MP3_FRAME_CACHE_SIZE  (MP3_ONE_STEREO_FRAME_SIZE * MP3_FRAME_CACHE_COUNT + 10)
+#define MP3_ONE_STEREO_FRAME_SIZE (MAX_NCHAN * MAX_NGRAN * MAX_NSAMP * 2) /* 2 * 2 * 576 * 2 = 4608 */
+
+#if CFG_AV_SRC /* may send to a2dp sink device */
+    #define MP3_FRAME_CACHE_COUNT (6)  /* if file read slow, such as slow SD/EMMC, should use a larger value */
+#else
+    #define MP3_FRAME_CACHE_COUNT (3)
+#endif
+
+#define MP3_FRAME_CACHE_SIZE  (MP3_ONE_STEREO_FRAME_SIZE * MP3_FRAME_CACHE_COUNT)
 
 //event flag
 #define MP3_EVENT_FLAG_PLAY             (1 << 0)

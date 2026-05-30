@@ -3143,7 +3143,7 @@ uint8_t audio_server_bt_voice_ind(uint8_t *fifo, uint8_t len)
         audio_client_t client = rt_list_first_entry(&device->running_client_list, struct audio_client_base_t, node);
         RT_ASSERT(client);
 #if 0 //AUDIO_BOX_EN
-        struct rt_ringbuffer *rb = &client->ring_buf;
+        struct rt_ringbuffer32 *rb = &client->ring_buf;
         if (rt_ringbuffer32_space_len(rb) >= len)
         {
             putsize = rt_ringbuffer32_put(rb, fifo, len);
