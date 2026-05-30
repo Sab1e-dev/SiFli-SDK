@@ -22,9 +22,6 @@
 static uint16_t mpi1_div = 1;
 static uint16_t mpi2_div = 1;
 static uint16_t mpi3_div = 1;
-#ifdef BSP_QSPI2_DUAL_MODE
-    static uint16_t mpi2_ext_div = 1;
-#endif /* BSP_QSPI2_DUAL_MODE */
 
 static uint32_t otp_flash_addr = AUTO_FLASH_MAC_ADDRESS;
 
@@ -60,29 +57,20 @@ uint32_t BSP_GetOtpBase(void)
 }
 #endif
 
-#ifdef BSP_QSPI2_DUAL_MODE
-uint16_t BSP_GetFlashExtDiv(void)
-{
-    return mpi2_ext_div;
-}
-
-void BSP_SetFlashExtDiv(uint16_t div)
-{
-    mpi2_ext_div = div;
-}
-#endif /* BSP_QSPI2_DUAL_MODE */
-
 #ifdef SOC_BF0_HCPU
 #define HXT_DELAY_EXP_VAL 1000
 static void LRC_init(void)
 {
     HAL_PMU_RC10Kconfig();
 
+#if 0
+//TODO:
     HAL_RC_CAL_update_reference_cycle_on_48M(LXT_LP_CYCLE);
     uint32_t ref_cnt = HAL_RC_CAL_get_reference_cycle_on_48M();
     uint32_t cycle_t = (uint32_t)ref_cnt / (48 * LXT_LP_CYCLE);
 
     HAL_PMU_SET_HXT3_RDY_DELAY((HXT_DELAY_EXP_VAL / cycle_t + 1));
+#endif
 }
 #endif
 
@@ -126,7 +114,7 @@ void HAL_PreInit(void)
         {
             HAL_PMU_SetWdt((uint32_t)hwp_wdt2);   // Add reboot cause for watchdog2
         }
-#endif/* CFG_BOOTLOADER */
+#endif /* CFG_BOOTLOADER */
         HAL_RCC_LCPU_ClockSelect(RCC_CLK_MOD_LP_PERI, RCC_CLK_PERI_HXT48);
 
         HAL_HPAON_CANCEL_LP_ACTIVE_REQUEST();
