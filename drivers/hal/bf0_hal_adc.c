@@ -538,7 +538,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_ADC_Start_IT(ADC_HandleTypeDef *hadc)
         __HAL_ADC_ENABLE_IRQ(hadc, GPADC_GPADC_IRQ_GPADC_IMR);
         __HAL_ADC_START_CONV(hadc);
     }
-    
+
     /* Return function status */
     return res;
 }
@@ -916,9 +916,9 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_ADC_SetTimer(ADC_HandleTypeDef *hadc, HAL_A
   */
 __HAL_ROM_USED void HAL_ADC_IRQHandler(ADC_HandleTypeDef *hadc)
 {
-    if(__HAL_ADC_GET_FLAG(hadc, GPADC_GPADC_IRQ_GPADC_IRSR))
+    if (__HAL_ADC_GET_FLAG(hadc, GPADC_GPADC_IRQ_GPADC_IRSR))
         HAL_ADC_ConvCpltCallback(hadc);
-    
+
     /* Clear ISR */
     __HAL_ADC_CLEAR_FLAG(hadc, GPADC_GPADC_IRQ_GPADC_ICR);
 
@@ -1130,11 +1130,11 @@ static HAL_StatusTypeDef HAL_ADC_Calibration(const ADC_CalibInputTypeDef *config
     if (config->reg_value1 == 0 || config->reg_value2 == 0)
         return HAL_ERROR;
 
-    gap1 = config->reg_value1 > config->reg_value2 ? 
-           (float)(config->reg_value1 - config->reg_value2) : 
+    gap1 = config->reg_value1 > config->reg_value2 ?
+           (float)(config->reg_value1 - config->reg_value2) :
            (float)(config->reg_value2 - config->reg_value1);
-    gap2 = config->voltage1_mv > config->voltage2_mv ? 
-           (float)(config->voltage1_mv - config->voltage2_mv) : 
+    gap2 = config->voltage1_mv > config->voltage2_mv ?
+           (float)(config->voltage1_mv - config->voltage2_mv) :
            (float)(config->voltage2_mv - config->voltage1_mv);
 
     if (gap1 != 0)
@@ -1146,7 +1146,7 @@ static HAL_StatusTypeDef HAL_ADC_Calibration(const ADC_CalibInputTypeDef *config
         return HAL_ERROR;
     }
 
-    result->offset = (float)config->reg_value1 - 
+    result->offset = (float)config->reg_value1 -
                      (float)config->voltage1_mv * ADC_RATIO_ACCURATE / result->ratio;
 
 #ifdef SF32LB55X
@@ -1156,8 +1156,8 @@ static HAL_StatusTypeDef HAL_ADC_Calibration(const ADC_CalibInputTypeDef *config
     result->max_voltage_mv = ADC_MAX_VOLTAGE_MV_3300;
 #endif
 
-    result->threshold_reg = (uint32_t)(result->max_voltage_mv * ADC_RATIO_ACCURATE / 
-                             result->ratio + result->offset);
+    result->threshold_reg = (uint32_t)(result->max_voltage_mv * ADC_RATIO_ACCURATE /
+                                       result->ratio + result->offset);
 
     reg_max = GPADC_ADC_RDATA0_SLOT0_RDATA >> GPADC_ADC_RDATA0_SLOT0_RDATA_Pos;
     if (result->threshold_reg >= (reg_max - 3))
@@ -1182,8 +1182,8 @@ static HAL_StatusTypeDef HAL_ADC_SetDefaultCalibration(ADC_CalibResultTypeDef *r
     result->ratio = ADC_DEFAULT_RATIO;
     result->max_voltage_mv = ADC_DEFAULT_MAX_VOLTAGE_MV;
 
-    result->threshold_reg = (uint32_t)(result->max_voltage_mv * ADC_RATIO_ACCURATE / 
-                             result->ratio + result->offset);
+    result->threshold_reg = (uint32_t)(result->max_voltage_mv * ADC_RATIO_ACCURATE /
+                                       result->ratio + result->offset);
 
     reg_max = GPADC_ADC_RDATA0_SLOT0_RDATA >> GPADC_ADC_RDATA0_SLOT0_RDATA_Pos;
     if (result->threshold_reg >= (reg_max - 3))
@@ -1230,7 +1230,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_ADC_CalibInit(HAL_ADC_CalibContextTypeDef *
   * @retval HAL status.
   */
 __HAL_ROM_USED HAL_StatusTypeDef HAL_ADC_CalibSetCustom(HAL_ADC_CalibContextTypeDef *context,
-                                                        const HAL_ADC_CalibConfigTypeDef *config)
+        const HAL_ADC_CalibConfigTypeDef *config)
 {
     ADC_CalibInputTypeDef calib_config;
     ADC_CalibResultTypeDef result;
@@ -1353,7 +1353,7 @@ static HAL_StatusTypeDef HAL_ADC_ApplyFactoryConfigFromBsp(const FACTORY_CFG_ADC
     factory_config.low_mv = 0;
     factory_config.high_mv = 0;
 #endif
-#ifdef SF32LB52X
+#if defined(SF32LB52X) || defined(SF32LB57X)
     factory_config.vbat_reg = config->vbat_reg;
     factory_config.vbat_mv = config->vbat_mv;
     factory_config.ldovref_flag = config->ldovref_flag;
@@ -1363,7 +1363,7 @@ static HAL_StatusTypeDef HAL_ADC_ApplyFactoryConfigFromBsp(const FACTORY_CFG_ADC
     factory_config.vbat_mv = 0;
     factory_config.ldovref_flag = 0;
     factory_config.ldovref_sel = 0;
-#endif
+#endif /* SF32LB52X || SF32LB57X */
 
     return HAL_ADC_ApplyFactoryConfig(&factory_config, context);
 }
@@ -1446,7 +1446,7 @@ static HAL_StatusTypeDef HAL_ADC_LoadFactoryConfigFromBsp(ADC_FactoryConfigTypeD
     factory_config->low_mv = 0;
     factory_config->high_mv = 0;
 #endif
-#ifdef SF32LB52X
+#if defined(SF32LB52X) || defined(SF32LB57X)
     factory_config->vbat_reg = config.vbat_reg;
     factory_config->vbat_mv = config.vbat_mv;
     factory_config->ldovref_flag = config.ldovref_flag;
@@ -1456,7 +1456,7 @@ static HAL_StatusTypeDef HAL_ADC_LoadFactoryConfigFromBsp(ADC_FactoryConfigTypeD
     factory_config->vbat_mv = 0;
     factory_config->ldovref_flag = 0;
     factory_config->ldovref_sel = 0;
-#endif
+#endif /* SF32LB52X || SF32LB57X */
 
     return HAL_OK;
 }
@@ -1490,7 +1490,7 @@ static HAL_StatusTypeDef HAL_ADC_LoadFactoryConfigFromLcpu(ADC_FactoryConfigType
 }
 
 __HAL_ROM_USED HAL_StatusTypeDef HAL_ADC_CalibGetFactoryInfo(HAL_ADC_CalibSource source,
-                                                              HAL_ADC_CalibFactoryInfoTypeDef *info)
+        HAL_ADC_CalibFactoryInfoTypeDef *info)
 {
     ADC_FactoryConfigTypeDef factory_config;
     HAL_StatusTypeDef status;
@@ -1498,8 +1498,14 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_ADC_CalibGetFactoryInfo(HAL_ADC_CalibSource
     if (info == NULL)
         return HAL_ERROR;
 
-    *info = (HAL_ADC_CalibFactoryInfoTypeDef){0};
-    factory_config = (ADC_FactoryConfigTypeDef){0};
+    *info = (HAL_ADC_CalibFactoryInfoTypeDef)
+    {
+        0
+    };
+    factory_config = (ADC_FactoryConfigTypeDef)
+    {
+        0
+    };
 
     if (source == HAL_ADC_CALIB_SOURCE_BSP)
         status = HAL_ADC_LoadFactoryConfigFromBsp(&factory_config);
@@ -1550,6 +1556,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_ADC_CalibApply(ADC_HandleTypeDef *hadc, con
     if (hadc == NULL || context == NULL)
         return HAL_ERROR;
 
+// TODO:
 #ifdef SF32LB52X
     if (SF32LB52X_LETTER_SERIES() && (context->flags & HAL_ADC_CALIB_CTX_F_LDOVREF_VALID))
         __HAL_ADC_SET_LDO_REF_SEL(hadc, context->ldovref_sel);
@@ -1606,9 +1613,9 @@ __HAL_ROM_USED float HAL_ADC_RegToVoltageFloat(float reg_value, const HAL_ADC_Ca
 #endif
 
 __HAL_ROM_USED HAL_StatusTypeDef HAL_ADC_CalibLoad(ADC_HandleTypeDef *hadc,
-                                                   HAL_ADC_CalibContextTypeDef *context,
-                                                   HAL_ADC_CalibSource source,
-                                                   uint32_t flags)
+        HAL_ADC_CalibContextTypeDef *context,
+        HAL_ADC_CalibSource source,
+        uint32_t flags)
 {
     HAL_StatusTypeDef status;
 
