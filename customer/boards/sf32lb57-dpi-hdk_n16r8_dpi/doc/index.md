@@ -12,3 +12,6 @@ PSRAM 4MB
 ## External Storage
 ### MPI3
 NOR Flash 16MB
+
+## Display
+DPI Display

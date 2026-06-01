@@ -13,3 +13,7 @@ NOR Flash 16MB
 NOR Flash 16MB
 
 ## External Storage
+
+## Display
+QSPI Display
+

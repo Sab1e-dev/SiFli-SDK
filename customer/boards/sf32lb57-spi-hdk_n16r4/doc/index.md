@@ -10,3 +10,6 @@ PSRAM 4MB
 NOR Flash 16MB
 
 ## External Storage
+
+## Display
+QSPI Display
