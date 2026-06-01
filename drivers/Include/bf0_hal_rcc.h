@@ -911,7 +911,7 @@ HAL_StatusTypeDef HAL_RCC_HCPU_ConfigHCLKByMode(uint32_t freq_in_mhz, HPSYS_Dvfs
  */
 HPSYS_DvfsModeTypeDef HAL_RCC_HCPU_GetCurrentDvfsMode(void);
 
-#endif /* SF32LB52X && SOC_BF0_HCPU*/
+#endif /* (SF32LB52X || SF32LB57X)  && SOC_BF0_HCPU*/
 
 
 #if defined(SF32LB52X) && defined(SOC_BF0_LCPU)

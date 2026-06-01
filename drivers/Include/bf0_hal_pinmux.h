@@ -17,7 +17,7 @@ extern "C" {
 
 #if defined(PIN_ARBITRARY_FUNC_LIST)
 #define HAL_PINMUX_SUPPORT_ARBITRARY_FUNCTION
-#endif /* SF32LB57X */
+#endif /* PIN_ARBITRARY_FUNC_LIST */
 
 /** @addtogroup BF0_HAL_Driver
   * @{
@@ -89,7 +89,7 @@ typedef enum
         hwp_pinmux1->PAD_PA56 = 10;  \
     }                                \
     while (0)
-#elif defined(SF32LB52X)
+#elif defined(SF32LB52X) || defined(SF32LB57X)
 #define HAL_PIN_SetXT32()    \
     do                       \
     {                        \
