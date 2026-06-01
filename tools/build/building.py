@@ -978,7 +978,28 @@ def _ptab_v3_fromelf_region_aliases(region_name: str):
     if not upper:
         return set()
     base = upper[3:] if upper.startswith(('ER_', 'LR_')) else upper
-    return {upper.lower(), base.lower(), 'er_{}'.format(base).lower(), 'lr_{}'.format(base).lower()}
+    aliases = {upper.lower(), base.lower(), 'er_{}'.format(base).lower(), 'lr_{}'.format(base).lower()}
+    if base in ('IROM1', 'ROM1'):
+        aliases.update(('irom1', 'rom1', 'er_irom1', 'er_rom1', 'lr_irom1', 'lr_rom1'))
+    elif base in ('IROM2', 'ROM2'):
+        aliases.update(('irom2', 'rom2', 'er_irom2', 'er_rom2', 'lr_irom2', 'lr_rom2'))
+    return aliases
+
+
+def _ptab_v3_fromelf_region_name(entry, ext: str) -> str:
+    name = os.path.basename(str(entry.get('path') or '')).strip()
+    if name.lower().endswith(ext.lower()):
+        name = name[:-len(ext)]
+    return name.strip()
+
+
+def _ptab_v3_lcpu_fromelf_region_suffix(entry, ext: str) -> str:
+    key = str(entry.get('key') or '').strip()
+    if key in _ptab_v3_fromelf_region_aliases('ER_IROM1'):
+        return 'ER_IROM1'
+    if key in _ptab_v3_fromelf_region_aliases('ER_IROM2'):
+        return 'ER_IROM2'
+    return ''
 
 
 def _ptab_v3_fromelf_entries(export_path: str, ext: str):
@@ -1054,6 +1075,70 @@ def _build_ptab_v3_keil_artifacts(program_file: str, out_dir: str, base_name: st
     _write_ptab_v3_artifact_stamp(stamp_path, code_path)
     _remove_file_or_dir(export_path)
     return code_path
+
+
+def _build_ptab_v3_keil_embedded_lcpu_artifacts(program_file: str, out_dir: str, base_name: str,
+                                                ext: str, stamp_path: str) -> str:
+    """Export embedded LCPU Keil ptab v3 artifacts while preserving fromelf regions."""
+    export_path = os.path.join(out_dir, '.fromelf_{}{}'.format(base_name, ext))
+    _remove_file_or_dir(export_path)
+    fromelf_mode = '--bin' if ext.lower() == '.bin' else '--i32'
+    subprocess.run(['fromelf', fromelf_mode, program_file, '--output', export_path], check=True)
+
+    entries = [
+        entry for entry in _ptab_v3_fromelf_entries(export_path, ext)
+        if _ptab_v3_artifact_has_payload(entry['path'], ext)
+    ]
+    if not entries:
+        _remove_file_or_dir(export_path)
+        return ''
+
+    code_entry = _find_ptab_v3_fromelf_entry(
+        entries,
+        _ptab_v3_fromelf_region_aliases('ER_IROM1'),
+        set(),
+        ext,
+    )
+    if not code_entry:
+        _remove_file_or_dir(export_path)
+        return ''
+    flash_entry = _find_ptab_v3_fromelf_entry(
+        entries,
+        _ptab_v3_fromelf_region_aliases('ER_IROM2'),
+        {code_entry['path']},
+        ext,
+    )
+    if not flash_entry:
+        _remove_file_or_dir(export_path)
+        return ''
+
+    code_path = ''
+    flash_path = ''
+    unknown_regions = []
+    for entry in entries:
+        region_name = _ptab_v3_lcpu_fromelf_region_suffix(entry, ext)
+        if not region_name:
+            unknown_regions.append(_ptab_v3_fromelf_region_name(entry, ext) or entry['path'])
+            continue
+        out_file = GetPtabV3ArtifactPath(out_dir, base_name, ext, region_name)
+        _remove_file_or_dir(out_file)
+        shutil.move(entry['path'], out_file)
+        if entry['path'] == code_entry['path']:
+            code_path = out_file
+        elif entry['path'] == flash_entry['path']:
+            flash_path = out_file
+
+    if unknown_regions:
+        logging.warning(
+            "Ignore unexpected embedded LCPU fromelf region(s): %s",
+            ', '.join(unknown_regions),
+        )
+
+    _remove_file_or_dir(export_path)
+    if code_path and flash_path:
+        _write_ptab_v3_artifact_stamp(stamp_path, code_path)
+        return code_path
+    return ''
 
 
 def ModifyProgramBinaryTargets(target, source, env):
@@ -1169,6 +1254,31 @@ def ProgramBinaryBuild(target, source, env):
         subprocess.run([rtconfig.STRIP, str(source[0]) + '.strip.elf'], check=True)
         code_bin_path = _build_ptab_v3_embedded_lcpu_artifact(program_file, out_dir, base_name, '.bin', rtconfig)
         _write_ptab_v3_artifact_stamp(stamp_path, code_bin_path)
+        return
+
+    if rtconfig.PLATFORM == 'armcc' and ptab_obj and ptab_obj.is_v3() and core == 'LCPU' and env.get('IMG_EMBEDDED'):
+        base_name = GetPtabV3ArtifactBaseName(env, program_file)
+        stamp_path = code_bin_path
+        out_dir = os.path.dirname(stamp_path)
+        _cleanup_ptab_v3_output_dir(out_dir, '.bin', PTAB_V3_PROGRAM_BINARY_STAMP)
+        _cleanup_ptab_v3_legacy_artifacts(program_file, '.bin')
+
+        code_bin_path = _build_ptab_v3_keil_embedded_lcpu_artifacts(
+            program_file,
+            out_dir,
+            base_name,
+            '.bin',
+            stamp_path,
+        )
+        if (not code_bin_path
+                or not os.path.isfile(code_bin_path)):
+            logging.error(
+                "Keil ptab v3 embedded LCPU did not generate expected artifacts "
+                "(expected ER_IROM1 and ER_IROM2) in %s",
+                out_dir,
+            )
+            raise SystemExit(1)
+        subprocess.run(['fromelf', '-z', str(source[0])], check=True)
         return
 
     # ptab v3: split app/ex sections and emit final artifacts into `output/`
@@ -1311,6 +1421,30 @@ def ProgramHexBuild(target, source, env):
 
         code_hex_path = _build_ptab_v3_embedded_lcpu_artifact(program_file, out_dir, base_name, '.hex', rtconfig)
         _write_ptab_v3_artifact_stamp(stamp_path, code_hex_path)
+        return
+
+    if rtconfig.PLATFORM == 'armcc' and ptab_obj and ptab_obj.is_v3() and core == 'LCPU' and env.get('IMG_EMBEDDED'):
+        base_name = GetPtabV3ArtifactBaseName(env, program_file)
+        stamp_path = code_hex_path
+        out_dir = os.path.dirname(stamp_path)
+        _cleanup_ptab_v3_output_dir(out_dir, '.hex', PTAB_V3_PROGRAM_HEX_STAMP)
+        _cleanup_ptab_v3_legacy_artifacts(program_file, '.hex')
+
+        code_hex_path = _build_ptab_v3_keil_embedded_lcpu_artifacts(
+            program_file,
+            out_dir,
+            base_name,
+            '.hex',
+            stamp_path,
+        )
+        if (not code_hex_path
+                or not os.path.isfile(code_hex_path)):
+            logging.error(
+                "Keil ptab v3 embedded LCPU did not generate expected artifacts "
+                "(expected ER_IROM1 and ER_IROM2) in %s",
+                out_dir,
+            )
+            raise SystemExit(1)
         return
 
     # ptab v3: split app/ex sections and emit final artifacts into `output/`

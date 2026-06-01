@@ -1850,25 +1850,58 @@ def BuildJLinkLoadScript(main_env):
                     s_file += MakeLine('ADDR{}=0x{:08X}'.format(s_num,info[d]))
                     s_num += 1
             else:
-                if is_ptab_v3:
-                    bin_file = building.ResolvePtabV3CodeArtifactFromRef(
+                if is_ptab_v3 and building.IsEmbeddedProjEnv(env) and env.get('name') == 'lcpu':
+                    base_name = building.GetPtabV3ArtifactBaseName(env)
+                    bin_file = building.ResolvePtabV3ArtifactContainerFromRef(
                         bin_file,
-                        building.GetPtabV3ArtifactBaseName(env),
+                        base_name,
                         '.bin',
                     )
-                elif os.path.isdir(bin_file):
-                    preferred = os.path.join(bin_file, 'ER_IROM1.bin')
-                    assert os.path.isfile(preferred), "{} should contain ER_IROM1.bin as code image".format(env['name'])
-                    bin_file = preferred
-                assert os.path.isfile(bin_file), "{} should be a file as map defines".format(env['name'])
-                s += MakeLine('loadbin {} 0x{:08X}'.format(os.path.relpath(bin_file, work_dir), info))
-                download_file.append({
-                        'name': os.path.relpath(bin_file, work_dir),
-                        'addr': info
-                    })
-                s_file += MakeLine('FILE{}={}'.format(s_num,os.path.relpath(bin_file, work_dir)))
-                s_file += MakeLine('ADDR{}=0x{:08X}'.format(s_num,info))
-                s_num += 1
+                    if os.path.isdir(bin_file):
+                        bin_file = building.GetPtabV3ArtifactPath(bin_file, base_name, '.bin', 'ER_IROM2')
+                    else:
+                        bin_file = building.GetPtabV3ArtifactPath(
+                            os.path.dirname(bin_file),
+                            base_name,
+                            '.bin',
+                            'ER_IROM2',
+                        )
+
+                    if not os.path.isfile(bin_file) or os.path.getsize(bin_file) <= 0:
+                        logging.error(
+                            "ptab v3 embedded LCPU flash artifact ER_IROM2.bin not found in %s",
+                            bin_file,
+                        )
+                        raise SystemExit(1)
+
+                    s += MakeLine('loadbin {} 0x{:08X}'.format(os.path.relpath(bin_file, work_dir), info))
+                    download_file.append({
+                            'name': os.path.relpath(bin_file, work_dir),
+                            'addr': info
+                        })
+                    s_file += MakeLine('FILE{}={}'.format(s_num,os.path.relpath(bin_file, work_dir)))
+                    s_file += MakeLine('ADDR{}=0x{:08X}'.format(s_num,info))
+                    s_num += 1
+                else:
+                    if is_ptab_v3:
+                        bin_file = building.ResolvePtabV3CodeArtifactFromRef(
+                            bin_file,
+                            building.GetPtabV3ArtifactBaseName(env),
+                            '.bin',
+                        )
+                    elif os.path.isdir(bin_file):
+                        preferred = os.path.join(bin_file, 'ER_IROM1.bin')
+                        assert os.path.isfile(preferred), "{} should contain ER_IROM1.bin as code image".format(env['name'])
+                        bin_file = preferred
+                    assert os.path.isfile(bin_file), "{} should be a file as map defines".format(env['name'])
+                    s += MakeLine('loadbin {} 0x{:08X}'.format(os.path.relpath(bin_file, work_dir), info))
+                    download_file.append({
+                            'name': os.path.relpath(bin_file, work_dir),
+                            'addr': info
+                        })
+                    s_file += MakeLine('FILE{}={}'.format(s_num,os.path.relpath(bin_file, work_dir)))
+                    s_file += MakeLine('ADDR{}=0x{:08X}'.format(s_num,info))
+                    s_num += 1
 
                 # ptab v3: load app/ex resource bins from the same `output/` directory
                 if is_ptab_v3:
@@ -1878,7 +1911,7 @@ def BuildJLinkLoadScript(main_env):
                     elif env.get('name') == 'acpu':
                         core = 'ACPU'
 
-                    res_dir = os.path.dirname(bin_file)
+                    res_dir = bin_file if os.path.isdir(bin_file) else os.path.dirname(bin_file)
                     base_name = building.GetPtabV3ArtifactBaseName(env)
                     for item in int_res_download_items.get(core, []):
                         res_path = building.GetPtabV3ArtifactPath(
@@ -1914,7 +1947,7 @@ def BuildJLinkLoadScript(main_env):
                     if not d.lower().endswith('.hex'):
                         continue
                     if building.IsEmbeddedProjEnv(env) and 'ER_IROM1' in d:
-                        # ER_IROM1 is embedded in parent, others need to be downloaded
+                        # LCPU RAM code is embedded in parent, others need to be downloaded.
                         continue
                     hex_path = os.path.join(hex_file, d)
                     s += MakeLine('loadfile {}'.format(os.path.relpath(hex_path, work_dir)))
@@ -2001,7 +2034,7 @@ def BuildJLinkLoadScript(main_env):
                     if not d.lower().endswith('.hex'):
                         continue
                     if building.IsEmbeddedProjEnv(env) and 'ER_IROM1' in d:
-                        # ER_IROM1 is embedded in parent, others need to be downloaded
+                        # LCPU RAM code is embedded in parent, others need to be downloaded.
                         continue
                     hex_path = os.path.join(hex_file, d)
                     s += MakeLine('loadfile {}'.format(os.path.relpath(hex_path, work_dir)))
