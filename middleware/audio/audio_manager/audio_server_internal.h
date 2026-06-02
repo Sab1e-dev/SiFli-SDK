@@ -169,6 +169,8 @@ struct audio_client_base_t
     audio_server_callback_func  callback;
     void                        *user_data;
     audio_parameter_t           parameter;
+    uint32_t                    cache_samplerate;
+    uint32_t                    cache_ch;
     struct rt_ringbuffer32      ring_buf;
     uint8_t                     *ring_pool;
 #if SOFTWARE_TX_MIX_ENABLE

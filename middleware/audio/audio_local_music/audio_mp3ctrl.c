@@ -709,6 +709,8 @@ static int write_data(uint8_t is_new_data, mp3ctrl_handle ctrl, int16_t *outBuf,
         }
         if (!ctrl->resample)
         {
+            audio_ioctl(ctrl->client, AUDIO_IOCTL_SET_CACHE_SAMPLERATE, (void *)48000);
+            audio_ioctl(ctrl->client, AUDIO_IOCTL_SET_CACHE_CH, (void *)1);
             ctrl->resample = sifli_resample_open(1, mp3FrameInfo->samprate, 48000);
             RT_ASSERT(ctrl->resample);
             ctrl->resample_samplerate = mp3FrameInfo->samprate;
@@ -718,6 +720,8 @@ static int write_data(uint8_t is_new_data, mp3ctrl_handle ctrl, int16_t *outBuf,
         {
             LOG_I("reopen resample from %d", mp3FrameInfo->samprate);
             sifli_resample_close(ctrl->resample);
+            audio_ioctl(ctrl->client, AUDIO_IOCTL_SET_CACHE_SAMPLERATE, (void *)48000);
+            audio_ioctl(ctrl->client, AUDIO_IOCTL_SET_CACHE_CH, (void *)1);
             ctrl->resample = sifli_resample_open(1, mp3FrameInfo->samprate, 48000);
             RT_ASSERT(ctrl->resample);
             ctrl->resample_samplerate = mp3FrameInfo->samprate;
@@ -774,6 +778,8 @@ static int write_data(uint8_t is_new_data, mp3ctrl_handle ctrl, int16_t *outBuf,
                 else
                 {
                     LOG_I("resample open %d", mp3FrameInfo->samprate);
+                    audio_ioctl(ctrl->client, AUDIO_IOCTL_SET_CACHE_SAMPLERATE, (void *)44100);
+                    audio_ioctl(ctrl->client, AUDIO_IOCTL_SET_CACHE_CH, (void *)2);
                     ctrl->resample = sifli_resample_open(2, mp3FrameInfo->samprate, 44100);
                     RT_ASSERT(ctrl->resample);
                 }
@@ -1450,6 +1456,8 @@ static void wave_thread_entry_file(void *parameter)
                         }
                         else
                         {
+                            audio_ioctl(ctrl->client, AUDIO_IOCTL_SET_CACHE_SAMPLERATE, (void *)44100);
+                            audio_ioctl(ctrl->client, AUDIO_IOCTL_SET_CACHE_CH, (void *)2);
                             ctrl->resample = sifli_resample_open(2, ctrl->wave_samplerate, 44100);
                             RT_ASSERT(ctrl->resample);
                         }
@@ -1599,6 +1607,8 @@ check_write_result:
             {
                 if (!ctrl->resample)
                 {
+                    audio_ioctl(ctrl->client, AUDIO_IOCTL_SET_CACHE_SAMPLERATE, (void *)44100);
+                    audio_ioctl(ctrl->client, AUDIO_IOCTL_SET_CACHE_CH, (void *)2);
                     ctrl->resample = sifli_resample_open(2, ctrl->wave_samplerate, 44100);
                     RT_ASSERT(ctrl->resample);
                 }

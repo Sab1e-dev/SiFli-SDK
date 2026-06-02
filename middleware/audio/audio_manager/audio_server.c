@@ -3726,6 +3726,8 @@ static audio_client_t audio_client_init(audio_type_t audio_type, audio_rwflag_t 
     RT_ASSERT(audio_type < AUDIO_TYPE_NUMBER);
     audio_client_t handle = audio_mem_calloc(1, sizeof(struct audio_client_base_t));
     RT_ASSERT(handle);
+    handle->cache_samplerate = parameter->write_samplerate;
+    handle->cache_ch = parameter->write_channnel_num;
     handle->device_specified = device;
     handle->device_using = AUDIO_DEVICE_NONE;
     handle->api_event = rt_event_create("audcli", RT_IPC_FLAG_FIFO);
@@ -4050,13 +4052,21 @@ AUDIO_API int audio_ioctl(audio_client_t handle, int cmd, void *parameter)
         ret = -1;
         if (parameter)
         {
-            uint32_t bytes_per_second = handle->parameter.write_samplerate * handle->parameter.write_channnel_num * 2;
+            uint32_t bytes_per_second = handle->cache_samplerate * handle->cache_ch * 2;
             if (bytes_per_second)
             {
                 *time_ms = rt_ringbuffer32_data_len(&handle->ring_buf) * 1000 / bytes_per_second;
                 ret = 0;
             }
         }
+    }
+    else if (cmd == AUDIO_IOCTL_SET_CACHE_SAMPLERATE)
+    {
+        handle->cache_samplerate = (uint32_t)parameter;
+    }
+    else if (cmd == AUDIO_IOCTL_SET_CACHE_CH)
+    {
+        handle->cache_ch = (uint32_t)parameter;
     }
     else if (cmd == AUDIO_IOCTL_IS_FADE_OUT_DONE)
     {
