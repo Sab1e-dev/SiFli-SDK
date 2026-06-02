@@ -4,7 +4,7 @@
 
 ## 安装准备
 
-为了安装SiFli-SDK，需要根据操作系统安装一些软件包。可以参考以下安装指南，安装 Linux 和 macOS 的系统上所有需要的软件包。
+为了安装SiFli-SDK，需要根据操作系统安装一些软件包。macOS 和 Linux 的安装流程不再依赖系统 Python，但需要先安装 `uv`。可以参考以下安装指南，安装 Linux 和 macOS 的系统上所有需要的软件包。
 
 ::::::{tab-set}
 :sync-group: os
@@ -18,7 +18,7 @@
 :::{tab-item} Ubuntu 和 Debian
 
 ```bash
-sudo apt-get install git wget flex bison gperf python3 python3-pip python3-venv cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
+sudo apt-get install git wget flex bison gperf cmake ninja-build ccache libffi-dev libssl-dev dfu-util libusb-1.0-0
 ```
 
 :::
@@ -26,7 +26,7 @@ sudo apt-get install git wget flex bison gperf python3 python3-pip python3-venv 
 :::{tab-item} CentOS 7 & 8
 
 ```bash
-sudo yum -y update && sudo yum install git wget flex bison gperf python3 python3-setuptools cmake ninja-build ccache dfu-util libusbx
+sudo yum -y update && sudo yum install git wget flex bison gperf cmake ninja-build ccache dfu-util libusbx
 ```
 
 :::
@@ -34,7 +34,7 @@ sudo yum -y update && sudo yum install git wget flex bison gperf python3 python3
 :::{tab-item} Arch
 
 ```bash
-sudo pacman -S --needed gcc git make flex bison gperf python cmake ninja ccache dfu-util libusb python-pip
+sudo pacman -S --needed gcc git make flex bison gperf cmake ninja ccache dfu-util libusb
 ```
 
 :::
@@ -48,21 +48,21 @@ sudo pacman -S --needed gcc git make flex bison gperf python cmake ninja ccache 
 
 当前的 SiFli-SDK 安装流程不再依赖系统 Python。`install.sh` 会通过 `uv` 准备 SDK 管理的 Python 运行时和依赖。
 
-- 安装 CMake 和 Ninja 编译工具：
+- 安装 CMake、Ninja 编译工具和 `uv`：
   - Homebrew 用户：
 
         ```bash
-        brew install cmake ninja
+        brew install cmake ninja uv
         ```
 
   - MacPort 用户
 
         ```bash
-        sudo port install cmake ninja
+        sudo port install cmake ninja uv
         ```
 
   - 都不是
-        若以上均不适用，请访问 CMake 和 Ninja 主页，查询有关 macOS 平台的下载安装问题。
+        若以上均不适用，请访问 CMake、Ninja 和 uv 主页，查询有关 macOS 平台的下载安装问题。
 
 :::{note}
 如在上述任何步骤中遇到以下错误:
@@ -81,6 +81,18 @@ xcrun: error: invalid active developer path (/Library/Developer/CommandLineTools
 ## 安装 `uv`
 
 当前 install/export 主链路只支持通过 `uv` 引导。请先安装 `uv`，并确保终端中可以正常执行：
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+如果系统中没有 `curl`，也可以使用 `wget`：
+
+```bash
+wget -qO- https://astral.sh/uv/install.sh | sh
+```
+
+安装完成后，重新打开终端，或按安装脚本的提示刷新当前 shell 配置，然后检查版本：
 
 ```bash
 uv --version
