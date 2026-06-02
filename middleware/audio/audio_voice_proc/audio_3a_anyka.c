@@ -29,6 +29,9 @@
     #include "acpu_ctrl.h"
 #endif
 
+#if !defined(__GNUC__)
+    #error "anyka lib only support GCC compiler"
+#endif
 /*
     sometime audio_3a_uplink() const more than 10ms for dual mic, so use a thread to processl data only,
     processed data in jitter buffer cache, m_jitterBufLen should big enough to cache processed data
@@ -119,7 +122,7 @@ static const char factory_near_1mic[] =
 
 static const char factory_near_2mic[] =
 {
-    "--eqLoad=1"
+    "--eqLoad=0"
     " --eqmode=user"
     " --preGain=0dB"
     " --bands=\"4, hpf 800 0dB 0.85 enable, pf1 2500 -9dB 3 enable, pf1 3000 -9dB 3 enable, hpf 800 0dB 0.85 enable\""
@@ -132,7 +135,7 @@ static const char factory_near_2mic[] =
     " --nrEna=1"
     " --noiseSuppressDb=-40"
     " --agcEna=1"
-    " --agcLevel=0.25FS"
+    " --agcLevel=0.85FS"
     " --maxGain=4"
     " --minGain=0.1"
     " --nearSensitivity=20"
@@ -160,7 +163,7 @@ static const char factory_near_4mic[] =
     " --nrEna=1"
     " --noiseSuppressDb=-40"
     " --agcEna=1"
-    " --agcLevel=0.25FS"
+    " --agcLevel=0.85FS"
     " --maxGain=4"
     " --minGain=0.1"
     " --nearSensitivity=20"
@@ -177,7 +180,6 @@ static void input_thread_entry(void *parameter);
 
 static void disable_parameter(char *src, uint8_t is_bt_voice, uint8_t disable_uplink_agc)
 {
-#if 0
     char *p;
     if (!is_bt_voice)
     {
@@ -195,7 +197,6 @@ static void disable_parameter(char *src, uint8_t is_bt_voice, uint8_t disable_up
             memcpy(p, "--agcEna=0", strlen("--agcEna=0"));
         }
     }
-#endif
 }
 
 static void audio_3a_module_init(audio_3a_t *env, uint32_t samplerate)
