@@ -15,6 +15,10 @@ void bootloader_switch_clock(int mpi)
 
 void board_init_psram()
 {
+#if defined(BSP_USING_PSRAM1) || defined(BSP_USING_PSRAM2)
+    HAL_PMU_ConfigPeriLdo(PMU_PERI_LDO_1V8, true, true);
+#endif /* BSP_USING_PSRAM1 || BSP_USING_PSRAM2 */
+
 #ifndef CFG_BOOTROM
     bootloader_switch_clock(1);
 #endif
