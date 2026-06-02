@@ -120,8 +120,11 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_OPI_PSRAM_Init(FLASH_HandleTypeDef *hflash,
     int cren = __HAL_MPI_GET_CREN(hflash);
 
 #if defined(SF32LB56X) || defined(SF32LB52X)
-
     HAL_MPI_OPSRAM_CAL_DELAY(hflash, &sck_dly, &dqs_dly);
+#elif defined(SF32LB57X)
+//TODO:
+    dqs_dly = 0x14;
+    sck_dly = 0x14;
 #endif
 
     //TODO: delay
@@ -168,7 +171,8 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_OPI_PSRAM_Init(FLASH_HandleTypeDef *hflash,
 #ifdef  SF32LB58X
         dqs_dly = 15;
         sck_dly = 15;
-#elif defined(SF32LB52X)
+#elif defined(SF32LB52X) || defined(SF32LB57X)
+//TODO: 57x
         /* solve bit flip */
         dqs_dly = 20;
         sck_dly = 20;
@@ -261,6 +265,10 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LEGACY_PSRAM_Init(FLASH_HandleTypeDef *hfla
     HAL_MPI_OPSRAM_CAL_DELAY(hflash, &sck_dly, &dqs_dly);
     //dqs_dly = 0xa;
     //sck_dly = 0xa;
+#elif defined(SF32LB57X)
+//TODO:
+    dqs_dly = 0x14;
+    sck_dly = 0x14;
 #else
     dqs_dly = 0xa;
     sck_dly = 0xa;
@@ -323,11 +331,11 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LEGACY_PSRAM_Init(FLASH_HandleTypeDef *hfla
         cs_max = 180; //< 4us
         cshmin = 0; // 1 cycle of 48M > 15ns
         trcmin = 3; // > 60ns
-#if defined(SF32LB52X)
+#if defined(SF32LB52X) || defined(SF32LB57X)
         /* solve bit flip */
         dqs_dly = 20;
         sck_dly = 20;
-#endif /* SF32LB52X */
+#endif /* SF32LB52X || SF32LB57X */
     }
     else if (freq <= 120000000)         // 120M
     {
@@ -1053,7 +1061,7 @@ HAL_StatusTypeDef HAL_MPI_PSRAM_Init(FLASH_HandleTypeDef *handle, qspi_configure
         HAL_FLASH_CFG_AHB_WCMD(handle, 3, 0, 0, 0, 2, 3, 1);
         res = HAL_FLASH_SET_AHB_WCMD(handle, HAL_QPSRAM_QWR);
     }
-#if defined(SF32LB56X) || defined(SF32LB52X)
+#if defined(SF32LB56X) || defined(SF32LB52X) || defined(SF32LB57X)
     {
         uint16_t timeout = 0xffff;
         HAL_FLASH_SET_WDT(handle, timeout);

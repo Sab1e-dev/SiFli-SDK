@@ -626,6 +626,15 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_ENABLE_HYPER(FLASH_HandleTypeDef *hfl
     {
         hflash->Instance->DCR &= (~MPI_DCR_HYPER);
     }
+#else
+    if (en)
+    {
+        MODIFY_REG(hflash->Instance->DCR, MPI_DCR_PROT_Msk, MPI_DCR_PROT_HYPER_BUS);
+    }
+    else
+    {
+        MODIFY_REG(hflash->Instance->DCR, MPI_DCR_PROT_Msk, 0);
+    }
 #endif /* MPI_DCR_HYPER */
 
     return HAL_OK;
@@ -703,6 +712,15 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_FLASH_SET_LEGACY(FLASH_HandleTypeDef *hflas
         hflash->Instance->DCR |= MPI_DCR_XLEGACY;
     else
         hflash->Instance->DCR &= ~MPI_DCR_XLEGACY;
+#else
+    if (en)
+    {
+        MODIFY_REG(hflash->Instance->DCR, MPI_DCR_PROT_Msk, MPI_DCR_PROT_XCCELA_LEGACY);
+    }
+    else
+    {
+        MODIFY_REG(hflash->Instance->DCR, MPI_DCR_PROT_Msk, 0);
+    }
 #endif /* MPI_DCR_XLEGACY */
 
     return HAL_OK;
@@ -773,6 +791,15 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_MPI_SET_HYPER(FLASH_HandleTypeDef *hflash, 
         hflash->Instance->DCR |= MPI_DCR_HYPER;
     else
         hflash->Instance->DCR &= ~MPI_DCR_HYPER;
+#else
+    if (hyper)
+    {
+        MODIFY_REG(hflash->Instance->DCR, MPI_DCR_PROT_Msk, MPI_DCR_PROT_HYPER_BUS);
+    }
+    else
+    {
+        MODIFY_REG(hflash->Instance->DCR, MPI_DCR_PROT_Msk, 0);
+    }
 #endif /* MPI_DCR_HYPER */
 
     return HAL_OK;
