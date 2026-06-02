@@ -459,10 +459,8 @@ bool boot_device_init(void)
     HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_SYS, RCC_SYSCLK_HXT48);
     HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_HP_PERI, RCC_CLK_PERI_HXT48);
 
-
     HAL_PMU_EnableDLL(1);
-
-//    HAL_RCC_HCPU_ConfigHCLK(144);
+    HAL_RCC_HCPU_ConfigHCLK(144);
     //HAL_RCC_HCPU_EnableDLL1(240000000);
     //HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_SYS, RCC_SYSCLK_DLL1);
     // Reset sysclk used by HAL_Delay_us

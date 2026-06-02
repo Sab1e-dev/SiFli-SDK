@@ -122,17 +122,26 @@ void HAL_PreInit(void)
             LRC_init();
     }
 
+    HAL_RCC_HCPU_ConfigHCLK(240);
+    HAL_RCC_HCPU_EnableDLL2(288000000);
 
-    HAL_RCC_HCPU_SetDiv(1, 0, 4);
+    // Reset sysclk used by HAL_Delay_us
+    HAL_Delay_us(0);
 
-    mpi1_div = 1;   // for OPI Psram driver alway set 1, for QSPI PSRAM depend on this setting, for flash depend on flash request, 2 or 3
+    mpi1_div = 2;
     mpi2_div = 2;
-    mpi3_div = 1;
+    mpi3_div = 4;
 
     /* Init the low level hardware */
     HAL_MspInit();
 
 #if defined (BSP_USING_PSRAM)
+#ifdef BSP_USING_PSRAM1
+    HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_PSRAM1, RCC_CLK_FLASH_DLL2);
+#endif /* BSP_USING_PSRAM1 */
+#ifdef BSP_USING_PSRAM2
+    HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_PSRAM2, RCC_CLK_FLASH_DLL2);
+#endif /* BSP_USING_PSRAM2 */
     bsp_psramc_init();
 #endif
 
@@ -140,7 +149,19 @@ void HAL_PreInit(void)
 
 #ifdef BSP_USING_NOR_FLASH1
     mpi1_div = 3;
-#endif
+    HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH1, RCC_CLK_FLASH_DLL2);
+#endif /* BSP_USING_NOR_FLASH1 */
+
+
+#ifdef BSP_USING_NOR_FLASH2
+    mpi2_div = 3;
+    HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH2, RCC_CLK_FLASH_DLL2);
+#endif /* BSP_USING_NOR_FLASH2 */
+
+#ifdef BSP_USING_NOR_FLASH3
+    mpi3_div = 4;
+    HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH3, RCC_CLK_FLASH_DLL2);
+#endif /* BSP_USING_NOR_FLASH3 */
 
 #ifdef BSP_USING_RTTHREAD
     rt_hw_flash_init();
@@ -148,8 +169,6 @@ void HAL_PreInit(void)
     BSP_Flash_Init();
 #endif /* BSP_USING_RTTHREAD */
 #endif /* BSP_USING_NOR_FLASH1 || BSP_USING_NOR_FLASH2 || BSP_USING_NOR_FLASH3 */
-
-
 
 
 #elif defined(SOC_BF0_LCPU)

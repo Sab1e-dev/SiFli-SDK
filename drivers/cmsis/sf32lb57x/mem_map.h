@@ -102,6 +102,10 @@
 #define QSPI2_MAX_SIZE      (0x2000000)
 #define QSPI3_MAX_SIZE      (0xC000000) // S-BUS max size is 0x3C000000
 
+//================== SDMMC Memory Card ==================
+#define SDMMC1_MEM_BASE     (0x64000000)
+#define SDMMC2_MEM_BASE     (0xA0000000)
+
 
 // Size
 #define FLASH_TABLE_SIZE            (20*1024)

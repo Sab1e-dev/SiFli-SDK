@@ -43,6 +43,7 @@ typedef struct
     uint32_t ulpmcr;
 } HPSYS_DvfsConfigTypeDef;
 
+#ifdef SF32LB52X
 static const HPSYS_DvfsConfigTypeDef hpsys_dvfs_config[HPSYS_DVFS_MODE_NUM] =
 {
     //                         LDO,  BUCK,  ULPMCR
@@ -55,6 +56,20 @@ static const HPSYS_DvfsConfigTypeDef hpsys_dvfs_config[HPSYS_DVFS_MODE_NUM] =
     //                         1.2V, 1.35V
     [HPSYS_DVFS_MODE_S1] = {2,  0xD, 0xF, 0x00130213},
 };
+#elif defined(SF32LB57X)
+static const HPSYS_DvfsConfigTypeDef hpsys_dvfs_config[HPSYS_DVFS_MODE_NUM] =
+{
+    //                         LDO,  BUCK,  ULPMCR
+    //                         0.9V, 1.0V
+    [HPSYS_DVFS_MODE_D0] = {-5, 0x6, 0x9, 0x00100330},
+    //                         1.0V, 1.1V
+    [HPSYS_DVFS_MODE_D1] = {-3, 0x8, 0xA, 0x00110331},
+    //                         1.1V, 1.25V
+    [HPSYS_DVFS_MODE_S0] = {0,  0xB, 0xD, 0x00130213},
+    //                         1.2V, 1.35V
+    [HPSYS_DVFS_MODE_S1] = {2,  0xE, 0xF, 0x00130213}, // TODO:
+};
+#endif /* SF32LB52X */
 
 /* maximum DLL2 frequency(Hz) of each dvfs mode */
 static const uint32_t hpsys_dll2_limit[HPSYS_DVFS_MODE_NUM] =
@@ -1376,6 +1391,8 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_RCC_HCPU_EnableDLL(int dll, uint32_t freq)
     {
         hwp_hpsys_cfg->CAU2_CR |= HPSYS_CFG_CAU2_CR_HPBG_EN;
     }
+#else
+    hwp_hpsys_cfg->ANAU_CR |= HPSYS_CFG_ANAU_CR_EN_BG;
 #endif /* HPSYS_CFG_CAU2_CR_HPBG_EN */
 #ifdef HPSYS_CFG_CAU2_CR_HPBG_VDDPSW_EN
     if (0 == (hwp_hpsys_cfg->CAU2_CR & HPSYS_CFG_CAU2_CR_HPBG_VDDPSW_EN))
