@@ -2232,7 +2232,84 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_RCC_CalibrateRC48(void)
 #elif defined(SF32LB57X)
 __HAL_ROM_USED HAL_StatusTypeDef HAL_RCC_CalibrateRC48(void)
 {
-    /* TODO: */
+    /* TODO: need to calibrate as 50MHz */
+
+    uint32_t hxt_cnt;
+    uint32_t hrc_cnt;
+    uint16_t  cnt_diff;
+    uint16_t step_unit;
+    uint16_t ct_val ;
+    uint32_t i;
+
+    if (0 == (hwp_hpsys_aon->ACR & HPSYS_AON_ACR_HXT48_RDY))
+    {
+        return HAL_ERROR;
+    }
+
+    /* set cal length */
+    MODIFY_REG(hwp_hpsys_rcc->HRCCAL1, HPSYS_RCC_HRCCAL1_CAL_LENGTH_Msk,
+               MAKE_REG_VAL(0x3fff, HPSYS_RCC_HRCCAL1_CAL_LENGTH_Msk, HPSYS_RCC_HRCCAL1_CAL_LENGTH_Pos));
+
+    MODIFY_REG(hwp_pmuc->HRC_CR1, PMUC_HRC_CR1_CLKHP_SEL_Msk,
+               MAKE_REG_VAL(3, PMUC_HRC_CR1_CLKHP_SEL_Msk, PMUC_HRC_CR1_CLKHP_SEL_Pos));
+    MODIFY_REG(hwp_pmuc->HRC_CR1, PMUC_HRC_CR1_CLKLP_SEL_Msk,
+               MAKE_REG_VAL(3, PMUC_HRC_CR1_CLKLP_SEL_Msk, PMUC_HRC_CR1_CLKLP_SEL_Pos));
+
+    /* set start cfg to mid value */
+    ct_val    = 0x200;
+    step_unit = 0x100 ;
+
+    /* binary search  */
+    for (i = 0; i < 11; i++)
+    {
+        MODIFY_REG(hwp_pmuc->HRC_CR1, PMUC_HRC_CR1_FREQ_TRIM_Msk,
+                   MAKE_REG_VAL(ct_val, PMUC_HRC_CR1_FREQ_TRIM_Msk, PMUC_HRC_CR1_FREQ_TRIM_Pos));
+
+        HAL_Delay_us(3);
+
+        /* enable hrc cal */
+        hwp_hpsys_rcc->HRCCAL1 |= HPSYS_RCC_HRCCAL1_CAL_EN;
+
+        /* wait for cal done */
+        while (!(hwp_hpsys_rcc->HRCCAL1 & HPSYS_RCC_HRCCAL1_CAL_DONE))
+        {
+        }
+
+        /* read out cal result */
+        hxt_cnt = GET_REG_VAL(hwp_hpsys_rcc->HRCCAL2, HPSYS_RCC_HRCCAL2_HXT_CNT_Msk, HPSYS_RCC_HRCCAL2_HXT_CNT_Pos);
+        hrc_cnt = GET_REG_VAL(hwp_hpsys_rcc->HRCCAL2, HPSYS_RCC_HRCCAL2_HRC_CNT_Msk, HPSYS_RCC_HRCCAL2_HRC_CNT_Pos);
+
+
+        /* disable hrc cal */
+        hwp_hpsys_rcc->HRCCAL1 &= ~HPSYS_RCC_HRCCAL1_CAL_EN ;
+
+        if (hxt_cnt > hrc_cnt)
+        {
+            ct_val += step_unit;
+            cnt_diff = hxt_cnt - hrc_cnt;
+        }
+        else
+        {
+            ct_val -= step_unit;
+            cnt_diff = hrc_cnt - hxt_cnt;
+        }
+        if (cnt_diff < 64)
+        {
+            break;
+        }
+        step_unit >>= 1 ;
+    }
+    //printf("Calibration result : hxt_cnt = %d, hrc_cnt = %d, cnt_diff=%d\n",hxt_cnt, hrc_cnt, cnt_diff  );
+    if (cnt_diff > 160)
+    {
+        return HAL_ERROR;
+    }
+    else
+    {
+        return HAL_OK;
+    }
+
+
     return HAL_OK;
 }
 #else
@@ -2335,10 +2412,7 @@ void HAL_RCC_Init(void)
     HAL_RCC_HCPU_SetDeepWFIDiv(12, 0, 1);
 
     /* select RC48 as clock source, RC48 has been calibrated */
-#ifndef SF32LB57X
-    /* TODO: RC48 doesn't work on 57x yet */
     HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_HP_PERI, RCC_CLK_PERI_HRC48);
-#endif /* SF32LB57X */
 #endif /* SF32LB52X || SF32LB57X */
 
 #else
