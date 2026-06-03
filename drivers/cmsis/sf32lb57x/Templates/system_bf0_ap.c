@@ -93,7 +93,7 @@ __WEAK void mpu_config(void)
     rnr = 0;
 
     // XIP Code region
-    rbar = ARM_MPU_RBAR(0x64000000, ARM_MPU_SH_NON, 1, 1, 0); //Non-shareable,RO,any privilege,executable
+    rbar = ARM_MPU_RBAR(0x62000000, ARM_MPU_SH_NON, 1, 1, 0); //Non-shareable,RO,any privilege,executable
     rlar = ARM_MPU_RLAR(0x6FFFFFFF, ATTR_CODE_IDX);
     ARM_MPU_SetRegion(rnr++, rbar, rlar);
 
@@ -178,9 +178,9 @@ __WEAK void mpu_config(void)
     // psram
     rbar = ARM_MPU_RBAR(0x60000000, ARM_MPU_SH_NON, 0, 1, 0); //Non-shareable,RW,any privilege,executable
 #ifdef PSRAM_CACHE_WB
-    rlar = ARM_MPU_RLAR(0x61ffffff, ATTR_PSRAM_WB_IDX);
+    rlar = ARM_MPU_RLAR(0x63ffffff, ATTR_PSRAM_WB_IDX);
 #else
-    rlar = ARM_MPU_RLAR(0x61ffffff, ATTR_PSRAM_WT_IDX);
+    rlar = ARM_MPU_RLAR(0x63ffffff, ATTR_PSRAM_WT_IDX);
 #endif
 
     ARM_MPU_SetRegion(rnr++, rbar, rlar);
