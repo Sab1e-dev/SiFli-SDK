@@ -1194,34 +1194,116 @@ def _write_ptab_v3_artifact_stamp(stamp_path: str, artifact_path: str) -> None:
         f.write(content)
 
 
-def _build_ptab_v3_embedded_lcpu_artifact(program_file: str, out_dir: str, base_name: str, ext: str, rtconfig) -> str:
-    objcopy_args = ['-Obinary'] if ext.lower() == '.bin' else ['-O', 'ihex']
-    ex_imgs = []
-    tempfile_path = os.path.join(os.path.dirname(program_file), 'rom_temp' + ext)
-    for i in range(2, 2 + MAX_EX_IMG_NUM):
-        subprocess.run([rtconfig.OBJCPY, '-Obinary', '-j.rom{}'.format(i), program_file, tempfile_path], check=True)
-        size = os.path.getsize(tempfile_path)
-        os.remove(tempfile_path)
-        if size > 0:
-            ex_imgs.append(i)
+class LcpuImgStrategy:
+    def build(self, program_file: str, out_dir: str, base_name: str, ext: str, rtconfig) -> str:
+        raise NotImplementedError
 
-    if not ex_imgs:
-        code_path = GetPtabV3ArtifactPath(out_dir, base_name, ext)
+    def path(self, out_dir: str, base_name: str, ext: str, suffix: str = None) -> str:
+        return GetPtabV3ArtifactPath(out_dir, base_name, ext, suffix)
+
+
+class GccLcpuImg(LcpuImgStrategy):
+    def build(self, program_file: str, out_dir: str, base_name: str, ext: str, rtconfig) -> str:
+        objcopy_args = ['-Obinary'] if ext.lower() == '.bin' else ['-O', 'ihex']
+        ex_imgs = []
+        tempfile_path = os.path.join(os.path.dirname(program_file), 'rom_temp' + ext)
+        for i in range(2, 2 + MAX_EX_IMG_NUM):
+            subprocess.run([rtconfig.OBJCPY, '-Obinary', '-j.rom{}'.format(i), program_file, tempfile_path], check=True)
+            size = os.path.getsize(tempfile_path)
+            os.remove(tempfile_path)
+            if size > 0:
+                ex_imgs.append(i)
+
+        if not ex_imgs:
+            code_path = self.path(out_dir, base_name, ext)
+            _remove_file_or_dir(code_path)
+            subprocess.run([rtconfig.OBJCPY] + objcopy_args + [program_file, code_path], check=True)
+            return code_path
+
+        exclude_ex_imgs = []
+        for i in ex_imgs:
+            ex_img_path = self.path(out_dir, base_name, ext, 'ER_IROM{}'.format(i))
+            _remove_file_or_dir(ex_img_path)
+            subprocess.run([rtconfig.OBJCPY] + objcopy_args + ['-j.rom{}'.format(i), program_file, ex_img_path], check=True)
+            exclude_ex_imgs.append('-R.rom{}'.format(i))
+
+        code_path = self.path(out_dir, base_name, ext, 'ER_IROM1')
         _remove_file_or_dir(code_path)
-        subprocess.run([rtconfig.OBJCPY] + objcopy_args + [program_file, code_path], check=True)
+        subprocess.run([rtconfig.OBJCPY] + objcopy_args + exclude_ex_imgs + [program_file, code_path], check=True)
         return code_path
 
-    exclude_ex_imgs = []
-    for i in ex_imgs:
-        ex_img_path = GetPtabV3ArtifactPath(out_dir, base_name, ext, 'ER_IROM{}'.format(i))
-        _remove_file_or_dir(ex_img_path)
-        subprocess.run([rtconfig.OBJCPY] + objcopy_args + ['-j.rom{}'.format(i), program_file, ex_img_path], check=True)
-        exclude_ex_imgs.append('-R.rom{}'.format(i))
 
-    code_path = GetPtabV3ArtifactPath(out_dir, base_name, ext, 'ER_IROM1')
-    _remove_file_or_dir(code_path)
-    subprocess.run([rtconfig.OBJCPY] + objcopy_args + exclude_ex_imgs + [program_file, code_path], check=True)
-    return code_path
+class KeilLcpuImg(LcpuImgStrategy):
+    def build(self, program_file: str, out_dir: str, base_name: str, ext: str, rtconfig) -> str:
+        export_path = tempfile.mkdtemp(
+            prefix='.fromelf_lcpu_{}_'.format(ext.strip('.').lower()),
+            dir=out_dir,
+        )
+        _remove_file_or_dir(export_path)
+        fromelf_mode = '--bin' if ext.lower() == '.bin' else '--i32'
+
+        try:
+            subprocess.run(['fromelf', fromelf_mode, program_file, '--output', export_path], check=True)
+            entries = _ptab_v3_fromelf_entries(export_path, ext)
+            primary = self._find_irom(entries, 1, set(), ext)
+            if not primary and os.path.isfile(export_path):
+                payload_entries = [
+                    entry for entry in entries
+                    if _ptab_v3_artifact_has_payload(entry['path'], ext)
+                ]
+                if len(payload_entries) == 1:
+                    primary = payload_entries[0]
+
+            if not primary:
+                logging.error(
+                    "Keil ptab v3 embedded LCPU did not generate ER_IROM1 in %s",
+                    out_dir,
+                )
+                raise SystemExit(1)
+
+            used_paths = {primary['path']}
+            ex_entries = []
+            for i in range(2, 2 + MAX_EX_IMG_NUM):
+                entry = self._find_irom(entries, i, used_paths, ext)
+                if entry:
+                    used_paths.add(entry['path'])
+                    ex_entries.append((i, entry))
+
+            code_suffix = 'ER_IROM1' if ex_entries else None
+            code_path = self.path(out_dir, base_name, ext, code_suffix)
+            self._move(primary['path'], code_path)
+
+            for i, entry in ex_entries:
+                ex_path = self.path(out_dir, base_name, ext, 'ER_IROM{}'.format(i))
+                self._move(entry['path'], ex_path)
+
+            return code_path
+        finally:
+            _remove_file_or_dir(export_path)
+
+    def _find_irom(self, entries, index: int, used_paths, ext: str):
+        aliases = _ptab_v3_fromelf_region_aliases('ER_IROM{}'.format(index))
+        return _find_ptab_v3_fromelf_entry(entries, aliases, used_paths, ext)
+
+    def _move(self, src: str, dst: str) -> None:
+        _remove_file_or_dir(dst)
+        shutil.move(src, dst)
+
+
+def _get_lcpu_img_strategy(platform: str):
+    if platform == 'gcc':
+        return GccLcpuImg()
+    if platform == 'armcc':
+        return KeilLcpuImg()
+    return None
+
+
+def _build_ptab_v3_embedded_lcpu_artifact(program_file: str, out_dir: str, base_name: str, ext: str, rtconfig) -> str:
+    strategy = _get_lcpu_img_strategy(getattr(rtconfig, 'PLATFORM', ''))
+    if not strategy:
+        logging.error("Unsupported ptab v3 embedded LCPU platform: %s", getattr(rtconfig, 'PLATFORM', ''))
+        raise SystemExit(1)
+    return strategy.build(program_file, out_dir, base_name, ext, rtconfig)
 
 
 def ProgramBinaryBuild(target, source, env):
@@ -1243,17 +1325,20 @@ def ProgramBinaryBuild(target, source, env):
     core = _infer_build_core(env, getattr(rtconfig, 'CORE', 'HCPU'))
     # ptab v3: embedded LCPU keeps ER_IROMN sections, but uses the same
     # output naming rule as other multi-artifact projects: <base>.ER_IROMN.ext.
-    if rtconfig.PLATFORM == 'gcc' and ptab_obj and ptab_obj.is_v3() and core == 'LCPU' and env.get('IMG_EMBEDDED'):
+    if rtconfig.PLATFORM in ('gcc', 'armcc') and ptab_obj and ptab_obj.is_v3() and core == 'LCPU' and env.get('IMG_EMBEDDED'):
         base_name = GetPtabV3ArtifactBaseName(env, program_file)
         stamp_path = code_bin_path
         out_dir = os.path.dirname(stamp_path)
         _cleanup_ptab_v3_output_dir(out_dir, '.bin', PTAB_V3_PROGRAM_BINARY_STAMP)
         _cleanup_ptab_v3_legacy_artifacts(program_file, '.bin')
 
-        shutil.copy(str(source[0]), str(source[0]) + '.strip.elf')
-        subprocess.run([rtconfig.STRIP, str(source[0]) + '.strip.elf'], check=True)
+        if rtconfig.PLATFORM == 'gcc':
+            shutil.copy(str(source[0]), str(source[0]) + '.strip.elf')
+            subprocess.run([rtconfig.STRIP, str(source[0]) + '.strip.elf'], check=True)
         code_bin_path = _build_ptab_v3_embedded_lcpu_artifact(program_file, out_dir, base_name, '.bin', rtconfig)
         _write_ptab_v3_artifact_stamp(stamp_path, code_bin_path)
+        if rtconfig.PLATFORM == 'armcc':
+            subprocess.run(['fromelf', '-z', str(source[0])], check=True)
         return
 
     if rtconfig.PLATFORM == 'armcc' and ptab_obj and ptab_obj.is_v3() and core == 'LCPU' and env.get('IMG_EMBEDDED'):
@@ -1412,7 +1497,7 @@ def ProgramHexBuild(target, source, env):
     core = _infer_build_core(env, getattr(rtconfig, 'CORE', 'HCPU'))
     # ptab v3: embedded LCPU keeps ER_IROMN sections, but uses the same
     # output naming rule as other multi-artifact projects: <base>.ER_IROMN.ext.
-    if rtconfig.PLATFORM == 'gcc' and ptab_obj and ptab_obj.is_v3() and core == 'LCPU' and env.get('IMG_EMBEDDED'):
+    if rtconfig.PLATFORM in ('gcc', 'armcc') and ptab_obj and ptab_obj.is_v3() and core == 'LCPU' and env.get('IMG_EMBEDDED'):
         base_name = GetPtabV3ArtifactBaseName(env, program_file)
         stamp_path = code_hex_path
         out_dir = os.path.dirname(stamp_path)
