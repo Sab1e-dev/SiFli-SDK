@@ -91,7 +91,7 @@ extern "C" {
 */
 #ifndef SF32LB52X
 #define LCDC_SUPPORT_DPI
-#ifdef SF32LB58X
+#if defined(SF32LB58X) || defined(SF32LB57X)
 #define LCDC_DPI_MAX_WIDTH 1024
 #else
 #define LCDC_DPI_MAX_WIDTH 512

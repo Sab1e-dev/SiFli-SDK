@@ -186,6 +186,10 @@ static LCD_DrvTypeDef drv_lcd;
 
     static uint32_t *sram_data0 = NULL;
     static uint32_t *sram_data1 = NULL;
+    #ifdef LCDC_SUPPORT_EXTERNAL_LINEBUF
+        static uint32_t *unaligned_sram_data0 = NULL;
+        static uint32_t *unaligned_sram_data1 = NULL;
+    #endif /* LCDC_SUPPORT_EXTERNAL_LINEBUF */
 #endif
 
 RETM_BSS_SECT_BEGIN(lcd_idle_status)
@@ -623,10 +627,23 @@ static void copy2buf(uint8_t *dst_buf, const uint8_t *src_buf, uint16_t format, 
 #ifdef SRAM_BUF_1LINE
 static void init_line_buffer(void)
 {
+#ifdef LCDC_SUPPORT_EXTERNAL_LINEBUF
+    //Allocate memory with 64 bytes aligned address
+    if (!unaligned_sram_data0) unaligned_sram_data0 = (uint32_t *) malloc_dma_friendly_sram(sizeof(uint32_t) * SRAM_BUF_TOTAL_WORDS + 63);
+    RT_ASSERT(unaligned_sram_data0 != NULL);
+    if (!unaligned_sram_data1) unaligned_sram_data1 = (uint32_t *) malloc_dma_friendly_sram(sizeof(uint32_t) * SRAM_BUF_TOTAL_WORDS + 63);
+    RT_ASSERT(unaligned_sram_data1 != NULL);
+
+    sram_data0 = (uint32_t *)RT_ALIGN((uint32_t)unaligned_sram_data0, 64);
+    sram_data1 = (uint32_t *)RT_ALIGN((uint32_t)unaligned_sram_data1, 64);
+
+#else /* LCDC_SUPPORT_EXTERNAL_LINEBUF */
     if (!sram_data0) sram_data0 = (uint32_t *) malloc_dma_friendly_sram(sizeof(uint32_t) * SRAM_BUF_TOTAL_WORDS);
     RT_ASSERT(sram_data0 != NULL);
     if (!sram_data1) sram_data1 = (uint32_t *) malloc_dma_friendly_sram(sizeof(uint32_t) * SRAM_BUF_TOTAL_WORDS);
     RT_ASSERT(sram_data1 != NULL);
+#endif /* LCDC_SUPPORT_EXTERNAL_LINEBUF */
+
 
     /*
         'sram_data0' & 'sram_data1' are not retention memory,
@@ -645,6 +662,20 @@ static bool check_line_bufer_overwrite(void)
 }
 static void deinit_line_buffer(void)
 {
+#ifdef LCDC_SUPPORT_EXTERNAL_LINEBUF
+    if (unaligned_sram_data0)
+    {
+        free_dma_friendly_sram(unaligned_sram_data0);
+        unaligned_sram_data0 = NULL;
+        sram_data0 = NULL;
+    }
+    if (unaligned_sram_data1)
+    {
+        free_dma_friendly_sram(unaligned_sram_data1);
+        unaligned_sram_data1 = NULL;
+        sram_data1 = NULL;
+    }
+#else /* LCDC_SUPPORT_EXTERNAL_LINEBUF */
     if (sram_data0)
     {
         free_dma_friendly_sram(sram_data0);
@@ -655,6 +686,7 @@ static void deinit_line_buffer(void)
         free_dma_friendly_sram(sram_data1);
         sram_data1 = NULL;
     }
+#endif /* LCDC_SUPPORT_EXTERNAL_LINEBUF */
 }
 #endif /*SRAM_BUF_1LINE*/
 
@@ -898,7 +930,7 @@ static void lcd_driver_print_error_info(void)
                  );
         }
 #endif /* HAL_DSI_MODULE_ENABLED */
-#ifdef BSP_USING_RAMLESS_LCD
+#if defined(BSP_USING_RAMLESS_LCD)&&defined(hwp_ptc1)
         if (HAL_LCDC_IS_PTC_AUX_IF(drv_lcd.hlcdc.Init.lcd_itf))
         {
             HAL_Delay(5);
