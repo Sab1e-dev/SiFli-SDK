@@ -202,13 +202,12 @@ INIT_PRE_APP_EXPORT(acpu_init);
 void acpu_power_on(void)
 {
     HAL_RCC_ResetACPU();
+    HAL_RCC_EnableModule(RCC_MOD_ACPU);
 #ifdef SF32LB58X
     HAL_RCC_ReleaseACPU();
 #else
     HAL_RCC_ReleaseACPU(APP_ACPU_CODE_START_ADDR);
 #endif /* SF32LB58X */
-
-    HAL_RCC_EnableModule(RCC_MOD_ACPU);
 }
 
 void acpu_power_off(void)

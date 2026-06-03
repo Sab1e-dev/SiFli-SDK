@@ -1735,7 +1735,9 @@ void HAL_RCC_ResetACPU(void)
 #elif defined(SF32LB57X) && defined(SOC_BF0_HCPU)
 void HAL_RCC_ReleaseACPU(uint32_t vtor)
 {
-    hwp_secu1->ACPU = (vtor & SECU1_ACPU_VTOR_Msk);
+    /* set VTOR, clear RSTR and WAIT to start ACPU */
+    MODIFY_REG(hwp_secu1->ACPU, SECU1_ACPU_VTOR_Msk | SECU1_ACPU_RSTR_Msk | SECU1_ACPU_WAIT_Msk,
+               (vtor & SECU1_ACPU_VTOR_Msk));
     /* Enable WAIT, so ACPU would not start automatically after SYSRESETREQ is issued by HCPU side.
      * After SYSRESETREQ is issued by HCPU, MPI is reset but SECU1.ACPU is not reset, ACPU would start running while MPI is not initialized.
      * As ACPU runs on Flash, it will cause issue. If SECU1.ACPU.WAIT is set, ACPU will not start until SECU1.ACPU.WAIT is cleared by HCPU.
