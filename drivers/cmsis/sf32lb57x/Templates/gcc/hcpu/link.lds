@@ -61,6 +61,11 @@ __ROM_EX_SIZE = HCPU_RO_DATA_SIZE;
 __PSRAM_BASE = PSRAM_DATA_START_ADDR;
 __PSRAM_SIZE = PSRAM_DATA_SIZE;
 
+#ifdef PSRAM_DATA2_START_ADDR
+__PSRAM2_BASE = PSRAM_DATA2_START_ADDR;
+__PSRAM2_SIZE = PSRAM_DATA2_SIZE;
+#endif
+
 __ROM2_BASE = HCPU_FLASH2_IMG_START_ADDR;
 __ROM2_SIZE = HCPU_FLASH2_IMG_SIZE;
 
@@ -77,6 +82,9 @@ MEMORY
     RAM (rw) : ORIGIN = __RAM_BASE, LENGTH = __RAM_SIZE
     ROM_EX(rw):ORIGIN = __ROM_EX_BASE, LENGTH = __ROM_EX_SIZE
     PSRAM(rw): ORIGIN = __PSRAM_BASE, LENGTH = __PSRAM_SIZE
+#ifdef PSRAM_DATA2_START_ADDR
+    PSRAM2(rw): ORIGIN = __PSRAM2_BASE, LENGTH = __PSRAM2_SIZE
+#endif
     ROM2 (rx): ORIGIN = __ROM2_BASE, LENGTH = __ROM2_SIZE
     ROM3 (rx): ORIGIN = __ROM3_BASE, LENGTH = __ROM3_SIZE
 }
@@ -494,6 +502,22 @@ SECTIONS
   __etext2 = ALIGN (4);
 
 #ifdef BSP_USING_PSRAM
+
+#ifdef PSRAM_DATA2_START_ADDR
+  /*
+  * PSRAM2 is for l2 frame buffer only.
+  */
+  .RW_PSRAM2 :
+  {
+    . = ALIGN(4);
+    __rw_psram2_start__ = .;
+    *(.*l2_non_ret_bss_frambuf*)
+    . = ALIGN(4);
+    __rw_psram2_end__ = .;
+
+  } > PSRAM2
+#endif
+
   .RW_PSRAM1 :
   {
     . = ALIGN(4);

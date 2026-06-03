@@ -21,6 +21,14 @@ LR_IROM1 CODE_START_ADDR CODE_SIZE  {    ; load region size_region
   }  
 
 #ifdef BSP_USING_PSRAM
+
+#ifdef PSRAM_DATA2_START_ADDR
+  RW_PSRAM2 PSRAM_DATA2_START_ADDR UNINIT{  ; PSRAM2 is for l2 frame buffer only.
+    *.o (.l2_non_ret_bss_frambuf*)
+  }
+  ScatterAssert((ImageLength(RW_PSRAM2))<PSRAM_DATA2_SIZE)
+#endif
+
   RW_PSRAM1 PSRAM_DATA_START_ADDR {
 #ifdef PKG_USING_FFMPEG 
     mpeg*.o (.bss.*)
