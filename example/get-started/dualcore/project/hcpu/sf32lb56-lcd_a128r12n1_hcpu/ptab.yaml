@@ -27,8 +27,8 @@ partitions:
   type: data
   subtype: ram
   region: psram1
-  offset: '0x00300000'
-  size: '0x00500000'
+  offset: '0x00400000'
+  size: '0x00400000'
 - name: psram_data2
   type: data
   subtype: ram
