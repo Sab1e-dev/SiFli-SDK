@@ -1051,7 +1051,7 @@ def _menuconfig(stdscr):
             _load_dialog()
 
         elif c in ("s", "S"):
-            if _minconf_filename=='proj.conf' or _minconf_filename=='board.conf' :
+            if 'proj.conf' in _minconf_filename or _minconf_filename=='board.conf' :
                 _warning_board()
             else:
                 filename = _save_dialog(_kconf.write_config, _conf_filename,
@@ -1114,7 +1114,7 @@ def _quit_dialog():
 
         if c == "y":
             # Returns a message to print
-            if _minconf_filename=='proj.conf' or _minconf_filename=='board.conf' :
+            if 'proj.conf' in _minconf_filename or _minconf_filename=='board.conf' :
                 msg = _try_save(_kconf.write_min_config, _minconf_filename, "minimal configuration")
             else:                        
                 msg = _try_save(_kconf.write_config, _conf_filename, "configuration")
