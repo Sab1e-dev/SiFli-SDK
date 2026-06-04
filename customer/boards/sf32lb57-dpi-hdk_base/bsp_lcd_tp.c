@@ -10,6 +10,8 @@
     #define LCD_RESET_PIN           (21)         // GPIO_A21
 #elif defined(BSP_LCDC_USING_DBI)
     #define LCD_RESET_PIN           (42)         // GPIO_A42
+#elif defined(BSP_LCDC_USING_DIRECT_EPD)
+    // NO LCD_RESET_PIN
 #else
     #define LCD_RESET_PIN           (43)         // GPIO_A43
 #endif /* BSP_LCDC_USING_DPI */
@@ -25,7 +27,9 @@ extern void BSP_GPIO_Set(int pin, int val, int is_porta);
 
 void BSP_LCD_Reset(uint8_t high1_low0)
 {
+#ifdef LCD_RESET_PIN
     BSP_GPIO_Set(LCD_RESET_PIN, high1_low0, 1);
+#endif /* LCD_RESET_PIN */
 }
 
 
@@ -36,8 +40,10 @@ void BSP_LCD_PowerDown(void)
 
 void BSP_LCD_PowerUp(void)
 {
+#ifdef LCD_RESET_PIN
     //LCD RESET PIN
     HAL_PIN_Set(PAD_PA00 + LCD_RESET_PIN, GPIO_A0 + LCD_RESET_PIN, PIN_NOPULL, 1);
+#endif /* LCD_RESET_PIN */
 
 #ifdef BSP_LCDC_USING_DPI
     HAL_PIN_Set(PAD_PA20, LCDC1_DPI_VSYNC, PIN_NOPULL, 1);
@@ -102,7 +108,7 @@ void BSP_LCD_PowerUp(void)
 
     //SPI_DI： PA38, SPI_DO: PA40
 
-#elif defined(BSP_LCDC_USING_EPD_8BIT)
+#elif defined(BSP_LCDC_USING_DIRECT_EPD)
     HAL_PIN_Set(PAD_PA25, LCDC1_TCON_GDSP,   PIN_NOPULL, 1);
     HAL_PIN_Set(PAD_PA27, LCDC1_TCON_GDCLK,  PIN_NOPULL, 1);
     HAL_PIN_Set(PAD_PA28, LCDC1_TCON_SDCLK,  PIN_NOPULL, 1);
@@ -126,9 +132,20 @@ void BSP_LCD_PowerUp(void)
     HAL_PIN_Set(PAD_PA49, LCDC1_TCON_SDAT6, PIN_NOPULL, 1);
     HAL_PIN_Set(PAD_PA50, LCDC1_TCON_SDAT5, PIN_NOPULL, 1);
 
-    HAL_PIN_Set(PAD_PA54, GPIO_A5, PIN_PULLUP, 1);  //GMODE
+    HAL_PIN_Set(PAD_PA00 + EPD_GMODE_PIN, GPIO_A0 + EPD_GMODE_PIN, PIN_PULLUP, 1);  //GMODE
 
     HAL_PIN_Set(PAD_PA11, GPTIM1_CH4, PIN_NOPULL, 1);   // LCDC1_BL_PWM_CTRL, LCD backlight PWM
+
+    //TPS chip control pins
+    HAL_PIN_Set(PAD_PA00 + EPD_TPS_WAKEUP_PIN, GPIO_A0 + EPD_TPS_WAKEUP_PIN, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA00 + EPD_TPS_PWRCOM_PIN, GPIO_A0 + EPD_TPS_PWRCOM_PIN, PIN_NOPULL, 1);
+    HAL_PIN_Set(PAD_PA00 + EPD_TPS_PWRUP_PIN, GPIO_A0 + EPD_TPS_PWRUP_PIN, PIN_NOPULL, 1);
+
+    HAL_PIN_Set(PAD_PA22, I2C1_SDA, PIN_PULLUP, 1);
+    HAL_PIN_Set(PAD_PA23, I2C1_SCL, PIN_PULLUP, 1);
+#ifdef EPD_TPS_GOOD_PIN
+    HAL_PIN_Set(PAD_PA00 + EPD_TPS_GOOD_PIN, GPIO_A0 + EPD_TPS_GOOD_PIN, PIN_NOPULL, 1);
+#endif
 
 #elif defined(BSP_LCDC_USING_QADSPI)
     HAL_PIN_Set(PAD_PA42, LCDC1_MATRIX_SPI_DIO3, PIN_NOPULL, 1);
@@ -176,4 +193,3 @@ void BSP_TP_Reset(uint8_t high1_low0)
 {
     BSP_GPIO_Set(TP_RESET, high1_low0, 1);
 }
-

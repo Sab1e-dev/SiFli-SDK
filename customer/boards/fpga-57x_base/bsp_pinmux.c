@@ -90,7 +90,7 @@ void BSP_PIN_Init(void)
     HAL_PIN_Set(PAD_PA27, USART2_TXD, PIN_PULLUP, 1);
     HAL_PIN_Set(PAD_PA26, USART2_RXD, PIN_PULLUP, 1);
 
-#ifdef BSP_LCDC_USING_EPD_8BIT
+#ifdef BSP_LCDC_USING_DIRECT_EPD
     HAL_PIN_Set(PAD_PA01, LCDC_IF0, PIN_NOPULL, 1); //GDSP  - stv
     HAL_PIN_Set(PAD_PA33, LCDC_IF1, PIN_NOPULL, 1); //GDCLK - cpv
     HAL_PIN_Set(PAD_PA00, LCDC_IF2, PIN_NOPULL, 1); //SDCLK - clk
@@ -145,7 +145,7 @@ void BSP_PIN_Init(void)
     HAL_PIN_Set(PAD_PA45, I2C1_SDA, PIN_PULLUP, 1);
     HAL_PIN_Set(PAD_PA46, I2C1_SCL, PIN_PULLUP, 1);
 
-#if defined(BSP_USING_DCMI) && (!defined(BSP_LCDC_USING_EPD_8BIT))
+#if defined(BSP_USING_DCMI) && (!defined(BSP_LCDC_USING_DIRECT_EPD))
     // Digital Camera Interface
     HAL_PIN_Set(PAD_PA30, GPTIM2_CH1, PIN_PULLUP, 1); // mclk output
 

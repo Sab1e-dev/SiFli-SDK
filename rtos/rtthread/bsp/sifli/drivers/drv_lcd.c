@@ -171,7 +171,7 @@ static LCD_DrvTypeDef drv_lcd;
     static uint32_t *ramless_code = NULL;
 #endif /* BSP_USING_RAMLESS_LCD */
 
-#if defined(LCDC_SUPPORT_EXTERNAL_LINEBUF) || (defined(BSP_USING_RAMLESS_LCD) && defined(BSP_LCDC_USING_DPI))
+#if defined(BSP_USING_RAMLESS_LCD) && defined(BSP_LCDC_USING_DPI)
     #if defined(LCDC_SUPPORT_EXTERNAL_LINEBUF)
         //Fixed ARGB8888 format
         #define SRAM_BUF_1LINE (LCD_HOR_RES_MAX * 4)
@@ -761,12 +761,12 @@ static rt_err_t lcd_hw_open(void)
 
 #ifdef SRAM_BUF_1LINE
     init_line_buffer();
-#endif /* SRAM_BUF_1LINE */
 #ifdef LCDC_SUPPORT_EXTERNAL_LINEBUF
     drv_lcd.hlcdc.sram_line_buf0 = sram_data0;
     drv_lcd.hlcdc.sram_line_buf1 = sram_data1;
-#else /*LCDC_SUPPORT_EXTERNAL_LINEBUF*/
-
+#endif /*LCDC_SUPPORT_EXTERNAL_LINEBUF*/
+#endif /* SRAM_BUF_1LINE */
+#ifndef LCDC_SUPPORT_EXTERNAL_LINEBUF
 #ifdef BSP_USING_RAMLESS_LCD
     if ((drv_lcd.p_drv_ops) && (HAL_LCDC_IS_PTC_AUX_IF(drv_lcd.hlcdc.Init.lcd_itf)))
     {
@@ -1606,7 +1606,7 @@ static rt_err_t draw_core(LCD_DrvTypeDef *p_drvlcd, const uint8_t *pixels, int x
             }
         }
 
-#ifdef LCDC_SUPPORT_EXTERNAL_LINEBUF
+#if defined(LCDC_SUPPORT_EXTERNAL_LINEBUF)&&defined(SRAM_BUF_1LINE)
         if (check_line_bufer_overwrite())
         {
             LOG_E("Line buffer overwritten!!");

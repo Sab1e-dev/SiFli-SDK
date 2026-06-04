@@ -21,13 +21,32 @@ config LCD_PWM_BACKLIGHT_CHANEL_NUM
 config LCD_BACKLIGHT_CONTROL_PIN
     int
     default 11 if BSP_LCDC_USING_DPI
-    default 11 if BSP_LCDC_USING_EPD_8BIT
+    default 11 if BSP_LCDC_USING_DIRECT_EPD
     default 45 if BSP_LCDC_USING_QADSPI
     default 20
     
 config CAMERA_I2C_DEVICE_NAME
     string
     default "i2c2"
+
+config EPD_TPS_I2C_DEVICE_NAME
+    string
+    default "i2c1"
+
+config EPD_TPS_WAKEUP_PIN
+    int
+    default 20
+
+config EPD_TPS_PWRCOM_PIN
+    int
+    default 24
+
+config EPD_TPS_PWRUP_PIN
+    int
+    default 26
+
+
+
 
 menu "SF32LB57-SPI-HDK Configuration"
 

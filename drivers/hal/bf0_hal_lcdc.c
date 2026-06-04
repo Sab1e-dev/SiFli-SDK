@@ -1438,12 +1438,12 @@ static HAL_StatusTypeDef LayerUpdate(LCDC_HandleTypeDef *lcdc)
         lcdc->Instance->LINE_BUF1 = (uint32_t) lcdc->sram_line_buf1;
         lcdc->Instance->CANVAS_BG &= ~LCD_IF_CANVAS_BG_LB_BYPASS;
     }
-#ifdef FPGA
-    if (HAL_LCDC_IS_EPD_IF(lcdc->Init.lcd_itf)) // FPGA SRAM is too slow, bypass line buffer for EPD interface
+
+
+    if (HAL_LCDC_IS_EPD_IF(lcdc->Init.lcd_itf)) // bypass line buffer for EPD interface
     {
         lcdc->Instance->CANVAS_BG |= LCD_IF_CANVAS_BG_LB_BYPASS;
     }
-#endif
 #endif /* LCDC_SUPPORT_EXTERNAL_LINEBUF */
 
 
