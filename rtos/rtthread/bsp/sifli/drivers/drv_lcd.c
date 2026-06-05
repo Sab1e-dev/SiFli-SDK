@@ -766,7 +766,7 @@ static rt_err_t lcd_hw_open(void)
     drv_lcd.hlcdc.sram_line_buf1 = sram_data1;
 #endif /*LCDC_SUPPORT_EXTERNAL_LINEBUF*/
 #endif /* SRAM_BUF_1LINE */
-#ifndef LCDC_SUPPORT_EXTERNAL_LINEBUF
+
 #ifdef BSP_USING_RAMLESS_LCD
     if ((drv_lcd.p_drv_ops) && (HAL_LCDC_IS_PTC_AUX_IF(drv_lcd.hlcdc.Init.lcd_itf)))
     {
@@ -780,7 +780,6 @@ static rt_err_t lcd_hw_open(void)
 #endif /* BSP_LCDC_USING_DPI */
     }
 #endif /* BSP_USING_RAMLESS_LCD */
-#endif /*LCDC_SUPPORT_EXTERNAL_LINEBUF*/
 
     LOG_I("HW open done.");
 

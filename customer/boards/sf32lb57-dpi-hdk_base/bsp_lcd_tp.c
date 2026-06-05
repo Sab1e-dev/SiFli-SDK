@@ -21,7 +21,7 @@
 
 #define EPD_VDD33_EN            (52)         // GPIO_A52 
 #define CTP_VDD33_EN            (53)         // GPIO_A53 
-
+#define DPI_VSYNC_PIN   (20)          // GPIO_A20
 
 extern void BSP_GPIO_Set(int pin, int val, int is_porta);
 
@@ -174,22 +174,23 @@ void BSP_TP_PowerUp(void)
     HAL_PIN_Set(PAD_PA00 + TP_RESET, GPIO_A0 + TP_RESET, PIN_NOPULL, 1);
     BSP_GPIO_Set(TP_RESET,  1, 1);
 
-#ifdef BOARD_TP_I2C_PINMAP_0
-    HAL_PIN_Set(PAD_PA22, I2C1_SDA, PIN_PULLUP, 1);
-    HAL_PIN_Set(PAD_PA23, I2C1_SCL, PIN_PULLUP, 1);
-#elif BOARD_TP_I2C_PINMAP_1
-    HAL_PIN_Set(PAD_PA51, I2C1_SDA, PIN_PULLUP, 1);
-    HAL_PIN_Set(PAD_PA57, I2C1_SCL, PIN_PULLUP, 1);
-#endif /* BOARD_TP_I2C_PINMAP_0 */
-
+    //TP irq pin
+    HAL_PIN_Set(PAD_PA00 + TOUCH_IRQ_PIN, GPIO_A0 + TOUCH_IRQ_PIN, PIN_PULLUP, 1);
 }
 
 void BSP_TP_PowerDown(void)
 {
     BSP_GPIO_Set(TP_RESET,  0, 1);
+    //TP irq pin
+    HAL_PIN_Set(PAD_PA00 + TOUCH_IRQ_PIN, GPIO_A0 + TOUCH_IRQ_PIN, PIN_NOPULL, 1);
 }
 
 void BSP_TP_Reset(uint8_t high1_low0)
 {
     BSP_GPIO_Set(TP_RESET, high1_low0, 1);
+}
+
+uint32_t BSP_GET_DPI_AUX_VSYNC_PIN(void)
+{
+    return DPI_VSYNC_PIN;
 }

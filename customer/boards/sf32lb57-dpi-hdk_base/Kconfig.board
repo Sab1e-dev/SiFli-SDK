@@ -51,12 +51,12 @@ config EPD_TPS_PWRUP_PIN
 menu "SF32LB57-SPI-HDK Configuration"
 
 choice 
-    prompt "TP I2C Pinmap"
-    default BOARD_TP_I2C_PINMAP_0
-    config BOARD_TP_I2C_PINMAP_0
-        bool "TP I2C on PA22/PA23"
-    config BOARD_TP_I2C_PINMAP_1
-        bool "TP I2C on PA51/PA57"
+    prompt "TP&CAMERA I2C Pinmap"
+    default BOARD_TP_CAMERA_I2C_PINMAP_0
+    config BOARD_TP_CAMERA_I2C_PINMAP_0
+        bool "TP&CAMERA I2C on PA22/PA23"
+    config BOARD_TP_CAMERA_I2C_PINMAP_1
+        bool "TP&CAMERA I2C on PA51/PA57"
 endchoice
 
 choice 

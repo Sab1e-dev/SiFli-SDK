@@ -6,17 +6,7 @@
 
 #include <string.h>
 #include "bf0_hal.h"
-
-extern void rt_kprintf(const char *fmt, ...);
-
-#define LCDC_LOG(...)   //do{rt_kprintf(__VA_ARGS__);rt_kprintf("\r\n");}while(0)
-
-#define LCDC_LOG_D(...)  //LCDC_LOG(__VA_ARGS__)
-#define LCDC_LOG_I(...)  //LCDC_LOG(__VA_ARGS__)
-#define LCDC_LOG_E(...)  LCDC_LOG(__VA_ARGS__)
-#define LCDC_PRINT_AREA(s,area) //LCDC_LOG("%s: x0y0=%d,%d  x1y1=%d,%d  \n",s,(area)->x0,(area)->y0,(area)->x1,(area)->y1)
-
-#define LCDC_TIMEOUT_SECONDS  1
+#include "bf0_hal_lcdc_private.h"
 
 /** @addtogroup BF0_HAL_Driver
   * @{
@@ -50,11 +40,7 @@ static HAL_StatusTypeDef SendSingleCmd(LCDC_HandleTypeDef *lcdc, uint32_t addr, 
 static HAL_StatusTypeDef WaitBusy(LCDC_HandleTypeDef *lcdc);
 static void HAL_LCDC_JDIParallelInit(LCDC_HandleTypeDef *lcdc);
 
-#if defined(USE_FULL_ASSERT)||defined(_SIFLI_DOXYGEN_) || defined(USE_LOOP_ASSERT)
-    #define HAL_LCDC_ASSERT  HAL_ASSERT
-#else
-    #define HAL_LCDC_ASSERT(expr) if ((expr)==0) while (1)
-#endif /* USE_FULL_ASSERT */
+
 
 
 
@@ -184,7 +170,7 @@ __STATIC_INLINE void LCDC_SET_TE(LCDC_HandleTypeDef *lcdc, bool en)
         lcdc->Instance->TE_CONF &= ~LCD_IF_TE_CONF_ENABLE;
 }
 
-static uint8_t HAL_LCDC_GetPixelSize(HAL_LCDC_PixelFormat color_format)
+uint8_t HAL_LCDC_GetPixelSize(HAL_LCDC_PixelFormat color_format)
 {
     uint8_t bytes_per_pixel = 0;
 
@@ -3509,8 +3495,22 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LCDC_SendLayerData2Reg(LCDC_HandleTypeDef *
 
 
 #ifdef HAL_RAMLESS_LCD_ENABLED
+#ifdef SF32LB57X
+//SPI_AUX
+extern void SPI_AUX_RST_HW_FSM(void);
+extern void SPI_AUX_HW_FSM_START(LCDC_HandleTypeDef *lcdc);
+extern void SPI_AUX_HW_FSM_STOP(LCDC_HandleTypeDef *lcdc);
+extern HAL_StatusTypeDef RAMLESS_HW_FSM_READ_DATAS_START(LCDC_HandleTypeDef *lcdc, uint32_t freq, uint32_t addr, uint32_t addr_len, uint32_t data_len);
+extern HAL_StatusTypeDef RAMLESS_HW_FSM_WRITE_DATAS_START(LCDC_HandleTypeDef *lcdc, uint32_t addr, uint32_t addr_len, uint8_t *p_data, uint32_t data_len);
+extern HAL_StatusTypeDef RAMLESS_HW_FSM_READ_DATAS_END(LCDC_HandleTypeDef *lcdc, uint8_t *p_data, uint32_t data_len);
+extern HAL_StatusTypeDef RAMLESS_HW_FSM_WRITE_DATAS_END(LCDC_HandleTypeDef *lcdc);
 
-#ifndef SF32LB55X
+//DPI_AUX
+extern void DPI_HW_FSM_START(LCDC_HandleTypeDef *lcdc);
+extern void DPI_HW_FSM_STOP(LCDC_HandleTypeDef *lcdc);
+extern void DPI_HW_FSM_UPDATE_LAYER_DATA(LCDC_HandleTypeDef *lcdc);
+extern HAL_StatusTypeDef DPI_HW_FSM_UPDATE_LAYER_DATA_DONE(LCDC_HandleTypeDef *lcdc);
+#elif !defined(SF32LB55X)
 #define  p_ptc     hwp_ptc1
 #define  p_lcd     hwp_lcdc1
 #define  PTC_IRQ_NUM     PTC1_IRQn
@@ -4189,8 +4189,6 @@ static HAL_StatusTypeDef RAMLESS_HW_FSM_WRITE_DATAS_END(LCDC_HandleTypeDef *lcdc
 #ifdef LCDC_SUPPORT_DPI
 static void DPI_HW_FSM_START(LCDC_HandleTypeDef *lcdc)
 {
-#if !defined(SF32LB57X) //Fix me
-
 #ifdef SF32LB56X
     __IO uint32_t *p_VSYNC_PINMUX_REG = &(hwp_pinmux1->PAD_PA42);
     const uint32_t VSYNC_GPIO_ID  =  42;
@@ -4562,7 +4560,6 @@ static void DPI_HW_FSM_START(LCDC_HandleTypeDef *lcdc)
     word_memcpy((void *) & (hwp_ptc1->TCR1), (void *)PTC_PHASE_ADDR(0), PTC_TABLE_BYTE / 4);
 
     hwp_ptc1->TCR1 |= PTC_TCR1_SWTRIG;
-#endif /* !defined(SF32LB57X)*/
 }
 
 static void DPI_HW_FSM_STOP(LCDC_HandleTypeDef *lcdc)
@@ -4619,9 +4616,6 @@ static void DPI_HW_FSM_UPDATE_LAYER_DATA(LCDC_HandleTypeDef *lcdc)
 
 static HAL_StatusTypeDef DPI_HW_FSM_UPDATE_LAYER_DATA_DONE(LCDC_HandleTypeDef *lcdc)
 {
-#if defined(SF32LB57X)
-    return HAL_OK; //Fix me
-#else
     uint32_t start, end;
     LCDC_LayerCfgTypeDef *cfg = &lcdc->Layer[HAL_LCDC_LAYER_DEFAULT];
     uint32_t bytes_per_pixel, data_w, data_h;
@@ -4643,7 +4637,6 @@ static HAL_StatusTypeDef DPI_HW_FSM_UPDATE_LAYER_DATA_DONE(LCDC_HandleTypeDef *l
     }
 
     return HAL_BUSY;
-#endif
 }
 #endif /* LCDC_SUPPORT_DPI */
 
@@ -5635,10 +5628,11 @@ static void SPI_AUX_FSM_IRQHandler(LCDC_HandleTypeDef *lcdc)
 #ifdef LCDC_SUPPORT_DPI
 static void DPI_AUX_FSM_IRQHandler(LCDC_HandleTypeDef *lcdc)
 {
-//TODO:
 #ifdef hwp_ptc1
-
     hwp_ptc1->IER = 0x00;
+#elif defined(hwp_ptm1)
+    hwp_ptm1->ISR = PTM_ISR_EVT0;
+#endif /* hwp_ptc1 */
 
     //frame done interrupt
     LCDC_LOG_D("frame done!\n");
@@ -5653,7 +5647,7 @@ static void DPI_AUX_FSM_IRQHandler(LCDC_HandleTypeDef *lcdc)
             LCDC_TransCpltCallback(lcdc);
         }
     }
-#endif /* hwp_ptc1 */
+
 
 }
 #endif /* LCDC_SUPPORT_DPI */

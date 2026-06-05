@@ -35,6 +35,8 @@ extern "C" {
 #define HAL_RAMLESS_LCD_ENABLED
 #ifdef SF32LB55X
 #define RAMLESS_AUTO_REFR_CODE_SIZE_IN_WORD 384
+#elif defined(SF32LB57X)
+#define RAMLESS_AUTO_REFR_CODE_SIZE_IN_WORD 256
 #else
 #define RAMLESS_AUTO_REFR_CODE_SIZE_IN_WORD 512
 #endif /* SF32LB55X */
@@ -91,7 +93,10 @@ extern "C" {
 */
 #ifndef SF32LB52X
 #define LCDC_SUPPORT_DPI
-#if defined(SF32LB58X) || defined(SF32LB57X)
+/* LCDC_DPI_MAX_WIDTH: max width of dpi interface direct supported*/
+#if defined(SF32LB57X)
+#define LCDC_DPI_MAX_WIDTH 0
+#elif defined(SF32LB58X)
 #define LCDC_DPI_MAX_WIDTH 1024
 #else
 #define LCDC_DPI_MAX_WIDTH 512
