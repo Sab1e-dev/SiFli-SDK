@@ -151,29 +151,23 @@ Serial port output as follows:
 ```c
 // Set, read integer data
 12-23 00:51:23:316 TX:kvdb set "key1" int 100
-12-23 00:51:23:353    kvdb set "key1" int 100
 12-23 00:51:23:465    set the key1 value to 100
 12-23 00:51:23:579    msh />
 12-23 00:51:30:771 TX:kvdb get "key1" int
-12-23 00:51:30:827    kvdb get "key1" int
 12-23 00:51:30:831    [key1] int
 12-23 00:51:30:836    get the key1 value is 100 
 // Set, read string
 12-23 00:52:21:753 TX:kvdb set "key2" str "hello"
-12-23 00:52:21:810    kvdb set "key2" str "hello"
 12-23 00:52:22:003    set key2 value to hello
 12-23 00:52:22:115    msh />
 12-23 00:52:29:612 TX:kvdb get "key2" str
-12-23 00:52:29:667    kvdb get "key2" str
 12-23 00:52:29:672    [key2] str
 12-23 00:52:29:677    get the key2 value is hello 
 // Delete kvdb
 12-23 00:53:16:528 TX:kvdb del "key1"
-12-23 00:53:16:585    kvdb del "key1"
 12-23 00:53:16:675    delete the key1 finish
 12-23 00:53:16:788    msh />
 12-23 00:53:20:062 TX:kvdb get "key1" int
-12-23 00:53:20:116    kvdb get "key1" int
 12-23 00:53:20:120    [key1] int
 12-23 00:53:20:147    get the key1 failed
 ```  
@@ -189,33 +183,27 @@ Serial port output as follows:
 ```c
 // clear tsdb
 12-23 00:55:21:376 TX:tsdb clear
-12-23 00:55:21:430    tsdb clear
 12-23 00:55:23:455    clear tsdb.
 // Add tsdb entries
 12-23 00:55:56:845 TX:tsdb append 1
-12-23 00:55:56:902    tsdb append 1
 12-23 00:55:57:198    append tsdb item : value = 1
 12-23 00:55:57:244    tsdb count is: 1
 12-23 00:55:57:361    msh />
 12-23 00:55:59:988 TX:tsdb append 2
-12-23 00:56:00:045    tsdb append 2
 12-23 00:56:00:134    append tsdb item : value = 2
 12-23 00:56:00:162    tsdb count is: 2
 12-23 00:56:00:278    msh />
 12-23 00:56:01:521 TX:tsdb append 3
-12-23 00:56:01:577    tsdb append 3
 12-23 00:56:01:666    append tsdb item : value = 3
 12-23 00:56:01:693    tsdb count is: 3
 // Query all
 12-23 00:56:39:698 TX:tsdb query_all
-12-23 00:56:39:753    tsdb query_all
 12-23 00:56:39:757    query all:
 12-23 00:56:39:783    [query_cb] queried a TSL: value: 1 time: 946689062 Sat Jan  1 01:11:02 2000
 12-23 00:56:39:788    [query_cb] queried a TSL: value: 2 time: 946689065 Sat Jan  1 01:11:05 2000
 12-23 00:56:39:793    [query_cb] queried a TSL: value: 3 time: 946689067 Sat Jan  1 01:11:07 2000
 // Query by time
 12-23 00:57:04:317 TX:tsdb query_by_time 0 946689065
-12-23 00:57:04:371    tsdb query_by_time 0 946689065
 12-23 00:57:04:375    query by time:
 12-23 00:57:04:380    from time:0 Thu Jan  1 00:00:00 1970
 12-23 00:57:04:385    to time:946689065 Sat Jan  1 01:11:05 2000
