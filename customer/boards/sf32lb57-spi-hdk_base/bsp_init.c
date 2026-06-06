@@ -160,11 +160,20 @@ void HAL_PreInit(void)
     HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH3, RCC_CLK_FLASH_DLL2);
 #endif /* BSP_USING_NOR_FLASH3 */
 
+    if (PM_STANDBY_BOOT == SystemPowerOnModeGet())
+    {
+        /* rt_hw_flash_init cannot be called as data has not been restored at this moment,
+            so rt_sem_init cannot be called */
+        BSP_Flash_Init();
+    }
+    else
+    {
 #ifdef BSP_USING_RTTHREAD
-    rt_hw_flash_init();
+        rt_hw_flash_init();
 #else
-    BSP_Flash_Init();
+        BSP_Flash_Init();
 #endif /* BSP_USING_RTTHREAD */
+    }
 #endif /* BSP_USING_NOR_FLASH1 || BSP_USING_NOR_FLASH2 || BSP_USING_NOR_FLASH3 */
 
 
