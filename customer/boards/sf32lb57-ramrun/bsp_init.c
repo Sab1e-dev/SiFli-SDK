@@ -78,14 +78,12 @@ static void LRC_init(void)
 {
     HAL_PMU_RC10Kconfig();
 
-#if 0
-    //TODO:
     HAL_RC_CAL_update_reference_cycle_on_48M(LXT_LP_CYCLE);
     uint32_t ref_cnt = HAL_RC_CAL_get_reference_cycle_on_48M();
     uint32_t cycle_t = (uint32_t)ref_cnt / (48 * LXT_LP_CYCLE);
 
     HAL_PMU_SET_HXT3_RDY_DELAY((HXT_DELAY_EXP_VAL / cycle_t + 1));
-#endif
+
 }
 #endif
 
@@ -117,6 +115,8 @@ void HAL_PreInit(void)
         HAL_PMU_LpCLockSelect(PMU_LPCLK_RC32);
         hwp_pmuc->PWRKEY_CNT = PWRKEY_CNT_CLOCK_FREQ * PWRKEY_HARD_RESET_TIME ;     //set pwrkey hard reset time time*32000
 
+        HAL_PMU_EnableDLL(1);
+
 #ifndef LXT_DISABLE
         HAL_PMU_EnableXTAL32();
         if (HAL_PMU_LXTReady() != HAL_OK)
@@ -137,8 +137,11 @@ void HAL_PreInit(void)
             LRC_init();
     }
 
+    HAL_RCC_HCPU_ConfigHCLK(240);
+    HAL_RCC_HCPU_EnableDLL2(288000000);
 
-    HAL_RCC_HCPU_SetDiv(1, 0, 4);
+    // Reset sysclk used by HAL_Delay_us
+    HAL_Delay_us(0);
 
     mpi1_div = 1;   // for OPI Psram driver alway set 1, for QSPI PSRAM depend on this setting, for flash depend on flash request, 2 or 3
     mpi2_div = 2;
