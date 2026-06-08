@@ -19,9 +19,9 @@
 
 #if defined(HAL_MPI_MODULE_ENABLED)||defined(_SIFLI_DOXYGEN_)
 
-#if defined(SF32LB56X) || defined(SF32LB52X)
+#if defined(SF32LB56X) || defined(SF32LB52X) || defined(SF32LB57X)
     static int HAL_MPI_OPSRAM_CAL_DELAY(FLASH_HandleTypeDef *hflash, uint8_t *sck, uint8_t *dqs);
-#endif
+#endif /* SF32LB56X || SF32LB52X || SF32LB57X */
 
 __HAL_ROM_USED HAL_StatusTypeDef HAL_SPI_PSRAM_Init(FLASH_HandleTypeDef *hflash, qspi_configure_t *cfg, uint16_t clk_div)
 {
@@ -119,18 +119,16 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_OPI_PSRAM_Init(FLASH_HandleTypeDef *hflash,
 
     int cren = __HAL_MPI_GET_CREN(hflash);
 
-#if defined(SF32LB56X) || defined(SF32LB52X)
+    hflash->freq = HAL_QSPI_GET_CLK(hflash);
+    hflash->freq >>= 1;
+
+#if defined(SF32LB56X) || defined(SF32LB52X) || defined(SF32LB57X)
     HAL_MPI_OPSRAM_CAL_DELAY(hflash, &sck_dly, &dqs_dly);
-#elif defined(SF32LB57X)
-//TODO:
-    dqs_dly = 0x14;
-    sck_dly = 0x14;
-#endif
+#endif /* SF32LB56X || SF32LB52X || SF32LB57X */
 
     //TODO: delay
     //HAL_FLASH_SET_CLK_rom(hflash, clk_div);
     HAL_FLASH_SET_CLK_rom(hflash, 1);
-
 
     cs_min = 6;
 #ifdef FPGA // for fpga
@@ -145,8 +143,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_OPI_PSRAM_Init(FLASH_HandleTypeDef *hflash,
     hflash->ecc_en = 5;  //rdcyc
     hflash->buf_mode = 5;  //wdcyc
 #else //asic
-    uint32_t freq = HAL_QSPI_GET_CLK(hflash);
-    freq /= 2;
+    uint32_t freq = hflash->freq;
 
 #if 0 // def SF32LB52X //disable it by default, only open it when debug needed!
     // add calibarate delay check for special case
@@ -171,8 +168,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_OPI_PSRAM_Init(FLASH_HandleTypeDef *hflash,
 #ifdef  SF32LB58X
         dqs_dly = 15;
         sck_dly = 15;
-#elif defined(SF32LB52X) || defined(SF32LB57X)
-//TODO: 57x
+#elif defined(SF32LB52X)
         /* solve bit flip */
         dqs_dly = 20;
         sck_dly = 20;
@@ -260,25 +256,19 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LEGACY_PSRAM_Init(FLASH_HandleTypeDef *hfla
 
     int cren = __HAL_MPI_GET_CREN(hflash);
 
-#if defined(SF32LB56X) || defined(SF32LB52X)
+    uint32_t freq = HAL_QSPI_GET_CLK(hflash);
+    freq >>= 1;
 
+    hflash->freq = freq;
+#if defined(SF32LB56X) || defined(SF32LB52X) || defined(SF32LB57X)
     HAL_MPI_OPSRAM_CAL_DELAY(hflash, &sck_dly, &dqs_dly);
-    //dqs_dly = 0xa;
-    //sck_dly = 0xa;
-#elif defined(SF32LB57X)
-//TODO:
-    dqs_dly = 0x14;
-    sck_dly = 0x14;
 #else
     dqs_dly = 0xa;
     sck_dly = 0xa;
-#endif
+#endif /* SF32LB56X || SF32LB52X || SF32LB57X */
     //TODO: delay
     //HAL_FLASH_SET_CLK_rom(hflash, clk_div);
     HAL_FLASH_SET_CLK_rom(hflash, 1);
-
-    uint32_t freq = HAL_QSPI_GET_CLK(hflash);
-    freq /= 2;
 
 #if 0//def SF32LB52X    // disable it by default, only open it when debug needed!
     HPSYS_DvfsModeTypeDef dvfs = HAL_RCC_HCPU_GetCurrentDvfsMode();
@@ -331,11 +321,11 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_LEGACY_PSRAM_Init(FLASH_HandleTypeDef *hfla
         cs_max = 180; //< 4us
         cshmin = 0; // 1 cycle of 48M > 15ns
         trcmin = 3; // > 60ns
-#if defined(SF32LB52X) || defined(SF32LB57X)
+#if defined(SF32LB52X)
         /* solve bit flip */
         dqs_dly = 20;
         sck_dly = 20;
-#endif /* SF32LB52X || SF32LB57X */
+#endif /* SF32LB52X */
     }
     else if (freq <= 120000000)         // 120M
     {
@@ -1155,7 +1145,7 @@ HAL_StatusTypeDef HAL_MPI_EXIT_LOWP(FLASH_HandleTypeDef *hflash, uint8_t psram_t
     return HAL_OK;
 }
 
-#if defined(SF32LB56X) || defined(SF32LB52X)
+#if defined(SF32LB56X) || defined(SF32LB52X) || defined(SF32LB57X)
 
 static void HAL_Delay_us_psram(__IO uint32_t us)
 {
@@ -1177,6 +1167,79 @@ static void HAL_Delay_us_psram(__IO uint32_t us)
     }
 }
 
+#ifdef SF32LB57X
+static int HAL_MPI_PSRAM_CheckMatch(uint32_t dst, uint32_t src, uint32_t msk, uint32_t num)
+{
+    int match = 1;
+    uint32_t i;
+
+    for (i = 0; i < num; i++)
+    {
+        if ((src & msk) != dst)
+        {
+            match = 0;
+            break;
+        }
+    }
+
+    return match;
+}
+
+static int HAL_MPI_OPSRAM_CAL_DELAY(FLASH_HandleTypeDef *hflash, uint8_t *sck, uint8_t *dqs)
+{
+    uint32_t tmp, dly;
+    uint32_t find;
+    int r = HAL_OK;
+
+    /* use fixed delay for 24MHz */
+    if (24000000 >= hflash->freq)
+    {
+        *sck = 0x1f;
+        *dqs = 0x1f;
+        return HAL_OK;
+    }
+
+    hflash->Instance->CALCR = MPI_CALCR_START;
+
+    /* phase 1: search for 0 */
+    for (tmp = 0; tmp < 128; tmp++)   // DLY MAX = 127 (TODO: adjust accordingly)
+    {
+        hflash->Instance->MISCR = (tmp << MPI_MISCR_SCKDLY_Pos);
+        HAL_Delay_us_psram(10);
+        if (HAL_MPI_PSRAM_CheckMatch(0, hflash->Instance->CALRR, MPI_CALRR_CSMP_Msk, 5))
+        {
+            break;
+        }
+    }
+
+    /* phase 2: search for 1 */
+    find = 0;
+    for (dly = tmp + 1; dly < 128; dly++)   // DLY MAX = 127 (TODO: adjust accordingly)
+    {
+        hflash->Instance->MISCR = (dly << MPI_MISCR_SCKDLY_Pos);
+        HAL_Delay_us_psram(10);
+        if (HAL_MPI_PSRAM_CheckMatch(MPI_CALRR_CSMP, hflash->Instance->CALRR, MPI_CALRR_CSMP_Msk, 5))
+        {
+            find = 1;
+            break;
+        }
+    }
+
+    if (!find)
+    {
+        r = HAL_ERROR;
+        goto __EXIT;
+    }
+
+    dly = (dly - tmp) / 2;
+    *sck = dly - 5;
+    *dqs = dly;
+
+__EXIT:
+    hflash->Instance->CALCR = MPI_CALCR_STOP;
+    return r;
+}
+#else
 static int HAL_MPI_OPSRAM_CAL_DELAY(FLASH_HandleTypeDef *hflash, uint8_t *sck, uint8_t *dqs)
 {
     uint32_t delay;
@@ -1206,6 +1269,7 @@ static int HAL_MPI_OPSRAM_CAL_DELAY(FLASH_HandleTypeDef *hflash, uint8_t *sck, u
 
     return 0;
 }
+#endif /* SF32LB57X */
 
 int HAL_MPI_OPSRAM_AUTO_CAL(FLASH_HandleTypeDef *hflash, uint8_t *sck, uint8_t *dqs)
 {
