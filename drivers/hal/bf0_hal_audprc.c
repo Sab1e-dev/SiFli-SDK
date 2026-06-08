@@ -1068,9 +1068,6 @@ static void AUDPRC_DMAHalfRxCplt(DMA_HandleTypeDef *hdma)
   */
 static void AUDPRC_DMAError(DMA_HandleTypeDef *hdma)
 {
-    void rt_kprintf(const char *fmt, ...);
-    rt_kprintf("audpr dma error\n");
-#if 0
     AUDPRC_HandleTypeDef *aprc = (AUDPRC_HandleTypeDef *)((DMA_HandleTypeDef *)hdma)->Parent;
     int i;
     for (i = 0; i < HAL_AUDPRC_INSTANC_CNT; i++)
@@ -1081,7 +1078,6 @@ static void AUDPRC_DMAError(DMA_HandleTypeDef *hdma)
 
     aprc->State[i] = HAL_AUDPRC_STATE_READY;
     HAL_AUDPRC_ErrorCallback(aprc, i);
-#endif
 }
 
 #endif /* HAL_AUDPRC_MODULE_ENABLED */
