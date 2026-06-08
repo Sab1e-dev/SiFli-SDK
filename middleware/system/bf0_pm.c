@@ -1982,12 +1982,18 @@ L1_RET_CODE_SECT(sifli_pm_run, __WEAK void sifli_pm_run(struct rt_pm *pm, uint8_
         status = HAL_RCC_HCPU_EnableDLL2(288000000);
         RT_ASSERT(HAL_OK == status);
 
-#ifdef BSP_USING_PSRAM1
+#if defined(BSP_USING_PSRAM1) || defined(BSP_USING_PSRAM2)
         sifli_record_module(RECORD_PM_SCENARIO_HIGH_SPEED_PSRAM_INIT);
+#ifdef BSP_USING_PSRAM1
         HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_PSRAM1, RCC_CLK_PSRAM_DLL2);
         BSP_SetFlash1DIV(2);
-        rt_psram_init();
 #endif /* BSP_USING_PSRAM1 */
+#ifdef BSP_USING_PSRAM2
+        HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_PSRAM2, RCC_CLK_PSRAM_DLL2);
+        BSP_SetFlash2DIV(2);
+#endif /* BSP_USING_PSRAM2 */
+        rt_psram_init();
+#endif /* BSP_USING_PSRAM1 || BSP_USING_PSRAM2 */
 
 #ifdef BSP_USING_NOR_FLASH1
         HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH1, RCC_CLK_FLASH_DLL2);
@@ -2016,6 +2022,24 @@ L1_RET_CODE_SECT(sifli_pm_run, __WEAK void sifli_pm_run(struct rt_pm *pm, uint8_
         }
 #endif /* BSP_USING_NAND_FLASH2 */
 
+#if defined(BSP_USING_NOR_FLASH3) || defined(BSP_USING_NAND_FLASH3)
+        HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH3, RCC_CLK_FLASH_DLL2);
+        BSP_SetFlash3DIV(4);
+#endif /* BSP_USING_NOR_FLASH3 || BSP_USING_NAND_FLASH3 */
+
+#ifdef BSP_USING_NOR_FLASH3
+        sifli_record_module(RECORD_PM_SCENARIO_HIGH_SPEED_FLASH_INIT);
+        BSP_Flash_hw3_init();
+        //hwp_mpi3->PSCLR = 5;
+#endif /* BSP_USING_NOR_FLASH3 */
+
+#ifdef BSP_USING_NAND_FLASH3
+        if (pm->run_mode != mode)
+        {
+            rt_nand_update_clk(RCC_CLK_MOD_FLASH3, 5);
+        }
+#endif /* BSP_USING_NAND_FLASH3 */
+
 #if defined(BSP_USING_SD_LINE) && defined(SF32LB52X)
         void rthw_sdio_update_clk(void);
         rthw_sdio_update_clk();
@@ -2029,6 +2053,10 @@ L1_RET_CODE_SECT(sifli_pm_run, __WEAK void sifli_pm_run(struct rt_pm *pm, uint8_
         HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_PSRAM1, RCC_CLK_PSRAM_SYSCLK);
 #endif /* BSP_USING_PSRAM1 */
 
+#ifdef BSP_USING_PSRAM2
+        HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_PSRAM2, RCC_CLK_PSRAM_SYSCLK);
+#endif /* BSP_USING_PSRAM2 */
+
 #ifdef BSP_USING_NOR_FLASH1
         HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH1, RCC_CLK_FLASH_SYSCLK);
 #endif /* BSP_USING_NOR_FLASH1 */
@@ -2037,17 +2065,27 @@ L1_RET_CODE_SECT(sifli_pm_run, __WEAK void sifli_pm_run(struct rt_pm *pm, uint8_
         HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH2, RCC_CLK_FLASH_SYSCLK);
 #endif /* BSP_USING_NOR_FLASH2 */
 
+#ifdef BSP_USING_NOR_FLASH3
+        HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH3, RCC_CLK_FLASH_SYSCLK);
+#endif /* BSP_USING_NOR_FLASH3 */
+
         HAL_RCC_HCPU_DisableDLL2();
         status = HAL_RCC_HCPU_ConfigHCLK(144);
         RT_ASSERT(HAL_OK == status);
         status = HAL_RCC_HCPU_EnableDLL2(240000000);
         RT_ASSERT(HAL_OK == status);
 
+#if defined(BSP_USING_PSRAM1) || defined(BSP_USING_PSRAM2)
 #ifdef BSP_USING_PSRAM1
         HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_PSRAM1, RCC_CLK_PSRAM_DLL2);
         BSP_SetFlash1DIV(2);
-        rt_psram_init();
 #endif /* BSP_USING_PSRAM1 */
+#ifdef BSP_USING_PSRAM2
+        HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_PSRAM2, RCC_CLK_PSRAM_DLL2);
+        BSP_SetFlash2DIV(2);
+#endif /* BSP_USING_PSRAM2 */
+        rt_psram_init();
+#endif /* BSP_USING_PSRAM1 || BSP_USING_PSRAM2 */
 
 #ifdef BSP_USING_NOR_FLASH1
         HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH1, RCC_CLK_FLASH_DLL2);
@@ -2069,6 +2107,20 @@ L1_RET_CODE_SECT(sifli_pm_run, __WEAK void sifli_pm_run(struct rt_pm *pm, uint8_
         rt_nand_update_clk(RCC_CLK_MOD_FLASH2, 4);
 #endif /* BSP_USING_NAND_FLASH2 */
 
+#if defined(BSP_USING_NOR_FLASH3) || defined(BSP_USING_NAND_FLASH3)
+        HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH3, RCC_CLK_FLASH_DLL2);
+        BSP_SetFlash3DIV(4);
+#endif /* BSP_USING_NOR_FLASH3 || BSP_USING_NAND_FLASH3 */
+
+#ifdef BSP_USING_NOR_FLASH3
+        BSP_Flash_hw3_init();
+        //hwp_mpi3->PSCLR = 4;
+#endif /* BSP_USING_NOR_FLASH3 */
+
+#ifdef BSP_USING_NAND_FLASH3
+        rt_nand_update_clk(RCC_CLK_MOD_FLASH3, 4);
+#endif /* BSP_USING_NAND_FLASH3 */
+
         break;
     }
     case PM_RUN_MODE_MEDIUM_SPEED:
@@ -2079,6 +2131,10 @@ L1_RET_CODE_SECT(sifli_pm_run, __WEAK void sifli_pm_run(struct rt_pm *pm, uint8_
         HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_PSRAM1, RCC_CLK_PSRAM_SYSCLK);
 #endif /* BSP_USING_PSRAM1 */
 
+#ifdef BSP_USING_PSRAM2
+        HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_PSRAM2, RCC_CLK_PSRAM_SYSCLK);
+#endif /* BSP_USING_PSRAM2 */
+
 #ifdef BSP_USING_NOR_FLASH1
         HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH1, RCC_CLK_FLASH_SYSCLK);
 #endif /* BSP_USING_NOR_FLASH1 */
@@ -2087,14 +2143,23 @@ L1_RET_CODE_SECT(sifli_pm_run, __WEAK void sifli_pm_run(struct rt_pm *pm, uint8_
         HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH2, RCC_CLK_FLASH_SYSCLK);
 #endif /* BSP_USING_NOR_FLASH2 || BSP_USING_NAND_FLASH2 */
 
+#if defined(BSP_USING_NOR_FLASH3) || defined(BSP_USING_NAND_FLASH3)
+        HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH3, RCC_CLK_FLASH_SYSCLK);
+#endif /* BSP_USING_NOR_FLASH3 || BSP_USING_NAND_FLASH3 */
+
         HAL_RCC_HCPU_DisableDLL2();
         status = HAL_RCC_HCPU_ConfigHCLK(48);
         RT_ASSERT(HAL_OK == status);
 
+#if defined(BSP_USING_PSRAM1) || defined(BSP_USING_PSRAM2)
 #ifdef BSP_USING_PSRAM1
-        BSP_SetFlash1DIV(1);
-        rt_psram_init();
+        BSP_SetFlash1DIV(2);
 #endif /* BSP_USING_PSRAM1 */
+#ifdef BSP_USING_PSRAM2
+        BSP_SetFlash2DIV(2);
+#endif /* BSP_USING_PSRAM2 */
+        rt_psram_init();
+#endif /* BSP_USING_PSRAM1 || BSP_USING_PSRAM2 */
 
 #ifdef BSP_USING_NOR_FLASH1
         BSP_SetFlash1DIV(1);
@@ -2117,6 +2182,18 @@ L1_RET_CODE_SECT(sifli_pm_run, __WEAK void sifli_pm_run(struct rt_pm *pm, uint8_
         rt_nand_update_clk(RCC_CLK_MOD_FLASH2, 1);
 #endif /* BSP_USING_NAND_FLASH2 */
 
+#ifdef BSP_USING_NOR_FLASH3
+        sifli_record_module(RECORD_PM_SCENARIO_MEDIUM_SPEED_FLASH_INIT);
+        BSP_SetFlash3DIV(1);
+        BSP_Flash_hw3_init();
+        //hwp_mpi3->PSCLR = 1;
+#endif /* BSP_USING_NOR_FLASH3 */
+
+#ifdef BSP_USING_NAND_FLASH3
+        BSP_SetFlash3DIV(1);
+        rt_nand_update_clk(RCC_CLK_MOD_FLASH3, 1);
+#endif /* BSP_USING_NAND_FLASH3 */
+
 #if defined(BSP_USING_SD_LINE) && defined(SF32LB52X)
         void rthw_sdio_update_clk(void);
         rthw_sdio_update_clk();
@@ -2130,6 +2207,10 @@ L1_RET_CODE_SECT(sifli_pm_run, __WEAK void sifli_pm_run(struct rt_pm *pm, uint8_
         HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_PSRAM1, RCC_CLK_PSRAM_SYSCLK);
 #endif /* BSP_USING_PSRAM1 */
 
+#ifdef BSP_USING_PSRAM2
+        HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_PSRAM2, RCC_CLK_PSRAM_SYSCLK);
+#endif /* BSP_USING_PSRAM2 */
+
 #ifdef BSP_USING_NOR_FLASH1
         HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH1, RCC_CLK_FLASH_SYSCLK);
 #endif /* BSP_USING_NOR_FLASH1 */
@@ -2138,14 +2219,23 @@ L1_RET_CODE_SECT(sifli_pm_run, __WEAK void sifli_pm_run(struct rt_pm *pm, uint8_
         HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH2, RCC_CLK_FLASH_SYSCLK);
 #endif /* BSP_USING_NOR_FLASH2 || BSP_USING_NAND_FLASH2 */
 
+#if defined(BSP_USING_NOR_FLASH3) || defined(BSP_USING_NAND_FLASH3)
+        HAL_RCC_HCPU_ClockSelect(RCC_CLK_MOD_FLASH3, RCC_CLK_FLASH_SYSCLK);
+#endif /* BSP_USING_NOR_FLASH3 || BSP_USING_NAND_FLASH3 */
+
         HAL_RCC_HCPU_DisableDLL2();
         status = HAL_RCC_HCPU_ConfigHCLK(24);
         RT_ASSERT(HAL_OK == status);
 
+#if defined(BSP_USING_PSRAM1) || defined(BSP_USING_PSRAM2)
 #ifdef BSP_USING_PSRAM1
         BSP_SetFlash1DIV(2);
-        rt_psram_init();
 #endif /* BSP_USING_PSRAM1 */
+#ifdef BSP_USING_PSRAM2
+        BSP_SetFlash2DIV(2);
+#endif /* BSP_USING_PSRAM2 */
+        rt_psram_init();
+#endif /* BSP_USING_PSRAM1 || BSP_USING_PSRAM2 */
 
 #ifdef BSP_USING_NOR_FLASH1
         BSP_SetFlash1DIV(2);
@@ -2165,6 +2255,17 @@ L1_RET_CODE_SECT(sifli_pm_run, __WEAK void sifli_pm_run(struct rt_pm *pm, uint8_
         BSP_SetFlash2DIV(2);
         rt_nand_update_clk(RCC_CLK_MOD_FLASH2, 2);
 #endif /* BSP_USING_NAND_FLASH2 */
+
+#ifdef BSP_USING_NOR_FLASH3
+        BSP_SetFlash3DIV(2);
+        BSP_Flash_hw3_init();
+        //hwp_mpi3->PSCLR = 2;
+#endif /* BSP_USING_NOR_FLASH3 */
+
+#ifdef BSP_USING_NAND_FLASH3
+        BSP_SetFlash3DIV(2);
+        rt_nand_update_clk(RCC_CLK_MOD_FLASH3, 2);
+#endif /* BSP_USING_NAND_FLASH3 */
 
         break;
     }
