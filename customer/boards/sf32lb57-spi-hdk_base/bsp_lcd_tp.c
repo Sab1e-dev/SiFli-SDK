@@ -6,7 +6,7 @@
 
 #include "bsp_board.h"
 
-#define LCD_RESET_PIN           (21)            // GPIO_A21
+#define LCD_RESET_PIN           (0)            // GPIO_A0
 #define TP_RESET                (10)            // GPIO_A10
 
 
@@ -33,6 +33,9 @@ void BSP_LCD_PowerUp(void)
     HAL_PIN_Set(PAD_PA07, LCDC1_SPI_DIO2, PIN_NOPULL, 1);
     HAL_PIN_Set(PAD_PA08, LCDC1_SPI_DIO3, PIN_NOPULL, 1);
     HAL_PIN_Set(PAD_PA02, LCDC1_SPI_TE, PIN_NOPULL, 1);
+    // Set the clk pin driver strength to 8mA
+    HAL_PIN_Set_DS0(PAD_PA04, 1, 1);
+    HAL_PIN_Set_DS1(PAD_PA04, 1, 0);
 
     HAL_PIN_Set(PAD_PA01, GPTIM1_CH4, PIN_NOPULL, 1);   // LCDC1_BL_PWM_CTRL, LCD backlight PWM
 #endif /* BSP_LCDC_USING_QADSPI */

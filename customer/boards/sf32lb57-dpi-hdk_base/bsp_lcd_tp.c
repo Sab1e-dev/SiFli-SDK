@@ -53,7 +53,8 @@ void BSP_LCD_PowerUp(void)
     HAL_PIN_Set(PAD_PA27, LCDC1_DPI_HSYNC, PIN_NOPULL, 1);
     HAL_PIN_Set(PAD_PA28, LCDC1_DPI_R2,    PIN_NOPULL, 1);
     HAL_PIN_Set(PAD_PA29, LCDC1_DPI_CLK,   PIN_NOPULL, 1);
-    HAL_PIN_Set_DS0(PAD_PA29, 1, 0);
+    // Set the clk pin driver strength to 8mA
+    HAL_PIN_Set_DS0(PAD_PA29, 1, 1);
     HAL_PIN_Set_DS1(PAD_PA29, 1, 0);
 
     HAL_PIN_Set(PAD_PA30, LCDC1_DPI_R3, PIN_NOPULL, 1);
@@ -155,6 +156,7 @@ void BSP_LCD_PowerUp(void)
     HAL_PIN_Set(PAD_PA48, LCDC1_MATRIX_SPI_DIO0, PIN_NOPULL, 1);
     HAL_PIN_Set(PAD_PA49, LCDC1_MATRIX_SPI_CS,   PIN_NOPULL, 1);
     HAL_PIN_Set(PAD_PA50, LCDC1_MATRIX_SPI_CLK, PIN_NOPULL, 1);
+    // Set the clk pin driver strength to 8mA
     HAL_PIN_Set_DS0(PAD_PA50, 1, 1);
     HAL_PIN_Set_DS1(PAD_PA50, 1, 0);
 
