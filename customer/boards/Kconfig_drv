@@ -643,6 +643,7 @@ menu "On-chip Peripherals"
             # Remember to update default value definition in Kconfig_soc.sf32lb57x also
             menuconfig BSP_ENABLE_MPI1
                 bool "MPI Controller 1 Enable"
+                depends on BF0_HCPU && !BF0_ACPU
                 default y if SOC_SF32LB573UB7N6 || SOC_SF32LB573UB776 || SOC_SF32LB575YBBN6
                 default y if SOC_SF32LB577VD776 || SOC_SF32LB579V6EN6
                 default n
@@ -742,6 +743,7 @@ menu "On-chip Peripherals"
                     
             menuconfig BSP_ENABLE_MPI2
                 bool "MPI Controller 2 Enable"
+                depends on BF0_HCPU && !BF0_ACPU
                 default y if SOC_SF32LB573UB7N6 || SOC_SF32LB573UB776 || SOC_SF32LB575YBBN6
                 default y if SOC_SF32LB577VD776 || SOC_SF32LB579V6EN6
                 default y if SOC_SF32LB57BUN3N6
@@ -859,6 +861,7 @@ menu "On-chip Peripherals"
 
             menuconfig BSP_ENABLE_MPI3
                 bool "MPI Controller 3 Enable"
+                depends on BF0_HCPU && !BF0_ACPU
                 default y if SOC_SF32LB573UB776 || SOC_SF32LB577VD776
                 default n
                 if BSP_ENABLE_MPI3
@@ -954,7 +957,7 @@ menu "On-chip Peripherals"
             menuconfig BSP_ENABLE_MPI4
                 bool "MPI Controller 4 Enable"
                 default n
-                depends on SOC_SF32LB58X
+                depends on SOC_SF32LB58X && BF0_HCPU && !BF0_ACPU
                 if BSP_ENABLE_MPI4
                     config BSP_ENABLE_QSPI4
                         bool 
@@ -1044,6 +1047,7 @@ menu "On-chip Peripherals"
                 endif
             menuconfig BSP_ENABLE_MPI5
                 bool "MPI Controller 5 Enable"
+                depends on !BF0_ACPU
                 default y if SOC_SF32LB58X
                 default y if SOC_SF32LB56X
                 if BSP_ENABLE_MPI5
