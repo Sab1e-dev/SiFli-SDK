@@ -56,6 +56,7 @@ __weak uint32_t BSP_GET_DPI_AUX_VSYNC_PIN(void)
     HAL_ASSERT(0);
     return 0;
 }
+static DMA_HandleTypeDef hdma_handle = {0};
 void DPI_HW_FSM_START(LCDC_HandleTypeDef *lcdc)
 {
     __IO uint32_t *p_VSYNC_PINMUX_REG = &(hwp_pinmux1->PAD_PA00) + BSP_GET_DPI_AUX_VSYNC_PIN();
@@ -162,7 +163,6 @@ void DPI_HW_FSM_START(LCDC_HandleTypeDef *lcdc)
     NVIC_EnableIRQ(PTM_IRQ_NUM);
 
     /*Dynamic allocation of DMA channels*/
-    DMA_HandleTypeDef hdma_handle = {0};
     DMA_Channel_TypeDef *p_DMACH = NULL;
     uint32_t PTC_DMACH_TC;
     memset(&hdma_handle, 0, sizeof(hdma_handle));
@@ -186,7 +186,7 @@ void DPI_HW_FSM_START(LCDC_HandleTypeDef *lcdc)
 
     //Burst copy from CPAR to CM0AR
     p_DMACH->CCR = DMAC_CCR1_MEM2MEM
-                   | (3 << DMAC_CCR1_PL_Pos)
+                   | (2 << DMAC_CCR1_PL_Pos)
                    | DMAC_CCR1_MINC | (0x2 << DMAC_CCR1_MSIZE_Pos)
                    | DMAC_CCR1_PINC | (0x2 << DMAC_CCR1_PSIZE_Pos)
                    | GPDMA_CCR1_DBURST | GPDMA_CCR1_SBURST
@@ -357,6 +357,9 @@ void DPI_HW_FSM_STOP(LCDC_HandleTypeDef *lcdc)
     hwp_ptm1->CER = PTM_CER_RST0;
 
     NVIC_DisableIRQ(PTM_IRQ_NUM);
+
+    //Free dma channel
+    HAL_DMA_FreeChannel(&hdma_handle);
 }
 
 void DPI_HW_FSM_UPDATE_LAYER_DATA(LCDC_HandleTypeDef *lcdc)

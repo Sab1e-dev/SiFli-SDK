@@ -1132,7 +1132,7 @@ static int gc0320_mclk_output(bool enable)
     device = (struct rt_device_pwm *)rt_device_find("pwmt2");
     if (!device)
     {
-        LOG_I("find pwm3 device failed");
+        LOG_I("find pwmt2 device failed");
         return -1;
     }
 
