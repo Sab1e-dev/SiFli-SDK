@@ -520,7 +520,7 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_AUDPRC_Config_DACPath(AUDPRC_HandleTypeDef 
             //| MAKE_REG_VAL(cfg->eq_stage, AUDPRC_DAC_PATH_CFG1_EQ_STAGE_Msk, AUDPRC_DAC_PATH_CFG1_EQ_STAGE_Pos)
             //| MAKE_REG_VAL(cfg->eq_clr, AUDPRC_DAC_PATH_CFG1_EQ_CLR_Msk, AUDPRC_DAC_PATH_CFG1_EQ_CLR_Pos)
             | MAKE_REG_VAL(cfg->src_ch_en, AUDPRC_DAC_PATH_CFG1_SRC_CH_EN_Msk, AUDPRC_DAC_PATH_CFG1_SRC_CH_EN_Pos)
-//TODO:
+
 #ifdef AUDPRC_DAC_PATH_CFG1_SRC_HBF1_EN_Msk
             | MAKE_REG_VAL(cfg->src_hbf1_en, AUDPRC_DAC_PATH_CFG1_SRC_HBF1_EN_Msk, AUDPRC_DAC_PATH_CFG1_SRC_HBF1_EN_Pos)
             | MAKE_REG_VAL(cfg->src_hbf1_mode, AUDPRC_DAC_PATH_CFG1_SRC_HBF1_MODE_Msk, AUDPRC_DAC_PATH_CFG1_SRC_HBF1_MODE_Pos)
@@ -528,19 +528,27 @@ __HAL_ROM_USED HAL_StatusTypeDef HAL_AUDPRC_Config_DACPath(AUDPRC_HandleTypeDef 
             | MAKE_REG_VAL(cfg->src_hbf2_mode, AUDPRC_DAC_PATH_CFG1_SRC_HBF2_MODE_Msk, AUDPRC_DAC_PATH_CFG1_SRC_HBF2_MODE_Pos)
             | MAKE_REG_VAL(cfg->src_hbf3_en, AUDPRC_DAC_PATH_CFG1_SRC_HBF3_EN_Msk, AUDPRC_DAC_PATH_CFG1_SRC_HBF3_EN_Pos)
             | MAKE_REG_VAL(cfg->src_hbf3_mode, AUDPRC_DAC_PATH_CFG1_SRC_HBF3_MODE_Msk, AUDPRC_DAC_PATH_CFG1_SRC_HBF3_MODE_Pos);
+#elif defined(AUDPRC_DAC_PATH_CFG1_SRC_RESAMPLE_EN_Msk)
+            | MAKE_REG_VAL((cfg->src_hbf1_en || cfg->src_hbf2_en || cfg->src_hbf3_en) ? 1 : 0, AUDPRC_DAC_PATH_CFG1_SRC_RESAMPLE_EN_Msk, AUDPRC_DAC_PATH_CFG1_SRC_RESAMPLE_EN_Pos)
+            | MAKE_REG_VAL(cfg->src_hbf1_mode, AUDPRC_DAC_PATH_CFG1_SRC_RESAMPLE_MODE_Msk, AUDPRC_DAC_PATH_CFG1_SRC_RESAMPLE_MODE_Pos)
+            | MAKE_REG_VAL(cfg->src_hbf3_en ? 2 : (cfg->src_hbf2_en ? 1 : 0), AUDPRC_DAC_PATH_CFG1_SRC_RESAMPLE_FACTOR_Msk, AUDPRC_DAC_PATH_CFG1_SRC_RESAMPLE_FACTOR_Pos);
 #else
             ;
 #endif
 
 #ifdef AUDPRC_DAC_PATH_CFG1_SRC_CH_CLR_Pos
     value |= (3 << AUDPRC_DAC_PATH_CFG1_SRC_CH_CLR_Pos);
+#elif defined(AUDPRC_DAC_PATH_CFG1_SRC_CLR_Pos)
+    value |= AUDPRC_DAC_PATH_CFG1_SRC_CLR;
 #endif
     haprc->Instance->DAC_PATH_CFG1 = value;
 
-//TODO:
 #ifdef AUDPRC_DAC_PATH_CFG1_SRC_CH_CLR_DONE
     while ((haprc->Instance->DAC_PATH_CFG1 & AUDPRC_DAC_PATH_CFG1_SRC_CH_CLR_DONE) == 0);
     value &= (~AUDPRC_DAC_PATH_CFG1_SRC_CH_CLR);
+    haprc->Instance->DAC_PATH_CFG1 = value;
+#elif defined(AUDPRC_DAC_PATH_CFG1_SRC_CLR_Pos)
+    value &= (~AUDPRC_DAC_PATH_CFG1_SRC_CLR_Msk);
     haprc->Instance->DAC_PATH_CFG1 = value;
 #endif
 
