@@ -154,6 +154,8 @@ typedef enum
 {
     LCDC_INTF_DBI_8BIT_A,                   //!< MIPI DBI type A interface(8080 8-bit  Clocked E mode)
     LCDC_INTF_DBI_8BIT_B,                   //!< MIPI DBI type B interface(8080 8-bit)
+    LCDC_INTF_DBI_16BIT_A,
+    LCDC_INTF_DBI_16BIT_B,
     LCDC_INTF_AHB,                   //!< output to AHB buffer (RAM/PSRAM)
 
     LCDC_INTF_SPI_START,
@@ -656,7 +658,9 @@ typedef struct __LCDC_HandleTypeDef
 
 #define HAL_LCDC_IS_SPI_IF(lcd_itf) (((lcd_itf) >= LCDC_INTF_SPI_START) && ((lcd_itf) <= LCDC_INTF_SPI_END))
 #define HAL_LCDC_IS_AHB_IF(lcd_itf) ((lcd_itf) == LCDC_INTF_AHB)
-#define HAL_LCDC_IS_DBI_IF(lcd_itf) (((lcd_itf) == LCDC_INTF_DBI_8BIT_A) || ((lcd_itf) == LCDC_INTF_DBI_8BIT_B))
+#define HAL_LCDC_IS_DBI_8BIT_IF(lcd_itf) (((lcd_itf) == LCDC_INTF_DBI_8BIT_A) || ((lcd_itf) == LCDC_INTF_DBI_8BIT_B))
+#define HAL_LCDC_IS_DBI_16BIT_IF(lcd_itf) (((lcd_itf) == LCDC_INTF_DBI_16BIT_A) || ((lcd_itf) == LCDC_INTF_DBI_16BIT_B))
+#define HAL_LCDC_IS_DBI_IF(lcd_itf) (HAL_LCDC_IS_DBI_8BIT_IF(lcd_itf) || HAL_LCDC_IS_DBI_16BIT_IF(lcd_itf))
 #define HAL_LCDC_IS_DSI_IF(lcd_itf) (((lcd_itf) == LCDC_INTF_DSI) || ((lcd_itf) == LCDC_INTF_DSI_VIDEO))
 #define HAL_LCDC_IS_DSI_CMD_IF(lcd_itf) ((lcd_itf) == LCDC_INTF_DSI)
 #define HAL_LCDC_IS_DSI_VID_IF(lcd_itf) ((lcd_itf) == LCDC_INTF_DSI_VIDEO)

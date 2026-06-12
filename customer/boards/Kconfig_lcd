@@ -398,6 +398,13 @@ if BSP_USING_BUILTIN_LCD
             bool "6inch EPD OPM060DA 8bit"
             select LCD_USING_EPD_OPM060DA
             select BSP_LCDC_USING_DIRECT_EPD
+
+        config LCD_USING_YX40018ACT
+            bool "3.92 rect DBI-16bit 320x320 TFT (YX40018ACT)"
+            select LCD_USING_ST7796U
+            select TSC_USING_FT6336 if BSP_USING_TOUCHD
+            select BSP_LCDC_USING_DBI
+            select LCD_USING_PWM_AS_BACKLIGHT
         
 #       config AM196Q410502LK_196_410x502
 #           bool "YUYING AM196Q410502LK_196_410x502"
@@ -548,6 +555,7 @@ if BSP_USING_BUILTIN_LCD
         default 410 if H0198S005AMT005_V0_195_410x502
         default 128 if LCD_USING_GC9107_128x128_SPI
         default 1032 if LCD_USING_EPD_8BIT_OPM060DA
+        default 320 if LCD_USING_YX40018ACT
 
 
         
@@ -601,6 +609,7 @@ if BSP_USING_BUILTIN_LCD
         default 502 if H0198S005AMT005_V0_195_410x502
         default 128 if LCD_USING_GC9107_128x128_SPI
         default 758 if LCD_USING_EPD_8BIT_OPM060DA
+        default 320 if LCD_USING_YX40018ACT
 
 
     config LCD_DPI
@@ -653,6 +662,7 @@ if BSP_USING_BUILTIN_LCD
         default 300 if H0198S005AMT005_V0_195_410x502
         default 213 if LCD_USING_GC9107_128x128_SPI
         default 300 if LCD_USING_EPD_8BIT_OPM060DA
+        default 117 if LCD_USING_YX40018ACT
 
 endif
 

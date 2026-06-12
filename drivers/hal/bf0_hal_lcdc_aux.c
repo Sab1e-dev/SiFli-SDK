@@ -32,21 +32,25 @@ void SPI_AUX_HW_FSM_STOP(LCDC_HandleTypeDef *lcdc)
 HAL_StatusTypeDef RAMLESS_HW_FSM_READ_DATAS_START(LCDC_HandleTypeDef *lcdc, uint32_t freq, uint32_t addr, uint32_t addr_len, uint32_t data_len)
 {
     HAL_ASSERT(0); //To be implemented
+    return HAL_OK;
 }
 
 HAL_StatusTypeDef RAMLESS_HW_FSM_WRITE_DATAS_START(LCDC_HandleTypeDef *lcdc, uint32_t addr, uint32_t addr_len, uint8_t *p_data, uint32_t data_len)
 {
     HAL_ASSERT(0); //To be implemented
+    return HAL_OK;
 }
 
 HAL_StatusTypeDef RAMLESS_HW_FSM_READ_DATAS_END(LCDC_HandleTypeDef *lcdc, uint8_t *p_data, uint32_t data_len)
 {
     HAL_ASSERT(0); //To be implemented
+    return HAL_OK;
 }
 
 HAL_StatusTypeDef RAMLESS_HW_FSM_WRITE_DATAS_END(LCDC_HandleTypeDef *lcdc)
 {
     HAL_ASSERT(0); //To be implemented
+    return HAL_OK;
 }
 
 #ifdef LCDC_SUPPORT_DPI

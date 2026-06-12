@@ -723,7 +723,7 @@ static HAL_StatusTypeDef SetOutFormat(LCDC_HandleTypeDef *lcdc, HAL_LCDC_PixelFo
                  | (1 << LCD_IF_LCD_CONF_DPI_LCD_FORMAT_Pos)           // DPI LCD
                  | (1 << LCD_IF_LCD_CONF_SPI_LCD_FORMAT_Pos);           // SPI LCD
 
-        if (HAL_LCDC_IS_DBI_IF(lcdc->Init.lcd_itf))
+        if (HAL_LCDC_IS_DBI_8BIT_IF(lcdc->Init.lcd_itf))
         {
             reg_v |= LCD_IF_LCD_CONF_LCD_FORMAT_8BIT_RGB565;           // DBI RGB565 over 8-bit bus
         }
@@ -740,7 +740,7 @@ static HAL_StatusTypeDef SetOutFormat(LCDC_HandleTypeDef *lcdc, HAL_LCDC_PixelFo
                  | (1 << LCD_IF_LCD_CONF_SPI_LCD_FORMAT_Pos)           // SPI LCD
                  | LCD_IF_LCD_CONF_ENDIAN;
 
-        if (HAL_LCDC_IS_DBI_IF(lcdc->Init.lcd_itf))
+        if (HAL_LCDC_IS_DBI_8BIT_IF(lcdc->Init.lcd_itf))
         {
             reg_v |= LCD_IF_LCD_CONF_LCD_FORMAT_8BIT_RGB565;           // DBI RGB565 over 8-bit bus
         }
@@ -756,9 +756,13 @@ static HAL_StatusTypeDef SetOutFormat(LCDC_HandleTypeDef *lcdc, HAL_LCDC_PixelFo
                  | (5 << LCD_IF_LCD_CONF_DPI_LCD_FORMAT_Pos)           // DPI LCD
                  | (2 << LCD_IF_LCD_CONF_SPI_LCD_FORMAT_Pos);           // SPI LCD
 
-        if (HAL_LCDC_IS_DBI_IF(lcdc->Init.lcd_itf))
+        if (HAL_LCDC_IS_DBI_8BIT_IF(lcdc->Init.lcd_itf))
         {
             reg_v |= LCD_IF_LCD_CONF_LCD_FORMAT_RGB888_OVER8BUS;          // DBI
+        }
+        else if (HAL_LCDC_IS_DBI_16BIT_IF(lcdc->Init.lcd_itf))
+        {
+            reg_v |= LCD_IF_LCD_CONF_LCD_FORMAT_RGB888_OVER16BUS;         // DBI
         }
 #ifdef HAL_DSI_MODULE_ENABLED
         else if (HAL_LCDC_IS_DSI_IF(lcdc->Init.lcd_itf))
